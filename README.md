@@ -1,13 +1,58 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Inventory System
 
-## Getting Started
+Need to install following for this repository:
 
-First, run the development server:
+- Node.js version 14 or above
+- NPM or YARN
+- Docker and Docker-Compose
 
-```bash
-npm run dev
+##### Instructions for development server
+
+Clone this repository:
+
+```sh
+git clone https://github.com/hammadtariq/inventory-system-nextjs.git
+```
+
+Install `Docker` and `Docker-Compose` for Potsgres Database
+[Get Docker](https://docs.docker.com/get-docker/)
+
+Create `.env` file in root directory for environment variables
+
+```sh
+.env
+```
+
+Write environment variables in .env file
+
+```sh
+POSTGRES_DB=databasename
+POSTGRES_USER=username
+POSTGRES_PASSWORD=password
+```
+
+Run the following command to create postgres container
+
+```sh
+docker-compose up -d
+```
+
+It will create docker container for postgres and docker volume to persist the data locally
+
+Now install project dependencies
+
+```sh
+yarn install
 # or
+npm install
+```
+
+Finally, start the development server:
+
+```sh
 yarn dev
+# or
+npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
