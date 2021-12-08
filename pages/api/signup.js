@@ -1,6 +1,15 @@
 import nextConnect from "next-connect";
 import db from "@/lib/postgres";
+import Joi from "joi";
 import { createHash } from "@/lib/bcrypt";
+
+const apiSchema = Joi.object({
+  firstName: Joi.string().required(),
+  lastName: Joi.string().required(),
+  email: Joi.string().email().required(),
+  role: Joi.string().required(),
+  password: Joi.string().required(),
+});
 
 const onNoMatch = async (req, res) => {
   res.status(405).send({
@@ -10,19 +19,14 @@ const onNoMatch = async (req, res) => {
 };
 
 const signup = async (req, res) => {
-  const { firstName, lastName, email, password, role } = req.body;
-
-  if (!firstName || !lastName || !email || !password || !role) {
-    return res.status(400).send({
-      success: false,
-      message: "Please provide all fields",
-      required: ["firstName", "lastName", "email", "password", "role"],
-    });
+  const { error, value } = apiSchema.validate(req.body);
+  if (error && Object.keys(error).length) {
+    return res.status(400).send({ success: false, error });
   }
 
   try {
     await db.dbConnect();
-    const user = await db.User.findOne({ where: { email } });
+    const user = await db.User.findOne({ where: { email: value.email } });
 
     // if user already exist
     if (user) {
@@ -31,13 +35,10 @@ const signup = async (req, res) => {
         .send({ success: false, message: "User already exist" });
     }
 
-    const hashPassword = await createHash(password);
+    const hashPassword = await createHash(value.password);
 
     await db.User.create({
-      firstName,
-      lastName,
-      email,
-      role,
+      ...value,
       password: hashPassword,
     });
 
