@@ -1,8 +1,6 @@
 import nextConnect from "next-connect";
-import db from "@/lib/dbConnect";
+import db from "@/lib/postgres";
 import { createHash } from "@/lib/bcrypt";
-
-const dbConnect = db.dbConnect;
 
 const onNoMatch = async (req, res) => {
   res.status(405).send({
@@ -23,7 +21,7 @@ const signup = async (req, res) => {
   }
 
   try {
-    await dbConnect();
+    await db.dbConnect();
     const user = await db.User.findOne({ where: { email } });
 
     // if user already exist
