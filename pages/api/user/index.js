@@ -1,6 +1,5 @@
 import db from "@/lib/postgres";
 import { apiHandler } from "@/lib/handler";
-import user from "models/user";
 
 const allUsers = async (_, res) => {
   try {
