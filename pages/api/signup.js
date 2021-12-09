@@ -1,7 +1,7 @@
-import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import Joi from "joi";
 import { createHash } from "@/lib/bcrypt";
+import { apiHandler } from "@/lib/handler";
 
 const apiSchema = Joi.object({
   firstName: Joi.string().min(3).trim().required(),
@@ -10,13 +10,6 @@ const apiSchema = Joi.object({
   role: Joi.string().trim().required(),
   password: Joi.string().min(8).trim().required(),
 });
-
-const onNoMatch = async (req, res) => {
-  res.status(405).send({
-    success: false,
-    error: `Requested ${req.method} method not allowed`,
-  });
-};
 
 const signup = async (req, res) => {
   const { error, value } = apiSchema.validate(req.body);
@@ -51,4 +44,4 @@ const signup = async (req, res) => {
   }
 };
 
-export default nextConnect({ onNoMatch }).post(signup);
+export default apiHandler.post(signup);
