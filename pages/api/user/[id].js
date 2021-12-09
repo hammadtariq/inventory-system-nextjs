@@ -4,9 +4,9 @@ import Joi from "joi";
 
 // api schema for all routes for this file only
 const apiSchema = Joi.object({
-  firstName: Joi.string(),
-  lastName: Joi.string(),
-  email: Joi.string().email(),
+  firstName: Joi.string().min(3).trim(),
+  lastName: Joi.string().min(3).trim(),
+  email: Joi.string().email().trim(),
   id: Joi.number().required(),
 });
 
@@ -47,7 +47,7 @@ const updateUser = async (req, res) => {
     }
 
     // update user
-    await user.update({ ...req.body });
+    await user.update({ ...value });
 
     return res.send({
       success: true,
