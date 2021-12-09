@@ -4,11 +4,11 @@ import Joi from "joi";
 import { createHash } from "@/lib/bcrypt";
 
 const apiSchema = Joi.object({
-  firstName: Joi.string().required(),
-  lastName: Joi.string().required(),
-  email: Joi.string().email().required(),
-  role: Joi.string().required(),
-  password: Joi.string().required(),
+  firstName: Joi.string().min(3).trim().required(),
+  lastName: Joi.string().min(3).trim().required(),
+  email: Joi.string().email().trim().required(),
+  role: Joi.string().trim().required(),
+  password: Joi.string().min(8).trim().required(),
 });
 
 const onNoMatch = async (req, res) => {
@@ -47,7 +47,7 @@ const signup = async (req, res) => {
       message: "User registered successfully",
     });
   } catch (error) {
-    res.send(error);
+    res.status(500).send(error);
   }
 };
 
