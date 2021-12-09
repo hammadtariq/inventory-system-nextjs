@@ -1,7 +1,7 @@
 import db from "@/lib/postgres";
 import { apiHandler } from "@/lib/handler";
 
-const allUsers = async (_, res) => {
+const getAllUsers = async (_, res) => {
   try {
     await db.dbConnect();
     const users = await db.User.findAll({
@@ -18,4 +18,4 @@ const allUsers = async (_, res) => {
   }
 };
 
-export default apiHandler.get(allUsers);
+export default apiHandler.get(getAllUsers);
