@@ -1,13 +1,6 @@
-import nextConnect from "next-connect";
-import db from "@/lib/dbConnect";
+import db from "@/lib/postgres";
+import { apiHandler } from "@/lib/handler";
 const dbConnect = db.dbConnect;
-
-const onNoMatch = async (req, res) => {
-  res.status(405).send({
-    success: false,
-    error: `Requested ${req.method} method not allowed`,
-  });
-};
 
 const getCustomer = async (req, res) => {
   try {
@@ -60,4 +53,4 @@ const editCustomer = async (req, res) => {
   }
 };
 
-export default nextConnect({ onNoMatch }).get(getCustomer).put(editCustomer);
+export default apiHandler.get(getCustomer).put(editCustomer);

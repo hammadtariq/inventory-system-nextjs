@@ -1,14 +1,7 @@
-import nextConnect from "next-connect";
-import db from "@/lib/dbConnect";
+import db from "@/lib/postgres";
+import { apiHandler } from "@/lib/handler";
 
 const dbConnect = db.dbConnect;
-
-const onNoMatch = async (req, res) => {
-  res.status(405).send({
-    success: false,
-    error: `Requested ${req.method} method not allowed`,
-  });
-};
 
 const customerRegistration = async (req, res) => {
   const { firstName, lastName, email, role } = req.body;
@@ -48,4 +41,4 @@ const customerRegistration = async (req, res) => {
   }
 };
 
-export default nextConnect({ onNoMatch }).post(customerRegistration);
+export default apiHandler.post(customerRegistration);
