@@ -1,5 +1,7 @@
 "use strict";
 const { Model } = require("sequelize");
+const { createHash } = require("@/lib/bcrypt");
+
 module.exports = (sequelize, DataTypes) => {
   class user extends Model {
     static associate(models) {
@@ -49,5 +51,12 @@ module.exports = (sequelize, DataTypes) => {
       modelName: "user",
     }
   );
+
+  // define hooks here
+  user.beforeCreate(async (user, _) => {
+    const hashPassword = await createHash(user.password);
+    user.password = hashPassword;
+  });
+
   return user;
 };

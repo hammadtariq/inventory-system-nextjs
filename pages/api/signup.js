@@ -1,6 +1,5 @@
 import db from "@/lib/postgres";
 import Joi from "joi";
-import { createHash } from "@/lib/bcrypt";
 import { apiHandler } from "@/lib/handler";
 
 const apiSchema = Joi.object({
@@ -28,11 +27,8 @@ const signup = async (req, res) => {
         .send({ success: false, message: "User already exist" });
     }
 
-    const hashPassword = await createHash(value.password);
-
     await db.User.create({
       ...value,
-      password: hashPassword,
     });
 
     return res.send({
