@@ -23,6 +23,8 @@ module.exports = (sequelize, DataTypes) => {
             msg: "First name must be lowercase",
           },
         },
+        min: 3,
+          max:12
       },
       lastName: {
         type: DataTypes.STRING,
@@ -30,6 +32,8 @@ module.exports = (sequelize, DataTypes) => {
         validate: {
           isLowercase: { msg: "Last name must lowercase" },
         },
+        min: 3,
+          max:12
       },
       email: {
         type: DataTypes.STRING,
