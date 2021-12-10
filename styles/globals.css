@@ -14,3 +14,10 @@ a {
 * {
   box-sizing: border-box;
 }
+
+.site-layout .site-layout-background {
+  background: #fff;
+}
+[data-theme="dark"] .siteLayout .site-layout-background {
+  background: #141414;
+}
