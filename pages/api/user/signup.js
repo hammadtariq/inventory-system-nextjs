@@ -6,7 +6,7 @@ const apiSchema = Joi.object({
   firstName: Joi.string().min(3).trim().required(),
   lastName: Joi.string().min(3).trim().required(),
   email: Joi.string().email().trim().required(),
-  role: Joi.string().trim().required(),
+  role: Joi.string().trim().required().valid("EDITOR"),
   password: Joi.string().min(8).trim().required(),
 });
 

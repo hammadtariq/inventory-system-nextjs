@@ -1,20 +1,18 @@
 "use strict";
 const { Model } = require("sequelize");
-const { createHash } = require("@/lib/bcrypt");
-
 module.exports = (sequelize, DataTypes) => {
-  class user extends Model {
+  class customer extends Model {
+    /**
+     * Helper method for defining associations.
+     * This method is not a part of Sequelize lifecycle.
+     * The `models/index` file will call this method automatically.
+     */
     static associate(models) {
       // define association here
     }
   }
-  user.init(
+  customer.init(
     {
-      uuid: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
-        allowNull: false,
-      },
       firstName: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -22,9 +20,10 @@ module.exports = (sequelize, DataTypes) => {
           isLowercase: {
             msg: "First name must be lowercase",
           },
-        },
-        min: 3,
+          min: 3,
           max:12
+          
+        },
       },
       lastName: {
         type: DataTypes.STRING,
@@ -33,7 +32,7 @@ module.exports = (sequelize, DataTypes) => {
           isLowercase: { msg: "Last name must lowercase" },
         },
         min: 3,
-          max:12
+        max:12
       },
       email: {
         type: DataTypes.STRING,
@@ -44,28 +43,17 @@ module.exports = (sequelize, DataTypes) => {
           isLowercase: { msg: "Email should be lowercase" },
         },
       },
-      password: {
-        type: DataTypes.STRING,
+      role: DataTypes.STRING,
+      uuid: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
         allowNull: false,
       },
-      role: DataTypes.ENUM(["ADMIN", "EDITOR"]),
     },
     {
       sequelize,
-      modelName: "user",
+      modelName: "customer",
     }
   );
-
-  // define hooks here
-  user.beforeCreate(async (user, _) => {
-    const hashPassword = await createHash(user.password);
-    user.password = hashPassword;
-  });
-
-  user.beforeUpdate(async (user, _) => {
-    const hashPassword = await createHash(user.password);
-    user.password = hashPassword;
-  });
-
-  return user;
+  return customer;
 };
