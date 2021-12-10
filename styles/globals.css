@@ -21,3 +21,9 @@ a {
 [data-theme="dark"] .siteLayout .site-layout-background {
   background: #141414;
 }
+
+.logo {
+  height: 32px;
+  margin: 16px;
+  background: rgba(255, 255, 255, 0.3);
+}
