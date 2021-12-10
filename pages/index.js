@@ -2,7 +2,6 @@ import Head from "next/head";
 
 import { Layout } from "antd";
 import { useState } from "react";
-import "antd/dist/antd.css";
 
 import AppContent from "../components/content";
 import AppHeader from "../components/header";
