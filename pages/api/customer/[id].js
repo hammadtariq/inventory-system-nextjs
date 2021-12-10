@@ -34,14 +34,13 @@ const editCustomer = async (req, res) => {
     const customer = await db.Customer.findOne({
       where: { id },
     });
-    console.log(typeof id);
     if (!customer) {
       return res
         .status(409)
         .send({ success: false, message: "Customer not exist" });
     }
 
-    await customer.update({ firstName: "rehan1" });
+    await customer.update({ ...req.body });
 
     return res.send({
       succress: true,
