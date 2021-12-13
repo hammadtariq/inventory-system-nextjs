@@ -41,4 +41,19 @@ const customerRegistration = async (req, res) => {
   }
 };
 
-export default apiHandler.post(customerRegistration);
+const getAllCustomers = async (req, res) => {
+  try {
+    await dbConnect();
+    const customers = await db.Customer.findAll();
+
+    return res.send({
+      succress: true,
+      message: "All Customers",
+      data: customers,
+    });
+  } catch (error) {
+    res.send(error);
+  }
+};
+
+export default apiHandler.post(customerRegistration).get(getAllCustomers);
