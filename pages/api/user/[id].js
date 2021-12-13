@@ -35,7 +35,7 @@ const getUser = async (req, res) => {
 
     return res.send({ success: true, user });
   } catch (error) {
-    res.status(500).send({ success: false, error });
+    return res.status(500).send({ success: false, error });
   }
 };
 
@@ -84,7 +84,7 @@ const updateUser = async (req, res) => {
       user,
     });
   } catch (error) {
-    res.status(500).send({ success: false, error });
+    return res.status(500).send({ success: false, error });
   }
 };
 
@@ -117,7 +117,7 @@ const deleteUser = async (req, res) => {
       message: "User deleted succesfully",
     });
   } catch (error) {
-    res.status(500).send({ success: false, error });
+    return res.status(500).send({ success: false, error });
   }
 };
 

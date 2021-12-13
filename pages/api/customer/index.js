@@ -33,11 +33,11 @@ const customerRegistration = async (req, res) => {
     });
 
     return res.send({
-      succress: true,
+      success: true,
       message: "Customer registered successfully",
     });
   } catch (error) {
-    res.send(error);
+    return res.send(error);
   }
 };
 

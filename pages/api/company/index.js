@@ -28,11 +28,11 @@ const createCompany = async (req, res) => {
     });
 
     return res.send({
-      succress: true,
+      success: true,
       message: "company created successfully",
     });
   } catch (error) {
-    res.status(500).send(error);
+    return res.status(500).send(error);
   }
 };
 
@@ -46,12 +46,12 @@ const getAllCompanies = async (req, res) => {
     const data = await db.Company.findAndCountAll(pagination);
 
     return res.send({
-      succress: true,
+      success: true,
       message: "Success",
       data
     });
   } catch (error) {
-    res.send(error);
+    return res.send(error);
   }
 }
 export default apiHandler.post(createCompany).get(getAllCompanies);

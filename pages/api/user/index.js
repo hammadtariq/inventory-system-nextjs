@@ -12,9 +12,9 @@ const getAllUsers = async (_, res) => {
       return res.send({ success: true, message: "No user found", users });
     }
 
-    res.send({ success: true, users });
+    return res.send({ success: true, users });
   } catch (error) {
-    res.status(500).send({ success: false, error });
+    return res.status(500).send({ success: false, error });
   }
 };
 

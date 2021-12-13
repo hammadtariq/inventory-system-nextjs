@@ -45,7 +45,7 @@ const updateCompany = async (req, res) => {
       company,
     });
   } catch (error) {
-    res.status(500).send({ success: false, error });
+    return res.status(500).send({ success: false, error });
   }
 };
 
@@ -76,7 +76,7 @@ const deleteCompany = async (req, res) => {
       company
     });
   } catch (error) {
-    res.status(500).send({ success: false, error });
+    return res.status(500).send({ success: false, error });
   }
 };
 
@@ -102,12 +102,12 @@ const getCompany = async (req, res) => {
     }
 
     return res.send({
-      succress: true,
+      success: true,
       message: "Success",
       data: company,
     });
   } catch (error) {
-    res.send(error);
+    return res.send(error);
   }
 };
 

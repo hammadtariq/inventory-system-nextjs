@@ -17,12 +17,12 @@ const getCustomer = async (req, res) => {
     }
 
     return res.send({
-      succress: true,
+      success: true,
       message: "Success",
       data: customer,
     });
   } catch (error) {
-    res.send(error);
+    return res.send(error);
   }
 };
 
@@ -43,12 +43,12 @@ const editCustomer = async (req, res) => {
     await customer.update({ ...req.body });
 
     return res.send({
-      succress: true,
+      success: true,
       message: "Success PUT",
       data: customer,
     });
   } catch (error) {
-    res.send(error);
+    return res.send(error);
   }
 };
 

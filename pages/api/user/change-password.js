@@ -43,7 +43,7 @@ const changePassword = async (req, res) => {
       message: "Password updated successfully",
     });
   } catch (error) {
-    res.status(500).send({ success: false, message });
+    return res.status(500).send({ success: false, message });
   }
 };
 

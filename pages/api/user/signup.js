@@ -32,11 +32,11 @@ const signup = async (req, res) => {
     });
 
     return res.send({
-      succress: true,
+      success: true,
       message: "User registered successfully",
     });
   } catch (error) {
-    res.status(500).send(error);
+    return res.status(500).send(error);
   }
 };
 
