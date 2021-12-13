@@ -10,6 +10,35 @@ const apiSchema = Joi.object({
   id: Joi.number().required(),
 });
 
+const getUser = async (req, res) => {
+  // validate api fields
+  const { error, value } = apiSchema.validate({ id: req.query.id });
+
+  //   if api fields errors
+  if (error && Object.keys(error).length) {
+    return res.status(400).send({ success: false, error });
+  }
+
+  try {
+    // if user id and api fields are valid then connect database
+    await db.dbConnect();
+    const user = await db.User.findByPk(value.id, {
+      attributes: { exclude: ["password"] },
+    });
+
+    // if user not found
+    if (!user) {
+      return res
+        .status(404)
+        .send({ success: false, message: "User not found" });
+    }
+
+    return res.send({ success: true, user });
+  } catch (error) {
+    res.status(500).send({ success: false, error });
+  }
+};
+
 const updateUser = async (req, res) => {
   // validate api fields
   const { error, value } = apiSchema.validate({
@@ -92,4 +121,4 @@ const deleteUser = async (req, res) => {
   }
 };
 
-export default apiHandler.put(updateUser).delete(deleteUser);
+export default apiHandler.get(getUser).put(updateUser).delete(deleteUser);

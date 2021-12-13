@@ -1,38 +1,22 @@
 "use strict";
 const { Model } = require("sequelize");
+
 module.exports = (sequelize, DataTypes) => {
-  class customer extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
+  class company extends Model {
     static associate(models) {
-      // define association here
     }
   }
-  customer.init(
+  company.init(
     {
-      firstName: {
+      companyName: {
         type: DataTypes.STRING,
         allowNull: false,
         validate: {
           isLowercase: {
-            msg: "First name must be lowercase",
+            msg: "company name must be lowercase",
           },
-          min: 3,
-          max:12
-          
+          min: 3
         },
-      },
-      lastName: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        validate: {
-          isLowercase: { msg: "Last name must lowercase" },
-        },
-        min: 3,
-        max:12
       },
       email: {
         type: DataTypes.STRING,
@@ -43,7 +27,15 @@ module.exports = (sequelize, DataTypes) => {
           isLowercase: { msg: "Email should be lowercase" },
         },
       },
-      role: DataTypes.STRING,
+      phone: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      address:{
+        type: DataTypes.STRING,
+        allowNull: false,
+        min:10
+      },
       uuid: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
@@ -52,8 +44,8 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       sequelize,
-      modelName: "customer",
+      modelName: "company",
     }
   );
-  return customer;
+  return company;
 };
