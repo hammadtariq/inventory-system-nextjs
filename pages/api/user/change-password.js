@@ -23,17 +23,13 @@ const changePassword = async (req, res) => {
 
     // if user not found
     if (!user) {
-      return res
-        .status(404)
-        .send({ success: false, message: "User not found" });
+      return res.status(404).send({ success: false, message: "User not found" });
     }
 
     const isMatchPassword = await compareHash(value.oldPassword, user.password);
 
     if (!isMatchPassword) {
-      return res
-        .status(401)
-        .send({ success: false, message: "Password could not be verified" });
+      return res.status(401).send({ success: false, message: "Password could not be verified" });
     }
 
     await user.update({ password: value.newPassword });

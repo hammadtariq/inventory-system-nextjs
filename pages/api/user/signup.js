@@ -22,9 +22,7 @@ const signup = async (req, res) => {
 
     // if user already exist
     if (user) {
-      return res
-        .status(409)
-        .send({ success: false, message: "User already exist" });
+      return res.status(409).send({ success: false, message: "User already exist" });
     }
 
     await db.User.create({

@@ -3,8 +3,7 @@ const { Model } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
   class company extends Model {
-    static associate(models) {
-    }
+    static associate(models) {}
   }
   company.init(
     {
@@ -15,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
           isLowercase: {
             msg: "company name must be lowercase",
           },
-          min: 3
+          min: 3,
         },
       },
       email: {
@@ -31,10 +30,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      address:{
+      address: {
         type: DataTypes.STRING,
         allowNull: false,
-        min:10
+        min: 10,
       },
       uuid: {
         type: DataTypes.UUID,

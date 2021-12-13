@@ -28,9 +28,7 @@ const getUser = async (req, res) => {
 
     // if user not found
     if (!user) {
-      return res
-        .status(404)
-        .send({ success: false, message: "User not found" });
+      return res.status(404).send({ success: false, message: "User not found" });
     }
 
     return res.send({ success: true, user });
@@ -61,9 +59,7 @@ const updateUser = async (req, res) => {
 
     // if user not found
     if (!user) {
-      return res
-        .status(404)
-        .send({ success: false, message: "User not found" });
+      return res.status(404).send({ success: false, message: "User not found" });
     }
 
     // if req.body is empty
@@ -104,9 +100,7 @@ const deleteUser = async (req, res) => {
 
     // if user not found
     if (!user) {
-      return res
-        .status(404)
-        .send({ success: false, message: "User does not exist" });
+      return res.status(404).send({ success: false, message: "User does not exist" });
     }
 
     // delete user

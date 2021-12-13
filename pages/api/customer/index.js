@@ -20,9 +20,7 @@ const customerRegistration = async (req, res) => {
 
     // if user already exist
     if (customer) {
-      return res
-        .status(409)
-        .send({ success: false, message: "Customer already exist" });
+      return res.status(409).send({ success: false, message: "Customer already exist" });
     }
 
     await db.Customer.create({

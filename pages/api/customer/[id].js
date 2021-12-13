@@ -12,9 +12,7 @@ const getCustomer = async (req, res) => {
     });
 
     if (!customer) {
-      return res
-        .status(409)
-        .send({ success: false, message: "Customer not exist" });
+      return res.status(409).send({ success: false, message: "Customer not exist" });
     }
 
     return res.send({
@@ -51,9 +49,7 @@ const editCustomer = async (req, res) => {
       where: { id: value.id },
     });
     if (!customer) {
-      return res
-        .status(409)
-        .send({ success: false, message: "Customer not exist" });
+      return res.status(409).send({ success: false, message: "Customer not exist" });
     }
 
     await customer.update({ ...value });
@@ -78,9 +74,7 @@ const deleteCustomer = async (req, res) => {
       where: { id },
     });
     if (!customer) {
-      return res
-        .status(409)
-        .send({ success: false, message: "Customer not exist" });
+      return res.status(409).send({ success: false, message: "Customer not exist" });
     }
 
     return res.send({
@@ -92,7 +86,4 @@ const deleteCustomer = async (req, res) => {
   }
 };
 
-export default apiHandler
-  .get(getCustomer)
-  .put(editCustomer)
-  .delete(deleteCustomer);
+export default apiHandler.get(getCustomer).put(editCustomer).delete(deleteCustomer);
