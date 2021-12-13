@@ -14,19 +14,19 @@ export default function Home() {
   const onCollapse = (collapsed) => {
     setCollapsed(collapsed);
   };
-
-  return (
-    <Layout style={{ minHeight: "100vh" }}>
-      <Head>
-        <title>Inventory System</title>
-      </Head>
-      <AppSider collapsed={collapsed} onCollapse={onCollapse} />
-      <Layout className="site-layout">
-        <AppHeader />
-        {/* integrate routes in Content component */}
-        <AppContent />
-        <AppFooter />
-      </Layout>
-    </Layout>
-  );
+  return <div></div>
+  // return (
+  //   // <Layout style={{ minHeight: "100vh" }}>
+  //   //   <Head>
+  //   //     <title>Inventory System</title>
+  //   //   </Head>
+  //   //   <AppSider collapsed={collapsed} onCollapse={onCollapse} />
+  //   //   <Layout className="site-layout">
+  //   //     <AppHeader />
+  //   //     {/* integrate routes in Content component */}
+  //   //     <AppContent />
+  //   //     <AppFooter />
+  //   //   </Layout>
+  //   // </Layout>
+  // );
 }

@@ -1,5 +1,4 @@
 import { Layout, Breadcrumb } from "antd";
-
 const { Content } = Layout;
 
 export default function AppContent({ children }) {
