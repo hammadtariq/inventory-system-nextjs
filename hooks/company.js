@@ -1,7 +1,12 @@
 import useSWR from "swr";
-import { axiosFetcher } from "../utils/axios";
+import { getFetcher, deleteFetcher } from "../lib/httpClient";
 
 export const useCompanies = () => {
-  const response = useSWR("/api/company", axiosFetcher);
-  return response;
+  const { data, error } = useSWR("/api/company", getFetcher);
+
+  return {
+    companies: data,
+    isLoading: !error && !data,
+    error,
+  };
 };
