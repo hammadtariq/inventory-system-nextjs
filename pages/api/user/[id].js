@@ -28,14 +28,12 @@ const getUser = async (req, res) => {
 
     // if user not found
     if (!user) {
-      return res
-        .status(404)
-        .send({ success: false, message: "User not found" });
+      return res.status(404).send({ success: false, message: "User not found" });
     }
 
     return res.send({ success: true, user });
   } catch (error) {
-    res.status(500).send({ success: false, error });
+    return res.status(500).send({ success: false, error });
   }
 };
 
@@ -61,9 +59,7 @@ const updateUser = async (req, res) => {
 
     // if user not found
     if (!user) {
-      return res
-        .status(404)
-        .send({ success: false, message: "User not found" });
+      return res.status(404).send({ success: false, message: "User not found" });
     }
 
     // if req.body is empty
@@ -84,7 +80,7 @@ const updateUser = async (req, res) => {
       user,
     });
   } catch (error) {
-    res.status(500).send({ success: false, error });
+    return res.status(500).send({ success: false, error });
   }
 };
 
@@ -104,9 +100,7 @@ const deleteUser = async (req, res) => {
 
     // if user not found
     if (!user) {
-      return res
-        .status(404)
-        .send({ success: false, message: "User does not exist" });
+      return res.status(404).send({ success: false, message: "User does not exist" });
     }
 
     // delete user
@@ -117,7 +111,7 @@ const deleteUser = async (req, res) => {
       message: "User deleted succesfully",
     });
   } catch (error) {
-    res.status(500).send({ success: false, error });
+    return res.status(500).send({ success: false, error });
   }
 };
 

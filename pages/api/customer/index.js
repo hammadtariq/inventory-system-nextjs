@@ -20,9 +20,7 @@ const customerRegistration = async (req, res) => {
 
     // if user already exist
     if (customer) {
-      return res
-        .status(409)
-        .send({ success: false, message: "Customer already exist" });
+      return res.status(409).send({ success: false, message: "Customer already exist" });
     }
 
     await db.Customer.create({
@@ -33,12 +31,27 @@ const customerRegistration = async (req, res) => {
     });
 
     return res.send({
-      succress: true,
+      success: true,
       message: "Customer registered successfully",
+    });
+  } catch (error) {
+    return res.send(error);
+  }
+};
+
+const getAllCustomers = async (req, res) => {
+  try {
+    await dbConnect();
+    const customers = await db.Customer.findAll();
+
+    return res.send({
+      succress: true,
+      message: "All Customers",
+      data: customers,
     });
   } catch (error) {
     res.send(error);
   }
 };
 
-export default apiHandler.post(customerRegistration);
+export default apiHandler.post(customerRegistration).get(getAllCustomers);

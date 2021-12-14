@@ -25,15 +25,13 @@ const updateCompany = async (req, res) => {
 
     const company = await db.Company.findByPk(value.id);
     if (!company) {
-      return res
-        .status(404)
-        .send({ success: false, message: "company not found" });
+      return res.status(404).send({ success: false, message: "company not found" });
     }
     if (!Object.keys(req.body).length) {
       res.status(400).send({
         success: false,
         message: "Please provide at least one field",
-        allowedFields: ["companyName", "phone", "email","address"],
+        allowedFields: ["companyName", "phone", "email", "address"],
       });
     }
 
@@ -45,7 +43,7 @@ const updateCompany = async (req, res) => {
       company,
     });
   } catch (error) {
-    res.status(500).send({ success: false, error });
+    return res.status(500).send({ success: false, error });
   }
 };
 
@@ -63,9 +61,7 @@ const deleteCompany = async (req, res) => {
     const company = await db.Company.findByPk(value.id);
 
     if (!company) {
-      return res
-        .status(404)
-        .send({ success: false, message: "company does not exist" });
+      return res.status(404).send({ success: false, message: "company does not exist" });
     }
 
     await db.Company.destroy({ where: { id: value.id } });
@@ -73,10 +69,10 @@ const deleteCompany = async (req, res) => {
     return res.send({
       success: true,
       message: "company deleted succesfully",
-      company
+      company,
     });
   } catch (error) {
-    res.status(500).send({ success: false, error });
+    return res.status(500).send({ success: false, error });
   }
 };
 
@@ -96,18 +92,16 @@ const getCompany = async (req, res) => {
     });
 
     if (!company) {
-      return res
-        .status(409)
-        .send({ success: false, message: "company not exist" });
+      return res.status(409).send({ success: false, message: "company not exist" });
     }
 
     return res.send({
-      succress: true,
+      success: true,
       message: "Success",
       data: company,
     });
   } catch (error) {
-    res.send(error);
+    return res.send(error);
   }
 };
 
