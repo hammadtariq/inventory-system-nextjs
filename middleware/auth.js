@@ -1,4 +1,7 @@
-export const auth = async (req, res, next) => {
-  //   res.send({ success: true, message: "auth works" });
-  next();
-};
+import nextConnect from "next-connect";
+import passport from "passport";
+// import passport from "@/lib/passport";
+
+export const auth = nextConnect()
+  .use(passport.initialize())
+  .use(passport.authenticate("local", { session: false }));
