@@ -1,10 +1,10 @@
 import Joi from "joi";
+import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
-import { apiHandler } from "@/lib/handler";
 import { compareHash } from "@/lib/bcrypt";
 import { seal } from "@/lib/hapiIron";
-import { setTokenCookie } from "@/lib/auth-cookies";
+import { setTokenCookie, MAX_AGE } from "@/lib/auth-cookies";
 
 const TOKEN_SECRET = process.env.TOKEN_SECRET;
 console.log("TOKEN_SECRET: ", TOKEN_SECRET);
@@ -30,13 +30,13 @@ const login = async (req, res) => {
     const user = await db.User.findOne({ where: { email: value.email } });
 
     if (!user) {
-      return res.status(404).send({ message: "User not found" });
+      return res.status(401).send({ message: "Unauthorized" });
     }
 
     const isMatchPassword = await compareHash(value.password, user.password);
 
     if (!isMatchPassword) {
-      return res.status(401).send({ message: "Invalid password" });
+      return res.status(401).send({ message: "Unauthorized" });
     }
 
     const userWithoutPassword = {
@@ -48,6 +48,7 @@ const login = async (req, res) => {
       role: user.role,
       createdAt: user.createdAt,
       updatedAt: user.createdAt,
+      maxAge: new Date(Date.now() + MAX_AGE * 1000),
     };
 
     const token = await seal(userWithoutPassword, TOKEN_SECRET);
@@ -60,4 +61,4 @@ const login = async (req, res) => {
   }
 };
 
-export default apiHandler.post(login);
+export default nextConnect().post(login);
