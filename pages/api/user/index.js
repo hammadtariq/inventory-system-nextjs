@@ -1,7 +1,7 @@
 import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
-
+import { auth } from "../../../middlewares/auth";
 
 const getAllUsers = async (_, res) => {
   try {
@@ -14,10 +14,10 @@ const getAllUsers = async (_, res) => {
       return res.send({ success: true, message: "No user found", users });
     }
 
-    return res.send({ success: true, users });
+    return res.send({ success: true, users, user: res.user });
   } catch (error) {
     return res.status(500).send({ success: false, error });
   }
 };
 
-export default nextConnect().get(getAllUsers);
+export default nextConnect().use(auth).get(getAllUsers);

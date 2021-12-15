@@ -1,6 +1,5 @@
 import nextConnect from "next-connect";
 
-
 import db from "@/lib/postgres";
 
 const dbConnect = db.dbConnect;
