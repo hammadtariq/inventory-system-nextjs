@@ -2,6 +2,7 @@ import Joi from "joi";
 import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
+import { auth } from "@/middlewares/auth";
 
 const apiSchema = Joi.object({
   companyName: Joi.string().min(3).trim(),
@@ -93,4 +94,4 @@ const getCompany = async (req, res) => {
   }
 };
 
-export default nextConnect().put(updateCompany).delete(deleteCompany).get(getCompany);
+export default nextConnect().use(auth).put(updateCompany).delete(deleteCompany).get(getCompany);

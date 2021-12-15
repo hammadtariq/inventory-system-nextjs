@@ -1,7 +1,7 @@
 import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
-import { auth } from "../../../middlewares/auth";
+import { auth } from "@/middlewares/auth";
 
 const getAllUsers = async (_, res) => {
   try {

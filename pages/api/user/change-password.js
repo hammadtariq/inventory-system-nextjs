@@ -2,6 +2,7 @@ import Joi from "joi";
 import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
+import { auth } from "@/middlewares/auth";
 import { compareHash } from "@/lib/bcrypt";
 
 const apiSchema = Joi.object({
@@ -44,4 +45,4 @@ const changePassword = async (req, res) => {
   }
 };
 
-export default nextConnect().post(changePassword);
+export default nextConnect().use(auth).post(changePassword);
