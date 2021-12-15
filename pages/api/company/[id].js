@@ -1,5 +1,6 @@
 import Joi from "joi";
-import { apiHandler } from "@/lib/handler";
+import nextConnect from "next-connect";
+
 import db from "@/lib/postgres";
 
 const apiSchema = Joi.object({
@@ -92,4 +93,4 @@ const getCompany = async (req, res) => {
   }
 };
 
-export default apiHandler.put(updateCompany).delete(deleteCompany).get(getCompany);
+export default nextConnect().put(updateCompany).delete(deleteCompany).get(getCompany);

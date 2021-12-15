@@ -1,6 +1,7 @@
-import db from "@/lib/postgres";
 import Joi from "joi";
-import { apiHandler } from "@/lib/handler";
+import nextConnect from "next-connect";
+import db from "@/lib/postgres";
+
 const dbConnect = db.dbConnect;
 
 const getCustomer = async (req, res) => {
@@ -86,4 +87,4 @@ const deleteCustomer = async (req, res) => {
   }
 };
 
-export default apiHandler.get(getCustomer).put(editCustomer).delete(deleteCustomer);
+export default nextConnect().get(getCustomer).put(editCustomer).delete(deleteCustomer);
