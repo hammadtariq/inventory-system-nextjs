@@ -36,7 +36,7 @@ const updateCompany = async (req, res) => {
 
     await company.update({ ...value });
 
-    return res.status(200).send();
+    return res.send();
   } catch (error) {
     return res.status(500).send({ message: error });
   }
@@ -61,7 +61,7 @@ const deleteCompany = async (req, res) => {
 
     await db.Company.destroy({ where: { id: value.id } });
 
-    return res.status(200).send();
+    return res.send();
   } catch (error) {
     return res.status(500).send({ message: error });
   }
@@ -86,7 +86,7 @@ const getCompany = async (req, res) => {
       return res.status(409).send({ message: "company not exist" });
     }
 
-    return res.status(200).send(company);
+    return res.send(company);
   } catch (error) {
     return res.status(500).send({ message: error });
   }

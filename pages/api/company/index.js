@@ -25,7 +25,7 @@ const createCompany = async (req, res) => {
       ...value,
     });
 
-    return res.status(200).send();
+    return res.send();
   } catch (error) {
     return res.status(500).send({ message: error });
   }
@@ -40,7 +40,7 @@ const getAllCompanies = async (req, res) => {
     await db.dbConnect();
     const data = await db.Company.findAndCountAll(pagination);
 
-    return res.status(200).send(data);
+    return res.send(data);
   } catch (error) {
     return res.status(500).send({ message: error });
   }
