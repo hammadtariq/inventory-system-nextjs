@@ -14,7 +14,7 @@ const getAllUsers = async (_, res) => {
       return res.send({ success: true, message: "No user found", users });
     }
 
-    return res.send({ success: true, users, user: res.user });
+    return res.send({ success: true, users });
   } catch (error) {
     return res.status(500).send({ success: false, error });
   }
