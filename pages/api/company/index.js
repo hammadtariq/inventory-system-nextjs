@@ -1,5 +1,5 @@
-import db from "@/lib/postgres";
 import Joi from "joi";
+import db from "@/lib/postgres";
 import { apiHandler } from "@/lib/handler";
 
 const apiSchema = Joi.object({
@@ -12,25 +12,22 @@ const apiSchema = Joi.object({
 const createCompany = async (req, res) => {
   const { error, value } = apiSchema.validate(req.body);
   if (error && Object.keys(error).length) {
-    return res.status(400).send({ success: false, error });
+    return res.status(400).send({ message: error });
   }
   try {
     await db.dbConnect();
     const company = await db.Company.findOne({ where: { email: value.email } });
     if (company) {
-      return res.status(409).send({ success: false, message: "company already exist" });
+      return res.status(409).send({ message: "company already exist" });
     }
 
     await db.Company.create({
       ...value,
     });
 
-    return res.send({
-      success: true,
-      message: "company created successfully",
-    });
+    return res.send();
   } catch (error) {
-    return res.status(500).send(error);
+    return res.status(500).send({ message: error });
   }
 };
 
@@ -43,13 +40,9 @@ const getAllCompanies = async (req, res) => {
     await db.dbConnect();
     const data = await db.Company.findAndCountAll(pagination);
 
-    return res.send({
-      success: true,
-      message: "Success",
-      data,
-    });
+    return res.send(data);
   } catch (error) {
-    return res.send(error);
+    return res.status(500).send({ message: error });
   }
 };
 export default apiHandler.post(createCompany).get(getAllCompanies);

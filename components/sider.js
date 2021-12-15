@@ -1,9 +1,12 @@
-import { Menu, Layout } from "antd";
-import { DesktopOutlined, PieChartOutlined, FileOutlined, TeamOutlined, UserOutlined } from "@ant-design/icons";
+import { DesktopOutlined, FileOutlined, PieChartOutlined, TeamOutlined, UserOutlined } from "@ant-design/icons";
+import { Layout, Menu } from "antd";
+import { useRouter } from "next/router";
+
 const { Sider } = Layout;
 const { SubMenu } = Menu;
 
 export default function AppSider({ collapsed, onCollapse }) {
+  const router = useRouter();
   return (
     <Sider collapsible collapsed={collapsed} onCollapse={onCollapse}>
       <div className="logo" />
@@ -20,10 +23,12 @@ export default function AppSider({ collapsed, onCollapse }) {
           <Menu.Item key="5">Customer 3</Menu.Item>
         </SubMenu>
         <SubMenu key="sub2" icon={<TeamOutlined />} title="Company">
-          <Menu.Item key="6">Company 1</Menu.Item>
-          <Menu.Item key="8">Company 2</Menu.Item>
+          <Menu.Item onClick={() => router.push("/company")} key="6">
+            List
+          </Menu.Item>
+          <Menu.Item key="7">Company 2</Menu.Item>
         </SubMenu>
-        <Menu.Item key="9" icon={<FileOutlined />}>
+        <Menu.Item key="8" icon={<FileOutlined />}>
           Reports
         </Menu.Item>
       </Menu>
