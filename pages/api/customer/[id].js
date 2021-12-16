@@ -1,6 +1,8 @@
 import Joi from "joi";
 import nextConnect from "next-connect";
+
 import db from "@/lib/postgres";
+import { auth } from "@/middlewares/auth";
 
 const dbConnect = db.dbConnect;
 
@@ -87,4 +89,4 @@ const deleteCustomer = async (req, res) => {
   }
 };
 
-export default nextConnect().get(getCustomer).put(editCustomer).delete(deleteCustomer);
+export default nextConnect().use(auth).get(getCustomer).put(editCustomer).delete(deleteCustomer);

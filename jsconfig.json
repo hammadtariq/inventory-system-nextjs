@@ -2,7 +2,8 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/lib/*": ["lib/*"]
+      "@/lib/*": ["lib/*"],
+      "@/middlewares/*": ["middlewares/*"]
     }
   },
   "exclude": ["node_modules"]

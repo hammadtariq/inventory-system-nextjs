@@ -63,8 +63,10 @@ module.exports = (sequelize, DataTypes) => {
   });
 
   user.beforeUpdate(async (user, _) => {
-    const hashPassword = await createHash(user.password);
-    user.password = hashPassword;
+    if (user.password) {
+      const hashPassword = await createHash(user.password);
+      user.password = hashPassword;
+    }
   });
 
   return user;

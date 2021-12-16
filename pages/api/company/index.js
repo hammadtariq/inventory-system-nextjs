@@ -2,6 +2,7 @@ import Joi from "joi";
 import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
+import { auth } from "@/middlewares/auth";
 
 const apiSchema = Joi.object({
   companyName: Joi.string().min(3).trim().required(),
@@ -46,4 +47,4 @@ const getAllCompanies = async (req, res) => {
     return res.status(500).send({ message: error });
   }
 };
-export default nextConnect().post(createCompany).get(getAllCompanies);
+export default nextConnect().use(auth).post(createCompany).get(getAllCompanies);
