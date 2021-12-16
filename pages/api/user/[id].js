@@ -1,6 +1,8 @@
-import db from "@/lib/postgres";
 import Joi from "joi";
-import { apiHandler } from "@/lib/handler";
+import nextConnect from "next-connect";
+
+import db from "@/lib/postgres";
+import { auth } from "@/middlewares/auth";
 
 // api schema for all routes for this file only
 const apiSchema = Joi.object({
@@ -115,4 +117,4 @@ const deleteUser = async (req, res) => {
   }
 };
 
-export default apiHandler.get(getUser).put(updateUser).delete(deleteUser);
+export default nextConnect().use(auth).get(getUser).put(updateUser).delete(deleteUser);

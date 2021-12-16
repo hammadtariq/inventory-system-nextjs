@@ -1,6 +1,7 @@
-import db from "@/lib/postgres";
 import Joi from "joi";
-import { apiHandler } from "@/lib/handler";
+import nextConnect from "next-connect";
+
+import db from "@/lib/postgres";
 
 const apiSchema = Joi.object({
   firstName: Joi.string().min(3).trim().required(),
@@ -38,4 +39,4 @@ const signup = async (req, res) => {
   }
 };
 
-export default apiHandler.post(signup);
+export default nextConnect().post(signup);

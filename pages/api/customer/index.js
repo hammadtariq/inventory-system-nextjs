@@ -1,5 +1,7 @@
+import nextConnect from "next-connect";
+
 import db from "@/lib/postgres";
-import { apiHandler } from "@/lib/handler";
+import { auth } from "@/middlewares/auth";
 
 const dbConnect = db.dbConnect;
 
@@ -54,4 +56,4 @@ const getAllCustomers = async (req, res) => {
   }
 };
 
-export default apiHandler.post(customerRegistration).get(getAllCustomers);
+export default nextConnect().use(auth).post(customerRegistration).get(getAllCustomers);

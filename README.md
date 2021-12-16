@@ -5,6 +5,7 @@ Need to install following for this repository:
 - Node.js version 14 or above
 - NPM or YARN
 - Docker and Docker-Compose
+- Sequelize cli
 
 ##### Instructions for development server
 
@@ -14,7 +15,15 @@ Clone this repository:
 git clone https://github.com/hammadtariq/inventory-system-nextjs.git
 ```
 
-Install `Docker` and `Docker-Compose` for Potsgres Database
+Install sequelize-cli globally
+
+```sh
+sudo yarn global add sequelize-cli
+# or
+sudo npm i sequelize-cli -g
+```
+
+Install `Docker` and `Docker-Compose` for Potsgres Database\
 [Get Docker](https://docs.docker.com/get-docker/)
 
 Create `.env` file in root directory for environment variables
@@ -29,6 +38,7 @@ Write environment variables in .env file
 POSTGRES_DB=databasename
 POSTGRES_USER=username
 POSTGRES_PASSWORD=password
+TOKEN_SECRET=minimum-32-characters-long-token-secret
 ```
 
 Run the following command to create postgres container
