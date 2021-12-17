@@ -1,59 +1,42 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Button, Form, Input } from "antd";
 
-import { createCustomer, updateCustomer } from "../../hooks/customers";
+import { createCompany, updateCompany } from "@/hooks/company";
 import { validateMessages, layout } from "@/utils/ui";
 
-const CustomerForm = ({ customer }) => {
+const ComapnyAddEdit = ({ company }) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-
   const [form] = Form.useForm();
 
   useEffect(() => {
-    if (customer) {
-      const { firstName, lastName, email } = customer;
-      form.setFieldsValue({
-        firstName,
-        lastName,
-        email,
-      });
+    if (company) {
+      const { companyName, email, phone, address } = company;
+      form.setFieldsValue({ companyName, email, phone, address });
     }
-  }, [customer]);
+  }, [company]);
 
   const onFinish = async (values) => {
     setLoading(true);
+
     try {
-      if (customer) {
-        await updateCustomer(customer.id, values);
-        router.push("/customers");
+      if (company) {
+        await updateCompany(company.id, values);
       } else {
-        await createCustomer({ ...values, role: "customer" });
-        router.push("/customers");
+        await createCompany(values);
       }
+      router.push("/company");
     } catch (error) {
       setLoading(false);
     }
   };
+
   return (
-    <Form {...layout} name="nest-messages" onFinish={onFinish} validateMessages={validateMessages}>
+    <Form form={form} {...layout} name="nest-messages" onFinish={onFinish} validateMessages={validateMessages}>
       <Form.Item
-        name="firstName"
-        label="First Name"
-        rules={[
-          {
-            required: true,
-            type: "string",
-            min: 3,
-          },
-        ]}
-      >
-        <Input />
-      </Form.Item>
-      <Form.Item
-        name="lastName"
-        label="Last Name"
+        name="companyName"
+        label="Name"
         rules={[
           {
             required: true,
@@ -76,13 +59,38 @@ const CustomerForm = ({ customer }) => {
       >
         <Input />
       </Form.Item>
+      <Form.Item
+        name="phone"
+        label="Phone"
+        rules={[
+          {
+            type: "string",
+            max: 24,
+            required: true,
+          },
+        ]}
+      >
+        <Input />
+      </Form.Item>
+      <Form.Item
+        name="address"
+        label="Address"
+        rules={[
+          {
+            required: true,
+            min: 10,
+          },
+        ]}
+      >
+        <Input.TextArea />
+      </Form.Item>
       <Form.Item wrapperCol={{ ...layout.wrapperCol, offset: 2 }}>
         <Button type="primary" htmlType="submit" loading={loading}>
-          {customer ? "Update" : "Create"}
+          Submit
         </Button>
       </Form.Item>
     </Form>
   );
 };
 
-export default CustomerForm;
+export default ComapnyAddEdit;

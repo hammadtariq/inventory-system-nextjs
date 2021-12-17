@@ -3,7 +3,11 @@
     "baseUrl": ".",
     "paths": {
       "@/lib/*": ["lib/*"],
-      "@/middlewares/*": ["middlewares/*"]
+      "@/middlewares/*": ["middlewares/*"],
+      "@/models/*": ["models/*"],
+      "@/hooks/*": ["hooks/*"],
+      "@/components/*": ["components/*"],
+      "@/utils/*": ["utils/*"]
     }
   },
   "exclude": ["node_modules"]

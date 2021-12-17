@@ -1,8 +1,8 @@
 import useSWR from "swr";
-import { getFetcher, post, put, remove } from "../lib/httpClient";
+import { get, post, put, remove } from "../lib/http-client";
 
 export const useGetCustomers = () => {
-  const { data, error, mutate } = useSWR("/api/customer", getFetcher);
+  const { data, error, mutate } = useSWR("/api/customer", get);
 
   return {
     customers: data,
@@ -13,7 +13,7 @@ export const useGetCustomers = () => {
 };
 
 export const useGetCustomer = (id) => {
-  const { data, error } = useSWR(`/api/customer/${id}`, getFetcher);
+  const { data, error } = useSWR(`/api/customer/${id}`, get);
 
   return {
     customer: data,
