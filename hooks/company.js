@@ -1,8 +1,8 @@
 import useSWR from "swr";
-import { getFetcher, post, put, remove } from "../lib/httpClient";
+import { get, post, put, remove } from "@/lib/http-client";
 
 export const useCompanies = () => {
-  const { data, error, mutate } = useSWR("/api/company", getFetcher);
+  const { data, error, mutate } = useSWR("/api/company", get);
 
   return {
     companies: data,
@@ -13,7 +13,7 @@ export const useCompanies = () => {
 };
 
 export const useCompany = (id) => {
-  const { data, error } = useSWR(`/api/company/${id}`, getFetcher);
+  const { data, error } = useSWR(`/api/company/${id}`, get);
 
   return {
     company: data,
@@ -22,14 +22,8 @@ export const useCompany = (id) => {
   };
 };
 
-export const createCompany = async (data) => {
-  await post("/api/company", data);
-};
+export const createCompany = async (data) => post("/api/company", data);
 
-export const updateCompany = async (id, data) => {
-  await put(`/api/company/${id}`, data);
-};
+export const updateCompany = async (id, data) => put(`/api/company/${id}`, data);
 
-export const deleteCompany = async (id) => {
-  await remove(`/api/company/${id}`);
-};
+export const deleteCompany = async (id) => remove(`/api/company/${id}`);

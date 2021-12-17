@@ -1,44 +1,39 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Button, Form, Input } from "antd";
 
-import { createCompany, updateCompany } from "../../hooks/company";
+import { createCompany, updateCompany } from "@/hooks/company";
+import { validateMessages, layout } from "@/utils/ui";
 
-const layout = {
-  labelCol: {
-    span: 2,
-  },
-  wrapperCol: {
-    span: 12,
-  },
-};
-
-const validateMessages = {
-  required: "${label} is required!",
-  types: {
-    email: "${label} is not a valid email!",
-    number: "${label} is not a valid number!",
-  },
-  number: {
-    range: "${label} must be between ${min} and ${max}",
-  },
-};
-
-const AddEdit = ({ company }) => {
+const ComapnyAddEdit = ({ company }) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [form] = Form.useForm();
+
+  useEffect(() => {
+    if (company) {
+      const { companyName, email, phone, address } = company;
+      form.setFieldsValue({ companyName, email, phone, address });
+    }
+  }, [company]);
+
   const onFinish = async (values) => {
     setLoading(true);
-    if (company) {
-      await updateCompany(company.id, values);
+
+    try {
+      if (company) {
+        await updateCompany(company.id, values);
+      } else {
+        await createCompany(values);
+      }
       router.push("/company");
-    } else {
-      await createCompany(values);
-      router.push("/company");
+    } catch (error) {
+      setLoading(false);
     }
   };
+
   return (
-    <Form {...layout} name="nest-messages" onFinish={onFinish} validateMessages={validateMessages}>
+    <Form form={form} {...layout} name="nest-messages" onFinish={onFinish} validateMessages={validateMessages}>
       <Form.Item
         name="companyName"
         label="Name"
@@ -49,14 +44,12 @@ const AddEdit = ({ company }) => {
             min: 3,
           },
         ]}
-        initialValue={company ? company.companyName : null}
       >
         <Input />
       </Form.Item>
       <Form.Item
         name="email"
         label="Email"
-        initialValue={company ? company.email : null}
         rules={[
           {
             type: "email",
@@ -69,7 +62,6 @@ const AddEdit = ({ company }) => {
       <Form.Item
         name="phone"
         label="Phone"
-        initialValue={company ? company.phone : null}
         rules={[
           {
             type: "string",
@@ -82,7 +74,6 @@ const AddEdit = ({ company }) => {
       </Form.Item>
       <Form.Item
         name="address"
-        initialValue={company ? company.address : null}
         label="Address"
         rules={[
           {
@@ -102,4 +93,4 @@ const AddEdit = ({ company }) => {
   );
 };
 
-export default AddEdit;
+export default ComapnyAddEdit;

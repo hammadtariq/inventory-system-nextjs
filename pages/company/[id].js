@@ -1,15 +1,15 @@
 import { Spin, Alert } from "antd";
 
-import AddEdit from "../../components/company/addEdit";
-import { useCompany } from "../../hooks/company";
+import ComapnyAddEdit from "@/components/comapnyAddEdit";
+import { useCompany } from "@/hooks/company";
 
 function Update({ id }) {
   const { company, error, isLoading } = useCompany(id);
-  if (error) return <Alert message={error.message} type="error" />;
+  if (error) return <Alert message={error} type="error" />;
   return (
     <div>
       <h1>Update User </h1>
-      {isLoading ? <Spin size="large" /> : <AddEdit company={company} />}
+      {isLoading ? <Spin size="large" /> : <ComapnyAddEdit company={company} />}
     </div>
   );
 }
