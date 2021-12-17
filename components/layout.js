@@ -6,6 +6,7 @@ import AppContent from "@/components/content";
 import AppFooter from "@/components/footer";
 import AppHeader from "@/components/header";
 import AppSider from "@/components/sider";
+import css from "@/styles/Layout.module.css";
 
 export default function Layout({ children }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -15,7 +16,7 @@ export default function Layout({ children }) {
   };
 
   return (
-    <AntLayout style={{ minHeight: "100vh" }}>
+    <AntLayout className={css.antLayout}>
       <Head>
         <title>Inventory System</title>
       </Head>

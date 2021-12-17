@@ -3,6 +3,7 @@ import { Alert, Button, Popconfirm, Table } from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 
 import { useCompanies, deleteCompany } from "@/hooks/company";
+import css from "@/styles/Company.module.css";
 
 const Company = () => {
   const { companies, error, isLoading, mutate } = useCompanies();
@@ -19,15 +20,11 @@ const Company = () => {
         okText="Yes"
         cancelText="No"
       >
-        <Button style={{ marginLeft: 5 }} icon={<DeleteOutlined />}>
+        <Button className={css.deleteBtn} icon={<DeleteOutlined />} danger>
           Delete
         </Button>
       </Popconfirm>
-      <Button
-        onClick={() => router.push(`/company/${text.id}`)}
-        style={{ marginLeft: 5, marginTop: 5 }}
-        icon={<EditOutlined />}
-      >
+      <Button onClick={() => router.push(`/company/${text.id}`)} className={css.editBtn} icon={<EditOutlined />}>
         Edit
       </Button>
     </>

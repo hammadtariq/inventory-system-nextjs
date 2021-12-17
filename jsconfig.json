@@ -7,7 +7,8 @@
       "@/models/*": ["models/*"],
       "@/hooks/*": ["hooks/*"],
       "@/components/*": ["components/*"],
-      "@/utils/*": ["utils/*"]
+      "@/utils/*": ["utils/*"],
+      "@/styles/*": ["styles/*"],
     }
   },
   "exclude": ["node_modules"]
