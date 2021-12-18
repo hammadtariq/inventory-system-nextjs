@@ -1,7 +1,9 @@
 import { Layout } from "antd";
 
+import css from "@/styles/Footer.module.css";
+
 const { Footer } = Layout;
 
 export default function AppFooter() {
-  return <Footer style={{ textAlign: "center" }}>Inventory System ©{new Date().getFullYear()}</Footer>;
+  return <Footer className={css.footer}>Inventory System ©{new Date().getFullYear()}</Footer>;
 }
