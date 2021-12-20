@@ -7,7 +7,7 @@ module.exports = {
         id: 1,
         uuid: "56c5d177-0a01-4fcd-aee8-bcd073b664ea",
         firstName: "hammad",
-        lastName: "taqir",
+        lastName: "tariq",
         email: "htariq@nisum.com",
         role: "ADMIN",
         password: "$2b$10$Q5Jp968fHNz.svUPhYwYNux.gJ5gWSbcOwYg5l963ddvUqtFAXngK",
