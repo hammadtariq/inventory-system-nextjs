@@ -6,7 +6,7 @@ import AppContent from "@/components/content";
 import AppFooter from "@/components/footer";
 import AppHeader from "@/components/header";
 import AppSider from "@/components/sider";
-import css from "@/styles/Layout.module.css";
+import styles from "@/styles/Layout.module.css";
 
 export default function Layout({ children }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -16,7 +16,7 @@ export default function Layout({ children }) {
   };
 
   return (
-    <AntLayout className={css.antLayout}>
+    <AntLayout className={styles.antLayout}>
       <Head>
         <title>Inventory System</title>
       </Head>
