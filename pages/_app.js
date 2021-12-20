@@ -1,11 +1,9 @@
 import "antd/dist/antd.css";
+
+import "@/styles/globals.css";
 import Layout from "@/components/layout";
-import "../styles/globals.css";
 
 export default function MyApp({ Component, pageProps }) {
-  return (
-    <Layout>
-      <Component {...pageProps} />
-    </Layout>
-  );
+  const getLayout = Component.getLayout || ((page) => <Layout>{page}</Layout>);
+  return getLayout(<Component {...pageProps} />);
 }
