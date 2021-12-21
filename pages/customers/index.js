@@ -6,13 +6,6 @@ import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useCustomers, deleteCustomer } from "../../hooks/customers";
 
 export default function Customers() {
-  React.useEffect(() => {
-    axios.post("http://localhost:3000/api/user/login", {
-      email: "ryahya@nisum.com",
-      password: "12345678",
-    });
-  }, []);
-
   const renderActions = (text, record) => (
     <Space size="large">
       <Button
