@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { Button, Form, Input } from "antd";
 
-import { createCustomer, updateCustomer } from "../../hooks/customers";
+import { createCustomer, updateCustomer } from "../hooks/customers";
 import { validateMessages, layout } from "@/utils/ui";
 
-const CustomerForm = ({ customer }) => {
+const AddEditCustomer = ({ customer }) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -84,4 +84,4 @@ const CustomerForm = ({ customer }) => {
   );
 };
 
-export default CustomerForm;
+export default AddEditCustomer;

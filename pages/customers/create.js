@@ -1,10 +1,10 @@
-import CustomerForm from "../../components/customer/customerForm";
+import AddEditCustomer from "../../components/addEditCustomer";
 
 const CreateCustomer = () => {
   return (
     <div>
       <h2>Create Customer</h2>
-      <CustomerForm />
+      <AddEditCustomer />
     </div>
   );
 };

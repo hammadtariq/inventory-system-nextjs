@@ -1,6 +1,6 @@
 import { Spin, Alert } from "antd";
 
-import CustomerForm from "../../components/customer/customerForm";
+import AddEditCustomer from "../../components/addEditCustomer";
 import { useCustomer } from "../../hooks/customers";
 
 function Update({ id }) {
@@ -9,7 +9,7 @@ function Update({ id }) {
   return (
     <div>
       <h1>Update Customer</h1>
-      {isLoading ? <Spin size="large" /> : <CustomerForm customer={customer.data} />}
+      {isLoading ? <Spin size="large" /> : <AddEditCustomer customer={customer.data} />}
     </div>
   );
 }
