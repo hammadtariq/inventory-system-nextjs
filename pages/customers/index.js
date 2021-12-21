@@ -3,9 +3,30 @@ import React from "react";
 import axios from "axios";
 import { Alert, Table, Space, Popconfirm, Button, Row, Col } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import { useGetCustomers, deleteCustomer } from "../../hooks/customers";
+import { useCustomers, deleteCustomer } from "../../hooks/customers";
 
-export default function Home() {
+export default function Customers() {
+  const renderActions = (text, record) => (
+    <Space size="large">
+      <Button
+        onClick={() => router.push(`/customers/${text.id}`)}
+        style={{ marginLeft: 5, marginTop: 5 }}
+        icon={<EditOutlined />}
+      ></Button>
+      <Popconfirm
+        title="Are you sure?"
+        onConfirm={async () => {
+          await deleteCustomer(text.id);
+          mutate(null);
+        }}
+        okText="Yes"
+        cancelText="No"
+      >
+        <Button icon={<DeleteOutlined />}></Button>
+      </Popconfirm>
+    </Space>
+  );
+
   const columns = [
     {
       title: "First Name",
@@ -25,29 +46,10 @@ export default function Home() {
     {
       title: "Action",
       key: "action",
-      render: (text, record) => (
-        <Space size="large">
-          <Button
-            onClick={() => router.push(`/customers/${text.id}`)}
-            style={{ marginLeft: 5, marginTop: 5 }}
-            icon={<EditOutlined />}
-          ></Button>
-          <Popconfirm
-            title="Are you sure?"
-            onConfirm={async () => {
-              await deleteCustomer(text.id);
-              mutate(null);
-            }}
-            okText="Yes"
-            cancelText="No"
-          >
-            <Button icon={<DeleteOutlined />}></Button>
-          </Popconfirm>
-        </Space>
-      ),
+      render: renderActions,
     },
   ];
-  const { customers, error, isLoading, mutate } = useGetCustomers();
+  const { customers, error, isLoading, mutate } = useCustomers();
 
   // const { customers, error, isLoading, setId } = useDeleteCustomer();
   if (error) return <Alert message={error.message} type="error" />;

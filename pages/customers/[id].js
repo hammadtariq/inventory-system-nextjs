@@ -1,10 +1,10 @@
 import { Spin, Alert } from "antd";
 
 import CustomerForm from "../../components/customer/customerForm";
-import { useGetCustomer } from "../../hooks/customers";
+import { useCustomer } from "../../hooks/customers";
 
 function Update({ id }) {
-  const { customer, error, isLoading } = useGetCustomer(id);
+  const { customer, error, isLoading } = useCustomer(id);
   if (error) return <Alert message={error.message} type="error" />;
   return (
     <div>

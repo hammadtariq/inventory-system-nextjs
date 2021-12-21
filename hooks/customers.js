@@ -1,7 +1,7 @@
 import useSWR from "swr";
 import { get, post, put, remove } from "../lib/http-client";
 
-export const useGetCustomers = () => {
+export const useCustomers = () => {
   const { data, error, mutate } = useSWR("/api/customer", get);
 
   return {
@@ -12,7 +12,7 @@ export const useGetCustomers = () => {
   };
 };
 
-export const useGetCustomer = (id) => {
+export const useCustomer = (id) => {
   const { data, error } = useSWR(`/api/customer/${id}`, get);
 
   return {
@@ -22,15 +22,8 @@ export const useGetCustomer = (id) => {
   };
 };
 
-export const createCustomer = async (data) => {
-  console.log(data);
-  await post("/api/customer", data);
-};
+export const createCustomer = async (data) => post("/api/customer", data);
 
-export const updateCustomer = async (id, data) => {
-  await put(`/api/customer/${id}`, data);
-};
+export const updateCustomer = async (id, data) => put(`/api/customer/${id}`, data);
 
-export const deleteCustomer = async (id) => {
-  await remove(`/api/customer/${id}`);
-};
+export const deleteCustomer = async (id) => remove(`/api/customer/${id}`);

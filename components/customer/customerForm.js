@@ -27,11 +27,10 @@ const CustomerForm = ({ customer }) => {
     try {
       if (customer) {
         await updateCustomer(customer.id, values);
-        router.push("/customers");
       } else {
         await createCustomer({ ...values, role: "customer" });
-        router.push("/customers");
       }
+      router.push("/customers");
     } catch (error) {
       setLoading(false);
     }
