@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Form, Input, Button, Row, Col, message } from "antd";
 
 import AppTitle from "@/components/title";
@@ -24,6 +24,11 @@ const Login = ({ router }) => {
   const onFinishFailed = (errorInfo) => {
     // console.log("Failed:", errorInfo);
   };
+
+  useEffect(() => {
+    // Prefetch the dashboard page
+    router.prefetch("/");
+  }, []);
 
   return (
     <>
