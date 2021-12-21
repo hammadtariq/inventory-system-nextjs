@@ -15,7 +15,7 @@ const Login = ({ router }) => {
     loginUser(values)
       .then(() => {
         message.success("User logged in successcully");
-        router.push("/");
+        router.replace("/");
         setLoading(false);
       })
       .catch((_) => setLoading(false));
