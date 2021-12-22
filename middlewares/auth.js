@@ -15,15 +15,16 @@ export const auth = async (req, res, next) => {
   try {
     const unsealedToken = await Iron.unseal(token, TOKEN_SECRET, Iron.defaults);
 
-    if (unsealedToken && Date.now() > new Date(unsealedToken.maxAge)) {
+    if (unsealedToken && Date.now() > new Date(unsealedToken?.token?.maxAge)) {
       return res.status(401).send({ message: "Token expired" });
     }
 
+    // verify user from database
     await db.dbConnect();
-    const user = await db.User.findByPk(unsealedToken.id, { attributes: { exclude: ["password"] } });
+    const user = await db.User.findByPk(unsealedToken?.user?.id, { attributes: { exclude: ["password"] } });
     if (!user) return res.status(401).send({ message: "User not found" });
 
-    res.user = unsealedToken;
+    res.user = user;
 
     next();
   } catch (error) {
