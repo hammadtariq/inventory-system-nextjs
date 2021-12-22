@@ -6,7 +6,7 @@ const verifyToken = async (req, res) => {
   const token = getTokenCookie(req);
 
   if (!token) {
-    return res.status(401).send({ message: "Please login first", isValid: false });
+    return res.status(401).send({ isValid: false, message: "Token expired" });
   }
 
   return res.send({ isValid: true });
