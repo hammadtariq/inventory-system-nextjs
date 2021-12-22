@@ -1,15 +1,15 @@
 import Iron from "@hapi/iron";
+import nextConnect from "next-connect";
 
-import db from "@/lib/postgres";
 import { getTokenCookie } from "@/lib/auth-cookies";
 
 const TOKEN_SECRET = process.env.TOKEN_SECRET;
 
-export const auth = async (req, res, next) => {
+const verifyToken = async (req, res) => {
   const token = getTokenCookie(req);
 
   if (!token) {
-    return res.status(401).send({ message: "Please login first" });
+    return res.status(401).send({ isValid: false, message: "Token expired" });
   }
 
   try {
@@ -18,17 +18,10 @@ export const auth = async (req, res, next) => {
     if (unsealedToken && Date.now() > new Date(unsealedToken?.token?.maxAge)) {
       return res.status(401).send({ message: "Token expired" });
     }
-
-    // verify user from database
-    await db.dbConnect();
-    const user = await db.User.findByPk(unsealedToken?.user?.id, { attributes: { exclude: ["password"] } });
-    if (!user) return res.status(401).send({ message: "User not found" });
-
-    res.user = user;
-
-    next();
+    return res.send({ isValid: true });
   } catch (error) {
-    console.log(error);
     res.status(500).send(error);
   }
 };
+
+export default nextConnect().get(verifyToken);

@@ -14,9 +14,9 @@ const Login = ({ router }) => {
     setLoading(true);
     loginUser(values)
       .then(() => {
-        message.success("User logged in successcully");
         router.replace("/");
         setLoading(false);
+        message.success("User logged in successcully");
       })
       .catch((_) => setLoading(false));
   };
