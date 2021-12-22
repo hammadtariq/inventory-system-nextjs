@@ -35,23 +35,27 @@ const login = async (req, res) => {
       return res.status(401).send({ message: "Invalid password" });
     }
 
-    const userWithoutPassword = {
-      id: user.id,
-      uuod: user.uuid,
-      fisrtName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      role: user.role,
-      createdAt: user.createdAt,
-      updatedAt: user.createdAt,
-      maxAge: new Date(Date.now() + MAX_AGE * 1000),
+    const tokenWithouPassword = {
+      user: {
+        id: user.id,
+        uuid: user.uuid,
+        fisrtName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt,
+        updatedAt: user.createdAt,
+      },
+      token: {
+        maxAge: new Date(Date.now() + MAX_AGE * 1000),
+      },
     };
 
-    const token = await Iron.seal(userWithoutPassword, TOKEN_SECRET, Iron.defaults);
+    const sealedToken = await Iron.seal(tokenWithouPassword, TOKEN_SECRET, Iron.defaults);
 
-    setTokenCookie(res, token);
+    setTokenCookie(res, sealedToken);
 
-    return res.send({ token });
+    return res.send({ token: sealedToken });
   } catch (error) {
     console.log(error);
     res.status(500).send(error);
