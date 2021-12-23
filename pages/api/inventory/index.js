@@ -16,18 +16,14 @@ const apiSchema = Joi.object({
 
 const createInventory = async (req, res) => {
   const { error, value } = apiSchema.validate(req.body);
-
   if (error && Object.keys(error).length) {
     return res.status(400).send({ message: error });
   }
-
-  const { productLabel } = value;
-
   try {
     await db.dbConnect();
-    const inventory = await db.Inventory.findOne({ where: { productLabel } });
+    const inventory = await db.Inventory.findOne({ where: { productLabel: value.productLabel } });
     if (inventory) {
-      return res.status(409).send({ message: `product with label ${productLabel} is already exist.` });
+      return res.status(409).send({ message: `product with label ${value.productLabel} is already exist.` });
     }
 
     await db.Inventory.create({
