@@ -5,25 +5,26 @@ import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 
 const apiSchema = Joi.object({
-  companyName: Joi.string().min(3).trim().lowercase().required(),
-  phone: Joi.string().max(24).trim().required(),
-  email: Joi.string().email().trim().lowercase().required(),
-  address: Joi.string().trim().required().min(10),
+  productName: Joi.string().trim().lowercase().required(),
+  productLabel: Joi.string().trim().lowercase().required(),
+  starting: Joi.number(),
+  received: Joi.number(),
+  onHand: Joi.number(),
 });
 
-const createCompany = async (req, res) => {
+const createInventory = async (req, res) => {
   const { error, value } = apiSchema.validate(req.body);
   if (error && Object.keys(error).length) {
     return res.status(400).send({ message: error });
   }
   try {
     await db.dbConnect();
-    const company = await db.Company.findOne({ where: { email: value.email } });
-    if (company) {
-      return res.status(409).send({ message: "company already exist" });
+    const inventory = await db.Inventory.findOne({ where: { productLabel: value.productLabel } });
+    if (inventory) {
+      return res.status(409).send({ message: `product with label ${value.productLabel} is already exist.` });
     }
 
-    await db.Company.create({
+    await db.Inventory.create({
       ...value,
     });
 
@@ -33,18 +34,18 @@ const createCompany = async (req, res) => {
   }
 };
 
-const getAllCompanies = async (req, res) => {
+const getAllInventory = async (req, res) => {
   const { limit, offset } = req.query;
   const pagination = {};
   pagination.limit = limit ? limit : 10;
   pagination.offset = offset ? offset : 0;
   try {
     await db.dbConnect();
-    const data = await db.Company.findAndCountAll(pagination);
+    const data = await db.Inventory.findAndCountAll(pagination);
 
     return res.send(data);
   } catch (error) {
     return res.status(500).send({ message: error });
   }
 };
-export default nextConnect().use(auth).post(createCompany).get(getAllCompanies);
+export default nextConnect().use(auth).post(createInventory).get(getAllInventory);
