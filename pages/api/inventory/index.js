@@ -7,21 +7,27 @@ import { auth } from "@/middlewares/auth";
 const apiSchema = Joi.object({
   productName: Joi.string().trim().lowercase().required(),
   productLabel: Joi.string().trim().lowercase().required(),
-  starting: Joi.number(),
+  bundleCount: Joi.number().required(),
+  bundleWeight: Joi.number().required(),
+  bundleCost: Joi.number().required(),
   received: Joi.number(),
   onHand: Joi.number(),
 });
 
 const createInventory = async (req, res) => {
   const { error, value } = apiSchema.validate(req.body);
+
   if (error && Object.keys(error).length) {
     return res.status(400).send({ message: error });
   }
+
+  const { productLabel } = value;
+
   try {
     await db.dbConnect();
-    const inventory = await db.Inventory.findOne({ where: { productLabel: value.productLabel } });
+    const inventory = await db.Inventory.findOne({ where: { productLabel } });
     if (inventory) {
-      return res.status(409).send({ message: `product with label ${value.productLabel} is already exist.` });
+      return res.status(409).send({ message: `product with label ${productLabel} is already exist.` });
     }
 
     await db.Inventory.create({

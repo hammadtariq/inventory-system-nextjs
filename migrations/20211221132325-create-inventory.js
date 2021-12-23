@@ -1,4 +1,5 @@
 "use strict";
+
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable("inventories", {
@@ -27,10 +28,6 @@ module.exports = {
           },
         },
       },
-      starting: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
-      },
       received: {
         type: Sequelize.INTEGER,
         allowNull: true,
@@ -38,6 +35,18 @@ module.exports = {
       onHand: {
         type: Sequelize.INTEGER,
         allowNull: true,
+      },
+      bundleCount: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      bundleWeight: {
+        type: Sequelize.FLOAT,
+        allowNull: false,
+      },
+      bundleCost: {
+        type: Sequelize.FLOAT,
+        allowNull: false,
       },
       uuid: {
         type: Sequelize.UUID,
