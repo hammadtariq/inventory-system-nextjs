@@ -25,14 +25,6 @@ module.exports = (sequelize, DataTypes) => {
         },
         unique: true,
       },
-      received: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-      },
-      onHand: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-      },
       bundleCount: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -43,6 +35,10 @@ module.exports = (sequelize, DataTypes) => {
       },
       bundleCost: {
         type: DataTypes.FLOAT,
+        allowNull: false,
+      },
+      onHand: {
+        type: DataTypes.INTEGER,
         allowNull: false,
       },
       uuid: {

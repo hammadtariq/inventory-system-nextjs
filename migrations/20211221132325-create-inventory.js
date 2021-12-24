@@ -27,25 +27,21 @@ module.exports = {
           },
         },
       },
-      received: {
+      bundleCount: {
         type: Sequelize.INTEGER,
+        allowNull: true,
+      },
+      bundleWeight: {
+        type: Sequelize.FLOAT,
+        allowNull: true,
+      },
+      bundleCost: {
+        type: Sequelize.FLOAT,
         allowNull: true,
       },
       onHand: {
         type: Sequelize.INTEGER,
         allowNull: true,
-      },
-      bundleCount: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-      },
-      bundleWeight: {
-        type: Sequelize.FLOAT,
-        allowNull: false,
-      },
-      bundleCost: {
-        type: Sequelize.FLOAT,
-        allowNull: false,
       },
       uuid: {
         type: Sequelize.UUID,
