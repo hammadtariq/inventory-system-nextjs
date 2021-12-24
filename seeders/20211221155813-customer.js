@@ -15,7 +15,7 @@ module.exports = {
           updatedAt: "2021-12-16T12:56:05.643Z",
         },
         {
-          firstName: "test",
+          firstName: "test1",
           lastName: "customer 1",
           email: "test1@gmail.com",
           role: "customer",
@@ -24,9 +24,9 @@ module.exports = {
           updatedAt: "2021-12-20T09:09:31.070Z",
         },
         {
-          firstName: "test",
+          firstName: "test2",
           lastName: "customer 2",
-          email: "test1@gmail.com",
+          email: "test2@gmail.com",
           role: "customer",
           uuid: "75fa9d26-f6e0-4ce8-a587-0e35593cccfc",
           createdAt: "2021-12-20T09:10:48.381Z",
