@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import Link from "next/link";
 import { Breadcrumb, Layout } from "antd";
 import styles from "@/styles/Content.module.css";
-
 const { Content } = Layout;
 
 export default function AppContent({ children }) {
@@ -14,7 +14,7 @@ export default function AppContent({ children }) {
       const linkPath = router.asPath.split("/");
       linkPath.shift();
       const pathArray = linkPath.map((item, i) => {
-        return { breadcrumb: item, href: `/${linkPath.slice(0, i + 1)}/` };
+        return { breadcrumb: item, href: `/${linkPath.slice(0, i + 1).join("/")}/` };
       });
       setRoutes(pathArray);
     }
@@ -24,8 +24,8 @@ export default function AppContent({ children }) {
       <Breadcrumb className={styles.breadcrumb}>
         {routes.map((item, index) => {
           return (
-            <Breadcrumb.Item key={`${index}`} onClick={() => router.push(item.href)}>
-              {item.breadcrumb.toUpperCase()}
+            <Breadcrumb.Item key={`${index}`}>
+              <Link href={item.href}>{item.breadcrumb.toUpperCase()}</Link>
             </Breadcrumb.Item>
           );
         })}
