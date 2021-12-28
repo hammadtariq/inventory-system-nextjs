@@ -4,11 +4,11 @@ import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 
 import { useCompanies, deleteCompany } from "@/hooks/company";
 import styles from "@/styles/Company.module.css";
+import permissionsUtil from "@/utils/permission.util";
 
 const Company = () => {
   const { companies, error, isLoading, mutate } = useCompanies();
   const router = useRouter();
-
   const renderActions = (text) => (
     <>
       <Popconfirm
@@ -19,12 +19,38 @@ const Company = () => {
         }}
         okText="Yes"
         cancelText="No"
+        disabled={
+          !permissionsUtil.checkAuth({
+            category: "company",
+            action: "delete",
+          })
+        }
       >
-        <Button className={styles.deleteBtn} icon={<DeleteOutlined />} danger>
+        <Button
+          className={styles.deleteBtn}
+          icon={<DeleteOutlined />}
+          danger
+          disabled={
+            !permissionsUtil.checkAuth({
+              category: "company",
+              action: "delete",
+            })
+          }
+        >
           Delete
         </Button>
       </Popconfirm>
-      <Button onClick={() => router.push(`/company/${text.id}`)} className={styles.editBtn} icon={<EditOutlined />}>
+      <Button
+        onClick={() => router.push(`/company/${text.id}`)}
+        className={styles.editBtn}
+        icon={<EditOutlined />}
+        disabled={
+          !permissionsUtil.checkAuth({
+            category: "company",
+            action: "edit",
+          })
+        }
+      >
         Edit
       </Button>
     </>
