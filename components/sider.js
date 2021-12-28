@@ -18,9 +18,12 @@ export default function AppSider({ collapsed, onCollapse }) {
           Option 2
         </Menu.Item>
         <SubMenu key="sub1" icon={<UserOutlined />} title="Customer">
-          <Menu.Item key="3">Customer 1</Menu.Item>
-          <Menu.Item key="4">Customer 2</Menu.Item>
-          <Menu.Item key="5">Customer 3</Menu.Item>
+          <Menu.Item onClick={() => router.push("/customers")} key="3">
+            List
+          </Menu.Item>
+          <Menu.Item onClick={() => router.push("/customers/create")} key="4">
+            Create
+          </Menu.Item>
         </SubMenu>
         <SubMenu key="sub2" icon={<TeamOutlined />} title="Company">
           <Menu.Item onClick={() => router.push("/company")} key="6">

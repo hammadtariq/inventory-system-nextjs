@@ -1,12 +1,11 @@
 import router from "next/router";
 import React from "react";
-import axios from "axios";
-import { Alert, Table, Space, Popconfirm, Button, Row, Col } from "antd";
+import { Alert, Table, Space, Popconfirm, Button } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useCustomers, deleteCustomer } from "../../hooks/customers";
 
 export default function Customers() {
-  const renderActions = (text, record) => (
+  const renderActions = (text) => (
     <Space size="large">
       <Button
         onClick={() => router.push(`/customers/${text.id}`)}
@@ -53,13 +52,5 @@ export default function Customers() {
 
   // const { customers, error, isLoading, setId } = useDeleteCustomer();
   if (error) return <Alert message={error.message} type="error" />;
-  return (
-    <div>
-      <Button type="primary" onClick={() => router.push("/customers/create")}>
-        Add Customer
-      </Button>
-
-      <Table columns={columns} loading={isLoading} dataSource={customers ? customers.data : []} />
-    </div>
-  );
+  return <Table columns={columns} loading={isLoading} dataSource={customers ? customers.data : []} />;
 }
