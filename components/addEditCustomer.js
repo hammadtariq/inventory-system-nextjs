@@ -6,6 +6,11 @@ import { createCustomer, updateCustomer } from "../hooks/customers";
 import { validateMessages, layout } from "@/utils/ui";
 import permissionsUtil from "@/utils/permission.util";
 
+const canCreate = permissionsUtil.checkAuth({
+  category: "customer",
+  action: "create",
+});
+
 const AddEditCustomer = ({ customer }) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -77,17 +82,7 @@ const AddEditCustomer = ({ customer }) => {
         <Input />
       </Form.Item>
       <Form.Item wrapperCol={{ ...layout.wrapperCol, offset: 2 }}>
-        <Button
-          type="primary"
-          htmlType="submit"
-          loading={loading}
-          disabled={
-            !permissionsUtil.checkAuth({
-              category: "customer",
-              action: "create",
-            })
-          }
-        >
+        <Button type="primary" htmlType="submit" loading={loading} disabled={!canCreate}>
           {customer ? "Update" : "Create"}
         </Button>
       </Form.Item>

@@ -6,6 +6,16 @@ import { useCompanies, deleteCompany } from "@/hooks/company";
 import styles from "@/styles/Company.module.css";
 import permissionsUtil from "@/utils/permission.util";
 
+const canDelete = permissionsUtil.checkAuth({
+  category: "company",
+  action: "delete",
+});
+
+const canEdit = permissionsUtil.checkAuth({
+  category: "company",
+  action: "edit",
+});
+
 const Company = () => {
   const { companies, error, isLoading, mutate } = useCompanies();
   const router = useRouter();
@@ -19,24 +29,9 @@ const Company = () => {
         }}
         okText="Yes"
         cancelText="No"
-        disabled={
-          !permissionsUtil.checkAuth({
-            category: "company",
-            action: "delete",
-          })
-        }
+        disabled={!canDelete}
       >
-        <Button
-          className={styles.deleteBtn}
-          icon={<DeleteOutlined />}
-          danger
-          disabled={
-            !permissionsUtil.checkAuth({
-              category: "company",
-              action: "delete",
-            })
-          }
-        >
+        <Button className={styles.deleteBtn} icon={<DeleteOutlined />} danger disabled={!canDelete}>
           Delete
         </Button>
       </Popconfirm>
@@ -44,12 +39,7 @@ const Company = () => {
         onClick={() => router.push(`/company/${text.id}`)}
         className={styles.editBtn}
         icon={<EditOutlined />}
-        disabled={
-          !permissionsUtil.checkAuth({
-            category: "company",
-            action: "edit",
-          })
-        }
+        disabled={!canEdit}
       >
         Edit
       </Button>

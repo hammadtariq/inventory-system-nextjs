@@ -6,6 +6,16 @@ import { useCustomers, deleteCustomer } from "../../hooks/customers";
 import permissionsUtil from "@/utils/permission.util";
 import styles from "@/styles/Customer.module.css";
 
+const canDelete = permissionsUtil.checkAuth({
+  category: "customer",
+  action: "delete",
+});
+
+const canEdit = permissionsUtil.checkAuth({
+  category: "customer",
+  action: "edit",
+});
+
 export default function Customers() {
   const renderActions = (text) => (
     <>
@@ -17,24 +27,9 @@ export default function Customers() {
         }}
         okText="Yes"
         cancelText="No"
-        disabled={
-          !permissionsUtil.checkAuth({
-            category: "customer",
-            action: "delete",
-          })
-        }
+        disabled={!canDelete}
       >
-        <Button
-          className={styles.deleteBtn}
-          icon={<DeleteOutlined />}
-          danger
-          disabled={
-            !permissionsUtil.checkAuth({
-              category: "customer",
-              action: "delete",
-            })
-          }
-        >
+        <Button className={styles.deleteBtn} icon={<DeleteOutlined />} danger disabled={!canDelete}>
           Delete
         </Button>
       </Popconfirm>
@@ -42,12 +37,7 @@ export default function Customers() {
         onClick={() => router.push(`/customers/${text.id}`)}
         className={styles.editBtn}
         icon={<EditOutlined />}
-        disabled={
-          !permissionsUtil.checkAuth({
-            category: "customer",
-            action: "edit",
-          })
-        }
+        disabled={!canEdit}
       >
         Edit
       </Button>
