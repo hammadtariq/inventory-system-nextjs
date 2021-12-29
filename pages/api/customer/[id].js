@@ -10,9 +10,7 @@ const getCustomer = async (req, res) => {
   try {
     await dbConnect();
     const { id } = req.query;
-    const customer = await db.Customer.findOne({
-      where: { id },
-    });
+    const customer = await db.Customer.findByPk(id);
 
     if (!customer) {
       return res.status(409).send({ success: false, message: "Customer not exist" });
@@ -48,9 +46,7 @@ const editCustomer = async (req, res) => {
   try {
     await dbConnect();
 
-    const customer = await db.Customer.findOne({
-      where: { id: value.id },
-    });
+    const customer = await db.Customer.findByPk(value.id);
     if (!customer) {
       return res.status(409).send({ success: false, message: "Customer not exist" });
     }

@@ -80,9 +80,7 @@ const getCompany = async (req, res) => {
   try {
     await db.dbConnect();
     const { id } = value;
-    const company = await db.Company.findOne({
-      where: { id },
-    });
+    const company = await db.Company.findByPk(id);
 
     if (!company) {
       return res.status(409).send({ message: "company not exist" });
