@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import AuthLayout from "@/components/authLayout";
 import { loginUser } from "@/hooks/login";
 import styles from "@/styles/Login.module.css";
+import localStorageUtil from "@/utils/localStorageUtil";
 
 const Login = ({ router }) => {
   const [loading, setLoading] = useState(false);
@@ -11,9 +12,10 @@ const Login = ({ router }) => {
   const onFinish = (values) => {
     setLoading(true);
     loginUser(values)
-      .then(() => {
+      .then((data) => {
         router.replace("/");
         setLoading(false);
+        localStorageUtil.setItem("user", data.user);
         message.success("User logged in successfully");
       })
       .catch((_) => setLoading(false));

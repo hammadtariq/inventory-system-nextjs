@@ -22,6 +22,7 @@
     "cookie": "^0.4.1",
     "dotenv": "^10.0.0",
     "joi": "^17.5.0",
+    "lodash": "^4.17.21",
     "next": "12.0.4",
     "next-connect": "^0.11.0",
     "next-plugin-antd-less": "^1.7.0",
