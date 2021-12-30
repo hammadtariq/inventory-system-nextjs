@@ -1,0 +1,16 @@
+.leftVerticalSplit {
+  background: url("../public/person-with-plastic-bag-on-head.jpg") no-repeat #f58748;
+  background-position: 50% 100%;
+  background-size: 50%;
+}
+
+.logoBox {
+  text-align: center;
+  margin-top: 50vh;
+}
+
+.logoTitle {
+  color: white;
+  font-size: 42px;
+  text-transform: uppercase;
+}
