@@ -1,4 +1,4 @@
-import { DesktopOutlined, FileOutlined, PieChartOutlined, TeamOutlined, UserOutlined } from "@ant-design/icons";
+import { FileOutlined, FilePptOutlined, TeamOutlined, UserOutlined } from "@ant-design/icons";
 import { Layout, Menu } from "antd";
 import { useRouter } from "next/router";
 
@@ -11,12 +11,6 @@ export default function AppSider({ collapsed, onCollapse }) {
     <Sider collapsible collapsed={collapsed} onCollapse={onCollapse}>
       <div className="logo" />
       <Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline">
-        <Menu.Item key="1" icon={<PieChartOutlined />}>
-          Option 1
-        </Menu.Item>
-        <Menu.Item key="2" icon={<DesktopOutlined />}>
-          Option 2
-        </Menu.Item>
         <SubMenu key="sub1" icon={<UserOutlined />} title="Customer">
           <Menu.Item onClick={() => router.push("/customers")} key="3">
             List
@@ -33,7 +27,15 @@ export default function AppSider({ collapsed, onCollapse }) {
             Create
           </Menu.Item>
         </SubMenu>
-        <Menu.Item key="8" icon={<FileOutlined />}>
+        <SubMenu key="sub3" icon={<FilePptOutlined />} title="Purchase Order">
+          <Menu.Item onClick={() => router.push("/purchase")} key="8">
+            List
+          </Menu.Item>
+          <Menu.Item onClick={() => router.push("/purchase/create")} key="9">
+            Create
+          </Menu.Item>
+        </SubMenu>
+        <Menu.Item key="10" icon={<FileOutlined />}>
           Reports
         </Menu.Item>
       </Menu>
