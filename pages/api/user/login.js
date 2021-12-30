@@ -55,7 +55,16 @@ const login = async (req, res) => {
 
     setTokenCookie(res, sealedToken);
 
-    return res.send({ token: sealedToken });
+    return res.send({
+      token: sealedToken,
+      user: {
+        uuid: user.uuid,
+        fisrtName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+      },
+    });
   } catch (error) {
     console.log(error);
     res.status(500).send(error);

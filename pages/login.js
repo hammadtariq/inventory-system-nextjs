@@ -4,8 +4,8 @@ import { Form, Input, Button, Row, Col, message } from "antd";
 
 import AppTitle from "@/components/title";
 import { loginUser } from "@/hooks/login";
-
 import styles from "@/styles/Login.module.css";
+import localStorageUtil from "@/utils/localStorageUtil";
 
 const Login = ({ router }) => {
   const [loading, setLoading] = useState(false);
@@ -13,9 +13,10 @@ const Login = ({ router }) => {
   const onFinish = (values) => {
     setLoading(true);
     loginUser(values)
-      .then(() => {
+      .then((data) => {
         router.replace("/");
         setLoading(false);
+        localStorageUtil.setItem("user", data.user);
         message.success("User logged in successcully");
       })
       .catch((_) => setLoading(false));
