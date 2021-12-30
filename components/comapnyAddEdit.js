@@ -4,6 +4,12 @@ import { Button, Form, Input } from "antd";
 
 import { createCompany, updateCompany } from "@/hooks/company";
 import { validateMessages, layout } from "@/utils/ui";
+import permissionsUtil from "@/utils/permission.util";
+
+const canCreate = permissionsUtil.checkAuth({
+  category: "company",
+  action: "create",
+});
 
 const ComapnyAddEdit = ({ company }) => {
   const router = useRouter();
@@ -85,7 +91,7 @@ const ComapnyAddEdit = ({ company }) => {
         <Input.TextArea />
       </Form.Item>
       <Form.Item wrapperCol={{ ...layout.wrapperCol, offset: 2 }}>
-        <Button type="primary" htmlType="submit" loading={loading}>
+        <Button type="primary" htmlType="submit" loading={loading} disabled={!canCreate}>
           Submit
         </Button>
       </Form.Item>

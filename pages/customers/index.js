@@ -1,17 +1,24 @@
 import router from "next/router";
 import React from "react";
-import { Alert, Table, Space, Popconfirm, Button } from "antd";
+import { Alert, Table, Popconfirm, Button } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useCustomers, deleteCustomer } from "../../hooks/customers";
+import permissionsUtil from "@/utils/permission.util";
+import styles from "@/styles/Customer.module.css";
+
+const canDelete = permissionsUtil.checkAuth({
+  category: "customer",
+  action: "delete",
+});
+
+const canEdit = permissionsUtil.checkAuth({
+  category: "customer",
+  action: "edit",
+});
 
 export default function Customers() {
   const renderActions = (text) => (
-    <Space size="large">
-      <Button
-        onClick={() => router.push(`/customers/${text.id}`)}
-        style={{ marginLeft: 5, marginTop: 5 }}
-        icon={<EditOutlined />}
-      ></Button>
+    <>
       <Popconfirm
         title="Are you sure?"
         onConfirm={async () => {
@@ -20,10 +27,21 @@ export default function Customers() {
         }}
         okText="Yes"
         cancelText="No"
+        disabled={!canDelete}
       >
-        <Button icon={<DeleteOutlined />}></Button>
+        <Button className={styles.deleteBtn} icon={<DeleteOutlined />} danger disabled={!canDelete}>
+          Delete
+        </Button>
       </Popconfirm>
-    </Space>
+      <Button
+        onClick={() => router.push(`/customers/${text.id}`)}
+        className={styles.editBtn}
+        icon={<EditOutlined />}
+        disabled={!canEdit}
+      >
+        Edit
+      </Button>
+    </>
   );
 
   const columns = [
@@ -49,7 +67,6 @@ export default function Customers() {
     },
   ];
   const { customers, error, isLoading, mutate } = useCustomers();
-
   // const { customers, error, isLoading, setId } = useDeleteCustomer();
   if (error) return <Alert message={error.message} type="error" />;
   return <Table columns={columns} loading={isLoading} dataSource={customers ? customers.data : []} />;
