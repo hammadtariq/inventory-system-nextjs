@@ -12,13 +12,13 @@ const ProtectedRoutes = ({ children, router }) => {
 
   useEffect(() => {
     verifyToken()
-      .then((_) => {
+      .then(() => {
         setPermission();
         if (router.pathname === "/login") {
           router.push("/");
         }
       })
-      .catch((_) => {
+      .catch(() => {
         router.push("/login");
       });
 
