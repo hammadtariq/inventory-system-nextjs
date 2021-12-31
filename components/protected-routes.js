@@ -8,18 +8,18 @@ const ProtectedRoutes = ({ children, router }) => {
   useEffect(() => {
     verifyToken()
       .then(() => {
-        if (router.pathname === "/login") {
-          router.push("/");
-        } else {
+        if (router.pathname !== "/login") {
           setCanViewPage(true);
+          return;
         }
+        router.push("/");
       })
       .catch(() => {
-        if (router.pathname !== "/login") {
-          router.push("/login");
-        } else {
+        if (router.pathname === "/login") {
           setCanViewPage(true);
+          return;
         }
+        router.push("/login");
       });
 
     return () => null;

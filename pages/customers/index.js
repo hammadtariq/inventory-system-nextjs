@@ -67,7 +67,6 @@ export default function Customers() {
     },
   ];
   const { customers, error, isLoading, mutate } = useCustomers();
-  // const { customers, error, isLoading, setId } = useDeleteCustomer();
   if (error) return <Alert message={error.message} type="error" />;
-  return <Table columns={columns} loading={isLoading} dataSource={customers ? customers.data : []} />;
+  return <Table columns={columns} loading={isLoading} rowKey="id" dataSource={customers ? customers.data : []} />;
 }
