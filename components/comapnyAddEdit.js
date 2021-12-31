@@ -18,7 +18,7 @@ const ComapnyAddEdit = ({ company }) => {
 
   useEffect(() => {
     if (company) {
-      const { companyName, email, phone, address } = company;
+      const { companyName, email = "", phone = "", address = "" } = company;
       form.setFieldsValue({ companyName, email, phone, address });
     }
   }, [company]);
@@ -59,7 +59,6 @@ const ComapnyAddEdit = ({ company }) => {
         rules={[
           {
             type: "email",
-            required: true,
           },
         ]}
       >
@@ -72,7 +71,6 @@ const ComapnyAddEdit = ({ company }) => {
           {
             type: "string",
             max: 24,
-            required: true,
           },
         ]}
       >
@@ -83,7 +81,6 @@ const ComapnyAddEdit = ({ company }) => {
         label="Address"
         rules={[
           {
-            required: true,
             min: 10,
           },
         ]}
