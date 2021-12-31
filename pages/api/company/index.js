@@ -6,9 +6,9 @@ import { auth } from "@/middlewares/auth";
 
 const apiSchema = Joi.object({
   companyName: Joi.string().min(3).trim().lowercase().required(),
-  phone: Joi.string().max(24).trim().required(),
-  email: Joi.string().email().trim().lowercase().required(),
-  address: Joi.string().trim().required().min(10),
+  phone: Joi.string().max(24).trim(),
+  email: Joi.string().email().trim().lowercase(),
+  address: Joi.string().trim().min(10),
 });
 
 const createCompany = async (req, res) => {
@@ -18,7 +18,7 @@ const createCompany = async (req, res) => {
   }
   try {
     await db.dbConnect();
-    const company = await db.Company.findOne({ where: { email: value.email } });
+    const company = await db.Company.findOne({ where: { companyName: value.companyName } });
     if (company) {
       return res.status(409).send({ message: "company already exist" });
     }
