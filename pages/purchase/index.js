@@ -6,19 +6,22 @@ const PurchaseOrders = () => {
 
   const expandedRowRender = (record) => {
     const columns = [
-      { title: "Product Name", dataIndex: "productName", key: "productName" },
-      { title: "Product Label", dataIndex: "productLabel", key: "productLabel" },
-      { title: "Cost", dataIndex: "bundleCost", key: "bundleCost" },
-      { title: "Count", dataIndex: "bundleCount", key: "bundleCount" },
-      { title: "Weight", dataIndex: "bundleWeight", key: "bundleWeight" },
+      { title: "Item Name", dataIndex: "productName", key: "productName" },
+      // { title: "Product Label", dataIndex: "productLabel", key: "productLabel" },
+      { title: "No of Bales", dataIndex: "bundleCount", key: "bundleCount" },
+      { title: "Bale Weight (LBS)", dataIndex: "bundleWeight", key: "bundleWeight" },
+      { title: "Bale Weight (KGS)", dataIndex: "bundleWeight", key: "bundleWeight" },
+      { title: "Rate per LBS (Rs)", dataIndex: "bundleCost", key: "bundleCost" },
+      { title: "Rate per KGS (Rs)", dataIndex: "bundleCost", key: "bundleCost" },
+      { title: "Rate per Bale (Rs)", dataIndex: "bundleCost", key: "bundleCost" },
     ];
     return <Table columns={columns} dataSource={record.purchasedProducts} pagination={false} />;
   };
 
   const columns = [
     { title: "Company Name", dataIndex: ["company", "companyName"], key: "companyName" },
-    { title: "Total Amount", dataIndex: "totalAmount", key: "totalAmount" },
-    { title: "Paid Amount", dataIndex: "paidAmount", key: "paidAmount" },
+    { title: "Invoice Total Amount (Rs)", dataIndex: "totalAmount", key: "totalAmount" },
+    // { title: "Paid Amount (Rs)", dataIndex: "paidAmount", key: "paidAmount" },
     {
       title: "Created At",
       dataIndex: "createdAt",
