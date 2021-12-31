@@ -1,31 +1,31 @@
-import { useEffect } from "react";
-
+import { useEffect, useState } from "react";
 import { verifyToken } from "@/hooks/login";
-import permissionsUtil from "@/utils/permission.util";
-import localStorageUtil from "@/utils/localStorageUtil";
+import Spinner from "./spinner";
 
 const ProtectedRoutes = ({ children, router }) => {
-  const setPermission = () => {
-    const user = JSON.parse(localStorageUtil.getItem("user"));
-    permissionsUtil.setPermissions(user?.role ?? "EDITOR");
-  };
+  let [canViewPage, setCanViewPage] = useState(false);
 
   useEffect(() => {
     verifyToken()
       .then(() => {
-        setPermission();
         if (router.pathname === "/login") {
           router.push("/");
+        } else {
+          setCanViewPage(true);
         }
       })
       .catch(() => {
-        router.push("/login");
+        if (router.pathname !== "/login") {
+          router.push("/login");
+        } else {
+          setCanViewPage(true);
+        }
       });
 
     return () => null;
-  }, [router.pathname]);
+  }, [canViewPage, router.pathname]);
 
-  return children;
+  return canViewPage ? children : <Spinner />;
 };
 
 export default ProtectedRoutes;

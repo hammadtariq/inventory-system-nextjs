@@ -11,11 +11,12 @@ const clearStorage = () => {
 };
 
 const getItem = (key) => {
-  return localStorage.getItem(key) ?? null;
+  return JSON.parse(localStorage.getItem(key)) ?? null;
 };
 
-export default {
+const StorageUtils = {
   setItem,
   clearStorage,
   getItem,
 };
+export default StorageUtils;
