@@ -2,7 +2,7 @@ import "antd/dist/antd.css";
 
 import "@/styles/globals.css";
 import Layout from "@/components/layout";
-import ProtectedRoutes from "@/components/protected-routes";
+import ProtectedRoutes from "@/components/protectedRoutes";
 import StorageUtils from "@/utils/storage.util";
 import PermissionUtil from "@/utils/permission.util";
 import { useEffect } from "react";

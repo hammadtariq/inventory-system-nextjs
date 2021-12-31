@@ -1,4 +1,4 @@
-import AddEditCompany from "@/components/addEditComapny";
+import AddEditCompany from "@/components/addEditCompany";
 
 const CreateCompany = () => {
   return (
