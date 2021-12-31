@@ -1,10 +1,10 @@
-import ComapnyAddEdit from "@/components/comapnyAddEdit";
+import AddEditCompany from "@/components/addEditComapny";
 
 const CreateCompany = () => {
   return (
     <div>
       <h2>Create Company</h2>
-      <ComapnyAddEdit />
+      <AddEditCompany />
     </div>
   );
 };

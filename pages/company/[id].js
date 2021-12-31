@@ -1,6 +1,6 @@
 import { Spin, Alert } from "antd";
 
-import ComapnyAddEdit from "@/components/comapnyAddEdit";
+import AddEditCompany from "@/components/addEditCompany";
 import { useCompany } from "@/hooks/company";
 
 function Update({ id }) {
@@ -9,7 +9,7 @@ function Update({ id }) {
   return (
     <div>
       <h1>Update User </h1>
-      {isLoading ? <Spin size="large" /> : <ComapnyAddEdit company={company} />}
+      {isLoading ? <Spin size="large" /> : <AddEditCompany company={company} />}
     </div>
   );
 }
