@@ -11,6 +11,7 @@ module.exports = {
       companyName: {
         type: Sequelize.STRING,
         allowNull: false,
+        unique: true,
         validate: {
           isLowercase: {
             msg: "Company Name must be lowercase",
@@ -19,8 +20,7 @@ module.exports = {
       },
       email: {
         type: Sequelize.STRING,
-        allowNull: false,
-        unique: true,
+        allowNull: true,
         validate: {
           isEmail: { msg: "Provide valid email address" },
           isLowercase: { msg: "Email should be lowercase" },
@@ -28,11 +28,11 @@ module.exports = {
       },
       phone: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
       },
       address: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
       },
       uuid: {
         type: Sequelize.UUID,

@@ -54,14 +54,17 @@ const Company = () => {
     {
       title: "Email",
       dataIndex: "email",
+      render: (text) => text ?? "N/A",
     },
     {
       title: "Address",
       dataIndex: "address",
+      render: (text) => text ?? "N/A",
     },
     {
       title: "Phone",
       dataIndex: "phone",
+      render: (text) => text ?? "N/A",
     },
     {
       title: "Created At",
