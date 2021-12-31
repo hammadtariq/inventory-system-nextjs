@@ -84,7 +84,7 @@ const Company = () => {
   ];
 
   if (error) return <Alert message={error} type="error" />;
-  return <Table loading={isLoading} columns={columns} dataSource={companies ? companies.rows : []} />;
+  return <Table loading={isLoading} rowKey="id" columns={columns} dataSource={companies ? companies.rows : []} />;
 };
 
 export default Company;

@@ -11,7 +11,7 @@ const canCreate = permissionsUtil.checkAuth({
   action: "create",
 });
 
-const ComapnyAddEdit = ({ company }) => {
+const AddEditCompany = ({ company }) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
@@ -96,4 +96,4 @@ const ComapnyAddEdit = ({ company }) => {
   );
 };
 
-export default ComapnyAddEdit;
+export default AddEditCompany;

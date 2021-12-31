@@ -4,7 +4,13 @@ import { useEffect, useState } from "react";
 import AuthLayout from "@/components/authLayout";
 import { loginUser } from "@/hooks/login";
 import styles from "@/styles/Login.module.css";
-import localStorageUtil from "@/utils/localStorageUtil";
+import StorageUtils from "@/utils/storage.util";
+import PermissionUtil from "@/utils/permission.util";
+
+const setUserAccess = (user) => {
+  StorageUtils.setItem("user", user);
+  PermissionUtil.setPermissions(user?.role ?? "EDITOR");
+};
 
 const Login = ({ router }) => {
   const [loading, setLoading] = useState(false);
@@ -15,14 +21,17 @@ const Login = ({ router }) => {
       .then((data) => {
         router.replace("/");
         setLoading(false);
-        localStorageUtil.setItem("user", data.user);
+        setUserAccess(data.user);
         message.success("User logged in successfully");
       })
-      .catch((_) => setLoading(false));
+      .catch((err) => {
+        setLoading(false);
+        console.log("login error: ", err);
+      });
   };
 
   const onFinishFailed = (errorInfo) => {
-    // console.log("Failed:", errorInfo);
+    console.log("Failed:", errorInfo);
   };
 
   useEffect(() => {
