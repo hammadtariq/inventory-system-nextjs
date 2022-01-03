@@ -20,10 +20,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.FLOAT,
         allowNull: false,
       },
-      paidAmount: {
-        type: DataTypes.FLOAT,
-        allowNull: false,
-      },
       purchasedProducts: {
         type: DataTypes.JSONB,
         allowNull: false,

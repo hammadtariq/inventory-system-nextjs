@@ -6,14 +6,13 @@ const PurchaseOrders = () => {
 
   const expandedRowRender = (record) => {
     const columns = [
-      { title: "Item Name", dataIndex: "productName", key: "productName" },
-      // { title: "Product Label", dataIndex: "productLabel", key: "productLabel" },
-      { title: "No of Bales", dataIndex: "bundleCount", key: "bundleCount" },
-      { title: "Bale Weight (LBS)", dataIndex: "bundleWeight", key: "bundleWeight" },
-      { title: "Bale Weight (KGS)", dataIndex: "bundleWeight", key: "bundleWeight" },
-      { title: "Rate per LBS (Rs)", dataIndex: "bundleCost", key: "bundleCost" },
-      { title: "Rate per KGS (Rs)", dataIndex: "bundleCost", key: "bundleCost" },
-      { title: "Rate per Bale (Rs)", dataIndex: "bundleCost", key: "bundleCost" },
+      { title: "Item Name", dataIndex: "itemName", key: "itemName" },
+      { title: "No of Bales", dataIndex: "noOfBales", key: "noOfBales" },
+      { title: "Bale Weight (LBS)", dataIndex: "baleWeightLbs", key: "baleWeightLbs", render: (text) => text ?? "N/A" },
+      { title: "Bale Weight (KGS)", dataIndex: "baleWeightKgs", key: "baleWeightKgs", render: (text) => text ?? "N/A" },
+      { title: "Rate per LBS (Rs)", dataIndex: "ratePerLgs", key: "ratePerLgs", render: (text) => text ?? "N/A" },
+      { title: "Rate per KGS (Rs)", dataIndex: "ratePerKgs", key: "ratePerKgs", render: (text) => text ?? "N/A" },
+      { title: "Rate per Bale (Rs)", dataIndex: "ratePerBale", key: "ratePerBale" },
     ];
     return <Table columns={columns} dataSource={record.purchasedProducts} pagination={false} />;
   };
@@ -21,7 +20,6 @@ const PurchaseOrders = () => {
   const columns = [
     { title: "Company Name", dataIndex: ["company", "companyName"], key: "companyName" },
     { title: "Invoice Total Amount (Rs)", dataIndex: "totalAmount", key: "totalAmount" },
-    // { title: "Paid Amount (Rs)", dataIndex: "paidAmount", key: "paidAmount" },
     {
       title: "Created At",
       dataIndex: "createdAt",

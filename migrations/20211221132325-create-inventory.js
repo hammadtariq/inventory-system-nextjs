@@ -8,40 +8,47 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      productName: {
-        type: Sequelize.STRING,
-        allowNull: false,
-        validate: {
-          isLowercase: {
-            msg: "Product Name must be lowercase",
-          },
-        },
-      },
-      productLabel: {
+      itemName: {
         type: Sequelize.STRING,
         allowNull: false,
         unique: true,
         validate: {
           isLowercase: {
-            msg: "Product Label must be lowercase",
+            msg: "Item Name must be lowercase",
           },
         },
       },
-      bundleCount: {
+      noOfBales: {
         type: Sequelize.INTEGER,
-        allowNull: true,
+        allowNull: false,
       },
-      bundleWeight: {
+      baleWeightLbs: {
         type: Sequelize.FLOAT,
         allowNull: true,
       },
-      bundleCost: {
+      baleWeightKgs: {
         type: Sequelize.FLOAT,
         allowNull: true,
+      },
+      ratePerLbs: {
+        type: Sequelize.FLOAT,
+        allowNull: true,
+      },
+      ratePerKgs: {
+        type: Sequelize.FLOAT,
+        allowNull: true,
+      },
+      ratePerBale: {
+        type: Sequelize.FLOAT,
+        allowNull: false,
       },
       onHand: {
         type: Sequelize.INTEGER,
-        allowNull: true,
+        allowNull: false,
+      },
+      companyId: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
       },
       uuid: {
         type: Sequelize.UUID,

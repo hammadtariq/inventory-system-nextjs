@@ -16,10 +16,6 @@ module.exports = {
         type: Sequelize.FLOAT,
         allowNull: false,
       },
-      paidAmount: {
-        type: Sequelize.FLOAT,
-        allowNull: false,
-      },
       purchasedProducts: {
         type: Sequelize.JSONB,
         allowNull: false,
