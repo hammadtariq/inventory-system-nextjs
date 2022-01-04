@@ -61,6 +61,16 @@ export default function Customers() {
       key: "email",
     },
     {
+      title: "Phone",
+      dataIndex: "phone",
+      key: "phone",
+    },
+    {
+      title: "Address",
+      dataIndex: "address",
+      key: "address",
+    },
+    {
       title: "Action",
       key: "action",
       render: renderActions,
