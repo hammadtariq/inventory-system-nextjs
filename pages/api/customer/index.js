@@ -6,13 +6,13 @@ import { auth } from "@/middlewares/auth";
 const dbConnect = db.dbConnect;
 
 const customerRegistration = async (req, res) => {
-  const { firstName, lastName, email, role } = req.body;
+  const { firstName, lastName, email, phone, address } = req.body;
 
-  if (!firstName || !lastName || !email || !role) {
+  if (!firstName || !lastName || !email) {
     return res.status(400).send({
       success: false,
       message: "Please provide all fields",
-      required: ["firstName", "lastName", "email", "role"],
+      required: ["firstName", "lastName", "email"],
     });
   }
 
@@ -29,7 +29,8 @@ const customerRegistration = async (req, res) => {
       firstName,
       lastName,
       email,
-      role,
+      phone,
+      address,
     });
 
     return res.send({

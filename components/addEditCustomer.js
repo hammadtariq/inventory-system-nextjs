@@ -19,11 +19,13 @@ const AddEditCustomer = ({ customer }) => {
 
   useEffect(() => {
     if (customer) {
-      const { firstName, lastName, email } = customer;
+      const { firstName, lastName, email, phone, address } = customer;
       form.setFieldsValue({
         firstName,
         lastName,
         email,
+        phone,
+        address,
       });
     }
   }, [customer]);
@@ -34,7 +36,7 @@ const AddEditCustomer = ({ customer }) => {
       if (customer) {
         await updateCustomer(customer.id, values);
       } else {
-        await createCustomer({ ...values, role: "customer" });
+        await createCustomer({ ...values });
       }
       router.push("/customers");
     } catch (error) {
@@ -80,6 +82,29 @@ const AddEditCustomer = ({ customer }) => {
         ]}
       >
         <Input />
+      </Form.Item>
+      <Form.Item
+        name="phone"
+        label="Phone"
+        rules={[
+          {
+            type: "string",
+            max: 24,
+          },
+        ]}
+      >
+        <Input />
+      </Form.Item>
+      <Form.Item
+        name="address"
+        label="Address"
+        rules={[
+          {
+            min: 10,
+          },
+        ]}
+      >
+        <Input.TextArea />
       </Form.Item>
       <Form.Item wrapperCol={{ ...layout.wrapperCol, offset: 2 }}>
         <Button type="primary" htmlType="submit" loading={loading} disabled={!canCreate}>

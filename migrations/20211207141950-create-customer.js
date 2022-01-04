@@ -33,8 +33,13 @@ module.exports = {
           isLowercase: { msg: "Email should be lowercase" },
         },
       },
-      role: {
+      phone: {
         type: Sequelize.STRING,
+        allowNull: true,
+      },
+      address: {
+        type: Sequelize.STRING,
+        allowNull: true,
       },
       createdAt: {
         allowNull: false,

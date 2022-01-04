@@ -31,6 +31,8 @@ const editCustomer = async (req, res) => {
     firstName: Joi.string().min(3).trim(),
     lastName: Joi.string().min(3).trim(),
     email: Joi.string().email().trim(),
+    phone: Joi.string().max(24).trim(),
+    address: Joi.string().trim().min(10),
     id: Joi.number().required(),
   });
 

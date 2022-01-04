@@ -42,7 +42,15 @@ module.exports = (sequelize, DataTypes) => {
           isLowercase: { msg: "Email should be lowercase" },
         },
       },
-      role: DataTypes.STRING,
+      phone: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      address: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        min: 10,
+      },
       uuid: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
