@@ -10,7 +10,7 @@ const getAllInventory = async (req, res) => {
   pagination.offset = offset ? offset : 0;
   try {
     await db.dbConnect();
-    const data = await db.Inventory.findAndCountAll(pagination);
+    const data = await db.Inventory.findAndCountAll({ ...pagination, include: [db.Company] });
 
     return res.send(data);
   } catch (error) {

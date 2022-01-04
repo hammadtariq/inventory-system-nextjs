@@ -46,7 +46,7 @@ const getInventory = async (req, res) => {
   try {
     await db.dbConnect();
     const { id } = value;
-    const inventory = await db.Inventory.findByPk(id);
+    const inventory = await db.Inventory.findByPk(id, { include: [db.Company] });
 
     if (!inventory) {
       return res.status(404).send({ message: "inventory not exist" });

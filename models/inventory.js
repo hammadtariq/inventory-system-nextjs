@@ -2,38 +2,50 @@
 const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class inventory extends Model {
-    static associate(models) {}
+    static associate({ Company }) {
+      this.belongsTo(Company, { foreignKey: "companyId" });
+    }
+    toJSON() {
+      return { ...this.get(), companyId: undefined };
+    }
   }
   inventory.init(
     {
-      productName: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        validate: {
-          isLowercase: {
-            msg: "product name must be lowercase",
-          },
-        },
-      },
-      productLabel: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        validate: {
-          isLowercase: {
-            msg: "product label must be lowercase",
-          },
-        },
-        unique: true,
-      },
-      bundleCount: {
+      companyId: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      bundleWeight: {
-        type: DataTypes.FLOAT,
+      itemName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+        validate: {
+          isLowercase: {
+            msg: "Item Name must be lowercase",
+          },
+        },
+      },
+      noOfBales: {
+        type: DataTypes.INTEGER,
         allowNull: false,
       },
-      bundleCost: {
+      baleWeightLbs: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+      },
+      baleWeightKgs: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+      },
+      ratePerLbs: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+      },
+      ratePerKgs: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+      },
+      ratePerBale: {
         type: DataTypes.FLOAT,
         allowNull: false,
       },
