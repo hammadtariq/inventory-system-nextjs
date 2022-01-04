@@ -24,32 +24,42 @@ const createPurchaseOrder = async (req, res) => {
   if (error && Object.keys(error).length) {
     return res.status(400).send({ message: error });
   }
+  const t = await db.sequelize.transaction();
   try {
     const { purchasedProducts, companyId } = value;
     await db.dbConnect();
     for await (const product of purchasedProducts) {
       const { itemName, noOfBales, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs, ratePerBale } = product;
-      const inventory = await db.Inventory.findOne({ where: { itemName } });
+      const inventory = await db.Inventory.findOne({ where: { itemName }, transaction: t });
       if (inventory) {
-        await inventory.increment(["onHand", "noOfBales"], { by: noOfBales });
-        await inventory.update({
-          baleWeightLbs,
-          baleWeightKgs,
-          ratePerLbs,
-          ratePerKgs,
-          ratePerBale,
-        });
+        await inventory.increment(["onHand", "noOfBales"], { by: noOfBales, transaction: t });
+        await inventory.update(
+          {
+            baleWeightLbs,
+            baleWeightKgs,
+            ratePerLbs,
+            ratePerKgs,
+            ratePerBale,
+          },
+          {},
+          { transaction: t }
+        );
       } else {
-        await db.Inventory.create({
-          ...product,
-          companyId,
-          onHand: noOfBales,
-        });
+        await db.Inventory.create(
+          {
+            ...product,
+            companyId,
+            onHand: noOfBales,
+          },
+          { transaction: t }
+        );
       }
     }
-    await db.Purchase.create({ ...value });
+    await db.Purchase.create({ ...value }, { transaction: t });
+    await t.commit();
     return res.send();
   } catch (error) {
+    await t.rollback();
     return res.status(500).send({ message: error });
   }
 };
