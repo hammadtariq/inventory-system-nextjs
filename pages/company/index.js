@@ -3,6 +3,7 @@ import { Alert, Button, Popconfirm, Table } from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 
 import { useCompanies, deleteCompany } from "@/hooks/company";
+import Title from "@/components/title";
 import styles from "@/styles/Company.module.css";
 import permissionsUtil from "@/utils/permission.util";
 
@@ -84,7 +85,12 @@ const Company = () => {
   ];
 
   if (error) return <Alert message={error} type="error" />;
-  return <Table loading={isLoading} rowKey="id" columns={columns} dataSource={companies ? companies.rows : []} />;
+  return (
+    <>
+      <Title level={2}>Company List</Title>
+      <Table loading={isLoading} rowKey="id" columns={columns} dataSource={companies ? companies.rows : []} />
+    </>
+  );
 };
 
 export default Company;

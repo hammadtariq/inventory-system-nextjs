@@ -1,4 +1,6 @@
 import { Alert, Table } from "antd";
+
+import Title from "@/components/title";
 import { usePurchaseOrders } from "@/hooks/purchase";
 
 const PurchaseOrders = () => {
@@ -36,14 +38,17 @@ const PurchaseOrders = () => {
 
   if (error) return <Alert message={error} type="error" />;
   return (
-    <Table
-      loading={isLoading}
-      rowKey={"id"}
-      className="components-table-demo-nested"
-      columns={columns}
-      expandable={{ expandedRowRender: (record) => expandedRowRender(record) }}
-      dataSource={purchaseOrders ? purchaseOrders.rows : []}
-    />
+    <>
+      <Title level={2}>Purchase Order List</Title>
+      <Table
+        loading={isLoading}
+        rowKey={"id"}
+        className="components-table-demo-nested"
+        columns={columns}
+        expandable={{ expandedRowRender: (record) => expandedRowRender(record) }}
+        dataSource={purchaseOrders ? purchaseOrders.rows : []}
+      />
+    </>
   );
 };
 

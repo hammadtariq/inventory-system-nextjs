@@ -1,6 +1,7 @@
 import { Spin, Alert } from "antd";
 
 import AddEditCompany from "@/components/addEditCompany";
+import Title from "@/components/title";
 import { useCompany } from "@/hooks/company";
 
 function Update({ id }) {
@@ -8,7 +9,7 @@ function Update({ id }) {
   if (error) return <Alert message={error} type="error" />;
   return (
     <div>
-      <h1>Update User </h1>
+      <Title level={2}>Update Company</Title>
       {isLoading ? <Spin size="large" /> : <AddEditCompany company={company} />}
     </div>
   );
