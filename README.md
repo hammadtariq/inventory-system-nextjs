@@ -57,8 +57,8 @@ yarn install
 npm install
 ```
 
-
 Run migrations for first time
+
 ```sh
 sequelize db:migrate:undo:all
 sequelize db:migrate
@@ -97,4 +97,5 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
 
 ## create Models from sequelize cli
+
 sequelize model:generate --name Sale --attributes customerId:integer,totalAmount:float,soldProducts:string
