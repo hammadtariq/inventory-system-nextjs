@@ -71,11 +71,11 @@ const getAllSales = async (req, res) => {
   pagination.offset = offset ? offset : 0;
   try {
     await db.dbConnect();
-    const sales = await db.Sell.findAndCountAll({ ...pagination, include: [db.Customer] });
+    const sales = await db.Sale.findAndCountAll({ ...pagination, include: [db.Customer] });
 
     return res.send(sales);
   } catch (error) {
-    return res.status(500).send({ message: error.toString().toString() });
+    return res.status(500).send({ message: error.toString() });
   }
 };
 export default nextConnect().use(auth).post(createSale).get(getAllSales);
