@@ -2,8 +2,12 @@ html,
 body {
   padding: 0;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans,
+    Helvetica Neue, sans-serif;
+}
+
+body {
+  min-height: calc(100vh - 130px);
 }
 
 a {
@@ -13,4 +17,36 @@ a {
 
 * {
   box-sizing: border-box;
+}
+
+.site-layout .site-layout-background {
+  background: #fff;
+}
+[data-theme="dark"] .siteLayout .site-layout-background {
+  background: #141414;
+}
+
+.logo {
+  height: 32px;
+  margin: 16px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.app_spinner {
+  position: fixed;
+  top: 0px;
+  right: 0px;
+  width: 100%;
+  height: 100%;
+  background-color: #0000004a;
+  z-index: 5;
+}
+
+.app_spinner > .ant-spin {
+  position: fixed;
+  top: 45vh;
+  left: 45vw;
+  background-color: white;
+  padding: 8px 8px 4px 8px;
+  border-radius: 4px;
 }
