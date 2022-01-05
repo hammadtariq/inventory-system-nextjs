@@ -2,15 +2,24 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    const companies = await queryInterface.sequelize.query(`SELECT id from companies;`);
-    const companiesRows = companies[0];
+    /**
+     * Add seed commands here.
+     *
+     * Example:
+     * await queryInterface.bulkInsert('People', [{
+     *   name: 'John Doe',
+     *   isBetaMember: false
+     * }], {});
+     */
+    const customers = await queryInterface.sequelize.query(`SELECT id from customers;`);
+    const customersRows = customers[0];
     await queryInterface.bulkInsert(
-      "purchases",
+      "sales",
       [
         {
-          companyId: `${companiesRows[0].id}`,
+          customerId: `${customersRows[0].id}`,
           totalAmount: 100,
-          purchasedProducts: JSON.stringify([
+          soldProducts: JSON.stringify([
             {
               ratePerLbs: 50,
               ratePerKgs: null,
@@ -35,9 +44,9 @@ module.exports = {
           updatedAt: "2021-12-28T11:04:46.162Z",
         },
         {
-          companyId: `${companiesRows[1].id}`,
+          customerId: `${customersRows[1].id}`,
           totalAmount: 500,
-          purchasedProducts: JSON.stringify([
+          soldProducts: JSON.stringify([
             {
               ratePerKgs: 250,
               ratePerBale: 25,
@@ -67,7 +76,13 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.bulkDelete("purchases", null, {});
-    await queryInterface.bulkDelete("companies", null, {});
+    /**
+     * Add commands to revert seed here.
+     *
+     * Example:
+     * await queryInterface.bulkDelete('People', null, {});
+     */
+    await queryInterface.bulkDelete("sales", null, {});
+    await queryInterface.bulkDelete("customers", null, {});
   },
 };

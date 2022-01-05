@@ -8,7 +8,7 @@ const apiSchema = Joi.object({
   id: Joi.number().required(),
 });
 
-const getPurchaseOrder = async (req, res) => {
+const getSale = async (req, res) => {
   const { error, value } = apiSchema.validate({
     id: req.query.id,
   });
@@ -19,16 +19,16 @@ const getPurchaseOrder = async (req, res) => {
   try {
     await db.dbConnect();
     const { id } = value;
-    const purchase = await db.Purchase.findByPk(id, { include: [db.Company] });
+    const sale = await db.Sale.findByPk(id, { include: [db.Customer] });
 
-    if (!purchase) {
-      return res.status(404).send({ message: "purchase order not exist" });
+    if (!sale) {
+      return res.status(404).send({ message: "sale order not exists" });
     }
 
-    return res.send(purchase);
+    return res.send(sale);
   } catch (error) {
     return res.status(500).send({ message: error.toString() });
   }
 };
 
-export default nextConnect().use(auth).get(getPurchaseOrder);
+export default nextConnect().use(auth).get(getSale);
