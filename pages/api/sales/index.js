@@ -2,6 +2,8 @@ import Joi from "joi";
 import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
+// const Sequelize = require('sequelize');
+// const Op = Sequelize.Op;
 import { auth } from "@/middlewares/auth";
 
 const inventorySchema = Joi.object().keys({
@@ -29,28 +31,23 @@ const createSale = async (req, res) => {
     const { soldProducts, customerId } = value;
     await db.dbConnect();
     for await (const product of soldProducts) {
-      const { itemName, noOfBales, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs, ratePerBale } = product;
-      const inventory = await db.Inventory.findOne({ where: { itemName }, transaction: t });
+      const { itemName, noOfBales } = product;
+      const inventory = await db.Inventory.findOne({
+        where: {
+          itemName,
+          onHand: {
+            [db.Sequelize.Op.or]: {
+              [db.Sequelize.Op.gt]: noOfBales,
+              [db.Sequelize.Op.eq]: noOfBales,
+            },
+          },
+        },
+        transaction: t,
+      });
       if (!inventory) {
-        return res.status(404).send({ message: `${itemName} does not exist in inventory` });
-      }
-      if (noOfBales > inventory.onHand) {
-        return res.status(400).send({
-          message: `you don't have enough stock for item "${itemName}", in hand are ${inventory.onHand}`,
-        });
+        return res.status(404).send({ message: `"${itemName}" out of stock` });
       }
       await inventory.decrement(["onHand"], { by: noOfBales, transaction: t });
-      await inventory.update(
-        {
-          baleWeightLbs,
-          baleWeightKgs,
-          ratePerLbs,
-          ratePerKgs,
-          ratePerBale,
-        },
-        {},
-        { transaction: t }
-      );
     }
     await db.Sale.create({ ...value }, { transaction: t });
     await t.commit();
