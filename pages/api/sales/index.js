@@ -31,29 +31,26 @@ const createSale = async (req, res) => {
     for await (const product of soldProducts) {
       const { itemName, noOfBales, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs, ratePerBale } = product;
       const inventory = await db.Inventory.findOne({ where: { itemName }, transaction: t });
-      if (inventory) {
-        await inventory.decrement(["onHand"], { by: noOfBales, transaction: t });
-        await inventory.update(
-          {
-            baleWeightLbs,
-            baleWeightKgs,
-            ratePerLbs,
-            ratePerKgs,
-            ratePerBale,
-          },
-          {},
-          { transaction: t }
-        );
-      } else {
-        await db.Inventory.create(
-          {
-            ...product,
-            customerId,
-            onHand: noOfBales,
-          },
-          { transaction: t }
-        );
+      if (!inventory) {
+        return res.status(404).send({ message: `${itemName} does not exist in inventory` });
       }
+      if (noOfBales > inventory.onHand) {
+        return res.status(400).send({
+          message: `you don't have enough stock for item "${itemName}", in hand are ${inventory.onHand}`,
+        });
+      }
+      await inventory.decrement(["onHand"], { by: noOfBales, transaction: t });
+      await inventory.update(
+        {
+          baleWeightLbs,
+          baleWeightKgs,
+          ratePerLbs,
+          ratePerKgs,
+          ratePerBale,
+        },
+        {},
+        { transaction: t }
+      );
     }
     await db.Sale.create({ ...value }, { transaction: t });
     await t.commit();

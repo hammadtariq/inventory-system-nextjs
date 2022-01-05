@@ -23,7 +23,7 @@ module.exports = {
             {
               ratePerLbs: null,
               ratePerKgs: 900,
-              ratePerKgs: 80,
+              ratePerBale: 80,
               noOfBales: 50,
               itemName: "inventory product",
               baleWeightLbs: null,
