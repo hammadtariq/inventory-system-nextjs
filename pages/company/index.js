@@ -1,4 +1,5 @@
 import { useRouter } from "next/router";
+import { useRef, useState } from "react";
 import { Alert, Button, Popconfirm, Table } from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 
@@ -6,6 +7,7 @@ import { useCompanies, deleteCompany } from "@/hooks/company";
 import Title from "@/components/title";
 import styles from "@/styles/Company.module.css";
 import permissionsUtil from "@/utils/permission.util";
+import { getColumnSearchProps } from "@/utils/filter.util";
 
 const canDelete = permissionsUtil.checkAuth({
   category: "company",
@@ -20,6 +22,10 @@ const canEdit = permissionsUtil.checkAuth({
 const Company = () => {
   const { companies, error, isLoading, mutate } = useCompanies();
   const router = useRouter();
+  const [searchText, setSearchText] = useState("");
+  const [searchedColumn, setSearchedColumn] = useState("");
+  const searchInput = useRef(null);
+
   const renderActions = (text) => (
     <>
       <Popconfirm
@@ -51,6 +57,15 @@ const Company = () => {
     {
       title: "Company Name",
       dataIndex: "companyName",
+      ...getColumnSearchProps({
+        dataIndex: "companyName",
+        searchInput,
+        searchText,
+        searchedColumn,
+        setSearchText,
+        setSearchedColumn,
+        dataIndexName: "company name",
+      }),
     },
     {
       title: "Email",

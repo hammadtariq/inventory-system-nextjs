@@ -1,14 +1,32 @@
 import { Alert, Table } from "antd";
+import { useRef, useState } from "react";
 
 import Title from "@/components/title";
 import { useSales } from "@/hooks/sales";
+import { getColumnSearchProps } from "@/utils/filter.util";
 
 const Sales = () => {
   const { sales, error, isLoading } = useSales();
+  const [searchText, setSearchText] = useState("");
+  const [searchedColumn, setSearchedColumn] = useState("");
+  const searchInput = useRef(null);
 
   const expandedRowRender = (record) => {
     const columns = [
-      { title: "Item Name", dataIndex: "itemName", key: "itemName" },
+      {
+        title: "Item Name",
+        dataIndex: "itemName",
+        key: "itemName",
+        ...getColumnSearchProps({
+          dataIndex: "itemName",
+          dataIndexName: "item name",
+          searchInput,
+          searchText,
+          searchedColumn,
+          setSearchText,
+          setSearchedColumn,
+        }),
+      },
       { title: "No of Bales", dataIndex: "noOfBales", key: "noOfBales" },
       { title: "Bale Weight (LBS)", dataIndex: "baleWeightLbs", key: "baleWeightLbs", render: (text) => text ?? "N/A" },
       { title: "Bale Weight (KGS)", dataIndex: "baleWeightKgs", key: "baleWeightKgs", render: (text) => text ?? "N/A" },
@@ -20,7 +38,22 @@ const Sales = () => {
   };
 
   const columns = [
-    { title: "Customer Name", dataIndex: ["customer", "firstName"], key: "customerName" },
+    {
+      title: "Customer Name",
+      dataIndex: ["customer", "firstName"],
+      key: "customerName",
+      ...getColumnSearchProps({
+        dataIndex: "firstName",
+        dataIndexName: "customer name",
+        parentDataIndex: "customer",
+        nested: true,
+        searchInput,
+        searchText,
+        searchedColumn,
+        setSearchText,
+        setSearchedColumn,
+      }),
+    },
     { title: "Invoice Total Amount (Rs)", dataIndex: "totalAmount", key: "totalAmount" },
     {
       title: "Created At",
