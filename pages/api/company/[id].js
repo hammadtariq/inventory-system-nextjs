@@ -40,7 +40,7 @@ const updateCompany = async (req, res) => {
 
     return res.send();
   } catch (error) {
-    return res.status(500).send({ message: error });
+    return res.status(500).send({ message: error.toString() });
   }
 };
 
@@ -65,7 +65,7 @@ const deleteCompany = async (req, res) => {
 
     return res.send();
   } catch (error) {
-    return res.status(500).send({ message: error });
+    return res.status(500).send({ message: error.toString() });
   }
 };
 
@@ -88,7 +88,7 @@ const getCompany = async (req, res) => {
 
     return res.send(company);
   } catch (error) {
-    return res.status(500).send({ message: error });
+    return res.status(500).send({ message: error.toString() });
   }
 };
 

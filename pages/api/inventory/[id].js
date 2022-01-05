@@ -31,7 +31,7 @@ const deleteInventory = async (req, res) => {
 
     return res.send();
   } catch (error) {
-    return res.status(500).send({ message: error });
+    return res.status(500).send({ message: error.toString() });
   }
 };
 
@@ -54,7 +54,7 @@ const getInventory = async (req, res) => {
 
     return res.send(inventory);
   } catch (error) {
-    return res.status(500).send({ message: error });
+    return res.status(500).send({ message: error.toString() });
   }
 };
 

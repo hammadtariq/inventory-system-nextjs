@@ -14,25 +14,25 @@ const inventorySchema = Joi.object().keys({
   ratePerBale: Joi.number().required(),
 });
 const apiSchema = Joi.object({
-  companyId: Joi.number().required(),
+  customerId: Joi.number().required(),
   totalAmount: Joi.number().required(),
-  purchasedProducts: Joi.array().items(inventorySchema).required(),
+  soldProducts: Joi.array().items(inventorySchema).required(),
 });
 
-const createPurchaseOrder = async (req, res) => {
+const createSale = async (req, res) => {
   const { error, value } = apiSchema.validate(req.body);
   if (error && Object.keys(error).length) {
     return res.status(400).send({ message: error });
   }
   const t = await db.sequelize.transaction();
   try {
-    const { purchasedProducts, companyId } = value;
+    const { soldProducts, customerId } = value;
     await db.dbConnect();
-    for await (const product of purchasedProducts) {
+    for await (const product of soldProducts) {
       const { itemName, noOfBales, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs, ratePerBale } = product;
       const inventory = await db.Inventory.findOne({ where: { itemName }, transaction: t });
       if (inventory) {
-        await inventory.increment(["onHand", "noOfBales"], { by: noOfBales, transaction: t });
+        await inventory.decrement(["onHand"], { by: noOfBales, transaction: t });
         await inventory.update(
           {
             baleWeightLbs,
@@ -48,14 +48,14 @@ const createPurchaseOrder = async (req, res) => {
         await db.Inventory.create(
           {
             ...product,
-            companyId,
+            customerId,
             onHand: noOfBales,
           },
           { transaction: t }
         );
       }
     }
-    await db.Purchase.create({ ...value }, { transaction: t });
+    await db.Sale.create({ ...value }, { transaction: t });
     await t.commit();
     return res.send();
   } catch (error) {
@@ -64,18 +64,18 @@ const createPurchaseOrder = async (req, res) => {
   }
 };
 
-const getAllPurchase = async (req, res) => {
+const getAllSales = async (req, res) => {
   const { limit, offset } = req.query;
   const pagination = {};
   pagination.limit = limit ? limit : 10;
   pagination.offset = offset ? offset : 0;
   try {
     await db.dbConnect();
-    const data = await db.Purchase.findAndCountAll({ ...pagination, include: [db.Company] });
+    const sales = await db.Sell.findAndCountAll({ ...pagination, include: [db.Customer] });
 
-    return res.send(data);
+    return res.send(sales);
   } catch (error) {
-    return res.status(500).send({ message: error.toString() });
+    return res.status(500).send({ message: error.toString().toString() });
   }
 };
-export default nextConnect().use(auth).post(createPurchaseOrder).get(getAllPurchase);
+export default nextConnect().use(auth).post(createSale).get(getAllSales);
