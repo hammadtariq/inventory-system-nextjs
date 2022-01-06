@@ -34,13 +34,16 @@ const createCompany = async (req, res) => {
 };
 
 const getAllCompanies = async (req, res) => {
-  const { limit, offset } = req.query;
-  const pagination = {};
-  pagination.limit = limit ? limit : 10;
-  pagination.offset = offset ? offset : 0;
+  const { limit, offset, attributes = [] } = req.query;
+  const options = {};
+  options.limit = limit ? limit : 10;
+  options.offset = offset ? offset : 0;
+  if (attributes.length > 0) {
+    options.attributes = JSON.parse(attributes);
+  }
   try {
     await db.dbConnect();
-    const data = await db.Company.findAndCountAll(pagination);
+    const data = await db.Company.findAndCountAll(options);
 
     return res.send(data);
   } catch (error) {
