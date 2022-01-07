@@ -3,6 +3,7 @@ import { Select, Form, Alert } from "antd";
 
 import Title from "@/components/title";
 import SelectInventory from "@/components/selectInventory";
+import InventoryRow from "@/components/inventoryRow";
 import { useCompanyAttributes } from "@/hooks/company";
 
 const { Option } = Select;
@@ -17,8 +18,7 @@ const CreatePurchase = () => {
   };
 
   const handleItemSelect = (value) => {
-    console.log(`selected`, value);
-    setSelectedItem(value);
+    setSelectedItem(value.map((v) => ({ itemName: v })));
   };
 
   if (error) return <Alert message={error} type="error" />;
@@ -32,7 +32,7 @@ const CreatePurchase = () => {
         <Form.Item label="Select Company">
           <Select
             loading={isLoading}
-            disabled={selectedItem.length > 0}
+            disabled={selectedItem.length}
             showSearch
             style={{ width: 400 }}
             placeholder="Search to Select Company"
@@ -52,6 +52,7 @@ const CreatePurchase = () => {
             <SelectInventory companyId={companyId} handleItemSelect={handleItemSelect} />
           </Form.Item>
         )}
+        {selectedItem && selectedItem.map((obj) => <InventoryRow key={obj.itemName} itemName={obj.itemName} />)}
       </Form>
     </div>
   );

@@ -38,7 +38,7 @@ const getAllCompanies = async (req, res) => {
   const options = {};
   options.limit = limit ? limit : 10;
   options.offset = offset ? offset : 0;
-  if (attributes.length > 0) {
+  if (attributes.length) {
     options.attributes = JSON.parse(attributes);
   }
   try {
