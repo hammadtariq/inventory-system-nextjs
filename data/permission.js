@@ -6,6 +6,8 @@ export const adminPermissions = {
   company_create: true,
   company_edit: true,
   company_delete: true,
+
+  transaction_create: true,
 };
 
 export const editorPermissions = {
@@ -16,4 +18,6 @@ export const editorPermissions = {
   company_create: true,
   company_edit: true,
   company_delete: false,
+
+  transaction_create: true,
 };
