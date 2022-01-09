@@ -14,7 +14,7 @@ const getAllInventory = async (req, res) => {
 
     return res.send(data);
   } catch (error) {
-    return res.status(500).send({ message: error });
+    return res.status(500).send({ message: error.toString() });
   }
 };
 export default nextConnect().use(auth).get(getAllInventory);

@@ -2,11 +2,11 @@ import { Alert, Table } from "antd";
 import { useRef, useState } from "react";
 
 import Title from "@/components/title";
-import { usePurchaseOrders } from "@/hooks/purchase";
+import { useSales } from "@/hooks/sales";
 import { getColumnSearchProps } from "@/utils/filter.util";
 
-const PurchaseOrders = () => {
-  const { purchaseOrders, error, isLoading } = usePurchaseOrders();
+const Sales = () => {
+  const { sales, error, isLoading } = useSales();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
@@ -34,18 +34,18 @@ const PurchaseOrders = () => {
       { title: "Rate per KGS (Rs)", dataIndex: "ratePerKgs", key: "ratePerKgs", render: (text) => text ?? "N/A" },
       { title: "Rate per Bale (Rs)", dataIndex: "ratePerBale", key: "ratePerBale" },
     ];
-    return <Table columns={columns} dataSource={record.purchasedProducts} pagination={false} />;
+    return <Table columns={columns} dataSource={record.soldProducts} pagination={false} />;
   };
 
   const columns = [
     {
-      title: "Company Name",
-      dataIndex: ["company", "companyName"],
-      key: "companyName",
+      title: "Customer Name",
+      dataIndex: ["customer", "firstName"],
+      key: "customerName",
       ...getColumnSearchProps({
-        dataIndex: "companyName",
-        dataIndexName: "company name",
-        parentDataIndex: "company",
+        dataIndex: "firstName",
+        dataIndexName: "customer name",
+        parentDataIndex: "customer",
         nested: true,
         searchInput,
         searchText,
@@ -72,17 +72,17 @@ const PurchaseOrders = () => {
   if (error) return <Alert message={error} type="error" />;
   return (
     <>
-      <Title level={2}>Purchase Order List</Title>
+      <Title level={2}>Sales List</Title>
       <Table
         loading={isLoading}
-        rowKey={"id"}
+        rowKey="id"
         className="components-table-demo-nested"
         columns={columns}
         expandable={{ expandedRowRender: (record) => expandedRowRender(record) }}
-        dataSource={purchaseOrders ? purchaseOrders.rows : []}
+        dataSource={sales ? sales.rows : []}
       />
     </>
   );
 };
 
-export default PurchaseOrders;
+export default Sales;

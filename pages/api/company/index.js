@@ -29,7 +29,7 @@ const createCompany = async (req, res) => {
 
     return res.send();
   } catch (error) {
-    return res.status(500).send({ message: error });
+    return res.status(500).send({ message: error.toString() });
   }
 };
 
@@ -44,7 +44,7 @@ const getAllCompanies = async (req, res) => {
 
     return res.send(data);
   } catch (error) {
-    return res.status(500).send({ message: error });
+    return res.status(500).send({ message: error.toString() });
   }
 };
 export default nextConnect().use(auth).post(createCompany).get(getAllCompanies);

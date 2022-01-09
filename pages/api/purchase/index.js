@@ -60,7 +60,7 @@ const createPurchaseOrder = async (req, res) => {
     return res.send();
   } catch (error) {
     await t.rollback();
-    return res.status(500).send({ message: error });
+    return res.status(500).send({ message: error.toString() });
   }
 };
 
@@ -75,7 +75,7 @@ const getAllPurchase = async (req, res) => {
 
     return res.send(data);
   } catch (error) {
-    return res.status(500).send({ message: error });
+    return res.status(500).send({ message: error.toString() });
   }
 };
 export default nextConnect().use(auth).post(createPurchaseOrder).get(getAllPurchase);
