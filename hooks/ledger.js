@@ -5,7 +5,7 @@ export const useLedger = () => {
   const { data, error } = useSWR("/api/ledger", get);
 
   return {
-    transactionHistory: data,
+    ...data,
     isLoading: !error && !data,
     error,
   };
@@ -15,7 +15,7 @@ export const useLedgerDetails = (id) => {
   const { data, error } = useSWR(`/api/ledger/${id}`, get);
 
   return {
-    data,
+    ...data,
     isLoading: !error && !data,
     error,
   };

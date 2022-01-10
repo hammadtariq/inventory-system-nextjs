@@ -3,7 +3,7 @@ import { useLedgerDetails } from "@/hooks/ledger";
 import styles from "@/styles/Ledger.module.css";
 
 const LedgerDetails = ({ id }) => {
-  const { data, error, isLoading } = useLedgerDetails(id);
+  const { transactions, totalBalance, error, isLoading } = useLedgerDetails(id);
 
   const columns = [
     { title: "Company Name", dataIndex: ["company", "companyName"], key: "companyName" },
@@ -32,7 +32,7 @@ const LedgerDetails = ({ id }) => {
   const renderTotalBalance = () => (
     <div className={styles.rowDirectionTableContainer}>
       <div className={styles.headingStyle}>Total Balance (RS):</div>
-      <div className={styles.contentStyle}>{`${data ? data.totalBalance.toFixed(2) : 0}`}</div>
+      <div className={styles.contentStyle}>{`${totalBalance ? totalBalance.toFixed(2) : 0}`}</div>
     </div>
   );
 
@@ -44,7 +44,7 @@ const LedgerDetails = ({ id }) => {
         rowKey={"id"}
         className="components-table-demo-nested"
         columns={columns}
-        dataSource={data ? data.transactions : []}
+        dataSource={transactions ? transactions : []}
       />
     </div>
   );

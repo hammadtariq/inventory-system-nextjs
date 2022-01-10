@@ -1,21 +1,9 @@
-import { useEffect, useState } from "react";
 import { Alert, Card } from "antd";
 import { useLedger } from "@/hooks/ledger";
 import styles from "@/styles/Ledger.module.css";
 
 const Ledger = () => {
-  const { transactionHistory, error, isLoading } = useLedger();
-  const [totalBalance, setTotalBalance] = useState(0);
-
-  useEffect(() => {
-    if (transactionHistory) {
-      let balance = 0;
-      transactionHistory.data.map((item) => {
-        balance += item.total;
-      });
-      setTotalBalance(balance);
-    }
-  }, [transactionHistory]);
+  const { transactions, totalBalance, error, isLoading } = useLedger();
 
   if (error) return <Alert message={error} type="error" />;
   return (
@@ -25,8 +13,8 @@ const Ledger = () => {
         <div className={styles.contentStyle}>{totalBalance}</div>
       </div>
       <div className={styles.rowDirectionContainer}>
-        {transactionHistory
-          ? transactionHistory.data.map((item, index) => {
+        {transactions
+          ? transactions.map((item, index) => {
               return (
                 <Card
                   title={item.name}
@@ -41,10 +29,10 @@ const Ledger = () => {
                       <div className={styles.headingStyle}>Total Balance:</div>
                       <div className={styles.contentStyle}>{`${item.total.toFixed(2)}`}</div>
                     </div>
-                    <div className={styles.rowDirectionContainer}>
+                    {/* <div className={styles.rowDirectionContainer}>
                       <div className={styles.headingStyle}>Created At:</div>
                       <div className={styles.contentStyle}>{`${new Date(item.createdAt).toLocaleString()}`}</div>
-                    </div>
+                    </div> */}
                   </div>
                 </Card>
               );

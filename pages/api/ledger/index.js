@@ -61,9 +61,12 @@ const getAllTransactions = async (req, res) => {
       }
     );
 
-    return res.send({
-      data: transactions,
+    let totalBalance = 0;
+    transactions.map((item) => {
+      totalBalance += item.total;
     });
+
+    return res.send({ transactions, totalBalance });
   } catch (error) {
     res.send(error);
   }
