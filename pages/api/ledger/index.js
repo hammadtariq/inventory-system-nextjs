@@ -28,10 +28,7 @@ const createTransaction = async (req, res) => {
       spendType,
     });
 
-    res.send({
-      message: "Transaction Created",
-      data,
-    });
+    res.send(data);
   } catch (error) {
     return res.status(500).send({ message: error });
   }
@@ -61,12 +58,9 @@ const getAllTransactions = async (req, res) => {
       }
     );
 
-    let totalBalance = 0;
-    transactions.map((item) => {
-      totalBalance += item.total;
-    });
+    const balance = transactions.reduce((a, b) => ({ totalBalance: a.total + b.total }));
 
-    return res.send({ transactions, totalBalance });
+    return res.send({ transactions, ...balance });
   } catch (error) {
     res.send(error);
   }
