@@ -15,11 +15,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      sNo: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        unique: true,
-      },
       itemName: {
         type: DataTypes.STRING,
         allowNull: false,

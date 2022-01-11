@@ -6,7 +6,6 @@ import { auth } from "@/middlewares/auth";
 
 const apiSchema = Joi.object({
   companyId: Joi.number(),
-  sNo: Joi.number(),
   itemName: Joi.string().min(3).trim().lowercase(),
   ratePerLbs: Joi.number(),
   ratePerKgs: Joi.number(),
@@ -35,7 +34,7 @@ const updateItems = async (req, res) => {
     if (!Object.keys(req.body).length) {
       res.status(400).send({
         message: "Please provide at least one field",
-        allowedFields: ["itemName", "companyId", "sNo", "ratePerLbs", "ratePerKgs", "ratePerBale", "type"],
+        allowedFields: ["itemName", "companyId", "ratePerLbs", "ratePerKgs", "ratePerBale", "type"],
       });
     }
 

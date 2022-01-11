@@ -9,7 +9,6 @@ module.exports = {
       [
         {
           companyId: `${companiesRows[0].id}`,
-          sNo: 1,
           itemName: "testing first inventory",
           ratePerKgs: 50,
           ratePerLbs: null,
@@ -21,7 +20,6 @@ module.exports = {
         },
         {
           companyId: `${companiesRows[0].id}`,
-          sNo: 2,
           itemName: "test product",
           ratePerKgs: null,
           ratePerLbs: 50,
@@ -33,7 +31,6 @@ module.exports = {
         },
         {
           companyId: `${companiesRows[0].id}`,
-          sNo: 3,
           itemName: "test item",
           ratePerKgs: null,
           ratePerLbs: 50,
@@ -45,7 +42,6 @@ module.exports = {
         },
         {
           companyId: `${companiesRows[1].id}`,
-          sNo: 4,
           itemName: "test item",
           ratePerKgs: null,
           ratePerLbs: 50,
