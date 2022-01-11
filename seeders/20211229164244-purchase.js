@@ -10,6 +10,7 @@ module.exports = {
         {
           companyId: `${companiesRows[0].id}`,
           totalAmount: 100,
+          status: "PENDING",
           purchasedProducts: JSON.stringify([
             {
               ratePerLbs: 50,
@@ -32,11 +33,13 @@ module.exports = {
           ]),
           uuid: "1e419d06-3d9c-3374-a182-ef44cd4416d1",
           createdAt: "2021-12-28T11:04:30.162Z",
+          purchaseDate: "2021-12-28T11:04:30.162Z",
           updatedAt: "2021-12-28T11:04:46.162Z",
         },
         {
           companyId: `${companiesRows[1].id}`,
           totalAmount: 500,
+          status: "APPROVED",
           purchasedProducts: JSON.stringify([
             {
               ratePerKgs: 250,
@@ -59,6 +62,7 @@ module.exports = {
           ]),
           uuid: "1e419d06-3d9c-2274-a182-ef44cd4416d1",
           createdAt: "2021-12-29T11:04:26.162Z",
+          purchaseDate: "2021-12-29T11:04:26.162Z",
           updatedAt: "2021-12-30T11:04:26.162Z",
         },
       ],

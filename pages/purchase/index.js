@@ -56,6 +56,34 @@ const PurchaseOrders = () => {
     },
     { title: "Invoice Total Amount (Rs)", dataIndex: "totalAmount", key: "totalAmount" },
     {
+      title: "Purchase Date",
+      dataIndex: "purchaseDate",
+      key: "purchaseDate",
+      render: (text) => new Date(text).toLocaleString(),
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      ...getColumnSearchProps({
+        dataIndex: "status",
+        dataIndexName: "status",
+        searchInput,
+        searchText,
+        searchedColumn,
+        setSearchText,
+        setSearchedColumn,
+      }),
+      render(text) {
+        return {
+          props: {
+            style: { color: text === "PENDING" ? "red" : "green" },
+          },
+          children: <div>{text}</div>,
+        };
+      },
+    },
+    {
       title: "Created At",
       dataIndex: "createdAt",
       key: "createdAt",
