@@ -1,0 +1,21 @@
+.rowDirectionContainer {
+  display: flex;
+  flex-direction: row;
+}
+.cardContainer {
+  margin: 5px;
+}
+.headingStyle {
+  font-size: small;
+  font-weight: bold;
+}
+.contentStyle {
+  font-size: small;
+  margin-left: 5px;
+}
+.rowDirectionTableContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  margin-bottom: 15px;
+}
