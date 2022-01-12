@@ -71,7 +71,11 @@ const getAllPurchase = async (req, res) => {
   pagination.offset = offset ? offset : 0;
   try {
     await db.dbConnect();
-    const data = await db.Purchase.findAndCountAll({ ...pagination, include: [db.Company] });
+    const data = await db.Purchase.findAndCountAll({
+      ...pagination,
+      include: [db.Company],
+      order: [["updatedAt", "DESC"]],
+    });
 
     return res.send(data);
   } catch (error) {
