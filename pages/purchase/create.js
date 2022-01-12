@@ -6,7 +6,7 @@ import Title from "@/components/title";
 import AddItemsInPo from "@/components/addItemsInPo";
 import { useCompanyAttributes } from "@/hooks/company";
 import { createPurchaseOrder } from "@/hooks/purchase";
-import { itemsList, dateFormat, validateMessages, datePickerConfig } from "@/utils/ui";
+import { ITEMS_LIST, DATE_FORMAT, VALIDATE_MESSAGE, DATE_PICKER_CONFIG } from "@/utils/ui";
 
 const { Option } = Select;
 
@@ -52,7 +52,7 @@ const CreatePurchase = () => {
       <div>
         <Title level={2}>Create Purchase Order</Title>
       </div>
-      <Form layout="vertical" name="nest-messages" onFinish={onFinish} validateMessages={validateMessages}>
+      <Form layout="vertical" name="nest-messages" onFinish={onFinish} validateMessages={VALIDATE_MESSAGE}>
         <Row gutter={24}>
           <Col span={8}>
             <Form.Item label="Select Company">
@@ -75,7 +75,7 @@ const CreatePurchase = () => {
           <Col span={8}>
             <Form.Item label="Select List Type">
               <Select loading={isLoading} onChange={setSelectedListType}>
-                {itemsList.map((val) => (
+                {ITEMS_LIST.map((val) => (
                   <Option key={val} value={val}>
                     {val}
                   </Option>
@@ -107,11 +107,11 @@ const CreatePurchase = () => {
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item label="Select PO Date" name="purchaseDate" {...datePickerConfig}>
+            <Form.Item label="Select PO Date" name="purchaseDate" {...DATE_PICKER_CONFIG}>
               <DatePicker
                 style={{ width: "100%" }}
                 disabledDate={(current) => current && current.valueOf() > Date.now()}
-                format={dateFormat}
+                format={DATE_FORMAT}
               />
             </Form.Item>
           </Col>

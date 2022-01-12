@@ -102,6 +102,7 @@ const PurchaseOrders = () => {
       title: "Action",
       key: "action",
       render: (text, record) => {
+        console.log(canApprove, "canApprov");
         if (record.status === "PENDING" && canApprove) {
           return (
             <Popconfirm
