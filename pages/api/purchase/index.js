@@ -16,6 +16,8 @@ const inventorySchema = Joi.object().keys({
 const apiSchema = Joi.object({
   companyId: Joi.number().required(),
   totalAmount: Joi.number().required(),
+  surCharge: Joi.number(),
+  invoiceNumber: Joi.number(),
   purchaseDate: Joi.date().required(),
   purchasedProducts: Joi.array().items(inventorySchema).required(),
 });

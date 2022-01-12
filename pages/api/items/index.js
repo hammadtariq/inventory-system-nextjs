@@ -44,8 +44,10 @@ const createItem = async (req, res) => {
 };
 
 const getAllItems = async (req, res) => {
-  const { limit, offset, companyId, type } = req.query;
+  const { limit, offset, companyId: cid, type: listType } = req.query;
   const options = {};
+  const companyId = JSON.parse(cid);
+  const type = JSON.parse(listType);
   options.limit = limit ? limit : 10;
   options.offset = offset ? offset : 0;
   if (companyId && type) {
@@ -64,7 +66,7 @@ const getAllItems = async (req, res) => {
   }
   try {
     await db.dbConnect();
-    const data = await db.Items.findAndCountAll({ ...options, include: [db.Company] });
+    const data = await db.Items.findAndCountAll(options);
 
     return res.send(data);
   } catch (error) {

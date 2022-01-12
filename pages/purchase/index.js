@@ -55,6 +55,8 @@ const PurchaseOrders = () => {
       }),
     },
     { title: "Invoice Total Amount (Rs)", dataIndex: "totalAmount", key: "totalAmount" },
+    { title: "Invoice Number", dataIndex: "invoiceNumber", key: "invoiceNumber", render: (text) => text ?? "N/A" },
+    { title: "Sur Charge (Rs)", dataIndex: "surCharge", key: "surCharge", render: (text) => text ?? "N/A" },
     {
       title: "Purchase Date",
       dataIndex: "purchaseDate",

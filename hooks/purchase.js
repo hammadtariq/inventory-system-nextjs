@@ -1,5 +1,5 @@
 import useSWR from "swr";
-import { get } from "@/lib/http-client";
+import { get, post } from "@/lib/http-client";
 
 export const usePurchaseOrders = () => {
   const { data, error } = useSWR("/api/purchase", get);
@@ -10,3 +10,5 @@ export const usePurchaseOrders = () => {
     error,
   };
 };
+
+export const createPurchaseOrder = async (data) => post("/api/purchase", data);

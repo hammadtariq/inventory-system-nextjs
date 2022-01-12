@@ -17,3 +17,15 @@ export const layout = {
     span: 12,
   },
 };
+
+export const itemsList = ["SMALL_BALES", "BIG_BALES"];
+
+export const datePickerConfig = {
+  rules: [
+    {
+      type: "object",
+      required: true,
+      message: "Please select time!",
+    },
+  ],
+};

@@ -1,7 +1,7 @@
 "use strict";
 
 module.exports = {
-  up: async (queryInterface, Sequelize) => {
+  up: async (queryInterface) => {
     const companies = await queryInterface.sequelize.query(`SELECT id from companies;`);
     const companiesRows = companies[0];
     await queryInterface.bulkInsert(
@@ -10,6 +10,8 @@ module.exports = {
         {
           companyId: `${companiesRows[0].id}`,
           totalAmount: 100,
+          surCharge: null,
+          invoiceNumber: 12345,
           status: "PENDING",
           purchasedProducts: JSON.stringify([
             {
@@ -39,6 +41,8 @@ module.exports = {
         {
           companyId: `${companiesRows[1].id}`,
           totalAmount: 500,
+          surCharge: 50,
+          invoiceNumber: 901,
           status: "APPROVED",
           purchasedProducts: JSON.stringify([
             {
@@ -70,7 +74,7 @@ module.exports = {
     );
   },
 
-  down: async (queryInterface, Sequelize) => {
+  down: async (queryInterface) => {
     await queryInterface.bulkDelete("purchases", null, {});
     await queryInterface.bulkDelete("companies", null, {});
   },

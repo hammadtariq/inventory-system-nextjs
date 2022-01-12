@@ -20,6 +20,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.FLOAT,
         allowNull: false,
       },
+      surCharge: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+      },
+      invoiceNumber: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
       purchasedProducts: {
         type: DataTypes.JSONB,
         allowNull: false,

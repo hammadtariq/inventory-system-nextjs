@@ -16,6 +16,14 @@ module.exports = {
         type: Sequelize.FLOAT,
         allowNull: false,
       },
+      surCharge: {
+        type: Sequelize.FLOAT,
+        allowNull: true,
+      },
+      invoiceNumber: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+      },
       purchasedProducts: {
         type: Sequelize.JSONB,
         allowNull: false,
@@ -40,7 +48,7 @@ module.exports = {
       },
     });
   },
-  down: async (queryInterface, Sequelize) => {
+  down: async (queryInterface) => {
     await queryInterface.dropTable("purchases");
   },
 };
