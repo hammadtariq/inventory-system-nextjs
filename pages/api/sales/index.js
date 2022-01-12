@@ -65,7 +65,11 @@ const getAllSales = async (req, res) => {
   pagination.offset = offset ? offset : 0;
   try {
     await db.dbConnect();
-    const sales = await db.Sale.findAndCountAll({ ...pagination, include: [db.Customer] });
+    const sales = await db.Sale.findAndCountAll({
+      ...pagination,
+      include: [db.Customer],
+      order: [["updatedAt", "DESC"]],
+    });
 
     return res.send(sales);
   } catch (error) {

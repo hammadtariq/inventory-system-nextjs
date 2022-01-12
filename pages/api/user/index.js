@@ -8,6 +8,7 @@ const getAllUsers = async (_, res) => {
     await db.dbConnect();
     const users = await db.User.findAll({
       attributes: { exclude: ["password"] },
+      order: [["updatedAt", "DESC"]],
     });
 
     if (!users.length) {

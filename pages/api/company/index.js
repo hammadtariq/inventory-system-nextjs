@@ -40,7 +40,7 @@ const getAllCompanies = async (req, res) => {
   pagination.offset = offset ? offset : 0;
   try {
     await db.dbConnect();
-    const data = await db.Company.findAndCountAll(pagination);
+    const data = await db.Company.findAndCountAll({ ...pagination, order: [["updatedAt", "DESC"]] });
 
     return res.send(data);
   } catch (error) {
