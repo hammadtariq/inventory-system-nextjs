@@ -40,7 +40,7 @@ const approvePurchaseOrder = async (req, res) => {
     return res.status(400).send({ message: error });
   }
   if (req.user.role !== "ADMIN") {
-    return res.status(400).send({ message: "Only Admin can approve the purchase order." });
+    return res.status(400).send({ message: "Operation not permitted." });
   }
   const t = await db.sequelize.transaction();
   try {
