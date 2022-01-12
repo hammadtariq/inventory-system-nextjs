@@ -43,7 +43,7 @@ const getAllCompanies = async (req, res) => {
   }
   try {
     await db.dbConnect();
-    const data = await db.Company.findAndCountAll(options);
+    const data = await db.Company.findAndCountAll({ ...pagination, order: [["updatedAt", "DESC"]] });
 
     return res.send(data);
   } catch (error) {

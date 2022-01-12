@@ -64,7 +64,7 @@ const getAllItems = async (req, res) => {
   }
   try {
     await db.dbConnect();
-    const data = await db.Items.findAndCountAll(options);
+    const data = await db.Items.findAndCountAll({ ...options, include: [db.Company], order: [["updatedAt", "DESC"]] });
 
     return res.send(data);
   } catch (error) {
