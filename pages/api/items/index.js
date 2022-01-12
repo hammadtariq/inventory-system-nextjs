@@ -44,10 +44,8 @@ const createItem = async (req, res) => {
 };
 
 const getAllItems = async (req, res) => {
-  const { limit, offset, companyId: cid, type: listType } = req.query;
+  const { limit, offset, companyId, type } = req.query;
   const options = {};
-  const companyId = JSON.parse(cid);
-  const type = JSON.parse(listType);
   options.limit = limit ? limit : 10;
   options.offset = offset ? offset : 0;
   if (companyId && type) {
