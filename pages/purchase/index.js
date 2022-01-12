@@ -1,12 +1,19 @@
-import { Alert, Table } from "antd";
+import { Alert, Table, Popconfirm, Button } from "antd";
 import { useRef, useState } from "react";
+import { CheckOutlined } from "@ant-design/icons";
 
 import Title from "@/components/title";
-import { usePurchaseOrders } from "@/hooks/purchase";
+import { usePurchaseOrders, approvePurchase } from "@/hooks/purchase";
 import { getColumnSearchProps } from "@/utils/filter.util";
+import permissionsUtil from "@/utils/permission.util";
+
+const canApprove = permissionsUtil.checkAuth({
+  category: "purchase",
+  action: "approve",
+});
 
 const PurchaseOrders = () => {
-  const { purchaseOrders, error, isLoading } = usePurchaseOrders();
+  const { purchaseOrders, error, isLoading, mutate } = usePurchaseOrders();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
@@ -64,6 +71,12 @@ const PurchaseOrders = () => {
       render: (text) => new Date(text).toLocaleString(),
     },
     {
+      title: "Updated At",
+      dataIndex: "updatedAt",
+      key: "updatedAt",
+      render: (text) => new Date(text).toLocaleString(),
+    },
+    {
       title: "Status",
       dataIndex: "status",
       key: "status",
@@ -86,16 +99,26 @@ const PurchaseOrders = () => {
       },
     },
     {
-      title: "Created At",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      render: (text) => new Date(text).toLocaleString(),
-    },
-    {
-      title: "Updated At",
-      dataIndex: "updatedAt",
-      key: "updatedAt",
-      render: (text) => new Date(text).toLocaleString(),
+      title: "Action",
+      key: "action",
+      render: (text, record) => {
+        if (record.status === "PENDING" && canApprove) {
+          return (
+            <Popconfirm
+              title="Are you sure?"
+              onConfirm={async () => {
+                await approvePurchase(text.id);
+                mutate(null);
+              }}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button icon={<CheckOutlined />}>Approve</Button>
+            </Popconfirm>
+          );
+        }
+        return null;
+      },
     },
   ];
 

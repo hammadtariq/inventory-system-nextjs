@@ -8,6 +8,8 @@ export const adminPermissions = {
   company_delete: true,
 
   transaction_create: true,
+
+  purchase_approve: true,
 };
 
 export const editorPermissions = {

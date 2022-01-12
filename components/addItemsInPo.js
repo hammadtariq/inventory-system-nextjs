@@ -3,7 +3,7 @@ import { Popconfirm, Typography, Table, Form, Alert } from "antd";
 
 import { useItemsByCompanyIdAndType } from "@/hooks/items";
 import EditableCell from "@/components/editableCell";
-import styles from "@/styles/AuthLayout.module.css";
+import styles from "@/styles/EditAbleTable.module.css";
 
 export default function AddItemsInPo({ companyId, type, setData, data }) {
   const { items, isLoading, error } = useItemsByCompanyIdAndType(companyId, type);
@@ -65,42 +65,42 @@ export default function AddItemsInPo({ companyId, type, setData, data }) {
     {
       title: "No of Bales",
       dataIndex: "noOfBales",
-      width: "12%",
+      width: "17%",
       editable: true,
       required: true,
     },
     {
       title: "Bale Weight (LBS)",
       dataIndex: "baleWeightLbs",
-      width: "12%",
+      width: "10%",
       editable: true,
       required: false,
     },
     {
       title: "Bale Weight (KGS)",
       dataIndex: "baleWeightKgs",
-      width: "12%",
+      width: "10%",
       editable: true,
       required: false,
     },
     {
       title: "Rate per (LBS)",
       dataIndex: "ratePerLbs",
-      width: "12%",
+      width: "10%",
       editable: true,
       required: false,
     },
     {
       title: "Rate Per (KGS)",
       dataIndex: "ratePerKgs",
-      width: "12%",
+      width: "10%",
       editable: true,
       required: false,
     },
     {
       title: "Rate Per Bale",
       dataIndex: "ratePerBale",
-      width: "12%",
+      width: "17%",
       editable: true,
       required: true,
     },

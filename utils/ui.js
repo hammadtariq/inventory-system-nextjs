@@ -20,6 +20,8 @@ export const layout = {
 
 export const itemsList = ["SMALL_BALES", "BIG_BALES"];
 
+export const dateFormat = "DD-MM-YYYY";
+
 export const datePickerConfig = {
   rules: [
     {

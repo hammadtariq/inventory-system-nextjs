@@ -6,7 +6,7 @@ import Title from "@/components/title";
 import AddItemsInPo from "@/components/addItemsInPo";
 import { useCompanyAttributes } from "@/hooks/company";
 import { createPurchaseOrder } from "@/hooks/purchase";
-import { itemsList, datePickerConfig, validateMessages } from "@/utils/ui";
+import { itemsList, dateFormat, validateMessages, datePickerConfig } from "@/utils/ui";
 
 const { Option } = Select;
 
@@ -93,34 +93,25 @@ const CreatePurchase = () => {
                 },
               ]}
             >
-              <Input type={"number"} />
+              <Input type="number" />
             </Form.Item>
           </Col>
           <Col span={8}>
             <Form.Item name="invoiceNumber" label="Invoice No">
-              <Input type={"number"} />
+              <Input type="text" />
             </Form.Item>
           </Col>
           <Col span={8}>
             <Form.Item name="surCharge" label="Sur Charge (RS)">
-              <Input type={"number"} />
+              <Input type="number" />
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item
-              label="Select PO Date"
-              name="purchaseDate"
-              rules={[
-                {
-                  required: true,
-                },
-              ]}
-              {...datePickerConfig}
-            >
+            <Form.Item label="Select PO Date" name="purchaseDate" {...datePickerConfig}>
               <DatePicker
+                style={{ width: "100%" }}
                 disabledDate={(current) => current && current.valueOf() > Date.now()}
-                showTime
-                format="YYYY-MM-DD HH:mm:ss"
+                format={dateFormat}
               />
             </Form.Item>
           </Col>

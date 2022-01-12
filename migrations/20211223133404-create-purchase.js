@@ -21,7 +21,7 @@ module.exports = {
         allowNull: true,
       },
       invoiceNumber: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING,
         allowNull: true,
       },
       purchasedProducts: {

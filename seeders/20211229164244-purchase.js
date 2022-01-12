@@ -11,7 +11,7 @@ module.exports = {
           companyId: `${companiesRows[0].id}`,
           totalAmount: 100,
           surCharge: null,
-          invoiceNumber: 12345,
+          invoiceNumber: "12345",
           status: "PENDING",
           purchasedProducts: JSON.stringify([
             {
@@ -42,7 +42,7 @@ module.exports = {
           companyId: `${companiesRows[1].id}`,
           totalAmount: 500,
           surCharge: 50,
-          invoiceNumber: 901,
+          invoiceNumber: "901",
           status: "APPROVED",
           purchasedProducts: JSON.stringify([
             {
