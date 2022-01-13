@@ -22,6 +22,16 @@ export const useCompany = (id) => {
   };
 };
 
+export const useCompanyAttributes = (attr = []) => {
+  const { data, error } = useSWR(`/api/company?attributes=${JSON.stringify(attr)}`, get);
+
+  return {
+    company: data?.rows,
+    isLoading: !error && !data,
+    error,
+  };
+};
+
 export const createCompany = async (data) => post("/api/company", data);
 
 export const updateCompany = async (id, data) => put(`/api/company/${id}`, data);

@@ -3,8 +3,8 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 
-const getAllInventory = async (req, res) => {
-  const { limit, offset } = req.query;
+const getInventoryNameByCompanyId = async (req, res) => {
+  const { limit, offset, companyId } = req.query;
   const pagination = {};
   pagination.limit = limit ? limit : 10;
   pagination.offset = offset ? offset : 0;
@@ -12,8 +12,8 @@ const getAllInventory = async (req, res) => {
     await db.dbConnect();
     const data = await db.Inventory.findAndCountAll({
       ...pagination,
-      include: [db.Company],
-      order: [["updatedAt", "DESC"]],
+      where: { companyId },
+      attributes: ["itemName", "id"],
     });
 
     return res.send(data);
@@ -21,4 +21,5 @@ const getAllInventory = async (req, res) => {
     return res.status(500).send({ message: error.toString() });
   }
 };
-export default nextConnect().use(auth).get(getAllInventory);
+
+export default nextConnect().use(auth).get(getInventoryNameByCompanyId);

@@ -1,7 +1,7 @@
 "use strict";
 
 module.exports = {
-  up: async (queryInterface, Sequelize) => {
+  up: async (queryInterface) => {
     const companies = await queryInterface.sequelize.query(`SELECT id from companies;`);
     const companiesRows = companies[0];
     await queryInterface.bulkInsert(
@@ -56,7 +56,7 @@ module.exports = {
     );
   },
 
-  down: async (queryInterface, Sequelize) => {
+  down: async (queryInterface) => {
     await queryInterface.bulkDelete("items", null, {});
     await queryInterface.bulkDelete("companies", null, {});
   },

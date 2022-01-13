@@ -45,7 +45,7 @@ const customerRegistration = async (req, res) => {
 const getAllCustomers = async (req, res) => {
   try {
     await dbConnect();
-    const customers = await db.Customer.findAll();
+    const customers = await db.Customer.findAll({ order: [["updatedAt", "DESC"]] });
 
     return res.send({
       succress: true,
