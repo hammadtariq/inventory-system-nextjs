@@ -5,6 +5,7 @@ import { Button, Form, Input } from "antd";
 import { createCompany, updateCompany } from "@/hooks/company";
 import { VALIDATE_MESSAGE, LAYOUT } from "@/utils/ui";
 import permissionsUtil from "@/utils/permission.util";
+import AppBackButton from "./backButton";
 
 const canCreate = permissionsUtil.checkAuth({
   category: "company",
@@ -88,6 +89,7 @@ const AddEditCompany = ({ company }) => {
         <Input.TextArea />
       </Form.Item>
       <Form.Item wrapperCol={{ ...LAYOUT.wrapperCol, offset: 2 }}>
+        <AppBackButton />
         <Button type="primary" htmlType="submit" loading={loading} disabled={!canCreate}>
           Submit
         </Button>

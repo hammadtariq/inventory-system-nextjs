@@ -1,10 +1,10 @@
 import AddEditCustomer from "@/components/addEditCustomer";
-import Title from "@/components/title";
+import AppTitle from "@/components/title";
 
 const CreateCustomer = () => {
   return (
     <div>
-      <Title level={2}>Create Customer</Title>
+      <AppTitle level={2}>Create Customer</AppTitle>
       <AddEditCustomer />
     </div>
   );

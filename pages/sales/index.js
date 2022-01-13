@@ -1,9 +1,10 @@
 import { Alert, Table } from "antd";
 import { useRef, useState } from "react";
 
-import Title from "@/components/title";
 import { useSales } from "@/hooks/sales";
 import { getColumnSearchProps } from "@/utils/filter.util";
+import AppTitle from "@/components/title";
+import AppCreateButton from "@/components/createButton";
 
 const Sales = () => {
   const { sales, error, isLoading } = useSales();
@@ -72,7 +73,10 @@ const Sales = () => {
   if (error) return <Alert message={error} type="error" />;
   return (
     <>
-      <Title level={2}>Sales List</Title>
+      <AppTitle level={2}>
+        Sales List
+        <AppCreateButton url="/sales/create" />
+      </AppTitle>
       <Table
         loading={isLoading}
         rowKey="id"

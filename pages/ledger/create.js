@@ -4,6 +4,7 @@ import { Button, Form, Input } from "antd";
 import { VALIDATE_MESSAGE, LAYOUT } from "@/utils/ui";
 import permissionsUtil from "@/utils/permission.util";
 import { createTransaction } from "../../hooks/ledger";
+import AppBackButton from "@/components/backButton";
 
 const canCreate = permissionsUtil.checkAuth({
   category: "transaction",
@@ -56,6 +57,7 @@ const CreateTransaction = () => {
         </Form.Item>
 
         <Form.Item wrapperCol={{ ...LAYOUT.wrapperCol, offset: 2 }}>
+          <AppBackButton />
           <Button type="primary" htmlType="submit" loading={loading} disabled={!canCreate}>
             Create
           </Button>
