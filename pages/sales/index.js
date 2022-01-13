@@ -1,11 +1,14 @@
-import { Alert, Table } from "antd";
+import { Alert, Button, Table } from "antd";
 import { useRef, useState } from "react";
+import { useRouter } from "next/router";
 
 import Title from "@/components/title";
 import { useSales } from "@/hooks/sales";
 import { getColumnSearchProps } from "@/utils/filter.util";
+import { PlusCircleOutlined } from "@ant-design/icons";
 
 const Sales = () => {
+  const router = useRouter();
   const { sales, error, isLoading } = useSales();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
@@ -72,7 +75,13 @@ const Sales = () => {
   if (error) return <Alert message={error} type="error" />;
   return (
     <>
-      <Title level={2}>Sales List</Title>
+      <Title level={2}>
+        Sales List
+        <Button type="primary" style={{ float: "right" }} onClick={() => router.push("/sales/create")}>
+          <PlusCircleOutlined />
+          Create
+        </Button>
+      </Title>
       <Table
         loading={isLoading}
         rowKey="id"

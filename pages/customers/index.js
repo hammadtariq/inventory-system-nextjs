@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
 import { Alert, Table, Popconfirm, Button } from "antd";
-import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { EditOutlined, DeleteOutlined, PlusCircleOutlined } from "@ant-design/icons";
 
 import Title from "@/components/title";
 import { useCustomers, deleteCustomer } from "@/hooks/customers";
@@ -124,7 +124,13 @@ export default function Customers() {
   if (error) return <Alert message={error.message} type="error" />;
   return (
     <>
-      <Title level={2}>Customer List</Title>
+      <Title level={2}>
+        Customer List
+        <Button type="primary" style={{ float: "right" }} onClick={() => router.push("/customers/create")}>
+          <PlusCircleOutlined />
+          Create
+        </Button>
+      </Title>
       <Table columns={columns} loading={isLoading} rowKey="id" dataSource={customers ? customers.data : []} />
     </>
   );

@@ -1,11 +1,14 @@
-import { Alert, Table } from "antd";
+import { Alert, Button, Table } from "antd";
 import { useRef, useState } from "react";
+import { useRouter } from "next/router";
 
 import Title from "@/components/title";
 import { usePurchaseOrders } from "@/hooks/purchase";
 import { getColumnSearchProps } from "@/utils/filter.util";
+import { PlusCircleOutlined } from "@ant-design/icons";
 
 const PurchaseOrders = () => {
+  const router = useRouter();
   const { purchaseOrders, error, isLoading } = usePurchaseOrders();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
@@ -72,7 +75,13 @@ const PurchaseOrders = () => {
   if (error) return <Alert message={error} type="error" />;
   return (
     <>
-      <Title level={2}>Purchase Order List</Title>
+      <Title level={2}>
+        Purchase Order List
+        <Button type="primary" style={{ float: "right" }} onClick={() => router.push("/purchase/create")}>
+          <PlusCircleOutlined />
+          Create
+        </Button>
+      </Title>
       <Table
         loading={isLoading}
         rowKey={"id"}

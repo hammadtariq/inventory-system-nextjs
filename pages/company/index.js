@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
 import { Alert, Button, Popconfirm, Table } from "antd";
-import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined, PlusCircleOutlined } from "@ant-design/icons";
 
 import { useCompanies, deleteCompany } from "@/hooks/company";
 import Title from "@/components/title";
@@ -102,7 +102,13 @@ const Company = () => {
   if (error) return <Alert message={error} type="error" />;
   return (
     <>
-      <Title level={2}>Company List</Title>
+      <Title level={2}>
+        Company List
+        <Button type="primary" style={{ float: "right" }} onClick={() => router.push("/company/create")}>
+          <PlusCircleOutlined />
+          Create
+        </Button>
+      </Title>
       <Table loading={isLoading} rowKey="id" columns={columns} dataSource={companies ? companies.rows : []} />
     </>
   );
