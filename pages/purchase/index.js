@@ -9,16 +9,16 @@ import { getColumnSearchProps } from "@/utils/filter.util";
 import { STATUS_COLORS } from "@/utils/ui";
 import permissionsUtil from "@/utils/permission.util";
 
-const canApprove = permissionsUtil.checkAuth({
-  category: "purchase",
-  action: "approve",
-});
-
 const PurchaseOrders = () => {
   const { purchaseOrders, error, isLoading, mutate } = usePurchaseOrders();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+
+  const canApprove = permissionsUtil.checkAuth({
+    category: "purchase",
+    action: "approve",
+  });
 
   const expandedRowRender = (record) => {
     const columns = [

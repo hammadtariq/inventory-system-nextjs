@@ -9,22 +9,22 @@ import permissionsUtil from "@/utils/permission.util";
 import styles from "@/styles/Customer.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
 
-const canDelete = permissionsUtil.checkAuth({
-  category: "customer",
-  action: "delete",
-});
-
-const canEdit = permissionsUtil.checkAuth({
-  category: "customer",
-  action: "edit",
-});
-
 export default function Customers() {
   const { customers, error, isLoading, mutate } = useCustomers();
   const router = useRouter();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+
+  const canDelete = permissionsUtil.checkAuth({
+    category: "customer",
+    action: "delete",
+  });
+
+  const canEdit = permissionsUtil.checkAuth({
+    category: "customer",
+    action: "edit",
+  });
 
   const renderActions = (text) => (
     <>
