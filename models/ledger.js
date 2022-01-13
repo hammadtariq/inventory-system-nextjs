@@ -7,7 +7,7 @@ module.exports = (sequelize, DataTypes) => {
       this.belongsTo(Customer, { foreignKey: "customerId" });
     }
     toJSON() {
-      return { ...this.get(), companyId: undefined };
+      return { ...this.get(), companyId: undefined, customerId: undefined };
     }
   }
   ledger.init(

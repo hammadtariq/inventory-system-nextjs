@@ -19,8 +19,6 @@ const createTransaction = async (req, res) => {
 
   try {
     await db.dbConnect();
-    const { user } = res;
-
     const { totalAmount, companyId, spendType, customerId } = value;
     const data = await db.Ledger.create({
       companyId,
