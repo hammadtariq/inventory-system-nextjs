@@ -15,6 +15,8 @@ const apiSchema = Joi.object({
 });
 
 const updateItems = async (req, res) => {
+  console.log("update items Request Start");
+
   const { error, value } = apiSchema.validate({
     ...req.body,
     id: req.query.id,
@@ -39,14 +41,19 @@ const updateItems = async (req, res) => {
     }
 
     await item.update({ ...value });
+    console.log("update items Request End");
 
     return res.send();
   } catch (error) {
+    console.log("update items Request Error:", error);
+
     return res.status(500).send({ message: error.toString() });
   }
 };
 
 const deleteItem = async (req, res) => {
+  console.log("delete items Request Start");
+
   const { error, value } = apiSchema.validate({
     id: req.query.id,
   });
@@ -64,14 +71,18 @@ const deleteItem = async (req, res) => {
     }
 
     await db.Items.destroy({ where: { id: value.id } });
+    console.log("delete items Request End");
 
     return res.send();
   } catch (error) {
+    console.log("delete items Request Error:", error);
     return res.status(500).send({ message: error.toString() });
   }
 };
 
 const getItem = async (req, res) => {
+  console.log("get items Request Start");
+
   const { error, value } = apiSchema.validate({
     id: req.query.id,
   });
@@ -87,9 +98,10 @@ const getItem = async (req, res) => {
     if (!item) {
       return res.status(409).send({ message: "item not exist" });
     }
-
+    console.log("get items Request End");
     return res.send(item);
   } catch (error) {
+    console.log("get items Request Error:", error);
     return res.status(500).send({ message: error.toString() });
   }
 };

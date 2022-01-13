@@ -9,6 +9,7 @@ const apiSchema = Joi.object({
 });
 
 const getSale = async (req, res) => {
+  console.log("Get sale order Request Start");
   const { error, value } = apiSchema.validate({
     id: req.query.id,
   });
@@ -24,9 +25,12 @@ const getSale = async (req, res) => {
     if (!sale) {
       return res.status(404).send({ message: "sale order not exists" });
     }
+    console.log("Get sale order Request End");
 
     return res.send(sale);
   } catch (error) {
+    console.log("Get sale order Request Error:", error);
+
     return res.status(500).send({ message: error.toString() });
   }
 };

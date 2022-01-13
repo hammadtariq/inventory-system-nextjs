@@ -6,7 +6,7 @@ import Title from "@/components/title";
 import { usePurchaseOrders, approvePurchase, cancelPurchase } from "@/hooks/purchase";
 import styles from "@/styles/Purchase.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
-import { STATUS_COLORS } from "@/utils/ui";
+import { STATUS_COLORS } from "@/utils/ui.util";
 import permissionsUtil from "@/utils/permission.util";
 
 const canApprove = permissionsUtil.checkAuth({
