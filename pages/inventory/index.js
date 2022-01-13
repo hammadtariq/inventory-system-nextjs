@@ -1,8 +1,10 @@
 import { Alert, Table } from "antd";
 import { useRef, useState } from "react";
 
-import { useInventory } from "@/hooks/inventory";
+import { useInventory, searchInventory } from "@/hooks/inventory";
 import Title from "@/components/title";
+import SearchInput from "@/components/SearchInput";
+
 import { getColumnSearchProps } from "@/utils/filter.util";
 
 const Inventory = () => {
@@ -61,10 +63,18 @@ const Inventory = () => {
     },
   ];
 
+  const handleSearch = async (value) => {
+    const searchResults = await searchInventory(value);
+    return searchResults;
+  };
+
   if (error) return <Alert message={error} type="error" />;
   return (
     <>
       <Title level={2}>Inventory List</Title>
+      <SearchInput handleSearch={handleSearch} />
+      <br />
+      <br />
       <Table loading={isLoading} rowKey="id" columns={columns} dataSource={inventory ? inventory.rows : []} />
     </>
   );

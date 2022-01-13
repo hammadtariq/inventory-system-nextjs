@@ -10,3 +10,5 @@ export const useInventory = () => {
     error,
   };
 };
+
+export const searchInventory = (value) => get(`/api/inventory/search?value=${value}`);
