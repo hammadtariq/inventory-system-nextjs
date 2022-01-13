@@ -69,6 +69,37 @@ module.exports = {
           purchaseDate: "2021-12-29T11:04:26.162Z",
           updatedAt: "2021-12-30T11:04:26.162Z",
         },
+        {
+          companyId: `${companiesRows[0].id}`,
+          totalAmount: 1500,
+          surCharge: 0,
+          invoiceNumber: "101",
+          status: "CANCEL",
+          purchasedProducts: JSON.stringify([
+            {
+              ratePerKgs: 50,
+              ratePerBale: 5,
+              ratePerLbs: null,
+              noOfBales: 50,
+              itemName: "test item product",
+              baleWeightLbs: null,
+              baleWeightKgs: 5,
+            },
+            {
+              ratePerLbs: 50,
+              ratePerKgs: null,
+              ratePerBale: 5,
+              noOfBales: 60,
+              itemName: "testing first inventory",
+              baleWeightLbs: 3,
+              baleWeightKgs: null,
+            },
+          ]),
+          uuid: "6e419d06-3d9c-2274-a182-ef44cd4416d1",
+          createdAt: "2021-12-23T11:04:26.162Z",
+          purchaseDate: "2021-12-20T11:04:26.162Z",
+          updatedAt: "2021-12-31T11:04:26.162Z",
+        },
       ],
       {}
     );

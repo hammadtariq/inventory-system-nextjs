@@ -1,10 +1,12 @@
 import { Alert, Table, Popconfirm, Button } from "antd";
 import { useRef, useState } from "react";
-import { CheckOutlined } from "@ant-design/icons";
+import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
 
 import Title from "@/components/title";
-import { usePurchaseOrders, approvePurchase } from "@/hooks/purchase";
+import { usePurchaseOrders, approvePurchase, cancelPurchase } from "@/hooks/purchase";
+import styles from "@/styles/Purchase.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
+import { STATUS_COLORS } from "@/utils/ui";
 import permissionsUtil from "@/utils/permission.util";
 
 const canApprove = permissionsUtil.checkAuth({
@@ -92,7 +94,7 @@ const PurchaseOrders = () => {
       render(text) {
         return {
           props: {
-            style: { color: text === "PENDING" ? "red" : "green" },
+            style: { color: STATUS_COLORS[text] },
           },
           children: <div>{text}</div>,
         };
@@ -102,20 +104,32 @@ const PurchaseOrders = () => {
       title: "Action",
       key: "action",
       render: (text, record) => {
-        console.log(canApprove, "canApprov");
         if (record.status === "PENDING" && canApprove) {
           return (
-            <Popconfirm
-              title="Are you sure?"
-              onConfirm={async () => {
-                await approvePurchase(text.id);
-                mutate(null);
-              }}
-              okText="Yes"
-              cancelText="No"
-            >
-              <Button icon={<CheckOutlined />}>Approve</Button>
-            </Popconfirm>
+            <>
+              <Popconfirm
+                title="Are you sure for Approve?"
+                onConfirm={async () => {
+                  await approvePurchase(text.id);
+                  mutate(null);
+                }}
+                okText="Yes"
+                cancelText="No"
+              >
+                <CheckCircleOutlined style={{ color: STATUS_COLORS.APPROVED }} className={styles.cancelBtn} />
+              </Popconfirm>
+              <Popconfirm
+                title="Are you sure for cancel?"
+                onConfirm={async () => {
+                  await cancelPurchase(text.id);
+                  mutate(null);
+                }}
+                okText="Yes"
+                cancelText="No"
+              >
+                <CloseCircleOutlined style={{ color: STATUS_COLORS.CANCEL }} className={styles.approveBtn} />
+              </Popconfirm>
+            </>
           );
         }
         return null;

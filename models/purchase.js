@@ -32,7 +32,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.JSONB,
         allowNull: false,
       },
-      status: DataTypes.ENUM(["PENDING", "APPROVED"]),
+      status: DataTypes.ENUM(["PENDING", "APPROVED", "CANCEL"]),
       purchaseDate: {
         type: DataTypes.DATE,
         allowNull: false,
