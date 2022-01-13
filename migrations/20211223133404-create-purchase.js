@@ -16,13 +16,26 @@ module.exports = {
         type: Sequelize.FLOAT,
         allowNull: false,
       },
+      surCharge: {
+        type: Sequelize.FLOAT,
+        allowNull: true,
+      },
+      invoiceNumber: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
       purchasedProducts: {
         type: Sequelize.JSONB,
         allowNull: false,
       },
+      status: Sequelize.ENUM(["PENDING", "APPROVED"]),
       uuid: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
+        allowNull: false,
+      },
+      purchaseDate: {
+        type: Sequelize.DATE,
         allowNull: false,
       },
       createdAt: {
@@ -35,7 +48,7 @@ module.exports = {
       },
     });
   },
-  down: async (queryInterface, Sequelize) => {
+  down: async (queryInterface) => {
     await queryInterface.dropTable("purchases");
   },
 };

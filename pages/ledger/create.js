@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { Button, Form, Input } from "antd";
-import { validateMessages, layout } from "@/utils/ui";
+import { VALIDATE_MESSAGE, LAYOUT } from "@/utils/ui";
 import permissionsUtil from "@/utils/permission.util";
 import { createTransaction } from "../../hooks/ledger";
 
@@ -29,7 +29,7 @@ const CreateTransaction = () => {
   return (
     <div>
       <h2>Create Transaction</h2>
-      <Form {...layout} name="nest-messages" onFinish={onFinish} validateMessages={validateMessages}>
+      <Form {...LAYOUT} name="nest-messages" onFinish={onFinish} validateMessages={VALIDATE_MESSAGE}>
         <Form.Item
           name="companyId"
           label="Company"
@@ -55,7 +55,7 @@ const CreateTransaction = () => {
           <Input />
         </Form.Item>
 
-        <Form.Item wrapperCol={{ ...layout.wrapperCol, offset: 2 }}>
+        <Form.Item wrapperCol={{ ...LAYOUT.wrapperCol, offset: 2 }}>
           <Button type="primary" htmlType="submit" loading={loading} disabled={!canCreate}>
             Create
           </Button>
