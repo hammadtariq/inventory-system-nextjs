@@ -31,3 +31,9 @@ export const DATE_PICKER_CONFIG = {
     },
   ],
 };
+
+export const STATUS_COLORS = {
+  PENDING: "#FFC900",
+  APPROVED: "#4E9F3D",
+  CANCEL: "#F05454",
+};
