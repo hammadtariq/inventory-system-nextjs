@@ -14,6 +14,8 @@ const apiSchema = Joi.object({
 });
 
 const createItem = async (req, res) => {
+  console.log("create items Request Start");
+
   const { error, value } = apiSchema.validate(req.body);
   if (error && Object.keys(error).length) {
     return res.status(400).send({ message: error });
@@ -36,14 +38,18 @@ const createItem = async (req, res) => {
     await db.Items.create({
       ...value,
     });
+    console.log("create items Request End");
 
     return res.send();
   } catch (error) {
+    console.log("create items Request Error:", error);
     return res.status(500).send({ message: error.toString() });
   }
 };
 
 const getAllItems = async (req, res) => {
+  console.log("get all items Request Start");
+
   const { limit, offset, companyId, type } = req.query;
   const options = {};
   options.limit = limit ? limit : 10;
@@ -65,9 +71,10 @@ const getAllItems = async (req, res) => {
   try {
     await db.dbConnect();
     const data = await db.Items.findAndCountAll({ ...options, include: [db.Company], order: [["updatedAt", "DESC"]] });
-
+    console.log("get all items Request End");
     return res.send(data);
   } catch (error) {
+    console.log("get all items Request Error:", error);
     return res.status(500).send({ message: error.toString() });
   }
 };

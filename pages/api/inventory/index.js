@@ -4,6 +4,8 @@ import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 
 const getAllInventory = async (req, res) => {
+  console.log("Get all inventory Request Start");
+
   const { limit, offset } = req.query;
   const pagination = {};
   pagination.limit = limit ? limit : 10;
@@ -16,8 +18,11 @@ const getAllInventory = async (req, res) => {
       order: [["updatedAt", "DESC"]],
     });
 
+    console.log("Get all inventory Request End");
     return res.send(data);
   } catch (error) {
+    console.log("Get all inventory Request Error:", error);
+
     return res.status(500).send({ message: error.toString() });
   }
 };

@@ -6,7 +6,7 @@ import AppTitle from "@/components/title";
 import AddItemsInPo from "@/components/addItemsInPo";
 import { useCompanyAttributes } from "@/hooks/company";
 import { createPurchaseOrder } from "@/hooks/purchase";
-import { ITEMS_LIST, DATE_FORMAT, VALIDATE_MESSAGE, DATE_PICKER_CONFIG } from "@/utils/ui";
+import { ITEMS_LIST, DATE_FORMAT, VALIDATE_MESSAGE, DATE_PICKER_CONFIG } from "@/utils/ui.util";
 import AppBackButton from "@/components/backButton";
 
 const { Option } = Select;

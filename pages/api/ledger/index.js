@@ -11,6 +11,8 @@ const apiSchema = Joi.object({
 });
 
 const createTransaction = async (req, res) => {
+  console.log("create transaction Request Start");
+
   const { error, value } = apiSchema.validate(req.body);
   if (error && Object.keys(error).length) {
     return res.status(400).send({ message: error });
@@ -27,14 +29,18 @@ const createTransaction = async (req, res) => {
       amount: totalAmount,
       spendType,
     });
+    console.log("create transaction Request End");
 
     res.send(data);
   } catch (error) {
+    console.log("create transaction Request Error:", error);
     return res.status(500).send({ message: error });
   }
 };
 
 const getAllTransactions = async (req, res) => {
+  console.log("get all transaction Request Start");
+
   try {
     await db.dbConnect();
 
@@ -59,9 +65,10 @@ const getAllTransactions = async (req, res) => {
     );
 
     const balance = transactions.reduce((a, b) => ({ totalBalance: a.total + b.total }));
-
+    console.log("get all transaction Request End");
     return res.send({ transactions, ...balance });
   } catch (error) {
+    console.log("get all transaction Request Error:", error);
     res.send(error);
   }
 };

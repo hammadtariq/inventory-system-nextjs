@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { Button, Form, Input } from "antd";
 
 import { createCompany, updateCompany } from "@/hooks/company";
-import { VALIDATE_MESSAGE, LAYOUT } from "@/utils/ui";
+import { VALIDATE_MESSAGE, LAYOUT } from "@/utils/ui.util";
 import permissionsUtil from "@/utils/permission.util";
 import AppBackButton from "./backButton";
 

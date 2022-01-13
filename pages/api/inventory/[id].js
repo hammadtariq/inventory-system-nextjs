@@ -9,6 +9,8 @@ const apiSchema = Joi.object({
 });
 
 const deleteInventory = async (req, res) => {
+  console.log("delete inventory Request Start");
+
   const { error, value } = apiSchema.validate({
     id: req.query.id,
   });
@@ -28,14 +30,18 @@ const deleteInventory = async (req, res) => {
       return res.status(400).send({ message: "inventory stock exist unable to delete" });
     }
     await db.Inventory.destroy({ where: { id: value.id } });
+    console.log("delete inventory Request End");
 
     return res.send();
   } catch (error) {
+    console.log("delete inventory Request Error:", error);
     return res.status(500).send({ message: error.toString() });
   }
 };
 
 const getInventory = async (req, res) => {
+  console.log("get inventory Request Start");
+
   const { error, value } = apiSchema.validate({
     id: req.query.id,
   });
@@ -51,9 +57,11 @@ const getInventory = async (req, res) => {
     if (!inventory) {
       return res.status(404).send({ message: "inventory not exist" });
     }
+    console.log("get inventory Request End");
 
     return res.send(inventory);
   } catch (error) {
+    console.log("get inventory Request Error:", error);
     return res.status(500).send({ message: error.toString() });
   }
 };
