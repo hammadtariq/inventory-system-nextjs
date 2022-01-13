@@ -5,6 +5,7 @@ import { Button, Form, Input } from "antd";
 import { createCustomer, updateCustomer } from "../hooks/customers";
 import { VALIDATE_MESSAGE, LAYOUT } from "@/utils/ui.util";
 import permissionsUtil from "@/utils/permission.util";
+import AppBackButton from "./backButton";
 
 const canCreate = permissionsUtil.checkAuth({
   category: "customer",
@@ -107,6 +108,7 @@ const AddEditCustomer = ({ customer }) => {
         <Input.TextArea />
       </Form.Item>
       <Form.Item wrapperCol={{ ...LAYOUT.wrapperCol, offset: 2 }}>
+        <AppBackButton />
         <Button type="primary" htmlType="submit" loading={loading} disabled={!canCreate}>
           {customer ? "Update" : "Create"}
         </Button>

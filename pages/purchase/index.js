@@ -1,24 +1,25 @@
-import { Alert, Table, Popconfirm, Button } from "antd";
+import { Alert, Table, Popconfirm } from "antd";
 import { useRef, useState } from "react";
 import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
 
-import Title from "@/components/title";
 import { usePurchaseOrders, approvePurchase, cancelPurchase } from "@/hooks/purchase";
 import styles from "@/styles/Purchase.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import { STATUS_COLORS } from "@/utils/ui.util";
 import permissionsUtil from "@/utils/permission.util";
-
-const canApprove = permissionsUtil.checkAuth({
-  category: "purchase",
-  action: "approve",
-});
+import AppTitle from "@/components/title";
+import AppCreateButton from "@/components/createButton";
 
 const PurchaseOrders = () => {
   const { purchaseOrders, error, isLoading, mutate } = usePurchaseOrders();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+
+  const canApprove = permissionsUtil.checkAuth({
+    category: "purchase",
+    action: "approve",
+  });
 
   const expandedRowRender = (record) => {
     const columns = [
@@ -140,7 +141,10 @@ const PurchaseOrders = () => {
   if (error) return <Alert message={error} type="error" />;
   return (
     <>
-      <Title level={2}>Purchase Order List</Title>
+      <AppTitle level={2}>
+        Purchase Order List
+        <AppCreateButton url="/purchase/create" />
+      </AppTitle>
       <Table
         loading={isLoading}
         rowKey={"id"}

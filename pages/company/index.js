@@ -4,20 +4,11 @@ import { Alert, Button, Popconfirm, Table } from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 
 import { useCompanies, deleteCompany } from "@/hooks/company";
-import Title from "@/components/title";
 import styles from "@/styles/Company.module.css";
 import permissionsUtil from "@/utils/permission.util";
 import { getColumnSearchProps } from "@/utils/filter.util";
-
-const canDelete = permissionsUtil.checkAuth({
-  category: "company",
-  action: "delete",
-});
-
-const canEdit = permissionsUtil.checkAuth({
-  category: "company",
-  action: "edit",
-});
+import AppTitle from "@/components/title";
+import AppCreateButton from "@/components/createButton";
 
 const Company = () => {
   const { companies, error, isLoading, mutate } = useCompanies();
@@ -25,6 +16,16 @@ const Company = () => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+
+  const canDelete = permissionsUtil.checkAuth({
+    category: "company",
+    action: "delete",
+  });
+
+  const canEdit = permissionsUtil.checkAuth({
+    category: "company",
+    action: "edit",
+  });
 
   const renderActions = (text) => (
     <>
@@ -102,7 +103,10 @@ const Company = () => {
   if (error) return <Alert message={error} type="error" />;
   return (
     <>
-      <Title level={2}>Company List</Title>
+      <AppTitle level={2}>
+        Company List
+        <AppCreateButton url="/company/create" />
+      </AppTitle>
       <Table loading={isLoading} rowKey="id" columns={columns} dataSource={companies ? companies.rows : []} />
     </>
   );
