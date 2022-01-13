@@ -5,9 +5,10 @@ import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 
 const apiSchema = Joi.object({
-  companyId: Joi.number().required(),
+  companyId: Joi.number(),
   totalAmount: Joi.number().required(),
   spendType: Joi.string().trim().required(),
+  customerId: Joi.number(),
 });
 
 const createTransaction = async (req, res) => {
@@ -20,12 +21,12 @@ const createTransaction = async (req, res) => {
     await db.dbConnect();
     const { user } = res;
 
-    const { totalAmount, companyId, spendType } = value;
+    const { totalAmount, companyId, spendType, customerId } = value;
     const data = await db.Ledger.create({
       companyId,
-      userId: user.id,
       amount: totalAmount,
       spendType,
+      customerId,
     });
 
     res.send(data);
@@ -38,29 +39,47 @@ const getAllTransactions = async (req, res) => {
   try {
     await db.dbConnect();
 
-    const transactions = await db.sequelize.query(
-      `SELECT "companies"."companyName" as name,
-      "companies"."createdAt" as "createdAt",
-      "companies"."id" as "companyId",
-      SUM(
-          CASE WHEN "ledgers"."spendType" = 'CREDIT' THEN
-              amount
-          WHEN "ledgers"."spendType" = 'DEBIT' THEN
-              - amount
-          ELSE
-              0
-          END) AS total
-      FROM ledgers
-      INNER JOIN companies ON "ledgers"."companyId" = companies.id
-      GROUP BY "companies"."id"`,
-      {
-        type: db.Sequelize.QueryTypes.SELECT,
-      }
-    );
+    const { type = "company" } = req.query;
 
-    const balance = transactions.reduce((a, b) => ({ totalBalance: a.total + b.total }));
+    const rawQuery =
+      type === "company"
+        ? `SELECT "companies"."companyName" as name,
+    "companies"."createdAt" as "createdAt",
+    "companies"."id" as "id",
+    SUM(
+        CASE WHEN "ledgers"."spendType" = 'CREDIT' THEN
+            amount
+        WHEN "ledgers"."spendType" = 'DEBIT' THEN
+            - amount
+        ELSE
+            0
+        END) AS total
+    FROM ledgers
+    INNER JOIN companies ON "ledgers"."companyId" = companies.id
+    GROUP BY "companies"."id"`
+        : `SELECT CONCAT(c."firstName", ' ', c."lastName") as name,
+    c."id" as "id",
+    SUM(
+        CASE WHEN "ledgers"."spendType" = 'CREDIT' THEN
+            amount
+        WHEN "ledgers"."spendType" = 'DEBIT' THEN
+            - amount
+        ELSE
+            0
+        END) AS total
+    FROM ledgers
+    INNER JOIN customers c ON "ledgers"."customerId" = c.id
+    GROUP BY c."id"`;
 
-    return res.send({ transactions, ...balance });
+    const transactions = await db.sequelize.query(rawQuery, {
+      type: db.Sequelize.QueryTypes.SELECT,
+    });
+
+    // // const balance = transactions.reduce((a, b) => ({ totalBalance: a.total + b.total }));
+    let totalBalance = 0;
+    transactions.map((item) => (totalBalance += item.total));
+
+    return res.send({ transactions, totalBalance });
   } catch (error) {
     res.send(error);
   }

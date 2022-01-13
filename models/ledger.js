@@ -2,23 +2,27 @@
 const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class ledger extends Model {
-    static associate({ Company, User }) {
+    static associate({ Company, Customer }) {
       this.belongsTo(Company, { foreignKey: "companyId" });
-      this.belongsTo(User, { foreignKey: "userId" });
+      this.belongsTo(Customer, { foreignKey: "customerId" });
     }
     toJSON() {
-      return { ...this.get(), companyId: undefined, userId: undefined };
+      return { ...this.get(), companyId: undefined };
     }
   }
   ledger.init(
     {
+      paymentType: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
       companyId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
       },
-      userId: {
+      customerId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
       },
       spendType: {
         type: DataTypes.ENUM(["CREDIT", "DEBIT"]),
@@ -27,6 +31,10 @@ module.exports = (sequelize, DataTypes) => {
       amount: {
         type: DataTypes.FLOAT,
         allowNull: false,
+      },
+      paymentDate: {
+        allowNull: true,
+        type: DataTypes.DATE,
       },
     },
     {

@@ -4,9 +4,7 @@ const { createHash } = require("@/lib/bcrypt");
 
 module.exports = (sequelize, DataTypes) => {
   class user extends Model {
-    static associate({ Ledger }) {
-      this.hasMany(Ledger, { foreignKey: "userId" });
-    }
+    static associate() {}
   }
   user.init(
     {
