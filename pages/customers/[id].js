@@ -1,7 +1,7 @@
 import { Spin, Alert } from "antd";
 
 import AddEditCustomer from "@/components/addEditCustomer";
-import Title from "@/components/title";
+import AppTitle from "@/components/title";
 import { useCustomer } from "@/hooks/customers";
 
 function Update({ id }) {
@@ -9,7 +9,7 @@ function Update({ id }) {
   if (error) return <Alert message={error.message} type="error" />;
   return (
     <div>
-      <Title level={2}>Update Customer</Title>
+      <AppTitle level={2}>Update Customer</AppTitle>
       {isLoading ? <Spin size="large" /> : <AddEditCustomer customer={customer.data} />}
     </div>
   );

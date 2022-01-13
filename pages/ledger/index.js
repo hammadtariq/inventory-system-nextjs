@@ -1,20 +1,19 @@
-import { useRouter } from "next/router";
-import { Alert, Button, Card } from "antd";
+import { Alert, Card } from "antd";
 import { useLedger } from "@/hooks/ledger";
 import styles from "@/styles/Ledger.module.css";
-import { PlusCircleOutlined } from "@ant-design/icons";
+import AppTitle from "@/components/title";
+import AppCreateButton from "@/components/createButton";
 
 const Ledger = () => {
-  const router = useRouter();
   const { transactions, totalBalance, error, isLoading } = useLedger();
 
   if (error) return <Alert message={error} type="error" />;
   return (
     <div>
-      <Button type="primary" style={{ float: "right" }} onClick={() => router.push("/ledger/create")}>
-        <PlusCircleOutlined />
-        Create
-      </Button>
+      <AppTitle level={2}>
+        Ledger
+        <AppCreateButton url="/ledger/create" />
+      </AppTitle>
       <div className={styles.rowDirectionContainer}>
         <div className={styles.headingStyle}>Total Balance (RS):</div>
         <div className={styles.contentStyle}>{totalBalance}</div>

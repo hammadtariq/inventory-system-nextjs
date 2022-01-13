@@ -1,13 +1,14 @@
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
 import { Alert, Table, Popconfirm, Button } from "antd";
-import { EditOutlined, DeleteOutlined, PlusCircleOutlined } from "@ant-design/icons";
+import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 
-import Title from "@/components/title";
 import { useCustomers, deleteCustomer } from "@/hooks/customers";
 import permissionsUtil from "@/utils/permission.util";
 import styles from "@/styles/Customer.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
+import AppTitle from "@/components/title";
+import AppCreateButton from "@/components/createButton";
 
 const canDelete = permissionsUtil.checkAuth({
   category: "customer",
@@ -124,13 +125,10 @@ export default function Customers() {
   if (error) return <Alert message={error.message} type="error" />;
   return (
     <>
-      <Title level={2}>
+      <AppTitle level={2}>
         Customer List
-        <Button type="primary" style={{ float: "right" }} onClick={() => router.push("/customers/create")}>
-          <PlusCircleOutlined />
-          Create
-        </Button>
-      </Title>
+        <AppCreateButton url="/customers/create" />
+      </AppTitle>
       <Table columns={columns} loading={isLoading} rowKey="id" dataSource={customers ? customers.data : []} />
     </>
   );

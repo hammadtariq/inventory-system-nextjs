@@ -2,11 +2,12 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import { Select, Form, Alert, DatePicker, Button, Row, Col, Input } from "antd";
 
-import Title from "@/components/title";
+import AppTitle from "@/components/title";
 import AddItemsInPo from "@/components/addItemsInPo";
 import { useCompanyAttributes } from "@/hooks/company";
 import { createPurchaseOrder } from "@/hooks/purchase";
 import { ITEMS_LIST, DATE_FORMAT, VALIDATE_MESSAGE, DATE_PICKER_CONFIG } from "@/utils/ui";
+import AppBackButton from "@/components/backButton";
 
 const { Option } = Select;
 
@@ -50,7 +51,7 @@ const CreatePurchase = () => {
   return (
     <div>
       <div>
-        <Title level={2}>Create Purchase Order</Title>
+        <AppTitle level={2}>Create Purchase Order</AppTitle>
       </div>
       <Form layout="vertical" name="nest-messages" onFinish={onFinish} validateMessages={VALIDATE_MESSAGE}>
         <Row gutter={24}>
@@ -127,6 +128,7 @@ const CreatePurchase = () => {
             </Form.Item>
           </>
         )}
+        <AppBackButton />
       </Form>
     </div>
   );

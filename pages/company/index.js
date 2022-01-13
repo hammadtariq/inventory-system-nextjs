@@ -1,13 +1,14 @@
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
 import { Alert, Button, Popconfirm, Table } from "antd";
-import { DeleteOutlined, EditOutlined, PlusCircleOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 
 import { useCompanies, deleteCompany } from "@/hooks/company";
-import Title from "@/components/title";
 import styles from "@/styles/Company.module.css";
 import permissionsUtil from "@/utils/permission.util";
 import { getColumnSearchProps } from "@/utils/filter.util";
+import AppTitle from "@/components/title";
+import AppCreateButton from "@/components/createButton";
 
 const canDelete = permissionsUtil.checkAuth({
   category: "company",
@@ -102,13 +103,10 @@ const Company = () => {
   if (error) return <Alert message={error} type="error" />;
   return (
     <>
-      <Title level={2}>
+      <AppTitle level={2}>
         Company List
-        <Button type="primary" style={{ float: "right" }} onClick={() => router.push("/company/create")}>
-          <PlusCircleOutlined />
-          Create
-        </Button>
-      </Title>
+        <AppCreateButton url="/company/create" />
+      </AppTitle>
       <Table loading={isLoading} rowKey="id" columns={columns} dataSource={companies ? companies.rows : []} />
     </>
   );

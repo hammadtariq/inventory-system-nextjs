@@ -1,3 +1,8 @@
+import { Button, Drawer } from "antd";
+import { useState } from "react";
+import AppMenuItems from "./menuItems";
+import styles from "@/styles/Navbar.module.css";
+import { useRouter } from "next/router";
 import {
   DatabaseOutlined,
   FileOutlined,
@@ -6,61 +11,56 @@ import {
   TeamOutlined,
   UserOutlined,
 } from "@ant-design/icons";
-import { Button, Drawer } from "antd";
-import { useState } from "react";
-import AppMenuItems from "./menuItems";
-import styles from "@/styles/Navbar.module.css";
-import { useRouter } from "next/router";
+
+const items = [
+  {
+    id: "1",
+    title: "Customers",
+    url: "/customers",
+    icon: <UserOutlined />,
+  },
+  {
+    id: "2",
+    title: "Company",
+    url: "/company",
+    icon: <TeamOutlined />,
+  },
+  {
+    id: "3",
+    title: "Purchase",
+    url: "/purchase",
+    icon: <FileOutlined />,
+  },
+  {
+    id: "4",
+    title: "Inventory",
+    url: "/inventory",
+    icon: <ShopOutlined />,
+  },
+  {
+    id: "5",
+    title: "Sales",
+    url: "/sales",
+    icon: <FileOutlined />,
+  },
+  {
+    id: "6",
+    title: "Ledger",
+    url: "/ledger",
+    icon: <DatabaseOutlined />,
+  },
+  {
+    id: "7",
+    title: "Reports",
+    url: "/reports",
+    icon: <FilePptOutlined />,
+  },
+];
 
 export default function AppNavbar() {
   const [visible, setVisible] = useState(false);
   const [isSelected, setIsSelected] = useState("0");
   const router = useRouter();
-
-  const items = [
-    {
-      id: "1",
-      title: "Customers",
-      url: "/customers",
-      icon: <UserOutlined />,
-    },
-    {
-      id: "2",
-      title: "Company",
-      url: "/company",
-      icon: <TeamOutlined />,
-    },
-    {
-      id: "3",
-      title: "Purchase",
-      url: "/purchase",
-      icon: <FileOutlined />,
-    },
-    {
-      id: "4",
-      title: "Inventory",
-      url: "/inventory",
-      icon: <ShopOutlined />,
-    },
-    {
-      id: "5",
-      title: "Sales",
-      url: "/sales",
-      icon: <FileOutlined />,
-    },
-    {
-      id: "6",
-      title: "Ledger",
-      url: "/ledger",
-      icon: <DatabaseOutlined />,
-    },
-    {
-      id: "7",
-      title: "Reports",
-      url: "/reports",
-      icon: <FilePptOutlined />,
-    },
-  ];
 
   const onClickHandler = (url, id) => {
     setIsSelected(id);

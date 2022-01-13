@@ -1,13 +1,14 @@
-import { Alert, Table, Popconfirm, Button } from "antd";
+import { Alert, Table, Popconfirm } from "antd";
 import { useRef, useState } from "react";
-import { CheckCircleOutlined, CloseCircleOutlined, PlusCircleOutlined } from "@ant-design/icons";
+import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
 
-import Title from "@/components/title";
 import { usePurchaseOrders, approvePurchase, cancelPurchase } from "@/hooks/purchase";
 import styles from "@/styles/Purchase.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import { STATUS_COLORS } from "@/utils/ui";
 import permissionsUtil from "@/utils/permission.util";
+import AppTitle from "@/components/title";
+import AppCreateButton from "@/components/createButton";
 
 const canApprove = permissionsUtil.checkAuth({
   category: "purchase",
@@ -140,13 +141,10 @@ const PurchaseOrders = () => {
   if (error) return <Alert message={error} type="error" />;
   return (
     <>
-      <Title level={2}>
+      <AppTitle level={2}>
         Purchase Order List
-        <Button type="primary" style={{ float: "right" }} onClick={() => router.push("/purchase/create")}>
-          <PlusCircleOutlined />
-          Create
-        </Button>
-      </Title>
+        <AppCreateButton url="/purchase/create" />
+      </AppTitle>
       <Table
         loading={isLoading}
         rowKey={"id"}

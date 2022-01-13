@@ -21,6 +21,10 @@ a {
 
 .site-layout .site-layout-background {
   /* background: #fff; */
+  position: fixed;
+  z-index: 99;
+  width: 100%;
+  padding: 0;
 }
 [data-theme="dark"] .siteLayout .site-layout-background {
   background: #141414;
