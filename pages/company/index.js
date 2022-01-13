@@ -9,22 +9,22 @@ import styles from "@/styles/Company.module.css";
 import permissionsUtil from "@/utils/permission.util";
 import { getColumnSearchProps } from "@/utils/filter.util";
 
-const canDelete = permissionsUtil.checkAuth({
-  category: "company",
-  action: "delete",
-});
-
-const canEdit = permissionsUtil.checkAuth({
-  category: "company",
-  action: "edit",
-});
-
 const Company = () => {
   const { companies, error, isLoading, mutate } = useCompanies();
   const router = useRouter();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+
+  const canDelete = permissionsUtil.checkAuth({
+    category: "company",
+    action: "delete",
+  });
+
+  const canEdit = permissionsUtil.checkAuth({
+    category: "company",
+    action: "edit",
+  });
 
   const renderActions = (text) => (
     <>
