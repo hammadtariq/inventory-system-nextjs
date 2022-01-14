@@ -4,7 +4,7 @@ import { Menu, message } from "antd";
 import { LogoutOutlined } from "@ant-design/icons";
 
 import { logoutUser } from "@/hooks/login";
-import Spinner from "./spinner";
+import Spinner from "@/components/spinner";
 
 export default function AppMenuItems({ mode, items, onClickHandler, selected }) {
   const router = useRouter();
