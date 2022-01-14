@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
-import { Alert, Button, Popconfirm, Table } from "antd";
+import { Alert, Button, Popconfirm } from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 
 import { useCompanies, deleteCompany } from "@/hooks/company";
@@ -9,6 +9,7 @@ import permissionsUtil from "@/utils/permission.util";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import AppTitle from "@/components/title";
 import AppCreateButton from "@/components/createButton";
+import AppTable from "@/components/table";
 
 const Company = () => {
   const { companies, error, isLoading, mutate } = useCompanies();
@@ -107,7 +108,7 @@ const Company = () => {
         Company List
         <AppCreateButton url="/company/create" />
       </AppTitle>
-      <Table loading={isLoading} rowKey="id" columns={columns} dataSource={companies ? companies.rows : []} />
+      <AppTable isLoading={isLoading} columns={columns} dataSource={companies ? companies.rows : []} />
     </>
   );
 };

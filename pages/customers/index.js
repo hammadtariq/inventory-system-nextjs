@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
-import { Alert, Table, Popconfirm, Button } from "antd";
+import { Alert, Popconfirm, Button } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 
 import { useCustomers, deleteCustomer } from "@/hooks/customers";
@@ -9,6 +9,7 @@ import styles from "@/styles/Customer.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import AppTitle from "@/components/title";
 import AppCreateButton from "@/components/createButton";
+import AppTable from "@/components/table";
 
 export default function Customers() {
   const { customers, error, isLoading, mutate } = useCustomers();
@@ -129,7 +130,7 @@ export default function Customers() {
         Customer List
         <AppCreateButton url="/customers/create" />
       </AppTitle>
-      <Table columns={columns} loading={isLoading} rowKey="id" dataSource={customers ? customers.data : []} />
+      <AppTable columns={columns} isLoading={isLoading} dataSource={customers ? customers.data : []} />
     </>
   );
 }

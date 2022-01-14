@@ -1,10 +1,11 @@
-import { Alert, Table } from "antd";
+import { Alert } from "antd";
 import { useRef, useState } from "react";
 
 import { useSales } from "@/hooks/sales";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import AppTitle from "@/components/title";
 import AppCreateButton from "@/components/createButton";
+import AppTable from "@/components/table";
 
 const Sales = () => {
   const { sales, error, isLoading } = useSales();
@@ -35,7 +36,7 @@ const Sales = () => {
       { title: "Rate per KGS (Rs)", dataIndex: "ratePerKgs", key: "ratePerKgs", render: (text) => text ?? "N/A" },
       { title: "Rate per Bale (Rs)", dataIndex: "ratePerBale", key: "ratePerBale" },
     ];
-    return <Table columns={columns} dataSource={record.soldProducts} pagination={false} />;
+    return <AppTable columns={columns} dataSource={record.soldProducts} pagination={false} />;
   };
 
   const columns = [
@@ -77,9 +78,8 @@ const Sales = () => {
         Sales List
         <AppCreateButton url="/sales/create" />
       </AppTitle>
-      <Table
-        loading={isLoading}
-        rowKey="id"
+      <AppTable
+        isLoading={isLoading}
         className="components-table-demo-nested"
         columns={columns}
         expandable={{ expandedRowRender: (record) => expandedRowRender(record) }}

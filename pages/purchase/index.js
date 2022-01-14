@@ -1,4 +1,4 @@
-import { Alert, Table, Popconfirm } from "antd";
+import { Alert, Popconfirm } from "antd";
 import { useRef, useState } from "react";
 import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
 
@@ -9,6 +9,7 @@ import { STATUS_COLORS } from "@/utils/ui.util";
 import permissionsUtil from "@/utils/permission.util";
 import AppTitle from "@/components/title";
 import AppCreateButton from "@/components/createButton";
+import AppTable from "@/components/table";
 
 const PurchaseOrders = () => {
   const { purchaseOrders, error, isLoading, mutate } = usePurchaseOrders();
@@ -44,7 +45,7 @@ const PurchaseOrders = () => {
       { title: "Rate per KGS (Rs)", dataIndex: "ratePerKgs", key: "ratePerKgs", render: (text) => text ?? "N/A" },
       { title: "Rate per Bale (Rs)", dataIndex: "ratePerBale", key: "ratePerBale" },
     ];
-    return <Table columns={columns} dataSource={record.purchasedProducts} pagination={false} />;
+    return <AppTable columns={columns} dataSource={record.purchasedProducts} pagination={false} />;
   };
 
   const columns = [
@@ -145,9 +146,8 @@ const PurchaseOrders = () => {
         Purchase Order List
         <AppCreateButton url="/purchase/create" />
       </AppTitle>
-      <Table
-        loading={isLoading}
-        rowKey={"id"}
+      <AppTable
+        isLoading={isLoading}
         className="components-table-demo-nested"
         columns={columns}
         expandable={{ expandedRowRender: (record) => expandedRowRender(record) }}
