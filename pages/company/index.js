@@ -108,7 +108,7 @@ const Company = () => {
         Company List
         <AppCreateButton url="/company/create" />
       </AppTitle>
-      <AppTable isLoading={isLoading} columns={columns} dataSource={companies ? companies.rows : []} />
+      <AppTable isLoading={isLoading} rowKey="id" columns={columns} dataSource={companies ? companies.rows : []} />
     </>
   );
 };

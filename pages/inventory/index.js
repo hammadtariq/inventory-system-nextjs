@@ -66,7 +66,7 @@ const Inventory = () => {
   return (
     <>
       <AppTitle level={2}>Inventory List</AppTitle>
-      <AppTable isLoading={isLoading} columns={columns} dataSource={inventory ? inventory.rows : []} />
+      <AppTable isLoading={isLoading} rowKey="id" columns={columns} dataSource={inventory ? inventory.rows : []} />
     </>
   );
 };

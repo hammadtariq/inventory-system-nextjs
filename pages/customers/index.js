@@ -130,7 +130,7 @@ export default function Customers() {
         Customer List
         <AppCreateButton url="/customers/create" />
       </AppTitle>
-      <AppTable columns={columns} isLoading={isLoading} dataSource={customers ? customers.data : []} />
+      <AppTable columns={columns} rowKey="id" isLoading={isLoading} dataSource={customers ? customers.data : []} />
     </>
   );
 }

@@ -80,6 +80,7 @@ const Sales = () => {
       </AppTitle>
       <AppTable
         isLoading={isLoading}
+        rowKey={"id"}
         className="components-table-demo-nested"
         columns={columns}
         expandable={{ expandedRowRender: (record) => expandedRowRender(record) }}
