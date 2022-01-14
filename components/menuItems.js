@@ -1,8 +1,9 @@
-import { LogoutOutlined } from "@ant-design/icons";
-import { Menu, message } from "antd";
-import { logoutUser } from "@/hooks/login";
 import { useState } from "react";
 import { useRouter } from "next/router";
+import { Menu, message } from "antd";
+import { LogoutOutlined } from "@ant-design/icons";
+
+import { logoutUser } from "@/hooks/login";
 import Spinner from "./spinner";
 
 export default function AppMenuItems({ mode, items, onClickHandler, selected }) {
