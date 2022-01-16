@@ -7,6 +7,7 @@ import { auth } from "@/middlewares/auth";
 const dbConnect = db.dbConnect;
 
 const getCustomer = async (req, res) => {
+  console.log("Get Customer Request Start");
   try {
     await dbConnect();
     const { id } = req.query;
@@ -15,18 +16,20 @@ const getCustomer = async (req, res) => {
     if (!customer) {
       return res.status(409).send({ success: false, message: "Customer not exist" });
     }
-
+    console.log("Get Customer Request End");
     return res.send({
       success: true,
       message: "Success",
       data: customer,
     });
   } catch (error) {
+    console.log("Get Customer Request Error:", error);
     return res.send(error);
   }
 };
 
 const editCustomer = async (req, res) => {
+  console.log("Edit Customer Request Start");
   const apiSchema = Joi.object({
     firstName: Joi.string().min(3).trim(),
     lastName: Joi.string().min(3).trim(),
@@ -55,17 +58,22 @@ const editCustomer = async (req, res) => {
 
     await customer.update({ ...value });
 
+    console.log("Edit Customer Request End");
+
     return res.send({
       success: true,
       message: "Update Successfully",
       data: customer,
     });
   } catch (error) {
+    console.log("Edit Customer Request Error:", error);
     return res.send({ success: false, error });
   }
 };
 
 const deleteCustomer = async (req, res) => {
+  console.log("Delete Customer Request Start");
+
   const { id } = req.query;
 
   try {
@@ -77,12 +85,14 @@ const deleteCustomer = async (req, res) => {
     if (!customer) {
       return res.status(409).send({ success: false, message: "Customer not exist" });
     }
+    console.log("Delete Customer Request End");
 
     return res.send({
       success: true,
       message: "Deleted Successfully",
     });
   } catch (error) {
+    console.log("Delete Customer Request Error:", error);
     return res.send({ success: false, error });
   }
 };

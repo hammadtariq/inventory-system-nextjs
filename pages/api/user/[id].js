@@ -13,6 +13,7 @@ const apiSchema = Joi.object({
 });
 
 const getUser = async (req, res) => {
+  console.log("Get user Request Start");
   // validate api fields
   const { error, value } = apiSchema.validate({ id: req.query.id });
 
@@ -32,15 +33,19 @@ const getUser = async (req, res) => {
     if (!user) {
       return res.status(404).send({ success: false, message: "User not found" });
     }
+    console.log("Get user Request End");
 
     return res.send({ success: true, user });
   } catch (error) {
+    console.log("Get user Request Error:", error);
     return res.status(500).send({ success: false, error });
   }
 };
 
 const updateUser = async (req, res) => {
   // validate api fields
+  console.log("update user Request Start");
+
   const { error, value } = apiSchema.validate({
     ...req.body,
     id: req.query.id,
@@ -75,6 +80,7 @@ const updateUser = async (req, res) => {
 
     // update user
     await user.update({ ...value });
+    console.log("update user Request End");
 
     return res.send({
       success: true,
@@ -82,11 +88,13 @@ const updateUser = async (req, res) => {
       user,
     });
   } catch (error) {
+    console.log("update user Request Error:", error);
     return res.status(500).send({ success: false, error });
   }
 };
 
 const deleteUser = async (req, res) => {
+  console.log("delete user Request Start");
   // validate api fields
   const { error, value } = apiSchema.validate({
     id: req.query.id,
@@ -107,12 +115,14 @@ const deleteUser = async (req, res) => {
 
     // delete user
     await db.User.destroy({ where: { id: value.id } });
+    console.log("delete user Request End");
 
     return res.send({
       success: true,
       message: "User deleted succesfully",
     });
   } catch (error) {
+    console.log("delete user Request Error:", error);
     return res.status(500).send({ success: false, error });
   }
 };

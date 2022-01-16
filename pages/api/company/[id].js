@@ -13,6 +13,7 @@ const apiSchema = Joi.object({
 });
 
 const updateCompany = async (req, res) => {
+  console.log("Update Company Request Start");
   const { error, value } = apiSchema.validate({
     ...req.body,
     id: req.query.id,
@@ -37,14 +38,16 @@ const updateCompany = async (req, res) => {
     }
 
     await company.update({ ...value });
-
+    console.log("Update Company Request End");
     return res.send();
   } catch (error) {
+    console.log("Update Company Request Error:", error);
     return res.status(500).send({ message: error.toString() });
   }
 };
 
 const deleteCompany = async (req, res) => {
+  console.log("Delete Company Request Start");
   const { error, value } = apiSchema.validate({
     id: req.query.id,
   });
@@ -63,13 +66,16 @@ const deleteCompany = async (req, res) => {
 
     await db.Company.destroy({ where: { id: value.id } });
 
+    console.log("Delete Company Request End");
     return res.send();
   } catch (error) {
+    console.log("Delete Company Request Error:", error);
     return res.status(500).send({ message: error.toString() });
   }
 };
 
 const getCompany = async (req, res) => {
+  console.log("Get Company Request Start");
   const { error, value } = apiSchema.validate({
     id: req.query.id,
   });
@@ -85,9 +91,11 @@ const getCompany = async (req, res) => {
     if (!company) {
       return res.status(409).send({ message: "company not exist" });
     }
+    console.log("Get Company Request End");
 
     return res.send(company);
   } catch (error) {
+    console.log("Get Company Request Error:", error);
     return res.status(500).send({ message: error.toString() });
   }
 };

@@ -12,6 +12,8 @@ const apiSchema = Joi.object({
 });
 
 const signup = async (req, res) => {
+  console.log("Sign up Request Start");
+
   const { error, value } = apiSchema.validate(req.body);
   if (error && Object.keys(error).length) {
     return res.status(400).send({ success: false, error });
@@ -29,12 +31,14 @@ const signup = async (req, res) => {
     await db.User.create({
       ...value,
     });
+    console.log("Sign up Request End");
 
     return res.send({
       success: true,
       message: "User registered successfully",
     });
   } catch (error) {
+    console.log("Sign up Request Error:", error);
     return res.status(500).send(error);
   }
 };

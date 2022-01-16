@@ -1,15 +1,26 @@
-import { Alert, Table } from "antd";
+import { Alert, Popconfirm } from "antd";
 import { useRef, useState } from "react";
+import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
 
-import Title from "@/components/title";
-import { usePurchaseOrders } from "@/hooks/purchase";
+import { usePurchaseOrders, approvePurchase, cancelPurchase } from "@/hooks/purchase";
+import styles from "@/styles/Purchase.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
+import { STATUS_COLORS } from "@/utils/ui.util";
+import permissionsUtil from "@/utils/permission.util";
+import AppTitle from "@/components/title";
+import AppCreateButton from "@/components/createButton";
+import AppTable from "@/components/table";
 
 const PurchaseOrders = () => {
-  const { purchaseOrders, error, isLoading } = usePurchaseOrders();
+  const { purchaseOrders, error, isLoading, mutate } = usePurchaseOrders();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+
+  const canApprove = permissionsUtil.checkAuth({
+    category: "purchase",
+    action: "approve",
+  });
 
   const expandedRowRender = (record) => {
     const columns = [
@@ -34,7 +45,7 @@ const PurchaseOrders = () => {
       { title: "Rate per KGS (Rs)", dataIndex: "ratePerKgs", key: "ratePerKgs", render: (text) => text ?? "N/A" },
       { title: "Rate per Bale (Rs)", dataIndex: "ratePerBale", key: "ratePerBale" },
     ];
-    return <Table columns={columns} dataSource={record.purchasedProducts} pagination={false} />;
+    return <AppTable columns={columns} dataSource={record.purchasedProducts} pagination={false} />;
   };
 
   const columns = [
@@ -55,10 +66,12 @@ const PurchaseOrders = () => {
       }),
     },
     { title: "Invoice Total Amount (Rs)", dataIndex: "totalAmount", key: "totalAmount" },
+    { title: "Invoice Number", dataIndex: "invoiceNumber", key: "invoiceNumber", render: (text) => text ?? "N/A" },
+    { title: "Sur Charge (Rs)", dataIndex: "surCharge", key: "surCharge", render: (text) => text ?? "N/A" },
     {
-      title: "Created At",
-      dataIndex: "createdAt",
-      key: "createdAt",
+      title: "Purchase Date",
+      dataIndex: "purchaseDate",
+      key: "purchaseDate",
       render: (text) => new Date(text).toLocaleString(),
     },
     {
@@ -67,14 +80,74 @@ const PurchaseOrders = () => {
       key: "updatedAt",
       render: (text) => new Date(text).toLocaleString(),
     },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      ...getColumnSearchProps({
+        dataIndex: "status",
+        dataIndexName: "status",
+        searchInput,
+        searchText,
+        searchedColumn,
+        setSearchText,
+        setSearchedColumn,
+      }),
+      render(text) {
+        return {
+          props: {
+            style: { color: STATUS_COLORS[text] },
+          },
+          children: <div>{text}</div>,
+        };
+      },
+    },
+    {
+      title: "Action",
+      key: "action",
+      render: (text, record) => {
+        if (record.status === "PENDING" && canApprove) {
+          return (
+            <>
+              <Popconfirm
+                title="Are you sure for Approve?"
+                onConfirm={async () => {
+                  await approvePurchase(text.id);
+                  mutate(null);
+                }}
+                okText="Yes"
+                cancelText="No"
+              >
+                <CheckCircleOutlined style={{ color: STATUS_COLORS.APPROVED }} className={styles.cancelBtn} />
+              </Popconfirm>
+              <Popconfirm
+                title="Are you sure for cancel?"
+                onConfirm={async () => {
+                  await cancelPurchase(text.id);
+                  mutate(null);
+                }}
+                okText="Yes"
+                cancelText="No"
+              >
+                <CloseCircleOutlined style={{ color: STATUS_COLORS.CANCEL }} className={styles.approveBtn} />
+              </Popconfirm>
+            </>
+          );
+        }
+        return null;
+      },
+    },
   ];
 
   if (error) return <Alert message={error} type="error" />;
   return (
     <>
-      <Title level={2}>Purchase Order List</Title>
-      <Table
-        loading={isLoading}
+      <AppTitle level={2}>
+        Purchase Order List
+        <AppCreateButton url="/purchase/create" />
+      </AppTitle>
+      <AppTable
+        isLoading={isLoading}
         rowKey={"id"}
         className="components-table-demo-nested"
         columns={columns}

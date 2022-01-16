@@ -12,6 +12,7 @@ const apiSchema = Joi.object({
 });
 
 const createCompany = async (req, res) => {
+  console.log("Create Company Request Start");
   const { error, value } = apiSchema.validate(req.body);
   if (error && Object.keys(error).length) {
     return res.status(400).send({ message: error });
@@ -27,23 +28,34 @@ const createCompany = async (req, res) => {
       ...value,
     });
 
+    console.log("Create Company Request End");
+
     return res.send();
   } catch (error) {
+    console.log("Create Company Request Error:", error);
     return res.status(500).send({ message: error.toString() });
   }
 };
 
 const getAllCompanies = async (req, res) => {
-  const { limit, offset } = req.query;
-  const pagination = {};
-  pagination.limit = limit ? limit : 10;
-  pagination.offset = offset ? offset : 0;
+  console.log("Get All Company Request Start");
+
+  const { limit, offset, attributes = [] } = req.query;
+  const options = {};
+  options.limit = limit ? limit : 10;
+  options.offset = offset ? offset : 0;
+  if (attributes.length) {
+    options.attributes = JSON.parse(attributes);
+  }
   try {
     await db.dbConnect();
-    const data = await db.Company.findAndCountAll(pagination);
+    const data = await db.Company.findAndCountAll({ ...options, order: [["updatedAt", "DESC"]] });
+
+    console.log("Get All Company Request End");
 
     return res.send(data);
   } catch (error) {
+    console.log("Get All Company Request Error:", error);
     return res.status(500).send({ message: error.toString() });
   }
 };

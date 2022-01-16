@@ -6,6 +6,8 @@ import { auth } from "@/middlewares/auth";
 const dbConnect = db.dbConnect;
 
 const customerRegistration = async (req, res) => {
+  console.log("Create Customer Request Start");
+
   const { firstName, lastName, email, phone, address } = req.body;
 
   if (!firstName || !lastName || !email) {
@@ -32,20 +34,26 @@ const customerRegistration = async (req, res) => {
       phone,
       address,
     });
+    console.log("Create Customer Request End");
 
     return res.send({
       success: true,
       message: "Customer registered successfully",
     });
   } catch (error) {
+    console.log("Create Customer Request Error:", error);
+
     return res.send(error);
   }
 };
 
 const getAllCustomers = async (req, res) => {
+  console.log("Get all Customer Request Start");
+
   try {
     await dbConnect();
-    const customers = await db.Customer.findAll();
+    const customers = await db.Customer.findAll({ order: [["updatedAt", "DESC"]] });
+    console.log("Get all Customer Request End");
 
     return res.send({
       succress: true,
@@ -53,6 +61,7 @@ const getAllCustomers = async (req, res) => {
       data: customers,
     });
   } catch (error) {
+    console.log("Get all Customer Request Error:", error);
     res.send(error);
   }
 };

@@ -1,9 +1,11 @@
-import { Alert, Table } from "antd";
+import { Alert } from "antd";
 import { useRef, useState } from "react";
 
-import Title from "@/components/title";
 import { useSales } from "@/hooks/sales";
 import { getColumnSearchProps } from "@/utils/filter.util";
+import AppTitle from "@/components/title";
+import AppCreateButton from "@/components/createButton";
+import AppTable from "@/components/table";
 
 const Sales = () => {
   const { sales, error, isLoading } = useSales();
@@ -34,7 +36,7 @@ const Sales = () => {
       { title: "Rate per KGS (Rs)", dataIndex: "ratePerKgs", key: "ratePerKgs", render: (text) => text ?? "N/A" },
       { title: "Rate per Bale (Rs)", dataIndex: "ratePerBale", key: "ratePerBale" },
     ];
-    return <Table columns={columns} dataSource={record.soldProducts} pagination={false} />;
+    return <AppTable columns={columns} dataSource={record.soldProducts} pagination={false} />;
   };
 
   const columns = [
@@ -72,10 +74,13 @@ const Sales = () => {
   if (error) return <Alert message={error} type="error" />;
   return (
     <>
-      <Title level={2}>Sales List</Title>
-      <Table
-        loading={isLoading}
-        rowKey="id"
+      <AppTitle level={2}>
+        Sales List
+        <AppCreateButton url="/sales/create" />
+      </AppTitle>
+      <AppTable
+        isLoading={isLoading}
+        rowKey={"id"}
         className="components-table-demo-nested"
         columns={columns}
         expandable={{ expandedRowRender: (record) => expandedRowRender(record) }}

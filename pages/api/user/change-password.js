@@ -12,6 +12,8 @@ const apiSchema = Joi.object({
 });
 
 const changePassword = async (req, res) => {
+  console.log("change password Request Start");
+
   // validate api fields
   const { error, value } = apiSchema.validate({ ...req.body });
 
@@ -35,12 +37,15 @@ const changePassword = async (req, res) => {
     }
 
     await user.update({ password: value.newPassword });
+    console.log("change password Request End");
 
     return res.send({
       success: true,
       message: "Password updated successfully",
     });
   } catch (error) {
+    console.log("change password Request Error:", error);
+
     return res.status(500).send({ success: false, message });
   }
 };

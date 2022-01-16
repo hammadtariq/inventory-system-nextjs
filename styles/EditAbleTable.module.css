@@ -1,0 +1,13 @@
+.editableRow .ant-form-item-explain {
+  position: absolute;
+  top: 100%;
+  font-size: 12px;
+}
+
+.editableCellInput {
+  width: 100%;
+}
+
+.editableTd {
+  height: 90px;
+}

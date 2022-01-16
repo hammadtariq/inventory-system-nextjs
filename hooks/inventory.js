@@ -12,6 +12,16 @@ export const useInventory = () => {
   };
 };
 
+export const useInventoryByCompanyId = (companyId) => {
+  const { data, error } = useSWR(`/api/inventory/byCompanyId/${companyId}`, get);
+
+  return {
+    inventory: data?.rows,
+    isLoading: !error && !data,
+    error,
+  };
+};
+
 export const searchInventory = (value) => get(`/api/inventory/search?value=${value}`);
 
 export const getInventory = (id) => get(`/api/inventory/${id}`);
