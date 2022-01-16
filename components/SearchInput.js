@@ -1,49 +1,44 @@
 import { useState } from "react";
 import { Input, AutoComplete } from "antd";
 import _debounce from "lodash/debounce";
+import styles from "@/styles/SearchInput.module.css";
+
 const { Search } = Input;
 
-const searchResult = (results) =>
-  results.map((result) => {
-    return {
-      value: result.itemName,
-      label: (
-        <div
-          key={result.id}
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            textDecoration: "capitalize",
-          }}
-        >
-          {result.itemName}
-        </div>
-      ),
-    };
-  });
+const searchResult = (results = [], valueKey = "") =>
+  results.map((result) => ({
+    value: result[valueKey],
+    label: (
+      <div key={result.id} className={styles.listItem}>
+        {result[valueKey]}
+      </div>
+    ),
+  }));
 
-const SearchInput = ({ handleSearch }) => {
+const SearchInput = ({ handleSearch, handleSelect, valueKey }) => {
   const [options, setOptions] = useState([]);
 
   const _handleSearch = async (value) => {
+    console.log("_handleSearch", value);
     if (value) {
       const results = await handleSearch(value.toLowerCase());
-      setOptions(searchResult(results || []));
+      setOptions(searchResult(results, valueKey));
     }
     return value;
   };
 
-  const onSelect = (value) => {
-    console.log("onSelect", value);
+  const _handleSelect = (itemId) => {
+    console.log("handleSelect", itemId);
+    handleSelect(itemId);
   };
 
   return (
     <>
       <AutoComplete
         dropdownMatchSelectWidth={252}
-        style={{ width: 300 }}
+        className={styles.inputWrap}
         options={options}
-        onSelect={onSelect}
+        onSelect={_handleSelect}
         onSearch={_debounce(_handleSearch, 500)}
       >
         <Search size="large" placeholder="Search inventory" loading={false} allowClear enterButton />

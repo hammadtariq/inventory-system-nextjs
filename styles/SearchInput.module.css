@@ -1,0 +1,8 @@
+.listItem {
+  display: "flex";
+  justify-content: "space-between";
+  text-decoration: "capitalize";
+}
+.inputWrap {
+  width: 300;
+}

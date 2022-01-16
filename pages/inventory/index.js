@@ -1,14 +1,14 @@
 import { Alert, Table } from "antd";
 import { useRef, useState } from "react";
 
-import { useInventory, searchInventory } from "@/hooks/inventory";
+import { useInventory, searchInventory, getInventory } from "@/hooks/inventory";
 import Title from "@/components/title";
 import SearchInput from "@/components/SearchInput";
 
 import { getColumnSearchProps } from "@/utils/filter.util";
 
 const Inventory = () => {
-  const { inventory, error, isLoading } = useInventory();
+  const { inventory, error, isLoading, mutate } = useInventory();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
@@ -68,11 +68,19 @@ const Inventory = () => {
     return searchResults;
   };
 
+  const handleSelect = async (id) => {
+    const data = await getInventory(id);
+    console.log({ inventory });
+    const updatedInventory = { ...inventory, rows: [data], count: 1 };
+    mutate(updatedInventory);
+    return updatedInventory;
+  };
+
   if (error) return <Alert message={error} type="error" />;
   return (
     <>
       <Title level={2}>Inventory List</Title>
-      <SearchInput handleSearch={handleSearch} />
+      <SearchInput valueKey="itemName" handleSearch={handleSearch} handleSelect={handleSelect} />
       <br />
       <br />
       <Table loading={isLoading} rowKey="id" columns={columns} dataSource={inventory ? inventory.rows : []} />
