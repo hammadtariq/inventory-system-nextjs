@@ -1,23 +1,15 @@
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
-import { Alert, Table, Popconfirm, Button } from "antd";
+import { Alert, Popconfirm, Button } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 
-import Title from "@/components/title";
 import { useCustomers, deleteCustomer } from "@/hooks/customers";
 import permissionsUtil from "@/utils/permission.util";
 import styles from "@/styles/Customer.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
-
-const canDelete = permissionsUtil.checkAuth({
-  category: "customer",
-  action: "delete",
-});
-
-const canEdit = permissionsUtil.checkAuth({
-  category: "customer",
-  action: "edit",
-});
+import AppTitle from "@/components/title";
+import AppCreateButton from "@/components/createButton";
+import AppTable from "@/components/table";
 
 export default function Customers() {
   const { customers, error, isLoading, mutate } = useCustomers();
@@ -25,6 +17,16 @@ export default function Customers() {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+
+  const canDelete = permissionsUtil.checkAuth({
+    category: "customer",
+    action: "delete",
+  });
+
+  const canEdit = permissionsUtil.checkAuth({
+    category: "customer",
+    action: "edit",
+  });
 
   const renderActions = (text) => (
     <>
@@ -124,8 +126,11 @@ export default function Customers() {
   if (error) return <Alert message={error.message} type="error" />;
   return (
     <>
-      <Title level={2}>Customer List</Title>
-      <Table columns={columns} loading={isLoading} rowKey="id" dataSource={customers ? customers.data : []} />
+      <AppTitle level={2}>
+        Customer List
+        <AppCreateButton url="/customers/create" />
+      </AppTitle>
+      <AppTable columns={columns} rowKey="id" isLoading={isLoading} dataSource={customers ? customers.data : []} />
     </>
   );
 }

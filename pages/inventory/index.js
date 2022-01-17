@@ -1,9 +1,10 @@
-import { Alert, Table } from "antd";
+import { Alert } from "antd";
 import { useRef, useState } from "react";
 
 import { useInventory } from "@/hooks/inventory";
-import Title from "@/components/title";
 import { getColumnSearchProps } from "@/utils/filter.util";
+import AppTitle from "@/components/title";
+import AppTable from "@/components/table";
 
 const Inventory = () => {
   const { inventory, error, isLoading } = useInventory();
@@ -64,8 +65,8 @@ const Inventory = () => {
   if (error) return <Alert message={error} type="error" />;
   return (
     <>
-      <Title level={2}>Inventory List</Title>
-      <Table loading={isLoading} rowKey="id" columns={columns} dataSource={inventory ? inventory.rows : []} />
+      <AppTitle level={2}>Inventory List</AppTitle>
+      <AppTable isLoading={isLoading} rowKey="id" columns={columns} dataSource={inventory ? inventory.rows : []} />
     </>
   );
 };

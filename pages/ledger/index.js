@@ -1,6 +1,8 @@
 import { Alert, Card } from "antd";
 import { useLedger } from "@/hooks/ledger";
 import styles from "@/styles/Ledger.module.css";
+import AppTitle from "@/components/title";
+import AppCreateButton from "@/components/createButton";
 
 const Ledger = () => {
   const { transactions, totalBalance, error, isLoading } = useLedger();
@@ -8,6 +10,10 @@ const Ledger = () => {
   if (error) return <Alert message={error} type="error" />;
   return (
     <div>
+      <AppTitle level={2}>
+        Ledger
+        <AppCreateButton url="/ledger/create" />
+      </AppTitle>
       <div className={styles.rowDirectionContainer}>
         <div className={styles.headingStyle}>Total Balance (RS):</div>
         <div className={styles.contentStyle}>{totalBalance}</div>

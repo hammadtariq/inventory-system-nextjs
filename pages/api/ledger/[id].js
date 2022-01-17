@@ -4,6 +4,8 @@ import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 
 const getTransactions = async (req, res) => {
+  console.log("get transaction Request Start");
+
   try {
     await db.dbConnect();
     const { id, type = "company" } = req.query;
@@ -53,12 +55,14 @@ GROUP BY "customers"."id"`;
     const totalBalance = await db.sequelize.query(rawQuery, {
       type: db.Sequelize.QueryTypes.SELECT,
     });
+    console.log("get transaction Request End");
 
     return res.send({
       transactions,
       totalBalance: totalBalance[0].amount,
     });
   } catch (error) {
+    console.log("get transaction Request Error:", error);
     res.send(error);
   }
 };

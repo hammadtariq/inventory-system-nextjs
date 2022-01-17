@@ -22,6 +22,7 @@ const apiSchema = Joi.object({
 });
 
 const createSale = async (req, res) => {
+  console.log("Create sale order Request Start");
   const { error, value } = apiSchema.validate(req.body);
   if (error && Object.keys(error).length) {
     return res.status(400).send({ message: error });
@@ -51,14 +52,19 @@ const createSale = async (req, res) => {
     }
     await db.Sale.create({ ...value }, { transaction: t });
     await t.commit();
+    console.log("Create sale order Request End");
     return res.send();
   } catch (error) {
     await t.rollback();
+    console.log("Create sale order Request Error:", error);
+
     return res.status(500).send({ message: error.toString() });
   }
 };
 
 const getAllSales = async (req, res) => {
+  console.log("Get all sale order Request Start");
+
   const { limit, offset } = req.query;
   const pagination = {};
   pagination.limit = limit ? limit : 10;
@@ -70,9 +76,12 @@ const getAllSales = async (req, res) => {
       include: [db.Customer],
       order: [["updatedAt", "DESC"]],
     });
+    console.log("Get all sale order Request End");
 
     return res.send(sales);
   } catch (error) {
+    console.log("Get all sale order Request Error:", error);
+
     return res.status(500).send({ message: error.toString() });
   }
 };
