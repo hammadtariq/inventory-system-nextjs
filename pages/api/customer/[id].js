@@ -14,7 +14,7 @@ const getCustomer = async (req, res) => {
     const customer = await db.Customer.findByPk(id);
 
     if (!customer) {
-      return res.status(409).send({ success: false, message: "Customer not exist" });
+      return res.status(409).send({ message: "Customer not exist" });
     }
     console.log("Get Customer Request End");
     return res.send({
@@ -24,7 +24,7 @@ const getCustomer = async (req, res) => {
     });
   } catch (error) {
     console.log("Get Customer Request Error:", error);
-    return res.send(error);
+    return res.send({ message: error.toString() });
   }
 };
 
@@ -45,7 +45,7 @@ const editCustomer = async (req, res) => {
   });
 
   if (error && Object.keys(error).length) {
-    return res.status(400).send({ success: false, error });
+    return res.status(400).send({ message: error.toString() });
   }
 
   try {
@@ -53,7 +53,7 @@ const editCustomer = async (req, res) => {
 
     const customer = await db.Customer.findByPk(value.id);
     if (!customer) {
-      return res.status(409).send({ success: false, message: "Customer not exist" });
+      return res.status(409).send({ message: "Customer not exist" });
     }
 
     await customer.update({ ...value });
@@ -67,7 +67,7 @@ const editCustomer = async (req, res) => {
     });
   } catch (error) {
     console.log("Edit Customer Request Error:", error);
-    return res.send({ success: false, error });
+    return res.send({ message: error.toString() });
   }
 };
 
@@ -83,7 +83,7 @@ const deleteCustomer = async (req, res) => {
       where: { id },
     });
     if (!customer) {
-      return res.status(409).send({ success: false, message: "Customer not exist" });
+      return res.status(409).send({ message: "Customer not exist" });
     }
     console.log("Delete Customer Request End");
 
@@ -93,7 +93,7 @@ const deleteCustomer = async (req, res) => {
     });
   } catch (error) {
     console.log("Delete Customer Request Error:", error);
-    return res.send({ success: false, error });
+    return res.send({ message: error.toString() });
   }
 };
 

@@ -20,7 +20,7 @@ const updateCompany = async (req, res) => {
   });
 
   if (error && Object.keys(error).length) {
-    return res.status(400).send({ message: error });
+    return res.status(400).send({ message: error.toString() });
   }
 
   try {
@@ -53,7 +53,7 @@ const deleteCompany = async (req, res) => {
   });
 
   if (error && error && Object.keys(error).length) {
-    return res.status(400).send({ message: error });
+    return res.status(400).send({ message: error.toString() });
   }
 
   try {
@@ -81,7 +81,7 @@ const getCompany = async (req, res) => {
   });
 
   if (error && error && Object.keys(error).length) {
-    return res.status(400).send({ message: error });
+    return res.status(400).send({ message: error.toString() });
   }
   try {
     await db.dbConnect();
