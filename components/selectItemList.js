@@ -4,9 +4,9 @@ import { ITEMS_LIST } from "@/utils/ui.util";
 
 const { Option } = Select;
 
-export default function SelectItemList({ setSelectedListType }) {
+export default function SelectItemList({ setSelectedListType, ...props }) {
   return (
-    <Select onChange={setSelectedListType}>
+    <Select {...props} onChange={setSelectedListType}>
       {ITEMS_LIST.map((val) => (
         <Option key={val} value={val}>
           {val}

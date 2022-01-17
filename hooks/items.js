@@ -11,6 +11,16 @@ export const useItems = () => {
     mutate,
   };
 };
+
+export const useItem = (id) => {
+  const { data, error } = useSWR(`/api/items/${id}`, get);
+
+  return {
+    item: data,
+    isLoading: !error && !data,
+    error,
+  };
+};
 export const useItemsByCompanyIdAndType = (companyId, type) => {
   const { data, error } = useSWR(`/api/items?type=${type}&companyId=${companyId}`, get);
 
