@@ -2,6 +2,7 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import { companySumQuery, customerSumQuery } from "../../../query";
 
 const getTransactions = async (req, res) => {
   console.log("get transaction Request Start");
@@ -25,32 +26,7 @@ const getTransactions = async (req, res) => {
       ],
     });
 
-    const rawQuery =
-      type === "company"
-        ? `SELECT SUM(
-      CASE WHEN "ledgers"."spendType" = 'CREDIT' THEN
-          amount
-      WHEN "ledgers"."spendType" = 'DEBIT' THEN
-          - amount
-      ELSE
-          0
-      END) AS amount
-  FROM ledgers
-  INNER JOIN companies ON "ledgers"."companyId" = companies.id
-  WHERE "ledgers"."companyId" = ${id}
-  GROUP BY "companies"."id"`
-        : `SELECT SUM(
-    CASE WHEN "ledgers"."spendType" = 'CREDIT' THEN
-        amount
-    WHEN "ledgers"."spendType" = 'DEBIT' THEN
-        - amount
-    ELSE
-        0
-    END) AS amount
-FROM ledgers
-INNER JOIN customers ON "ledgers"."customerId" = customers.id
-WHERE "ledgers"."customerId" = ${id}
-GROUP BY "customers"."id"`;
+    const rawQuery = type === "company" ? companySumQuery(id) : customerSumQuery(id);
 
     const totalBalance = await db.sequelize.query(rawQuery, {
       type: db.Sequelize.QueryTypes.SELECT,

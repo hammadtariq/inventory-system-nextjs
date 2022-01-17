@@ -22,6 +22,16 @@ export const useCustomer = (id) => {
   };
 };
 
+export const useCustomerAttributes = (attr = []) => {
+  const { data, error } = useSWR(`/api/customer?attributes=${JSON.stringify(attr)}`, get);
+
+  return {
+    customers: data?.data,
+    isLoading: !error && !data,
+    error,
+  };
+};
+
 export const createCustomer = async (data) => post("/api/customer", data);
 
 export const updateCustomer = async (id, data) => put(`/api/customer/${id}`, data);

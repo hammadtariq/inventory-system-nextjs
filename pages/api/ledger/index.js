@@ -3,6 +3,7 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import { companyQuery, customerQuery } from "../../../query";
 
 const apiSchema = Joi.object({
   companyId: Joi.number(),
@@ -45,41 +46,13 @@ const getAllTransactions = async (req, res) => {
 
     const { type = "company" } = req.query;
 
-    const rawQuery =
-      type === "company"
-        ? `SELECT "companies"."companyName" as name,
-    "companies"."createdAt" as "createdAt",
-    "companies"."id" as "id",
-    SUM(
-        CASE WHEN "ledgers"."spendType" = 'CREDIT' THEN
-            amount
-        WHEN "ledgers"."spendType" = 'DEBIT' THEN
-            - amount
-        ELSE
-            0
-        END) AS total
-    FROM ledgers
-    INNER JOIN companies ON "ledgers"."companyId" = companies.id
-    GROUP BY "companies"."id"`
-        : `SELECT CONCAT(c."firstName", ' ', c."lastName") as name,
-    c."id" as "id",
-    SUM(
-        CASE WHEN "ledgers"."spendType" = 'CREDIT' THEN
-            amount
-        WHEN "ledgers"."spendType" = 'DEBIT' THEN
-            - amount
-        ELSE
-            0
-        END) AS total
-    FROM ledgers
-    INNER JOIN customers c ON "ledgers"."customerId" = c.id
-    GROUP BY c."id"`;
+    const rawQuery = type === "company" ? companyQuery : customerQuery;
 
     const transactions = await db.sequelize.query(rawQuery, {
       type: db.Sequelize.QueryTypes.SELECT,
     });
 
-    // // const balance = transactions.reduce((a, b) => ({ totalBalance: a.total + b.total }));
+    // const balance = transactions.reduce((a, b) => ({ totalBalance: a.total + b.total }));
     let totalBalance = 0;
     transactions.map((item) => (totalBalance += item.total));
     console.log("get all transaction Request End");

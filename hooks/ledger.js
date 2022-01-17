@@ -1,8 +1,8 @@
 import useSWR from "swr";
 import { get, post } from "@/lib/http-client";
 
-export const useLedger = () => {
-  const { data, error } = useSWR("/api/ledger", get);
+export const useLedger = (type) => {
+  const { data, error } = useSWR(`/api/ledger?type=${type}`, get);
 
   return {
     ...data,
@@ -11,8 +11,8 @@ export const useLedger = () => {
   };
 };
 
-export const useLedgerDetails = (id) => {
-  const { data, error } = useSWR(`/api/ledger/${id}`, get);
+export const useLedgerDetails = (id, type) => {
+  const { data, error } = useSWR(`/api/ledger/${id}?type=${type}`, get);
 
   return {
     ...data,
@@ -21,4 +21,6 @@ export const useLedgerDetails = (id) => {
   };
 };
 
-export const createTransaction = async (data) => post("/api/ledger", data);
+export const createTransaction = async (data) => post("/api/ledger", data); // FOR PURCHASE ORDER AND SALE ORDER
+
+export const createPayment = async (data) => post("/api/ledger/createPayment", data); // FOR PAYMENT CREATION
