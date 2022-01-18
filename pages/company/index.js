@@ -12,7 +12,7 @@ import AppCreateButton from "@/components/createButton";
 import AppTable from "@/components/table";
 
 const Company = () => {
-  const { companies, error, isLoading, mutate } = useCompanies();
+  const { companies, error, isLoading, setLimit, setOffset, mutate } = useCompanies();
   const router = useRouter();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
@@ -27,6 +27,11 @@ const Company = () => {
     category: "company",
     action: "edit",
   });
+
+  const paginationHandler = (limit, offset) => {
+    setLimit(limit);
+    setOffset(offset);
+  };
 
   const renderActions = (text) => (
     <>
@@ -108,7 +113,14 @@ const Company = () => {
         Company List
         <AppCreateButton url="/company/create" />
       </AppTitle>
-      <AppTable isLoading={isLoading} rowKey="id" columns={columns} dataSource={companies ? companies.rows : []} />
+      <AppTable
+        isLoading={isLoading}
+        rowKey="id"
+        columns={columns}
+        dataSource={companies ? companies.rows : []}
+        pagination={true}
+        paginationHandler={paginationHandler}
+      />
     </>
   );
 };

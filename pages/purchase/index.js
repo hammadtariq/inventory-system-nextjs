@@ -12,7 +12,7 @@ import AppCreateButton from "@/components/createButton";
 import AppTable from "@/components/table";
 
 const PurchaseOrders = () => {
-  const { purchaseOrders, error, isLoading, mutate } = usePurchaseOrders();
+  const { purchaseOrders, error, isLoading, setLimit, setOffset, mutate } = usePurchaseOrders();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
@@ -21,6 +21,11 @@ const PurchaseOrders = () => {
     category: "purchase",
     action: "approve",
   });
+
+  const paginationHandler = (limit, offset) => {
+    setLimit(limit);
+    setOffset(offset);
+  };
 
   const expandedRowRender = (record) => {
     const columns = [
@@ -153,6 +158,8 @@ const PurchaseOrders = () => {
         columns={columns}
         expandable={{ expandedRowRender: (record) => expandedRowRender(record) }}
         dataSource={purchaseOrders ? purchaseOrders.rows : []}
+        pagination={true}
+        paginationHandler={paginationHandler}
       />
     </>
   );

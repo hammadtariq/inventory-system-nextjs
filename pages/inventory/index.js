@@ -7,10 +7,15 @@ import AppTitle from "@/components/title";
 import AppTable from "@/components/table";
 
 const Inventory = () => {
-  const { inventory, error, isLoading } = useInventory();
+  const { inventory, error, isLoading, setLimit, setOffset } = useInventory();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+
+  const paginationHandler = (limit, offset) => {
+    setLimit(limit);
+    setOffset(offset);
+  };
 
   const columns = [
     {
@@ -66,7 +71,14 @@ const Inventory = () => {
   return (
     <>
       <AppTitle level={2}>Inventory List</AppTitle>
-      <AppTable isLoading={isLoading} rowKey="id" columns={columns} dataSource={inventory ? inventory.rows : []} />
+      <AppTable
+        isLoading={isLoading}
+        rowKey="id"
+        columns={columns}
+        dataSource={inventory ? inventory.rows : []}
+        pagination={true}
+        paginationHandler={paginationHandler}
+      />
     </>
   );
 };
