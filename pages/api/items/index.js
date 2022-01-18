@@ -6,7 +6,7 @@ import { auth } from "@/middlewares/auth";
 
 const apiSchema = Joi.object({
   companyId: Joi.number().required(),
-  itemName: Joi.string().min(3).trim().lowercase().required(),
+  itemName: Joi.string().trim().lowercase().required(),
   ratePerLbs: Joi.number(),
   ratePerKgs: Joi.number(),
   ratePerBale: Joi.number(),

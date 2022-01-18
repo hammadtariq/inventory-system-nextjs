@@ -93,7 +93,7 @@ const getItem = async (req, res) => {
   try {
     await db.dbConnect();
     const { id } = value;
-    const item = await db.Items.findByPk(id);
+    const item = await db.Items.findByPk(id, { include: [db.Company] });
 
     if (!item) {
       return res.status(409).send({ message: "item not exist" });

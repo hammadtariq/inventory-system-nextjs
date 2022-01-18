@@ -10,6 +10,10 @@ export const adminPermissions = {
   transaction_create: true,
 
   purchase_approve: true,
+
+  item_create: true,
+  item_edit: true,
+  item_delete: true,
 };
 
 export const editorPermissions = {
@@ -22,4 +26,8 @@ export const editorPermissions = {
   company_delete: false,
 
   transaction_create: true,
+
+  item_create: true,
+  item_edit: true,
+  item_delete: false,
 };
