@@ -1,26 +1,20 @@
 import { useEffect, useState } from "react";
 import { verifyToken } from "@/hooks/login";
 import Spinner from "./spinner";
+import { to } from "@/utils/to.util";
 
 const ProtectedRoutes = ({ children, router }) => {
   let [canViewPage, setCanViewPage] = useState(false);
 
-  useEffect(() => {
-    verifyToken()
-      .then(() => {
-        if (router.pathname !== "/login") {
-          setCanViewPage(true);
-          return;
-        }
-        router.push("/");
-      })
-      .catch(() => {
-        if (router.pathname === "/login") {
-          setCanViewPage(true);
-          return;
-        }
+  useEffect(async () => {
+    if (router.pathname !== "/login") {
+      const [err] = await to(verifyToken());
+      if (err) {
         router.push("/login");
-      });
+        return;
+      }
+    }
+    setCanViewPage(true);
 
     return () => null;
   }, [canViewPage, router.pathname]);

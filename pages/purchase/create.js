@@ -1,15 +1,14 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/router";
-import { Select, Form, Alert, DatePicker, Button, Row, Col, Input } from "antd";
+import { Form, DatePicker, Button, Row, Col, Input } from "antd";
 
 import AppTitle from "@/components/title";
+import SelectCompany from "@/components/selectCompany";
+import SelectItemList from "@/components/selectItemList";
 import AddItemsInPo from "@/components/addItemsInPo";
-import { useCompanyAttributes } from "@/hooks/company";
 import { createPurchaseOrder } from "@/hooks/purchase";
-import { ITEMS_LIST, DATE_FORMAT, VALIDATE_MESSAGE, DATE_PICKER_CONFIG } from "@/utils/ui.util";
+import { DATE_FORMAT, VALIDATE_MESSAGE, DATE_PICKER_CONFIG } from "@/utils/ui.util";
 import AppBackButton from "@/components/backButton";
-
-const { Option } = Select;
 
 const CreatePurchase = () => {
   const router = useRouter();
@@ -18,7 +17,8 @@ const CreatePurchase = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const { company, isLoading, error } = useCompanyAttributes(["companyName", "id"]);
+  const selectCompanyOnChange = useCallback((id) => setCompanyId(id), [companyId]);
+  const selectItemListOnChange = useCallback((type) => setSelectedListType(type), [selectedListType]);
 
   const onFinish = async (value) => {
     setLoading(true);
@@ -46,8 +46,6 @@ const CreatePurchase = () => {
     }
   };
 
-  if (error) return <Alert message={error} type="error" />;
-
   return (
     <div>
       <div>
@@ -57,31 +55,12 @@ const CreatePurchase = () => {
         <Row gutter={24}>
           <Col span={8}>
             <Form.Item label="Select Company">
-              <Select
-                loading={isLoading}
-                showSearch
-                placeholder="Search to Select Company"
-                allowClear
-                onChange={setCompanyId}
-              >
-                {company &&
-                  company.map((obj) => (
-                    <Option key={obj.id} value={obj.id}>
-                      {obj.companyName}
-                    </Option>
-                  ))}
-              </Select>
+              <SelectCompany selectCompanyOnChange={selectCompanyOnChange} />
             </Form.Item>
           </Col>
           <Col span={8}>
             <Form.Item label="Select List Type">
-              <Select loading={isLoading} onChange={setSelectedListType}>
-                {ITEMS_LIST.map((val) => (
-                  <Option key={val} value={val}>
-                    {val}
-                  </Option>
-                ))}
-              </Select>
+              <SelectItemList selectItemListOnChange={selectItemListOnChange} />
             </Form.Item>
           </Col>
           <Col span={8}>

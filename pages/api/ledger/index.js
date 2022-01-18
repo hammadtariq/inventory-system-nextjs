@@ -17,7 +17,7 @@ const createTransaction = async (req, res) => {
 
   const { error, value } = apiSchema.validate(req.body);
   if (error && Object.keys(error).length) {
-    return res.status(400).send({ message: error });
+    return res.status(400).send({ message: error.toString() });
   }
 
   try {
@@ -34,7 +34,7 @@ const createTransaction = async (req, res) => {
     res.send(data);
   } catch (error) {
     console.log("create transaction Request Error:", error);
-    return res.status(500).send({ message: error });
+    return res.status(500).send({ message: error.toString() });
   }
 };
 
@@ -59,7 +59,7 @@ const getAllTransactions = async (req, res) => {
     return res.send({ transactions, totalBalance });
   } catch (error) {
     console.log("get all transaction Request Error:", error);
-    res.send(error);
+    res.status(500).send({ message: error.toString() });
   }
 };
 

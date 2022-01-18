@@ -16,7 +16,7 @@ const signup = async (req, res) => {
 
   const { error, value } = apiSchema.validate(req.body);
   if (error && Object.keys(error).length) {
-    return res.status(400).send({ success: false, error });
+    return res.status(400).send({ message: error.toString() });
   }
 
   try {
@@ -25,7 +25,7 @@ const signup = async (req, res) => {
 
     // if user already exist
     if (user) {
-      return res.status(409).send({ success: false, message: "User already exist" });
+      return res.status(409).send({ message: "User already exist" });
     }
 
     await db.User.create({
@@ -39,7 +39,7 @@ const signup = async (req, res) => {
     });
   } catch (error) {
     console.log("Sign up Request Error:", error);
-    return res.status(500).send(error);
+    return res.status(500).send({ message: error.toString() });
   }
 };
 
