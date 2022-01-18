@@ -12,7 +12,7 @@ import AppCreateButton from "@/components/createButton";
 import AppTable from "@/components/table";
 
 export default function Customers() {
-  const { customers, error, isLoading, setLimit, setOffset, mutate } = useCustomers();
+  const { customers, error, isLoading, paginationHandler, mutate } = useCustomers();
   const router = useRouter();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
@@ -27,11 +27,6 @@ export default function Customers() {
     category: "customer",
     action: "edit",
   });
-
-  const paginationHandler = (limit, offset) => {
-    setLimit(limit);
-    setOffset(offset);
-  };
 
   const renderActions = (text) => (
     <>

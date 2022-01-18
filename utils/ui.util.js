@@ -37,3 +37,5 @@ export const STATUS_COLORS = {
   APPROVED: "#4E9F3D",
   CANCEL: "#F05454",
 };
+
+export const DEFAULT_PAGE_LIMIT = 10;

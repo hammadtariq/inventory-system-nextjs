@@ -7,15 +7,10 @@ import AppTitle from "@/components/title";
 import AppTable from "@/components/table";
 
 const Inventory = () => {
-  const { inventory, error, isLoading, setLimit, setOffset } = useInventory();
+  const { inventory, error, isLoading, paginationHandler } = useInventory();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
-
-  const paginationHandler = (limit, offset) => {
-    setLimit(limit);
-    setOffset(offset);
-  };
 
   const columns = [
     {
