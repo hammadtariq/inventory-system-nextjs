@@ -42,7 +42,7 @@ const getTransactions = async (req, res) => {
     });
   } catch (error) {
     console.log("get transaction Request Error:", error);
-    res.send({ message: error.toString() });
+    res.status(500).send({ message: error.toString() });
   }
 };
 

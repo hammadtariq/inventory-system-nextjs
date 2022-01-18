@@ -24,7 +24,7 @@ const getCustomer = async (req, res) => {
     });
   } catch (error) {
     console.log("Get Customer Request Error:", error);
-    return res.send({ message: error.toString() });
+    return res.status(500).send({ message: error.toString() });
   }
 };
 
@@ -67,7 +67,7 @@ const editCustomer = async (req, res) => {
     });
   } catch (error) {
     console.log("Edit Customer Request Error:", error);
-    return res.send({ message: error.toString() });
+    return res.status(500).send({ message: error.toString() });
   }
 };
 
@@ -93,7 +93,7 @@ const deleteCustomer = async (req, res) => {
     });
   } catch (error) {
     console.log("Delete Customer Request Error:", error);
-    return res.send({ message: error.toString() });
+    return res.status(500).send({ message: error.toString() });
   }
 };
 

@@ -69,7 +69,7 @@ const getAllTransactions = async (req, res) => {
     return res.send({ transactions, ...balance });
   } catch (error) {
     console.log("get all transaction Request Error:", error);
-    res.send({ message: error.toString() });
+    res.status(500).send({ message: error.toString() });
   }
 };
 

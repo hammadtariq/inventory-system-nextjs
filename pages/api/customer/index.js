@@ -43,7 +43,7 @@ const customerRegistration = async (req, res) => {
   } catch (error) {
     console.log("Create Customer Request Error:", error);
 
-    return res.send({ message: error.toString() });
+    return res.status(500).send({ message: error.toString() });
   }
 };
 
@@ -62,7 +62,7 @@ const getAllCustomers = async (req, res) => {
     });
   } catch (error) {
     console.log("Get all Customer Request Error:", error);
-    res.send({ message: error.toString() });
+    res.status(500).send({ message: error.toString() });
   }
 };
 
