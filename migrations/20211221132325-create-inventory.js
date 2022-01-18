@@ -40,7 +40,7 @@ module.exports = {
       },
       ratePerBale: {
         type: Sequelize.FLOAT,
-        allowNull: false,
+        allowNull: true,
       },
       onHand: {
         type: Sequelize.INTEGER,
