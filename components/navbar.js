@@ -10,6 +10,7 @@ import {
   ShopOutlined,
   TeamOutlined,
   UserOutlined,
+  UnorderedListOutlined,
 } from "@ant-design/icons";
 
 const items = [
@@ -27,30 +28,36 @@ const items = [
   },
   {
     id: "3",
+    title: "Items List",
+    url: "/items",
+    icon: <UnorderedListOutlined />,
+  },
+  {
+    id: "4",
     title: "Purchase",
     url: "/purchase",
     icon: <FileOutlined />,
   },
   {
-    id: "4",
+    id: "5",
     title: "Inventory",
     url: "/inventory",
     icon: <ShopOutlined />,
   },
   {
-    id: "5",
+    id: "6",
     title: "Sales",
     url: "/sales",
     icon: <FileOutlined />,
   },
   {
-    id: "6",
+    id: "7",
     title: "Ledger",
     url: "/ledger",
     icon: <DatabaseOutlined />,
   },
   {
-    id: "7",
+    id: "8",
     title: "Reports",
     url: "/reports",
     icon: <FilePptOutlined />,

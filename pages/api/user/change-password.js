@@ -18,7 +18,7 @@ const changePassword = async (req, res) => {
   const { error, value } = apiSchema.validate({ ...req.body });
 
   if (error && Object.keys(error).length) {
-    return res.status(400).send({ success: false, error });
+    return res.status(400).send({ message: error.toString() });
   }
 
   try {
@@ -27,13 +27,13 @@ const changePassword = async (req, res) => {
 
     // if user not found
     if (!user) {
-      return res.status(404).send({ success: false, message: "User not found" });
+      return res.status(404).send({ message: "User not found" });
     }
 
     const isMatchPassword = await compareHash(value.oldPassword, user.password);
 
     if (!isMatchPassword) {
-      return res.status(401).send({ success: false, message: "Password could not be verified" });
+      return res.status(401).send({ message: "Password could not be verified" });
     }
 
     await user.update({ password: value.newPassword });
@@ -46,7 +46,7 @@ const changePassword = async (req, res) => {
   } catch (error) {
     console.log("change password Request Error:", error);
 
-    return res.status(500).send({ success: false, message });
+    return res.status(500).send({ message: error.toString() });
   }
 };
 

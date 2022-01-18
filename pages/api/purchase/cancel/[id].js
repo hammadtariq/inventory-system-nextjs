@@ -16,7 +16,7 @@ const cancelPurchaseOrder = async (req, res) => {
   });
 
   if (error && error && Object.keys(error).length) {
-    return res.status(400).send({ message: error });
+    return res.status(400).send({ message: error.toString() });
   }
   if (req.user.role !== "ADMIN") {
     return res.status(400).send({ message: "Operation not permitted." });

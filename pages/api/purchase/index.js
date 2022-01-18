@@ -12,7 +12,7 @@ const inventorySchema = Joi.object().keys({
   baleWeightKgs: Joi.number(),
   ratePerLbs: Joi.number(),
   ratePerKgs: Joi.number(),
-  ratePerBale: Joi.number().required(),
+  ratePerBale: Joi.number(),
 });
 const apiSchema = Joi.object({
   companyId: Joi.number().required(),
@@ -28,7 +28,7 @@ const createPurchaseOrder = async (req, res) => {
 
   const { error, value } = apiSchema.validate(req.body);
   if (error && Object.keys(error).length) {
-    return res.status(400).send({ message: error });
+    return res.status(400).send({ message: error.toString() });
   }
   try {
     await db.dbConnect();

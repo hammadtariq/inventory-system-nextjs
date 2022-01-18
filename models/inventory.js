@@ -47,7 +47,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       ratePerBale: {
         type: DataTypes.FLOAT,
-        allowNull: false,
+        allowNull: true,
       },
       onHand: {
         type: DataTypes.INTEGER,

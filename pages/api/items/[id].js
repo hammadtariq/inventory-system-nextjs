@@ -23,7 +23,7 @@ const updateItems = async (req, res) => {
   });
 
   if (error && Object.keys(error).length) {
-    return res.status(400).send({ message: error });
+    return res.status(400).send({ message: error.toString() });
   }
 
   try {
@@ -59,7 +59,7 @@ const deleteItem = async (req, res) => {
   });
 
   if (error && error && Object.keys(error).length) {
-    return res.status(400).send({ message: error });
+    return res.status(400).send({ message: error.toString() });
   }
 
   try {
@@ -88,12 +88,12 @@ const getItem = async (req, res) => {
   });
 
   if (error && error && Object.keys(error).length) {
-    return res.status(400).send({ message: error });
+    return res.status(400).send({ message: error.toString() });
   }
   try {
     await db.dbConnect();
     const { id } = value;
-    const item = await db.Items.findByPk(id);
+    const item = await db.Items.findByPk(id, { include: [db.Company] });
 
     if (!item) {
       return res.status(409).send({ message: "item not exist" });

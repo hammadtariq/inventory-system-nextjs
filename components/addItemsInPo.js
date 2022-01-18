@@ -24,7 +24,7 @@ export default function AddItemsInPo({ companyId, type, setData, data }) {
       baleWeightKgs: "",
       ratePerLbs: "",
       ratePerKgs: "",
-      ratePerBale: "",
+      ...(type === "SMALL_BALES" && { ratePerBale: "" }),
       ...record,
     });
     setEditingKey(record.id);
@@ -98,13 +98,6 @@ export default function AddItemsInPo({ companyId, type, setData, data }) {
       required: false,
     },
     {
-      title: "Rate Per Bale",
-      dataIndex: "ratePerBale",
-      width: "17%",
-      editable: true,
-      required: true,
-    },
-    {
       title: "operation",
       dataIndex: "operation",
       render: (_, record) => {
@@ -131,7 +124,15 @@ export default function AddItemsInPo({ companyId, type, setData, data }) {
       },
     },
   ];
-
+  if (type === "SMALL_BALES") {
+    columns.splice(columns.length - 1, 0, {
+      title: "Rate Per Bale",
+      dataIndex: "ratePerBale",
+      width: "17%",
+      editable: true,
+      required: true,
+    });
+  }
   const mergedColumns = columns.map((col) => {
     if (!col.editable) {
       return col;
