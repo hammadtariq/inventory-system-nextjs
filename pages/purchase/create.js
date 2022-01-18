@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/router";
 import { Form, DatePicker, Button, Row, Col, Input } from "antd";
 
@@ -16,6 +16,9 @@ const CreatePurchase = () => {
   const [selectedListType, setSelectedListType] = useState(null);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const selectCompanyOnChange = useCallback((id) => setCompanyId(id), [companyId]);
+  const selectItemListOnChange = useCallback((type) => setSelectedListType(type), [selectedListType]);
 
   const onFinish = async (value) => {
     setLoading(true);
@@ -52,12 +55,12 @@ const CreatePurchase = () => {
         <Row gutter={24}>
           <Col span={8}>
             <Form.Item label="Select Company">
-              <SelectCompany setCompanyId={setCompanyId} />
+              <SelectCompany selectCompanyOnChange={selectCompanyOnChange} />
             </Form.Item>
           </Col>
           <Col span={8}>
             <Form.Item label="Select List Type">
-              <SelectItemList setSelectedListType={setSelectedListType} />
+              <SelectItemList selectItemListOnChange={selectItemListOnChange} />
             </Form.Item>
           </Col>
           <Col span={8}>

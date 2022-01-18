@@ -19,7 +19,7 @@ const getUser = async (req, res) => {
 
   //   if api fields errors
   if (error && Object.keys(error).length) {
-    return res.status(400).send({ success: false, error });
+    return res.status(400).send({ message: error.toString() });
   }
 
   try {
@@ -31,14 +31,14 @@ const getUser = async (req, res) => {
 
     // if user not found
     if (!user) {
-      return res.status(404).send({ success: false, message: "User not found" });
+      return res.status(404).send({ message: "User not found" });
     }
     console.log("Get user Request End");
 
     return res.send({ success: true, user });
   } catch (error) {
     console.log("Get user Request Error:", error);
-    return res.status(500).send({ success: false, error });
+    return res.status(500).send({ message: error.toString() });
   }
 };
 
@@ -53,7 +53,7 @@ const updateUser = async (req, res) => {
 
   //   if api fields errors
   if (error && Object.keys(error).length) {
-    return res.status(400).send({ success: false, error });
+    return res.status(400).send({ message: error.toString() });
   }
 
   try {
@@ -66,13 +66,12 @@ const updateUser = async (req, res) => {
 
     // if user not found
     if (!user) {
-      return res.status(404).send({ success: false, message: "User not found" });
+      return res.status(404).send({ message: "User not found" });
     }
 
     // if req.body is empty
     if (!Object.keys(req.body).length) {
       res.status(400).send({
-        success: false,
         message: "Please provide at least one field",
         allowedFields: ["fisrtName", "lastName", "email"],
       });
@@ -101,7 +100,7 @@ const deleteUser = async (req, res) => {
   });
 
   if (error && error && Object.keys(error).length) {
-    return res.status(400).send({ success: false, error });
+    return res.status(400).send({ message: error.toString() });
   }
 
   try {
@@ -110,7 +109,7 @@ const deleteUser = async (req, res) => {
 
     // if user not found
     if (!user) {
-      return res.status(404).send({ success: false, message: "User does not exist" });
+      return res.status(404).send({ message: "User does not exist" });
     }
 
     // delete user
@@ -118,12 +117,11 @@ const deleteUser = async (req, res) => {
     console.log("delete user Request End");
 
     return res.send({
-      success: true,
       message: "User deleted succesfully",
     });
   } catch (error) {
     console.log("delete user Request Error:", error);
-    return res.status(500).send({ success: false, error });
+    return res.status(500).send({ message: error.toString() });
   }
 };
 

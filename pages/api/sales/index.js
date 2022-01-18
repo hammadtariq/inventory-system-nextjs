@@ -2,8 +2,6 @@ import Joi from "joi";
 import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
-// const Sequelize = require('sequelize');
-// const Op = Sequelize.Op;
 import { auth } from "@/middlewares/auth";
 
 const inventorySchema = Joi.object().keys({
@@ -25,11 +23,11 @@ const createSale = async (req, res) => {
   console.log("Create sale order Request Start");
   const { error, value } = apiSchema.validate(req.body);
   if (error && Object.keys(error).length) {
-    return res.status(400).send({ message: error });
+    return res.status(400).send({ message: error.toString() });
   }
   const t = await db.sequelize.transaction();
   try {
-    const { soldProducts, customerId } = value;
+    const { soldProducts } = value;
     await db.dbConnect();
     for await (const product of soldProducts) {
       const { itemName, noOfBales } = product;

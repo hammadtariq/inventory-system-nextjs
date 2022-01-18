@@ -15,7 +15,7 @@ const createCompany = async (req, res) => {
   console.log("Create Company Request Start");
   const { error, value } = apiSchema.validate(req.body);
   if (error && Object.keys(error).length) {
-    return res.status(400).send({ message: error });
+    return res.status(400).send({ message: error.toString() });
   }
   try {
     await db.dbConnect();

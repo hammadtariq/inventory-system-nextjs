@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Button, Form, Input, InputNumber } from "antd";
 
@@ -20,6 +20,9 @@ const AddEditItem = ({ item }) => {
     category: "item",
     action: "create",
   });
+
+  const selectCompanyOnChange = useCallback((id) => setCompanyId(id), [companyId]);
+  const selectItemListOnChange = useCallback((type) => setSelectedListType(type), [selectedListType]);
 
   useEffect(() => {
     if (item) {
@@ -58,7 +61,7 @@ const AddEditItem = ({ item }) => {
           },
         ]}
       >
-        <SelectCompany setCompanyId={setCompanyId} />
+        <SelectCompany defaultValue={item && item.company.id} selectCompanyOnChange={selectCompanyOnChange} />
       </Form.Item>
       <Form.Item
         rules={[
@@ -68,7 +71,7 @@ const AddEditItem = ({ item }) => {
         ]}
         label="Select List Type"
       >
-        <SelectItemList setSelectedListType={setSelectedListType} />
+        <SelectItemList defaultValue={item && item.type} selectItemListOnChange={selectItemListOnChange} />
       </Form.Item>
       <Form.Item
         name="itemName"

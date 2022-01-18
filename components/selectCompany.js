@@ -1,12 +1,12 @@
+import { memo } from "react";
 import { Select, Alert } from "antd";
 
 import { useCompanyAttributes } from "@/hooks/company";
 
 const { Option } = Select;
 
-export default function SelectCompany({ setCompanyId, ...props }) {
+export default memo(function SelectCompany({ selectCompanyOnChange, ...props }) {
   const { company, isLoading, error } = useCompanyAttributes(["companyName", "id"]);
-
   if (error) return <Alert message={error} type="error" />;
 
   return (
@@ -16,7 +16,7 @@ export default function SelectCompany({ setCompanyId, ...props }) {
       showSearch
       placeholder="Search to Select Company"
       allowClear
-      onChange={setCompanyId}
+      onChange={selectCompanyOnChange}
     >
       {company &&
         company.map((obj) => (
@@ -26,4 +26,4 @@ export default function SelectCompany({ setCompanyId, ...props }) {
         ))}
     </Select>
   );
-}
+});

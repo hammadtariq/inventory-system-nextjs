@@ -14,14 +14,14 @@ const getAllUsers = async (_, res) => {
     });
 
     if (!users.length) {
-      return res.send({ success: true, message: "No user found", users });
+      return res.send({ message: "No user found" });
     }
     console.log("get all users Request End");
 
-    return res.send({ success: true, users });
+    return res.send(users);
   } catch (error) {
     console.log("get all users Request Error:", error);
-    return res.status(500).send({ success: false, error });
+    return res.status(500).send({ message: error.toString() });
   }
 };
 
