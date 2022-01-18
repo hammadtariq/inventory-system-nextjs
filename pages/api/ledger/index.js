@@ -52,9 +52,7 @@ const getAllTransactions = async (req, res) => {
       type: db.Sequelize.QueryTypes.SELECT,
     });
 
-    // const balance = transactions.reduce((a, b) => ({ totalBalance: a.total + b.total }));
-    let totalBalance = 0;
-    transactions.map((item) => (totalBalance += item.total));
+    const totalBalance = transactions.reduce((acc, obj) => acc + obj.total, 0);
     console.log("get all transaction Request End");
     return res.send({ transactions, totalBalance });
   } catch (error) {

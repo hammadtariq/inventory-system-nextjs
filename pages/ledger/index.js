@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+// import { useRouter } from "next/router";
 import { Alert, Card, Empty, Radio } from "antd";
 import { useLedger } from "@/hooks/ledger";
 import styles from "@/styles/Ledger.module.css";
@@ -6,8 +7,20 @@ import AppTitle from "@/components/title";
 import AppCreateButton from "@/components/createButton";
 
 const Ledger = () => {
+  // const router = useRouter();
   const [type, setType] = useState("company");
   const { transactions, totalBalance, error, isLoading } = useLedger(type);
+
+  // useEffect(() => {
+  //   router.push(
+  //     {
+  //       pathname: "/ledger",
+  //       query: { type },
+  //     },
+  //     undefined,
+  //     { shallow: true }
+  //   );
+  // }, [type]);
 
   const onChange = (e) => {
     setType(e.target.value);
@@ -21,9 +34,9 @@ const Ledger = () => {
         <AppCreateButton url="/ledger/create" />
       </AppTitle>
       <div className={styles.radioButtonStyle}>
-        <Radio.Group onChange={onChange} defaultValue={"company"} value={type}>
-          <Radio value={"company"}>Company</Radio>
-          <Radio value={"customer"}>Customer</Radio>
+        <Radio.Group onChange={onChange} defaultValue="company" value={type}>
+          <Radio value="company">Company</Radio>
+          <Radio value="customer">Customer</Radio>
         </Radio.Group>
       </div>
       {transactions && transactions.length > 0 ? (

@@ -11,7 +11,7 @@ const apiSchema = Joi.object({
   customerId: Joi.number(),
   paymentType: Joi.string().trim().required(),
   paymentDate: Joi.string().trim().required(),
-  otherName: Joi.string().trim(),
+  otherName: Joi.string().trim().optional().allow(""),
 });
 
 const createPayment = async (req, res) => {
@@ -19,12 +19,12 @@ const createPayment = async (req, res) => {
 
   const { error, value } = apiSchema.validate(req.body);
   if (error && Object.keys(error).length) {
-    return res.status(400).send({ message: error });
+    return res.status(400).send({ message: error.toString() });
   }
 
   try {
     await db.dbConnect();
-    const { totalAmount, companyId, spendType, customerId, paymentType, paymentDate, otherName } = value;
+    const { totalAmount, companyId, spendType, customerId, paymentType, paymentDate, otherName = "" } = value;
     const data = await db.Ledger.create({
       companyId,
       amount: totalAmount,
@@ -39,7 +39,7 @@ const createPayment = async (req, res) => {
     res.send(data);
   } catch (error) {
     console.log("create transaction Request Error:", error);
-    return res.status(500).send({ message: error });
+    res.status(500).send({ message: error.toString() });
   }
 };
 

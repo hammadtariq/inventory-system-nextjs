@@ -17,14 +17,12 @@ const { Option } = Select;
 
 const CreateTransaction = () => {
   const router = useRouter();
+
   const [loading, setLoading] = useState(false);
-  const [companyId, setCompanyId] = useState(null);
-  const [customerId, setCustomerId] = useState(null);
+  const [companyId, setCompanyId] = useState();
+  const [customerId, setCustomerId] = useState();
 
   const [paymentType, setPaymentType] = useState("CASH");
-  const [paymentDate, setPaymentDate] = useState("");
-  const [chequeDate, setChequeDate] = useState("");
-  const [chequeStatus, setChequeStatus] = useState("");
 
   const { company, isLoading: companyLoading } = useCompanyAttributes(["companyName", "id"]);
   const { customers, isLoading: customerLoading } = useCustomerAttributes(["firstName", "lastName", "id"]);
@@ -35,16 +33,20 @@ const CreateTransaction = () => {
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      const { totalAmount, otherName } = values;
-      await createPayment({
+      const { totalAmount, otherName, paymentDate } = values;
+
+      let params = {
         totalAmount,
-        companyId,
         spendType: "DEBIT",
-        paymentDate,
+        paymentDate: new Date(paymentDate),
         paymentType,
-        customerId,
         otherName: companyId === -1 || customerId === -1 ? otherName : "",
-      });
+      };
+
+      params = companyId !== -1 ? { ...params, companyId } : params;
+      params = customerId !== -1 ? { ...params, customerId } : params;
+
+      await createPayment(params);
       router.push("/ledger");
     } catch (error) {
       console.log(error);
@@ -56,14 +58,6 @@ const CreateTransaction = () => {
     setPaymentType(e.target.value);
   };
 
-  function onChangeDate(_, dateString) {
-    setPaymentDate(dateString);
-  }
-
-  function onChangeDueDate(_, dateString) {
-    setChequeDate(dateString);
-  }
-
   const handleSelectCompany = (value) => {
     setCompanyId(value);
   };
@@ -71,11 +65,6 @@ const CreateTransaction = () => {
   const handleSelectCustomer = (value) => {
     setCustomerId(value);
   };
-
-  const handleSelectChequeStatus = (value) => {
-    setChequeStatus(value);
-  };
-
   const renderCheckForm = () => {
     return (
       <>
@@ -89,7 +78,7 @@ const CreateTransaction = () => {
             },
           ]}
         >
-          <Input />
+          <Input placeholder="Enter Full Name" />
         </Form.Item>
         <Form.Item
           name="chequeId"
@@ -100,9 +89,9 @@ const CreateTransaction = () => {
             },
           ]}
         >
-          <Input />
+          <Input placeholder="Enter Cheque ID" />
         </Form.Item>
-        <Form.Item
+        {/* <Form.Item
           name="chequeAmount"
           label="Amount"
           rules={[
@@ -111,8 +100,8 @@ const CreateTransaction = () => {
             },
           ]}
         >
-          <Input />
-        </Form.Item>
+          <Input placeholder="Enter Cheque Amount"  />
+        </Form.Item> */}
         <Form.Item
           name="dueDate"
           label="Due Date"
@@ -122,7 +111,7 @@ const CreateTransaction = () => {
             },
           ]}
         >
-          <DatePicker onChange={onChangeDueDate} />
+          <DatePicker style={{ width: "100%" }} />
         </Form.Item>
         <Form.Item
           name="chequeStatus"
@@ -133,7 +122,7 @@ const CreateTransaction = () => {
             },
           ]}
         >
-          <Select style={{ width: 400 }} placeholder="Select Status" onChange={handleSelectChequeStatus}>
+          <Select placeholder="Select Status">
             <Option key="1" value="PASS">
               Pass
             </Option>
@@ -155,10 +144,10 @@ const CreateTransaction = () => {
 
       <Form {...LAYOUT} name="nest-messages" onFinish={onFinish} validateMessages={VALIDATE_MESSAGE}>
         <Form.Item name="paymentType" label="Payment Type">
-          <Radio.Group onChange={onChange} defaultValue={"CASH"} value={paymentType}>
-            <Radio value={"CASH"}>Cash</Radio>
-            <Radio value={"ONLINE"}>Online</Radio>
-            <Radio value={"CHEQUE"}>Cheque</Radio>
+          <Radio.Group onChange={onChange} defaultValue="CASH" value={paymentType}>
+            <Radio value="CASH">Cash</Radio>
+            <Radio value="ONLINE">Online</Radio>
+            <Radio value="CHEQUE">Cheque</Radio>
           </Radio.Group>
         </Form.Item>
         {paymentType === "CHEQUE" ? renderCheckForm() : null}
@@ -171,13 +160,7 @@ const CreateTransaction = () => {
             },
           ]}
         >
-          <Select
-            loading={companyLoading}
-            style={{ width: 400 }}
-            placeholder="Select Company"
-            allowClear
-            onChange={handleSelectCompany}
-          >
+          <Select loading={companyLoading} placeholder="Select Company" allowClear onChange={handleSelectCompany}>
             {companyData &&
               companyData.map((obj) => (
                 <Option key={obj.id} value={obj.id} disabled={obj.id === -1 && customerId === -1}>
@@ -211,13 +194,7 @@ const CreateTransaction = () => {
             },
           ]}
         >
-          <Select
-            loading={customerLoading}
-            style={{ width: 400 }}
-            placeholder="Select Customer"
-            allowClear
-            onChange={handleSelectCustomer}
-          >
+          <Select loading={customerLoading} placeholder="Select Customer" allowClear onChange={handleSelectCustomer}>
             {customerData &&
               customerData.map((obj) => (
                 <Option key={obj.id} value={obj.id} disabled={obj.id === -1 && companyId === -1}>
@@ -252,7 +229,7 @@ const CreateTransaction = () => {
             },
           ]}
         >
-          <Input />
+          <Input placeholder="Enter Amount" />
         </Form.Item>
 
         <Form.Item
@@ -264,7 +241,7 @@ const CreateTransaction = () => {
             },
           ]}
         >
-          <DatePicker onChange={onChangeDate} />
+          <DatePicker style={{ width: "100%" }} />
         </Form.Item>
 
         <Form.Item wrapperCol={{ ...LAYOUT.wrapperCol, offset: 2 }}>
