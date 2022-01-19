@@ -8,7 +8,7 @@ import AppCreateButton from "@/components/createButton";
 import AppTable from "@/components/table";
 
 const Sales = () => {
-  const { sales, error, isLoading } = useSales();
+  const { sales, error, isLoading, paginationHandler } = useSales();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
@@ -85,6 +85,8 @@ const Sales = () => {
         columns={columns}
         expandable={{ expandedRowRender: (record) => expandedRowRender(record) }}
         dataSource={sales ? sales.rows : []}
+        pagination={true}
+        paginationHandler={paginationHandler}
       />
     </>
   );

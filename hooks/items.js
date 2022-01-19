@@ -1,13 +1,24 @@
+import { useCallback, useState } from "react";
 import useSWR from "swr";
 import { get, post, put, remove } from "@/lib/http-client";
+import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 
 export const useItems = () => {
-  const { data, error, mutate } = useSWR("/api/items", get);
+  const [pagination, setPagination] = useState({ limit: DEFAULT_PAGE_LIMIT, offset: 0 });
+  const { data, error, mutate } = useSWR(`/api/items?limit=${pagination.limit}&offset=${pagination.offset}`, get);
+
+  const paginationHandler = useCallback(
+    (limit, offset) => {
+      setPagination({ limit, offset });
+    },
+    [setPagination]
+  );
 
   return {
     items: data?.rows,
     isLoading: !error && !data,
     error,
+    paginationHandler,
     mutate,
   };
 };

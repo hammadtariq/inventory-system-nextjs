@@ -39,7 +39,7 @@ export default function AppMenuItems({ mode, items, onClickHandler, selected }) 
             {item.title}
           </Menu.Item>
         ))}
-        <Menu.Item key="8" icon={<LogoutOutlined />} onClick={onLogout}>
+        <Menu.Item key="100" icon={<LogoutOutlined />} onClick={onLogout}>
           Logout
         </Menu.Item>
       </Menu>

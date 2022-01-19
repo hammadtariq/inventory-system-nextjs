@@ -12,7 +12,7 @@ import AppCreateButton from "@/components/createButton";
 import AppTable from "@/components/table";
 
 const Items = () => {
-  const { items, error, isLoading, mutate } = useItems();
+  const { items, error, isLoading, paginationHandler, mutate } = useItems();
   const router = useRouter();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
@@ -134,7 +134,14 @@ const Items = () => {
         Items List
         <AppCreateButton url="/items/create" />
       </AppTitle>
-      <AppTable isLoading={isLoading} rowKey="id" columns={columns} dataSource={items ?? []} />
+      <AppTable
+        isLoading={isLoading}
+        rowKey="id"
+        columns={columns}
+        dataSource={items ?? []}
+        pagination={true}
+        paginationHandler={paginationHandler}
+      />
     </>
   );
 };

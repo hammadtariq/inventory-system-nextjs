@@ -12,7 +12,7 @@ import AppCreateButton from "@/components/createButton";
 import AppTable from "@/components/table";
 
 const Company = () => {
-  const { companies, error, isLoading, mutate } = useCompanies();
+  const { companies, error, isLoading, paginationHandler, mutate } = useCompanies();
   const router = useRouter();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
@@ -108,7 +108,14 @@ const Company = () => {
         Company List
         <AppCreateButton url="/company/create" />
       </AppTitle>
-      <AppTable isLoading={isLoading} rowKey="id" columns={columns} dataSource={companies ? companies.rows : []} />
+      <AppTable
+        isLoading={isLoading}
+        rowKey="id"
+        columns={columns}
+        dataSource={companies ? companies.rows : []}
+        pagination={true}
+        paginationHandler={paginationHandler}
+      />
     </>
   );
 };
