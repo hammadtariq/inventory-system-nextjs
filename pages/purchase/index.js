@@ -3,6 +3,8 @@ import { useRef, useState } from "react";
 import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
 
 import { usePurchaseOrders, approvePurchase, cancelPurchase } from "@/hooks/purchase";
+import { createTransaction } from "@/hooks/ledger";
+
 import styles from "@/styles/Purchase.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import { STATUS_COLORS } from "@/utils/ui.util";
@@ -113,6 +115,11 @@ const PurchaseOrders = () => {
                 title="Are you sure for Approve?"
                 onConfirm={async () => {
                   await approvePurchase(text.id);
+                  await createTransaction({
+                    companyId: text.company.id,
+                    totalAmount: text.totalAmount,
+                    spendType: "CREDIT",
+                  });
                   mutate(null);
                 }}
                 okText="Yes"
