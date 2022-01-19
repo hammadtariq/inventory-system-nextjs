@@ -49,6 +49,11 @@ const customerRegistration = async (req, res) => {
 
 const getAllCustomers = async (req, res) => {
   console.log("Get all Customer Request Start");
+  const { attributes = [] } = req.query;
+  const options = {};
+  if (attributes.length) {
+    options.attributes = JSON.parse(attributes);
+  }
 
   try {
     await dbConnect();

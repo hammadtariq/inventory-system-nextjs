@@ -2,30 +2,48 @@ import { Alert, Table } from "antd";
 import { useLedgerDetails } from "@/hooks/ledger";
 import styles from "@/styles/Ledger.module.css";
 
-const LedgerDetails = ({ id }) => {
-  const { transactions, totalBalance, error, isLoading } = useLedgerDetails(id);
+const columns = [
+  {
+    title: "Paid To",
+    dataIndex: ["company", "companyName"],
+    key: "companyName",
+    render: (text, _data) => (_data.company ? text : _data.otherName ? _data.otherName : ""),
+  },
+  {
+    title: "Paid By",
+    dataIndex: ["customer"],
+    key: "customerName",
+    render: (text, _data) =>
+      _data.customer ? (text ? `${text.firstName} ${text.lastName}` : "") : _data.otherName ? _data.otherName : "",
+  },
 
-  const columns = [
-    { title: "Company Name", dataIndex: ["company", "companyName"], key: "companyName" },
-    {
-      title: "Debit Amount (Rs)",
-      dataIndex: "amount",
-      key: "amount",
-      render: (text, _data) => (_data.spendType === "DEBIT" ? text.toFixed(2) : ""),
-    },
-    {
-      title: "Credit Amount (Rs)",
-      dataIndex: "amount",
-      key: "amount",
-      render: (text, _data) => (_data.spendType === "CREDIT" ? text.toFixed(2) : ""),
-    },
-    {
-      title: "Created At",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      render: (text) => new Date(text).toLocaleString(),
-    },
-  ];
+  {
+    title: "Debit Amount (Rs)",
+    dataIndex: "amount",
+    key: "amount",
+    render: (text, _data) => (_data.spendType === "DEBIT" ? text.toFixed(2) : ""),
+  },
+  {
+    title: "Credit Amount (Rs)",
+    dataIndex: "amount",
+    key: "amount",
+    render: (text, _data) => (_data.spendType === "CREDIT" ? text.toFixed(2) : ""),
+  },
+  {
+    title: "Payment Type",
+    dataIndex: "paymentType",
+    key: "paymentType",
+  },
+  {
+    title: "Paid At",
+    dataIndex: "paymentDate",
+    key: "paymentDate",
+    render: (text) => (text ? new Date(text).toDateString() : ""),
+  },
+];
+
+const LedgerDetails = ({ id, type }) => {
+  const { transactions, totalBalance, error, isLoading } = useLedgerDetails(id, type);
 
   if (error) return <Alert message={error} type="error" />;
 
@@ -41,7 +59,7 @@ const LedgerDetails = ({ id }) => {
       {renderTotalBalance()}
       <Table
         loading={isLoading}
-        rowKey={"id"}
+        rowKey="id"
         className="components-table-demo-nested"
         columns={columns}
         dataSource={transactions ? transactions : []}
@@ -52,8 +70,8 @@ const LedgerDetails = ({ id }) => {
 
 export default LedgerDetails;
 
-export async function getServerSideProps({ params }) {
+export async function getServerSideProps({ query }) {
   return {
-    props: { id: params.id },
+    props: query,
   };
 }

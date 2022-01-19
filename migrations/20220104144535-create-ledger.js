@@ -8,13 +8,21 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
+      paymentType: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      otherName: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
       companyId: {
         type: Sequelize.INTEGER,
-        allowNull: false,
+        allowNull: true,
       },
-      userId: {
+      customerId: {
         type: Sequelize.INTEGER,
-        allowNull: false,
+        allowNull: true,
       },
       spendType: {
         type: Sequelize.ENUM(["CREDIT", "DEBIT"]),
@@ -23,6 +31,10 @@ module.exports = {
       amount: {
         type: Sequelize.FLOAT,
         allowNull: false,
+      },
+      paymentDate: {
+        allowNull: true,
+        type: Sequelize.DATE,
       },
       createdAt: {
         allowNull: false,

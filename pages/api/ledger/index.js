@@ -3,11 +3,13 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import { companyQuery, customerQuery } from "../../../query";
 
 const apiSchema = Joi.object({
-  companyId: Joi.number().required(),
+  companyId: Joi.number(),
   totalAmount: Joi.number().required(),
   spendType: Joi.string().trim().required(),
+  customerId: Joi.number(),
 });
 
 const createTransaction = async (req, res) => {
@@ -20,14 +22,12 @@ const createTransaction = async (req, res) => {
 
   try {
     await db.dbConnect();
-    const { user } = res;
-
-    const { totalAmount, companyId, spendType } = value;
+    const { totalAmount, companyId, spendType, customerId } = value;
     const data = await db.Ledger.create({
       companyId,
-      userId: user.id,
       amount: totalAmount,
       spendType,
+      customerId,
     });
     console.log("create transaction Request End");
 
@@ -44,29 +44,17 @@ const getAllTransactions = async (req, res) => {
   try {
     await db.dbConnect();
 
-    const transactions = await db.sequelize.query(
-      `SELECT "companies"."companyName" as name,
-      "companies"."createdAt" as "createdAt",
-      "companies"."id" as "companyId",
-      SUM(
-          CASE WHEN "ledgers"."spendType" = 'CREDIT' THEN
-              amount
-          WHEN "ledgers"."spendType" = 'DEBIT' THEN
-              - amount
-          ELSE
-              0
-          END) AS total
-      FROM ledgers
-      INNER JOIN companies ON "ledgers"."companyId" = companies.id
-      GROUP BY "companies"."id"`,
-      {
-        type: db.Sequelize.QueryTypes.SELECT,
-      }
-    );
+    const { type = "company" } = req.query;
 
-    const balance = transactions.reduce((a, b) => ({ totalBalance: a.total + b.total }));
+    const rawQuery = type === "company" ? companyQuery : customerQuery;
+
+    const transactions = await db.sequelize.query(rawQuery, {
+      type: db.Sequelize.QueryTypes.SELECT,
+    });
+
+    const totalBalance = transactions.reduce((acc, obj) => acc + obj.total, 0);
     console.log("get all transaction Request End");
-    return res.send({ transactions, ...balance });
+    return res.send({ transactions, totalBalance });
   } catch (error) {
     console.log("get all transaction Request Error:", error);
     res.status(500).send({ message: error.toString() });
