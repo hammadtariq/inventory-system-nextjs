@@ -7,7 +7,7 @@ export default function AuthLayout({ children }) {
   return (
     <Layout>
       <div className={styles.publicRoute}>
-        <Row type="flex" gutter={24}>
+        <Row type="flex">
           <Col xs={24} sm={24} md={16} lg={18} className={styles.leftVerticalSplit}>
             <div className={styles.logoBox}>
               <h1 className={styles.logoTitle}>Welcome to Inventory System</h1>
