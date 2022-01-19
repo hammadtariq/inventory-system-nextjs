@@ -3,7 +3,8 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
-import { STATUS } from "@/utils/api.util";
+import { STATUS, SPEND_TYPE } from "@/utils/api.util";
+import { createTransaction } from "../ledger";
 
 const apiSchema = Joi.object({
   id: Joi.number().required(),
@@ -52,12 +53,12 @@ const approvePurchaseOrder = async (req, res) => {
   try {
     await db.dbConnect();
     const { id } = value;
-    const purchase = await db.Purchase.findByPk(id, { include: [db.Company] });
+    const purchase = await db.Purchase.findByPk(id, { include: [db.Company], transaction: t });
 
     if (!purchase) {
       return res.status(404).send({ message: "purchase order not exist" });
     }
-    const { purchasedProducts, companyId } = purchase;
+    const { purchasedProducts, companyId, totalAmount } = purchase;
     for await (const product of purchasedProducts) {
       const { itemName, noOfBales, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs, ratePerBale } = product;
       const inventory = await db.Inventory.findOne({ where: { itemName }, transaction: t });
@@ -85,7 +86,12 @@ const approvePurchaseOrder = async (req, res) => {
         );
       }
     }
-    await purchase.update({ status: STATUS.APPROVED });
+    await purchase.update({ status: STATUS.APPROVED }, {}, { transaction: t });
+    await createTransaction({
+      companyId,
+      amount: totalAmount,
+      spendType: SPEND_TYPE.CREDIT,
+    });
     await t.commit();
     console.log("Approve Purchase order Request End");
     return res.send();
