@@ -10,6 +10,7 @@ module.exports = {
         {
           customerId: `${customersRows[0].id}`,
           totalAmount: 100,
+          status: "APPROVED",
           soldProducts: JSON.stringify([
             {
               ratePerLbs: 50,
@@ -37,6 +38,7 @@ module.exports = {
         {
           customerId: `${customersRows[1].id}`,
           totalAmount: 500,
+          status: "PENDING",
           soldProducts: JSON.stringify([
             {
               ratePerKgs: 250,
