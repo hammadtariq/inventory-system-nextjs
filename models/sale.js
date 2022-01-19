@@ -24,6 +24,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.JSONB,
         allowNull: false,
       },
+      status: DataTypes.ENUM(["PENDING", "APPROVED", "CANCEL"]),
       uuid: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
