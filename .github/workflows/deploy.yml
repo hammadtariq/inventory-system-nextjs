@@ -21,7 +21,7 @@ jobs:
       - run: npm run build
 
   deploy:
-    need: build
+    needs: build
     if: github.repository_owner == 'hammadtariq' && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
     runs-on: ubuntu-latest
     permissions:
