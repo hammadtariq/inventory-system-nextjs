@@ -3,3 +3,8 @@ export const STATUS = {
   PENDING: "PENDING",
   CANCEL: "CANCEL",
 };
+
+export const SPEND_TYPE = {
+  DEBIT: "DEBIT",
+  CREDIT: "CREDIT",
+};

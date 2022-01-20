@@ -7,6 +7,7 @@ import { createPayment } from "../../hooks/ledger";
 import { useCompanyAttributes } from "@/hooks/company";
 import { useCustomerAttributes } from "@/hooks/customers";
 import AppBackButton from "@/components/backButton";
+import { SPEND_TYPE } from "@/utils/api.util";
 
 const canCreate = permissionsUtil.checkAuth({
   category: "transaction",
@@ -37,7 +38,7 @@ const CreateTransaction = () => {
 
       let params = {
         totalAmount,
-        spendType: "DEBIT",
+        spendType: SPEND_TYPE.DEBIT,
         paymentDate: new Date(paymentDate),
         paymentType,
         otherName: companyId === -1 || customerId === -1 ? otherName : "",

@@ -21,6 +21,4 @@ export const useLedgerDetails = (id, type) => {
   };
 };
 
-export const createTransaction = async (data) => post("/api/ledger", data); // FOR PURCHASE ORDER AND SALE ORDER
-
 export const createPayment = async (data) => post("/api/ledger/createPayment", data); // FOR PAYMENT CREATION

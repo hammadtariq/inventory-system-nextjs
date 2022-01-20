@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
 
 import { usePurchaseOrders, approvePurchase, cancelPurchase } from "@/hooks/purchase";
+
 import styles from "@/styles/Purchase.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import { STATUS_COLORS } from "@/utils/ui.util";
@@ -110,7 +111,7 @@ const PurchaseOrders = () => {
           return (
             <>
               <Popconfirm
-                title="Are you sure for Approve?"
+                title="Are you sure you want to approve?"
                 onConfirm={async () => {
                   await approvePurchase(text.id);
                   mutate(null);

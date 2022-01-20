@@ -1,6 +1,7 @@
 import { Alert, Table } from "antd";
 import { useLedgerDetails } from "@/hooks/ledger";
 import styles from "@/styles/Ledger.module.css";
+import { SPEND_TYPE } from "@/utils/api.util";
 
 const columns = [
   {
@@ -21,13 +22,13 @@ const columns = [
     title: "Debit Amount (Rs)",
     dataIndex: "amount",
     key: "amount",
-    render: (text, _data) => (_data.spendType === "DEBIT" ? text.toFixed(2) : ""),
+    render: (text, _data) => (_data.spendType === SPEND_TYPE.DEBIT ? text.toFixed(2) : ""),
   },
   {
     title: "Credit Amount (Rs)",
     dataIndex: "amount",
     key: "amount",
-    render: (text, _data) => (_data.spendType === "CREDIT" ? text.toFixed(2) : ""),
+    render: (text, _data) => (_data.spendType === SPEND_TYPE.CREDIT ? text.toFixed(2) : ""),
   },
   {
     title: "Payment Type",
