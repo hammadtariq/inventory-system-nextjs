@@ -4,18 +4,6 @@ import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { companyQuery, customerQuery } from "../../../query";
 
-export const createTransaction = async (value) => {
-  console.log("create transaction Request Start");
-
-  try {
-    await db.Ledger.create(value);
-    console.log("create transaction Request End");
-  } catch (error) {
-    console.log("create transaction Request Error:", error);
-    return res.status(500).send({ message: error.toString() });
-  }
-};
-
 const getAllTransactions = async (req, res) => {
   console.log("get all transaction Request Start");
 

@@ -4,7 +4,6 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { STATUS, SPEND_TYPE } from "@/utils/api.util";
-import { createTransaction } from "../ledger";
 
 const apiSchema = Joi.object({
   id: Joi.number().required(),
@@ -72,7 +71,6 @@ const approvePurchaseOrder = async (req, res) => {
             ratePerKgs,
             ratePerBale,
           },
-          {},
           { transaction: t }
         );
       } else {
@@ -86,12 +84,15 @@ const approvePurchaseOrder = async (req, res) => {
         );
       }
     }
-    await purchase.update({ status: STATUS.APPROVED }, {}, { transaction: t });
-    await createTransaction({
-      companyId,
-      amount: totalAmount,
-      spendType: SPEND_TYPE.CREDIT,
-    });
+    await purchase.update({ status: STATUS.APPROVED }, { transaction: t });
+    await db.Ledger.create(
+      {
+        companyId,
+        amount: totalAmount,
+        spendType: SPEND_TYPE.CREDIT,
+      },
+      { transaction: t }
+    );
     await t.commit();
     console.log("Approve Purchase order Request End");
     return res.send();
