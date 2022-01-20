@@ -21,6 +21,10 @@ module.exports = {
         allowNull: false,
       },
       status: Sequelize.ENUM(["PENDING", "APPROVED", "CANCEL"]),
+      soldDate: {
+        type: Sequelize.DATE,
+        allowNull: false,
+      },
       uuid: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,

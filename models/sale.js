@@ -25,6 +25,10 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       status: DataTypes.ENUM(["PENDING", "APPROVED", "CANCEL"]),
+      soldDate: {
+        type: DataTypes.DATE,
+        allowNull: false,
+      },
       uuid: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
