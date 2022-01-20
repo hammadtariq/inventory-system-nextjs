@@ -54,19 +54,3 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           status: ${{ job.status}}
           deployment_id: ${{ steps.deployment.outputs.deployment_id}}
-
-      #   env:
-      #     POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
-      #     POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-      #     POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-      #     POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-      #     TOKEN_SECRET: ${{ secrets.TOKEN_SECRET }}
-
-      # # deploy app to vercel
-      # - name: deploy site to vercel
-      #   uses: amondnet/vercel-action@v20
-      #   with:
-      #     vercel-token: ${{ secrets.VERCEL_TOKEN }} # Required
-      #     vercel-args: "--stage" #Optional
-      #     vercel-org-id: ${{ secrets.ORG_ID}} #Required
-      #     vercel-project-id: ${{ secrets.PROJECT_ID}} #Required
