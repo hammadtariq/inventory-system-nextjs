@@ -1,5 +1,5 @@
 name: deploy app to vercel
-'on':
+"on":
   push:
     branches:
       - development
@@ -8,22 +8,15 @@ name: deploy app to vercel
       - development
 
 jobs:
-  vercel: 
+  vercel:
     runs-on: ubuntu-latest
     steps:
-      - name: Echo out a GitHub Actions Secret to the logs
-        run: |
-        echo "The GitHub Action Secret will be masked : "
-        echo ${{ secrets.VERCEL_TOKEN }}
-        echo ${{ secrets.POSTGRES_HOST }}
-        echo ${{ secrets.POSTGRES_USER }}
-        echo ${{ secrets.POSTGRES_PASSWORD }}
-        echo ${{ secrets.POSTGRES_DB }}
-        echo ${{ secrets.TOKEN_SECRET }}
-        echo ${{ secrets.ORG_ID }}
-        echo ${{ secrets.PROJECT_ID }}
+      - name: "Echo out a GitHub Actions Secret to the logs"
+        run:
+          "echo ${{ secrets.VERCEL_TOKEN }} echo ${{ secrets.POSTGRES_HOST }} echo ${{ secrets.POSTGRES_USER }} echo ${{ secrets.POSTGRES_PASSWORD }} echo ${{ secrets.POSTGRES_DB }} echo ${{ secrets.TOKEN_SECRET }} \n\
+          echo ${{ secrets.ORG_ID }} \"\n\
+          echo ${{ secrets.PROJECT_ID }}'s/./& /g' "
 
-      
       - uses: actions/checkout@v2
       #add env file to .env.local
       - name: Set Env Vars on Vercel Project
@@ -38,12 +31,12 @@ jobs:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
           TOKEN_SECRET: ${{ secrets.TOKEN_SECRET }}
-          
+
       # deploy app to vercel
-      - name: deploy site to vercel      
+      - name: deploy site to vercel
         uses: amondnet/vercel-action@v20
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }} # Required
-          vercel-args: '--stage' #Optional
-          vercel-org-id: ${{ secrets.ORG_ID}}  #Required
-          vercel-project-id: ${{ secrets.PROJECT_ID}} #Required 
+          vercel-args: "--stage" #Optional
+          vercel-org-id: ${{ secrets.ORG_ID}} #Required
+          vercel-project-id: ${{ secrets.PROJECT_ID}} #Required
