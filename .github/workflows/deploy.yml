@@ -25,7 +25,7 @@ jobs:
     if: github.repository_owner == 'hammadtariq' && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
     runs-on: ubuntu-latest
     permissions:
-      developments: write
+      deployments: write
     steps:
       - name: Start Deployment
         uses: bobheadxi/deployments@v0.4.3
