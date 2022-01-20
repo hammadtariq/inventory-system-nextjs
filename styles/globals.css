@@ -81,6 +81,16 @@ a {
   margin: 0 !important;
 }
 
+.cancelBtn {
+  margin-left: 5px;
+  font-size: 25px;
+}
+.approveBtn {
+  margin-top: 5px;
+  margin-left: 5px;
+  font-size: 25px;
+}
+
 @media (min-width: 993px) {
   .drawer {
     display: none;

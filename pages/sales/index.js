@@ -1,17 +1,25 @@
-import { Alert } from "antd";
+import { Alert, Popconfirm } from "antd";
 import { useRef, useState } from "react";
+import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
 
-import { useSales } from "@/hooks/sales";
+import { useSales, approveSale, cancelSale } from "@/hooks/sales";
 import { getColumnSearchProps } from "@/utils/filter.util";
+import { STATUS_COLORS } from "@/utils/ui.util";
+import permissionsUtil from "@/utils/permission.util";
 import AppTitle from "@/components/title";
 import AppCreateButton from "@/components/createButton";
 import AppTable from "@/components/table";
 
 const Sales = () => {
-  const { sales, error, isLoading, paginationHandler } = useSales();
+  const { sales, error, isLoading, paginationHandler, mutate } = useSales();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+
+  const canApprove = permissionsUtil.checkAuth({
+    category: "sales",
+    action: "approve",
+  });
 
   const expandedRowRender = (record) => {
     const columns = [
@@ -58,6 +66,12 @@ const Sales = () => {
     },
     { title: "Invoice Total Amount (Rs)", dataIndex: "totalAmount", key: "totalAmount" },
     {
+      title: "Sold Date",
+      dataIndex: "soldDate",
+      key: "soldDate",
+      render: (text) => new Date(text).toLocaleString(),
+    },
+    {
       title: "Created At",
       dataIndex: "createdAt",
       key: "createdAt",
@@ -68,6 +82,63 @@ const Sales = () => {
       dataIndex: "updatedAt",
       key: "updatedAt",
       render: (text) => new Date(text).toLocaleString(),
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      ...getColumnSearchProps({
+        dataIndex: "status",
+        dataIndexName: "status",
+        searchInput,
+        searchText,
+        searchedColumn,
+        setSearchText,
+        setSearchedColumn,
+      }),
+      render(text) {
+        return {
+          props: {
+            style: { color: STATUS_COLORS[text] },
+          },
+          children: <div>{text}</div>,
+        };
+      },
+    },
+    {
+      title: "Action",
+      key: "action",
+      render: (text, record) => {
+        if (record.status === "PENDING" && canApprove) {
+          return (
+            <>
+              <Popconfirm
+                title="Are you sure you want to approve?"
+                onConfirm={async () => {
+                  await approveSale(text.id);
+                  mutate(null);
+                }}
+                okText="Yes"
+                cancelText="No"
+              >
+                <CheckCircleOutlined style={{ color: STATUS_COLORS.APPROVED }} className="cancelBtn" />
+              </Popconfirm>
+              <Popconfirm
+                title="Are you sure you want to cancel?"
+                onConfirm={async () => {
+                  await cancelSale(text.id);
+                  mutate(null);
+                }}
+                okText="Yes"
+                cancelText="No"
+              >
+                <CloseCircleOutlined style={{ color: STATUS_COLORS.CANCEL }} className="approveBtn" />
+              </Popconfirm>
+            </>
+          );
+        }
+        return null;
+      },
     },
   ];
 
