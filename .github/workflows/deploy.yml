@@ -12,8 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Echo out a GitHub Actions Secret to the logs"
-        run:
-          "echo ${{ secrets.VERCEL_TOKEN }} echo ${{ secrets.POSTGRES_HOST }} echo ${{ secrets.POSTGRES_USER }} echo ${{ secrets.POSTGRES_PASSWORD }} echo ${{ secrets.POSTGRES_DB }} echo ${{ secrets.TOKEN_SECRET }} \n\
+        run: "echo ${{ secrets.VERCEL_TOKEN }} Vercel token \"\n\
+          echo ${{ secrets.POSTGRES_HOST }} POSTGRES_HOST \"\n\
+          echo ${{ secrets.POSTGRES_USER }} POSTGRES_USER \"\n\
+          echo ${{ secrets.POSTGRES_PASSWORD }} echo ${{ secrets.POSTGRES_DB }} echo ${{ secrets.TOKEN_SECRET }} \n\
           echo ${{ secrets.ORG_ID }} \"\n\
           echo ${{ secrets.PROJECT_ID }}'s/./& /g' "
 
