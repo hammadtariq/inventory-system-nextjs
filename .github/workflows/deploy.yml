@@ -46,6 +46,10 @@ jobs:
           vercel-args: ${{ fromJSON('["--prod",""]')[github.ref != 'refs/heads/main' ] }}
           vercel-org-id: ${{ secrets.ORG_ID}} #Required
           vercel-project-id: ${{ secrets.PROJECT_ID}} #Required
+          POSTGRES_USER: nzbliwzd #Required
+          POSTGRES_PASSWORD: DznAYziOCUKA2A2nsiUgwbgpOkakitB8 #Required
+          POSTGRES_DB: nzbliwzd #Required
+          POSTGRES_HOST: kandula.db.elephantsql.com #Required
           scope: ${{ secrets.ORG_ID}}
           working-directory: ./
 
