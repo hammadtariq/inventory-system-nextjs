@@ -1,14 +1,13 @@
 import Iron from "@hapi/iron";
 import nextConnect from "next-connect";
-import db from "@/lib/postgres";
+
 import { getTokenCookie } from "@/lib/auth-cookies";
 
 const TOKEN_SECRET = process.env.TOKEN_SECRET;
 
 const verifyToken = async (req, res) => {
   console.log("Verify token Request Start");
-  await db.sequelize.authenticate();
-  console.log("🚀 Database connected successfully");
+
   const token = getTokenCookie(req);
 
   if (!token) {
