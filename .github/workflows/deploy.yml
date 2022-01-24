@@ -8,14 +8,17 @@ name: deploy app to vercel
       - development
 
 jobs:
-  build:
+  deploy:
+    if: github.repository_owner == 'hammadtariq' && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
     runs-on: ubuntu-latest
+    permissions:
+      deployments: write
     steps:
       - uses: actions/checkout@v2
 
       - uses: actions/setup-node@v2
         with:
-          node-version: "16"
+          node-version: "14"
 
       - run: npm install -g yarn
       - run: yarn
@@ -23,13 +26,6 @@ jobs:
       - run: yarn global add sequelize-cli
       - run: yarn build
 
-  deploy:
-    needs: build
-    if: github.repository_owner == 'hammadtariq' && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
-    runs-on: ubuntu-latest
-    permissions:
-      deployments: write
-    steps:
       - name: Start Deployment
         uses: bobheadxi/deployments@v0.4.3
         id: deployment
