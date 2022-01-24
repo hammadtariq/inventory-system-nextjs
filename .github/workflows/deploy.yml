@@ -1,5 +1,5 @@
 name: deploy app to vercel
-'on':
+"on":
   push:
     branches:
       - development
@@ -8,42 +8,52 @@ name: deploy app to vercel
       - development
 
 jobs:
-  vercel: 
+  deploy:
+    if: github.repository_owner == 'hammadtariq' && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
     runs-on: ubuntu-latest
+    permissions:
+      deployments: write
     steps:
-      - name: Echo out a GitHub Actions Secret to the logs
-        run: |
-        echo "The GitHub Action Secret will be masked : "
-        echo ${{ secrets.VERCEL_TOKEN }}
-        echo ${{ secrets.POSTGRES_HOST }}
-        echo ${{ secrets.POSTGRES_USER }}
-        echo ${{ secrets.POSTGRES_PASSWORD }}
-        echo ${{ secrets.POSTGRES_DB }}
-        echo ${{ secrets.TOKEN_SECRET }}
-        echo ${{ secrets.ORG_ID }}
-        echo ${{ secrets.PROJECT_ID }}
-
-      
       - uses: actions/checkout@v2
-      #add env file to .env.local
-      - name: Set Env Vars on Vercel Project
-        uses: dkershner6/vercel-set-env-action@v1
+
+      - uses: actions/setup-node@v2
         with:
-          token: ${{ secrets.VERCEL_TOKEN }}
-          projectName: inventory-system-nextjs # project name in Vercel
-          envVariableKeys: POSTGRES_HOST,POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB,TOKEN_SECRET
-        env:
-          POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-          TOKEN_SECRET: ${{ secrets.TOKEN_SECRET }}
-          
-      # deploy app to vercel
-      - name: deploy site to vercel      
-        uses: amondnet/vercel-action@v20
+          node-version: "14"
+
+      - run: npm install -g yarn
+      - run: yarn
+      - run: yarn global add pg
+      - run: yarn global add sequelize-cli
+      - run: yarn build
+
+      - name: Start Deployment
+        uses: bobheadxi/deployments@v0.4.3
+        id: deployment
+        with:
+          step: start
+          token: ${{ secrets.GITHUB_TOKEN }}
+          env: ${{ fromJSON('["Production","Preview"]')[github.ref != 'refs/heads/main' ] }}
+
+      - uses: actions/checkout@v2
+
+      - uses: amondnet/vercel-action@v20
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }} # Required
-          vercel-args: '--stage' #Optional
-          vercel-org-id: ${{ secrets.ORG_ID}}  #Required
-          vercel-project-id: ${{ secrets.PROJECT_ID}} #Required 
+          vercel-args: ${{ fromJSON('["--prod",""]')[github.ref != 'refs/heads/main' ] }}
+          vercel-org-id: ${{ secrets.ORG_ID}} #Required
+          vercel-project-id: ${{ secrets.PROJECT_ID}} #Required
+          POSTGRES_USER: nzbliwzd #Required
+          POSTGRES_PASSWORD: DznAYziOCUKA2A2nsiUgwbgpOkakitB8 #Required
+          POSTGRES_DB: nzbliwzd #Required
+          POSTGRES_HOST: kandula.db.elephantsql.com #Required
+          scope: ${{ secrets.ORG_ID}}
+          working-directory: ./
+
+      - name: Update Deployment Status
+        uses: bobheadxi/deployments@v0.4.3
+        if: always()
+        with:
+          step: finish
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: ${{ job.status}}
+          deployment_id: ${{ steps.deployment.outputs.deployment_id}}
