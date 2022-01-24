@@ -37,7 +37,7 @@ const CreateSale = () => {
       return {
         itemName,
         noOfBales,
-        ratePerBale,
+        ...(ratePerBale && { ratePerBale }),
         ...(baleWeightLbs && { baleWeightLbs }),
         ...(baleWeightKgs && { baleWeightKgs }),
         ...(ratePerLbs && { ratePerLbs }),
