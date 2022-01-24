@@ -1,0 +1,16 @@
+.container {
+  display: flex;
+}
+.returnBtn {
+  margin-left: 5px;
+}
+.passBtn {
+  margin-left: 5px;
+  color: #4e9f3d;
+  border-color: #4e9f3d;
+}
+.editBtn {
+  margin-left: 5px;
+  color: #ffc107;
+  border-color: #ffc107;
+}

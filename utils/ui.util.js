@@ -38,4 +38,11 @@ export const STATUS_COLORS = {
   CANCEL: "#F05454",
 };
 
+export const CHEQUE_STATUS_COLORS = {
+  PENDING: "#FFC900",
+  PASS: "#4E9F3D",
+  CANCEL: "#FFC900",
+  RETURN: "#ff4d4f",
+};
+
 export const DEFAULT_PAGE_LIMIT = 10;

@@ -1,7 +1,8 @@
-import { Alert, Table } from "antd";
+import { Alert } from "antd";
 import { useLedgerDetails } from "@/hooks/ledger";
 import styles from "@/styles/Ledger.module.css";
 import { SPEND_TYPE } from "@/utils/api.util";
+import AppTable from "@/components/table";
 
 const columns = [
   {
@@ -58,7 +59,7 @@ const LedgerDetails = ({ id, type }) => {
   return (
     <div>
       {renderTotalBalance()}
-      <Table
+      <AppTable
         loading={isLoading}
         rowKey="id"
         className="components-table-demo-nested"
