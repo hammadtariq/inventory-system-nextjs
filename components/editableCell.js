@@ -3,7 +3,7 @@ import { Input, InputNumber, Form } from "antd";
 
 import styles from "@/styles/EditAbleTable.module.css";
 
-const EditableCell = ({ editing, dataIndex, title, inputType, children, required, ...restProps }) => {
+const EditableCell = ({ editing, dataIndex, title, inputType, children, required, record, ...restProps }) => {
   const inputNode =
     inputType === "number" ? (
       <InputNumber className={styles.editableCellInput} />
@@ -14,6 +14,7 @@ const EditableCell = ({ editing, dataIndex, title, inputType, children, required
     <td {...restProps} className={styles.editableTd}>
       {editing ? (
         <Form.Item
+          hidden={dataIndex === "ratePerBale" && !record.ratePerBale}
           name={dataIndex}
           style={{
             margin: 0,
