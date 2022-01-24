@@ -3,7 +3,7 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
-import { STATUS } from "@/utils/api.util";
+import { STATUS, SPEND_TYPE } from "@/utils/api.util";
 
 const apiSchema = Joi.object({
   id: Joi.number().required(),
@@ -57,7 +57,8 @@ const approveSaleOrder = async (req, res) => {
     if (!sale) {
       return res.status(404).send({ message: "sale order not exists" });
     }
-    const { soldProducts } = sale;
+
+    const { soldProducts, customerId, totalAmount } = sale;
     await db.dbConnect();
     for await (const product of soldProducts) {
       const { itemName, noOfBales } = product;
@@ -78,7 +79,15 @@ const approveSaleOrder = async (req, res) => {
       }
       await inventory.decrement(["onHand"], { by: noOfBales, transaction: t });
     }
-    await sale.update({ status: STATUS.APPROVED });
+    await sale.update({ status: STATUS.APPROVED }, { transaction: t });
+    await db.Ledger.create(
+      {
+        customerId,
+        amount: totalAmount,
+        spendType: SPEND_TYPE.CREDIT,
+      },
+      { transaction: t }
+    );
     await t.commit();
     console.log("Approve sale order Request End");
     return res.send();
