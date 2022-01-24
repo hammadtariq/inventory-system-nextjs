@@ -7,7 +7,7 @@ import { createPayment } from "../../hooks/ledger";
 import { useCompanyAttributes } from "@/hooks/company";
 import { useCustomerAttributes } from "@/hooks/customers";
 import AppBackButton from "@/components/backButton";
-import { SPEND_TYPE } from "@/utils/api.util";
+import { SPEND_TYPE, PAYMENT_TYPE } from "@/utils/api.util";
 
 const canCreate = permissionsUtil.checkAuth({
   category: "transaction",
@@ -23,7 +23,7 @@ const CreateTransaction = () => {
   const [companyId, setCompanyId] = useState();
   const [customerId, setCustomerId] = useState();
 
-  const [paymentType, setPaymentType] = useState("CASH");
+  const [paymentType, setPaymentType] = useState(PAYMENT_TYPE.CASH);
 
   const { company, isLoading: companyLoading } = useCompanyAttributes(["companyName", "id"]);
   const { customers, isLoading: customerLoading } = useCustomerAttributes(["firstName", "lastName", "id"]);
@@ -46,6 +46,11 @@ const CreateTransaction = () => {
 
       params = companyId !== -1 ? { ...params, companyId } : params;
       params = customerId !== -1 ? { ...params, customerId } : params;
+
+      params =
+        paymentType === PAYMENT_TYPE.CHEQUE
+          ? { ...params, chequeId: values.chequeId, dueDate: values.dueDate }
+          : params;
 
       await createPayment(params);
       router.push("/ledger");
@@ -70,18 +75,6 @@ const CreateTransaction = () => {
     return (
       <>
         <Form.Item
-          name="customerName"
-          label="Full Name"
-          rules={[
-            {
-              required: true,
-              type: "string",
-            },
-          ]}
-        >
-          <Input placeholder="Enter Full Name" />
-        </Form.Item>
-        <Form.Item
           name="chequeId"
           label="Cheque ID"
           rules={[
@@ -92,17 +85,6 @@ const CreateTransaction = () => {
         >
           <Input placeholder="Enter Cheque ID" />
         </Form.Item>
-        {/* <Form.Item
-          name="chequeAmount"
-          label="Amount"
-          rules={[
-            {
-              required: true,
-            },
-          ]}
-        >
-          <Input placeholder="Enter Cheque Amount"  />
-        </Form.Item> */}
         <Form.Item
           name="dueDate"
           label="Due Date"
@@ -112,28 +94,7 @@ const CreateTransaction = () => {
             },
           ]}
         >
-          <DatePicker style={{ width: "100%" }} />
-        </Form.Item>
-        <Form.Item
-          name="chequeStatus"
-          label="Cheque Status"
-          rules={[
-            {
-              required: true,
-            },
-          ]}
-        >
-          <Select placeholder="Select Status">
-            <Option key="1" value="PASS">
-              Pass
-            </Option>
-            <Option key="2" value="RETURN">
-              Return
-            </Option>
-            <Option key="3" value="CANCEL">
-              Cancel
-            </Option>
-          </Select>
+          <DatePicker style={{ width: "100%" }} disabledDate={(current) => current && current.valueOf() > Date.now()} />
         </Form.Item>
       </>
     );
@@ -145,10 +106,10 @@ const CreateTransaction = () => {
 
       <Form {...LAYOUT} name="nest-messages" onFinish={onFinish} validateMessages={VALIDATE_MESSAGE}>
         <Form.Item name="paymentType" label="Payment Type">
-          <Radio.Group onChange={onChange} defaultValue="CASH" value={paymentType}>
-            <Radio value="CASH">Cash</Radio>
-            <Radio value="ONLINE">Online</Radio>
-            <Radio value="CHEQUE">Cheque</Radio>
+          <Radio.Group onChange={onChange} defaultValue={PAYMENT_TYPE.CASH} value={paymentType}>
+            <Radio value={PAYMENT_TYPE.CASH}>Cash</Radio>
+            <Radio value={PAYMENT_TYPE.ONLINE}>Online</Radio>
+            <Radio value={PAYMENT_TYPE.CHEQUE}>Cheque</Radio>
           </Radio.Group>
         </Form.Item>
         {paymentType === "CHEQUE" ? renderCheckForm() : null}
@@ -242,7 +203,7 @@ const CreateTransaction = () => {
             },
           ]}
         >
-          <DatePicker style={{ width: "100%" }} />
+          <DatePicker style={{ width: "100%" }} disabledDate={(current) => current && current.valueOf() > Date.now()} />
         </Form.Item>
 
         <Form.Item wrapperCol={{ ...LAYOUT.wrapperCol, offset: 2 }}>

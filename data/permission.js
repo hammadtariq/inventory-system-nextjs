@@ -15,6 +15,8 @@ export const adminPermissions = {
   item_edit: true,
   item_delete: true,
   sales_approve: true,
+
+  cheques_approve: true,
 };
 
 export const editorPermissions = {
@@ -32,4 +34,6 @@ export const editorPermissions = {
   item_edit: true,
   item_delete: false,
   sales_approve: false,
+
+  cheques_approve: false,
 };

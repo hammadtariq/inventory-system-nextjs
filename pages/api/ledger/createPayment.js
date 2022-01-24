@@ -12,6 +12,8 @@ const apiSchema = Joi.object({
   paymentType: Joi.string().trim().required(),
   paymentDate: Joi.string().trim().required(),
   otherName: Joi.string().trim().optional().allow(""),
+  chequeId: Joi.string().trim(),
+  dueDate: Joi.string().trim(),
 });
 
 const createPayment = async (req, res) => {
@@ -24,7 +26,26 @@ const createPayment = async (req, res) => {
 
   try {
     await db.dbConnect();
-    const { totalAmount, companyId, spendType, customerId, paymentType, paymentDate, otherName = "" } = value;
+    const {
+      totalAmount,
+      companyId,
+      spendType,
+      customerId,
+      paymentType,
+      paymentDate,
+      otherName = "",
+      chequeId,
+      dueDate,
+    } = value;
+
+    if (chequeId && dueDate) {
+      await db.Cheque.create({
+        chequeId,
+        dueDate,
+        status: "PENDING",
+      });
+    }
+
     const data = await db.Ledger.create({
       companyId,
       amount: totalAmount,

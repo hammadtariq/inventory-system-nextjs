@@ -11,6 +11,7 @@ import {
   TeamOutlined,
   UserOutlined,
   UnorderedListOutlined,
+  DollarCircleOutlined,
 } from "@ant-design/icons";
 
 const items = [
@@ -61,6 +62,12 @@ const items = [
     title: "Reports",
     url: "/reports",
     icon: <FilePptOutlined />,
+  },
+  {
+    id: "9",
+    title: "Cheques",
+    url: "/cheques",
+    icon: <DollarCircleOutlined />,
   },
 ];
 
