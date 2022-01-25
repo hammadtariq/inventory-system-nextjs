@@ -20,12 +20,14 @@ const CreateSale = () => {
   const { inventory, error, isLoading } = useInventory();
 
   const selectCustomerOnChange = useCallback((id) => setCustomerId(id), [customerId]);
-  const selectProductsOnChange = (selectedId) => {
-    const selectedItems = selectedId.map((id) => {
-      return inventory.rows.find((item) => item.id === id);
-    });
-    setSelectedProducts(selectedItems);
-  };
+
+  const selectProductsOnChange = useCallback(
+    (selectedId) => {
+      const selectedItem = inventory.rows.filter((item) => selectedId.includes(item.id));
+      setSelectedProducts(selectedItem);
+    },
+    [inventory]
+  );
 
   const onFinish = async (value) => {
     setLoading(false);
