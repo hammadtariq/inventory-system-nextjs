@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import useSWR from "swr";
-import { get, put } from "@/lib/http-client";
+import { get, post, put } from "@/lib/http-client";
 import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 
 export const useSales = () => {
@@ -22,6 +22,8 @@ export const useSales = () => {
     mutate,
   };
 };
+
+export const createSale = async (data) => post("/api/sales", data);
 
 export const approveSale = async (id) => put(`/api/sales/${id}`);
 

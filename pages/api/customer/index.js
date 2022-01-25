@@ -57,7 +57,7 @@ const getAllCustomers = async (req, res) => {
 
   try {
     await dbConnect();
-    const customers = await db.Customer.findAll({ order: [["updatedAt", "DESC"]] });
+    const customers = await db.Customer.findAll({ ...options, order: [["updatedAt", "DESC"]] });
     console.log("Get all Customer Request End");
 
     return res.send({
