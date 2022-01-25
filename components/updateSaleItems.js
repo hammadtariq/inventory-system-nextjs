@@ -5,7 +5,7 @@ import EditableCell from "@/components/editableCell";
 import styles from "@/styles/EditAbleTable.module.css";
 import AppTable from "./table";
 
-export default function UpdateSalesItemsInPo({ setSelectedProducts, data }) {
+export default function UpdateSalesItems({ setSelectedProducts, data }) {
   const [editingKey, setEditingKey] = useState("");
   const [form] = Form.useForm();
 

@@ -7,7 +7,7 @@ import { useInventory } from "@/hooks/inventory";
 import AppTitle from "@/components/title";
 import AppBackButton from "@/components/backButton";
 import SelectCustomer from "@/components/selectCustomer";
-import UpdateSalesItemsInPo from "@/components/updateSaleItemsInPo";
+import UpdateSalesItems from "@/components/updateSaleItems";
 import { createSale } from "@/hooks/sales";
 
 const { Option } = Select;
@@ -109,7 +109,7 @@ const CreateSale = () => {
           </Col>
           {customerId && !!selectedProducts.length && (
             <Col span={24}>
-              <UpdateSalesItemsInPo setSelectedProducts={setSelectedProducts} data={selectedProducts} />
+              <UpdateSalesItems setSelectedProducts={setSelectedProducts} data={selectedProducts} />
             </Col>
           )}
           <Col span={24}>
