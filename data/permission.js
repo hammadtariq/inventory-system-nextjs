@@ -28,6 +28,8 @@ export const editorPermissions = {
   company_edit: true,
   company_delete: false,
 
+  purchase_edit: true,
+
   transaction_create: true,
 
   item_create: true,

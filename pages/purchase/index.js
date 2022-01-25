@@ -1,12 +1,14 @@
-import { Alert, Popconfirm } from "antd";
+import { Alert, Popconfirm, Button } from "antd";
 import { useRef, useState } from "react";
-import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
+import { useRouter } from "next/router";
+import { CheckCircleOutlined, CloseCircleOutlined, EditOutlined } from "@ant-design/icons";
 
 import { usePurchaseOrders, approvePurchase, cancelPurchase } from "@/hooks/purchase";
 
 import styles from "@/styles/Purchase.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import { STATUS_COLORS } from "@/utils/ui.util";
+import { EDIT_PO_STATUS } from "@/utils/api.util";
 import permissionsUtil from "@/utils/permission.util";
 import AppTitle from "@/components/title";
 import AppCreateButton from "@/components/createButton";
@@ -17,10 +19,16 @@ const PurchaseOrders = () => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+  const router = useRouter();
 
   const canApprove = permissionsUtil.checkAuth({
     category: "purchase",
     action: "approve",
+  });
+
+  const canEdit = permissionsUtil.checkAuth({
+    category: "purchase",
+    action: "edit",
   });
 
   const expandedRowRender = (record) => {
@@ -49,6 +57,42 @@ const PurchaseOrders = () => {
     return <AppTable columns={columns} dataSource={record.purchasedProducts} pagination={false} />;
   };
 
+  const renderActions = (text, record) => {
+    if (record.status === "PENDING" && canApprove) {
+      return (
+        <>
+          <Popconfirm
+            title="Are you sure you want to approve?"
+            onConfirm={async () => {
+              await approvePurchase(text.id);
+              mutate(null);
+            }}
+            okText="Yes"
+            cancelText="No"
+          >
+            <CheckCircleOutlined style={{ color: STATUS_COLORS.APPROVED }} className={styles.cancelBtn} />
+          </Popconfirm>
+          <Popconfirm
+            title="Are you sure for cancel?"
+            onConfirm={async () => {
+              await cancelPurchase(text.id);
+              mutate(null);
+            }}
+            okText="Yes"
+            cancelText="No"
+          >
+            <CloseCircleOutlined style={{ color: STATUS_COLORS.CANCEL }} className={styles.approveBtn} />
+          </Popconfirm>
+        </>
+      );
+    } else if (EDIT_PO_STATUS.includes(record.status) && canEdit) {
+      return (
+        <Button onClick={() => router.push(`/purchase/${text.id}`)} icon={<EditOutlined />}>
+          Edit
+        </Button>
+      );
+    }
+  };
   const columns = [
     {
       title: "Company Name",
@@ -106,37 +150,7 @@ const PurchaseOrders = () => {
     {
       title: "Action",
       key: "action",
-      render: (text, record) => {
-        if (record.status === "PENDING" && canApprove) {
-          return (
-            <>
-              <Popconfirm
-                title="Are you sure you want to approve?"
-                onConfirm={async () => {
-                  await approvePurchase(text.id);
-                  mutate(null);
-                }}
-                okText="Yes"
-                cancelText="No"
-              >
-                <CheckCircleOutlined style={{ color: STATUS_COLORS.APPROVED }} className={styles.cancelBtn} />
-              </Popconfirm>
-              <Popconfirm
-                title="Are you sure for cancel?"
-                onConfirm={async () => {
-                  await cancelPurchase(text.id);
-                  mutate(null);
-                }}
-                okText="Yes"
-                cancelText="No"
-              >
-                <CloseCircleOutlined style={{ color: STATUS_COLORS.CANCEL }} className={styles.approveBtn} />
-              </Popconfirm>
-            </>
-          );
-        }
-        return null;
-      },
+      render: renderActions,
     },
   ];
 
