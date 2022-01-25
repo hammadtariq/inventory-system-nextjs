@@ -10,7 +10,6 @@ import AppCreateButton from "@/components/createButton";
 const Ledger = () => {
   const router = useRouter();
   const { query } = router;
-  console.log(router.query);
   const [type, setType] = useState(!isEmpty(query.type) ? query.type : "company");
   const { transactions, totalBalance, error, isLoading } = useLedger(type);
 
