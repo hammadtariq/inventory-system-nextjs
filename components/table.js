@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Table } from "antd";
 
 export default function AppTable({
+  bordered,
   isLoading,
   rowKey,
   columns,
@@ -10,6 +11,8 @@ export default function AppTable({
   className,
   pagination,
   paginationHandler,
+  rowClassName,
+  components,
 }) {
   const [total, setTotal] = useState();
   const pageOptions = ["10", "20", "30", "50"];
@@ -23,6 +26,7 @@ export default function AppTable({
 
   return (
     <Table
+      bordered={bordered}
       scroll={{ x: 1000 }}
       loading={isLoading}
       rowKey={rowKey || "id"}
@@ -30,6 +34,8 @@ export default function AppTable({
       dataSource={dataSource}
       expandable={expandable}
       className={className}
+      rowClassName={rowClassName}
+      components={components}
       pagination={
         pagination
           ? { defaultPageSize: pageOptions[0], showSizeChanger: true, pageSizeOptions: pageOptions, total: total }

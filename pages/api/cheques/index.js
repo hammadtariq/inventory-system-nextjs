@@ -13,10 +13,14 @@ const apiSchema = Joi.object({
 
 const getAllCheques = async (req, res) => {
   console.log("Get all Cheques Request Start");
+  const { limit, offset } = req.query;
+  const pagination = {};
+  pagination.limit = limit ? limit : 10;
+  pagination.offset = offset ? offset : 0;
 
   try {
     await dbConnect();
-    const cheques = await db.Cheque.findAll({ order: [["updatedAt", "DESC"]] });
+    const cheques = await db.Cheque.findAndCountAll({ ...pagination, order: [["updatedAt", "DESC"]] });
     console.log("Get all Cheques Request End");
 
     return res.send(cheques);

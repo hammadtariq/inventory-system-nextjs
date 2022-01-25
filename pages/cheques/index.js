@@ -1,4 +1,5 @@
-import { Alert, Popconfirm, Button } from "antd";
+import { Alert, Button } from "antd";
+
 import AppTitle from "@/components/title";
 import AppTable from "@/components/table";
 import { useCheques, updateCheques } from "@/hooks/cheques";
@@ -12,7 +13,7 @@ const canApprove = permissionsUtil.checkAuth({
 });
 
 const Cheques = () => {
-  const { cheques, isLoading, error, mutate } = useCheques();
+  const { cheques, isLoading, error, mutate, paginationHandler } = useCheques();
 
   const updateStatus = async (id, status) => {
     await updateCheques({
@@ -57,6 +58,26 @@ const Cheques = () => {
       title: "Status",
       dataIndex: "status",
       key: "status",
+      defaultFilteredValue: ["PENDING"],
+      filters: [
+        {
+          text: "PENDING",
+          value: "PENDING",
+        },
+        {
+          text: "PASS",
+          value: "PASS",
+        },
+        {
+          text: "RETURN",
+          value: "RETURN",
+        },
+        {
+          text: "CANCEL",
+          value: "CANCEL",
+        },
+      ],
+      onFilter: (value, record) => record.status.indexOf(value) === 0,
       render(text) {
         return {
           props: {
@@ -74,10 +95,18 @@ const Cheques = () => {
     },
   ];
 
+  if (error) return <Alert message={error} type="error" />;
+
   return (
     <>
       <AppTitle level={2}>Cheques List</AppTitle>
-      <AppTable columns={columns} rowKey="id" isLoading={isLoading} dataSource={cheques ? cheques : []} />
+      <AppTable
+        columns={columns}
+        rowKey="id"
+        isLoading={isLoading}
+        dataSource={cheques ? cheques.rows : []}
+        paginationHandler={paginationHandler}
+      />
     </>
   );
 };
