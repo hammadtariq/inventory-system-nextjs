@@ -3,9 +3,24 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
-import { STATUS, SPEND_TYPE } from "@/utils/api.util";
+import { STATUS, EDIT_PO_STATUS } from "@/utils/api.util";
 
+const inventorySchema = Joi.object().keys({
+  itemName: Joi.string().min(3).trim().lowercase(),
+  noOfBales: Joi.number(),
+  baleWeightLbs: Joi.number(),
+  baleWeightKgs: Joi.number(),
+  ratePerLbs: Joi.number(),
+  ratePerKgs: Joi.number(),
+  ratePerBale: Joi.number(),
+});
 const apiSchema = Joi.object({
+  companyId: Joi.number(),
+  totalAmount: Joi.number(),
+  surCharge: Joi.number(),
+  invoiceNumber: Joi.string().trim(),
+  purchaseDate: Joi.date(),
+  purchasedProducts: Joi.array().items(inventorySchema),
   id: Joi.number().required(),
 });
 
@@ -35,72 +50,36 @@ const getPurchaseOrder = async (req, res) => {
   }
 };
 
-const approvePurchaseOrder = async (req, res) => {
-  console.log("Approve Purchase order Request Start");
-
+const updatePurchaseOrder = async (req, res) => {
+  console.log("Update Purchase order Request Start");
   const { error, value } = apiSchema.validate({
+    ...req.body,
     id: req.query.id,
   });
 
   if (error && error && Object.keys(error).length) {
     return res.status(400).send({ message: error.toString() });
   }
-  if (req.user.role !== "ADMIN") {
-    return res.status(400).send({ message: "Operation not permitted." });
-  }
-  const t = await db.sequelize.transaction();
   try {
     await db.dbConnect();
     const { id } = value;
-    const purchase = await db.Purchase.findByPk(id, { include: [db.Company], transaction: t });
+    const purchase = await db.Purchase.findByPk(id);
 
     if (!purchase) {
       return res.status(404).send({ message: "purchase order not exist" });
     }
-    const { purchasedProducts, companyId, totalAmount } = purchase;
-    for await (const product of purchasedProducts) {
-      const { itemName, noOfBales, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs, ratePerBale } = product;
-      const inventory = await db.Inventory.findOne({ where: { itemName }, transaction: t });
-      if (inventory) {
-        await inventory.increment(["onHand", "noOfBales"], { by: noOfBales, transaction: t });
-        await inventory.update(
-          {
-            baleWeightLbs,
-            baleWeightKgs,
-            ratePerLbs,
-            ratePerKgs,
-            ratePerBale,
-          },
-          { transaction: t }
-        );
-      } else {
-        await db.Inventory.create(
-          {
-            ...product,
-            companyId,
-            onHand: noOfBales,
-          },
-          { transaction: t }
-        );
-      }
+
+    if (!EDIT_PO_STATUS.includes(purchase.STATUS)) {
+      return res.status(400).send({ message: `purchase order status is ${STATUS.APPROVED}` });
     }
-    await purchase.update({ status: STATUS.APPROVED }, { transaction: t });
-    await db.Ledger.create(
-      {
-        companyId,
-        amount: totalAmount,
-        spendType: SPEND_TYPE.CREDIT,
-      },
-      { transaction: t }
-    );
-    await t.commit();
-    console.log("Approve Purchase order Request End");
-    return res.send();
+
+    await purchase.update({ ...value, status: STATUS.PENDING });
+    console.log("Update Purchase order Request End");
+    return res.send(purchase);
   } catch (error) {
-    await t.rollback();
-    console.log("Approve Purchase order Request Error:", error);
+    console.log("Update Purchase order Request Error:", error);
     return res.status(500).send({ message: error.toString() });
   }
 };
 
-export default nextConnect().use(auth).get(getPurchaseOrder).put(approvePurchaseOrder);
+export default nextConnect().use(auth).get(getPurchaseOrder).put(updatePurchaseOrder);

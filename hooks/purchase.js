@@ -23,8 +23,18 @@ export const usePurchaseOrders = () => {
   };
 };
 
+export const usePurchaseOrder = (id) => {
+  const { data, error } = useSWR(`/api/purchase/${id}`, get);
+
+  return {
+    purchase: data,
+    isLoading: !error && !data,
+    error,
+  };
+};
+
 export const createPurchaseOrder = async (data) => post("/api/purchase", data);
 
-export const approvePurchase = async (id) => put(`/api/purchase/${id}`);
+export const approvePurchase = async (id) => put(`/api/purchase/approve/${id}`);
 
 export const cancelPurchase = async (id) => put(`/api/purchase/cancel/${id}`);

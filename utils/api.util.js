@@ -14,3 +14,5 @@ export const PAYMENT_TYPE = {
   ONLINE: "ONLINE",
   CHEQUE: "CHEQUE",
 };
+
+export const EDIT_PO_STATUS = [STATUS.CANCEL, STATUS.PENDING];
