@@ -13,6 +13,7 @@ module.exports = {
           surCharge: null,
           invoiceNumber: "12345",
           status: "PENDING",
+          baleType: "SMALL_BALES",
           purchasedProducts: JSON.stringify([
             {
               ratePerLbs: 50,
@@ -44,6 +45,7 @@ module.exports = {
           surCharge: 50,
           invoiceNumber: "901",
           status: "APPROVED",
+          baleType: "BIG_BALES",
           purchasedProducts: JSON.stringify([
             {
               ratePerKgs: 250,
@@ -75,6 +77,7 @@ module.exports = {
           surCharge: 0,
           invoiceNumber: "101",
           status: "CANCEL",
+          baleType: "SMALL_BALES",
           purchasedProducts: JSON.stringify([
             {
               ratePerKgs: 50,

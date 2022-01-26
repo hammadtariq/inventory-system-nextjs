@@ -29,6 +29,7 @@ module.exports = {
         allowNull: false,
       },
       status: Sequelize.ENUM(["PENDING", "APPROVED", "CANCEL"]),
+      baleType: Sequelize.ENUM(["SMALL_BALES", "BIG_BALES"]),
       uuid: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
