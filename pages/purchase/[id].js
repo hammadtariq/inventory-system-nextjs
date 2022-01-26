@@ -1,5 +1,6 @@
 import { Spin, Alert } from "antd";
 
+import AddEditPurchase from "@/components/addEditPurchase";
 import AppTitle from "@/components/title";
 import { usePurchaseOrder } from "@/hooks/purchase";
 
@@ -9,6 +10,7 @@ function Update({ id }) {
   return (
     <div>
       <AppTitle level={2}>Update Purchase Order</AppTitle>
+      {isLoading ? <Spin size="large" /> : <AddEditPurchase purchase={purchase} />}
     </div>
   );
 }
