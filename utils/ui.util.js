@@ -57,7 +57,7 @@ export const sumItems = (data = []) =>
     } else if (ratePerLbs && baleWeightLbs) {
       acc += ratePerBale * baleWeightLbs || 0;
       return acc;
-    } else if (noOfBales && noOfBales) {
+    } else if (noOfBales && ratePerBale) {
       acc += noOfBales * ratePerBale || 0;
       return acc;
     } else {
