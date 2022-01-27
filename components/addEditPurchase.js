@@ -7,9 +7,8 @@ import SelectCompany from "@/components/selectCompany";
 import SelectItemList from "@/components/selectItemList";
 import AddItemsInPo from "@/components/addItemsInPo";
 
-import { sumItems } from "@/utils/ui.util";
 import { createPurchaseOrder, updatePurchaseOrder } from "@/hooks/purchase";
-import { DATE_FORMAT, VALIDATE_MESSAGE, DATE_PICKER_CONFIG } from "@/utils/ui.util";
+import { DATE_FORMAT, VALIDATE_MESSAGE, DATE_PICKER_CONFIG, sumItems } from "@/utils/ui.util";
 import AppBackButton from "@/components/backButton";
 
 const AddEditPurchase = ({ purchase }) => {
