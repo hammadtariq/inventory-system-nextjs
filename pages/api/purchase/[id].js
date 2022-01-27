@@ -21,6 +21,7 @@ const apiSchema = Joi.object({
   invoiceNumber: Joi.string().trim(),
   purchaseDate: Joi.date(),
   purchasedProducts: Joi.array().items(inventorySchema),
+  baleType: Joi.string().valid("SMALL_BALES", "BIG_BALES"),
   id: Joi.number().required(),
 });
 
@@ -69,7 +70,7 @@ const updatePurchaseOrder = async (req, res) => {
       return res.status(404).send({ message: "purchase order not exist" });
     }
 
-    if (!EDIT_PO_STATUS.includes(purchase.STATUS)) {
+    if (!EDIT_PO_STATUS.includes(purchase.status)) {
       return res.status(400).send({ message: `purchase order status is ${STATUS.APPROVED}` });
     }
 
