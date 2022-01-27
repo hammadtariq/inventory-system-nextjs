@@ -132,7 +132,7 @@ const AddEditPurchase = ({ purchase }) => {
                 style={{ width: "100%" }}
                 disabledDate={(current) => current && current.valueOf() > Date.now()}
                 format={DATE_FORMAT}
-                defaultOpen={new Date()}
+                defaultValue={moment(new Date())}
               />
             </Form.Item>
           </Col>
