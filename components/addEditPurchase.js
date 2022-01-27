@@ -1,10 +1,11 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useMemo } from "react";
 import { useRouter } from "next/router";
 import { Form, DatePicker, Button, Row, Col, Input } from "antd";
 
 import SelectCompany from "@/components/selectCompany";
 import SelectItemList from "@/components/selectItemList";
 import AddItemsInPo from "@/components/addItemsInPo";
+import { sumItems } from "@/utils/ui.util";
 import { createPurchaseOrder } from "@/hooks/purchase";
 import { DATE_FORMAT, VALIDATE_MESSAGE, DATE_PICKER_CONFIG } from "@/utils/ui.util";
 import AppBackButton from "@/components/backButton";
@@ -45,6 +46,8 @@ const AddEditPurchase = ({ purchase }) => {
     }
   };
 
+  const totalAmount = useMemo(() => sumItems(data), [data]);
+
   return (
     <div>
       <Form layout="vertical" name="nest-messages" onFinish={onFinish} validateMessages={VALIDATE_MESSAGE}>
@@ -61,7 +64,7 @@ const AddEditPurchase = ({ purchase }) => {
           </Col>
           <Col span={8}>
             <Form.Item
-              name="totalAmount"
+              // name="totalAmount"
               label="Total Amount (RS)"
               rules={[
                 {
@@ -69,7 +72,7 @@ const AddEditPurchase = ({ purchase }) => {
                 },
               ]}
             >
-              <Input type="number" />
+              <Input type="number" defaultValue={totalAmount} value={totalAmount} readOnly />
             </Form.Item>
           </Col>
           <Col span={8}>
@@ -88,6 +91,7 @@ const AddEditPurchase = ({ purchase }) => {
                 style={{ width: "100%" }}
                 disabledDate={(current) => current && current.valueOf() > Date.now()}
                 format={DATE_FORMAT}
+                defaultOpen={new Date()}
               />
             </Form.Item>
           </Col>
