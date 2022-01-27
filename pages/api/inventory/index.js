@@ -14,6 +14,7 @@ const getAllInventory = async (req, res) => {
     await db.dbConnect();
     const data = await db.Inventory.findAndCountAll({
       ...pagination,
+      where: { onHand: { [db.Sequelize.Op.gt]: 0 } },
       include: [db.Company],
       order: [["updatedAt", "DESC"]],
     });
