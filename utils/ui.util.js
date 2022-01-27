@@ -49,7 +49,7 @@ export const DEFAULT_PAGE_LIMIT = 10;
 
 export const sumItems = (data = []) =>
   data.reduce((acc, curr) => {
-    const { ratePerKgs, baleWeightKgs, ratePerLbs, baleWeightLbs, noOfBales, ratePerBale } = curr;
+    const { ratePerKgs, baleWeightKgs, ratePerLbs, baleWeightLbs, noOfBales, ratePerBale } = curr || {};
 
     if (ratePerKgs && baleWeightKgs) {
       acc += ratePerKgs * baleWeightKgs || 0;
