@@ -47,18 +47,25 @@ export const CHEQUE_STATUS_COLORS = {
 
 export const DEFAULT_PAGE_LIMIT = 10;
 
-export const sumItems = (data = []) =>
+export const sumItemsPrice = (data = []) =>
   data.reduce((acc, curr) => {
-    const { ratePerKgs, baleWeightKgs, ratePerLbs, baleWeightLbs, noOfBales, ratePerBale } = curr || {};
+    const {
+      ratePerKgs = 0,
+      baleWeightKgs = 0,
+      ratePerLbs = 0,
+      baleWeightLbs = 0,
+      noOfBales = 0,
+      ratePerBale = 0,
+    } = curr || {};
 
     if (ratePerKgs && baleWeightKgs) {
-      acc += ratePerKgs * baleWeightKgs || 0;
+      acc += ratePerKgs * baleWeightKgs;
       return acc;
     } else if (ratePerLbs && baleWeightLbs) {
-      acc += ratePerBale * baleWeightLbs || 0;
+      acc += ratePerLbs * baleWeightLbs;
       return acc;
     } else if (noOfBales && ratePerBale) {
-      acc += noOfBales * ratePerBale || 0;
+      acc += noOfBales * ratePerBale;
       return acc;
     } else {
       return acc;

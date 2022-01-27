@@ -8,7 +8,7 @@ import SelectItemList from "@/components/selectItemList";
 import AddItemsInPo from "@/components/addItemsInPo";
 
 import { createPurchaseOrder, updatePurchaseOrder } from "@/hooks/purchase";
-import { DATE_FORMAT, VALIDATE_MESSAGE, DATE_PICKER_CONFIG, sumItems } from "@/utils/ui.util";
+import { DATE_FORMAT, VALIDATE_MESSAGE, DATE_PICKER_CONFIG, sumItemsPrice } from "@/utils/ui.util";
 import AppBackButton from "@/components/backButton";
 
 const AddEditPurchase = ({ purchase }) => {
@@ -16,6 +16,7 @@ const AddEditPurchase = ({ purchase }) => {
   const [companyId, setCompanyId] = useState(null);
   const [selectedListType, setSelectedListType] = useState(null);
   const [data, setData] = useState([]);
+  console.log("data: ", data);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
@@ -47,6 +48,7 @@ const AddEditPurchase = ({ purchase }) => {
 
   const selectCompanyOnChange = useCallback((id) => setCompanyId(id), [companyId]);
   const selectItemListOnChange = useCallback((type) => setSelectedListType(type), [selectedListType]);
+  const totalAmount = useMemo(() => sumItemsPrice(data), [data]);
 
   const onFinish = async (value) => {
     setLoading(true);
@@ -78,8 +80,6 @@ const AddEditPurchase = ({ purchase }) => {
       setLoading(false);
     }
   };
-
-  const totalAmount = useMemo(() => sumItems(data), [data]);
 
   return (
     <div>
