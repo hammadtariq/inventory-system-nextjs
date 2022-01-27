@@ -5,7 +5,7 @@ const { Header } = Layout;
 export default function AppHeader() {
   return (
     <Header className="site-layout-background">
-      <div className="logo" />
+      <div className="logo">Inventory</div>
       <AppNavbar />
     </Header>
   );

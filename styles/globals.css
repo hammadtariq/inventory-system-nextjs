@@ -33,9 +33,13 @@ a {
 .logo {
   float: left;
   width: 200px;
-  height: 31px;
-  margin: 16px 50px 16px 16px;
-  background: rgba(255, 255, 255, 0.3);
+  color: #f58748;
+  font-size: 24px;
+  font-family: sans-serif;
+  font-weight: 600;
+  font-style: oblique;
+  margin: 0 50px 0 16px;
+  text-transform: uppercase;
 }
 
 .app_spinner {
@@ -89,6 +93,22 @@ a {
   margin-top: 5px;
   margin-left: 5px;
   font-size: 25px;
+}
+
+.dashboard .ant-card {
+  box-shadow: 0 0 5px 5px rgb(0 0 0 / 3%);
+  border-radius: 8px;
+  -webkit-border-radius: 8px;
+  -moz-border-radius: 8px;
+  -ms-border-radius: 8px;
+  -o-border-radius: 8px;
+}
+.dashboard .ant-card h2 {
+  font-size: 40px;
+}
+.dashboard .ant-card p {
+  font-size: 14px;
+  color: #8c8c8c;
 }
 
 @media (min-width: 993px) {
