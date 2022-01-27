@@ -20,6 +20,7 @@ const apiSchema = Joi.object({
   surCharge: Joi.number(),
   invoiceNumber: Joi.string().trim(),
   purchaseDate: Joi.date().required(),
+  baleType: Joi.string().valid("SMALL_BALES", "BIG_BALES").required(),
   purchasedProducts: Joi.array().items(inventorySchema).required(),
 });
 

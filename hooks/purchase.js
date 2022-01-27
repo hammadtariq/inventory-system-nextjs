@@ -38,3 +38,5 @@ export const createPurchaseOrder = async (data) => post("/api/purchase", data);
 export const approvePurchase = async (id) => put(`/api/purchase/approve/${id}`);
 
 export const cancelPurchase = async (id) => put(`/api/purchase/cancel/${id}`);
+
+export const updatePurchaseOrder = async (id, data) => put(`/api/purchase/${id}`, data);
