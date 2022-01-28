@@ -1,13 +1,15 @@
-import { useCallback, useState } from "react";
+import moment from "moment";
+import { useCallback, useState, useMemo } from "react";
 import { useRouter } from "next/router";
 import { Form, DatePicker, Button, Row, Col, Input, Select, Alert } from "antd";
-import { DATE_FORMAT, VALIDATE_MESSAGE, DATE_PICKER_CONFIG } from "@/utils/ui.util";
-import { useInventory } from "@/hooks/inventory";
 
 import AppTitle from "@/components/title";
 import AppBackButton from "@/components/backButton";
 import SelectCustomer from "@/components/selectCustomer";
 import UpdateSalesItems from "@/components/updateSaleItems";
+
+import { useInventory } from "@/hooks/inventory";
+import { DATE_FORMAT, VALIDATE_MESSAGE, DATE_PICKER_CONFIG, sumItemsPrice } from "@/utils/ui.util";
 import { createSale } from "@/hooks/sales";
 
 const { Option } = Select;
@@ -20,6 +22,7 @@ const CreateSale = () => {
   const { inventory, error, isLoading } = useInventory();
 
   const selectCustomerOnChange = useCallback((id) => setCustomerId(id), [customerId]);
+  const totalAmount = useMemo(() => sumItemsPrice(selectedProducts), [selectedProducts]);
 
   const selectProductsOnChange = useCallback(
     (selectedId) => {
@@ -69,7 +72,7 @@ const CreateSale = () => {
           </Col>
           <Col span={8}>
             <Form.Item
-              name="totalAmount"
+              // name="totalAmount"
               label="Total Amount (RS)"
               rules={[
                 {
@@ -77,15 +80,16 @@ const CreateSale = () => {
                 },
               ]}
             >
-              <Input type="number" />
+              <Input type="number" defaultValue={totalAmount} value={totalAmount} readOnly />
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item label="Select PO Date" name="soldDate" {...DATE_PICKER_CONFIG}>
+            <Form.Item label="Select Sales Date" name="soldDate" {...DATE_PICKER_CONFIG}>
               <DatePicker
                 style={{ width: "100%" }}
                 disabledDate={(current) => current && current.valueOf() > Date.now()}
                 format={DATE_FORMAT}
+                defaultValue={moment(new Date())}
               />
             </Form.Item>
           </Col>
