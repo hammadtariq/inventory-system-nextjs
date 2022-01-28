@@ -1,14 +1,14 @@
-import moment from "moment";
-import { useCallback, useState, useMemo } from "react";
+import { useCallback, useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/router";
 import { Form, DatePicker, Button, Row, Col, Input, Select, Alert } from "antd";
+import moment from "moment";
 
 import AppTitle from "@/components/title";
 import AppBackButton from "@/components/backButton";
 import SelectCustomer from "@/components/selectCustomer";
 import UpdateSalesItems from "@/components/updateSaleItems";
 
-import { useInventory } from "@/hooks/inventory";
+import { useInventoryAttributes } from "@/hooks/inventory";
 import { DATE_FORMAT, VALIDATE_MESSAGE, DATE_PICKER_CONFIG, sumItemsPrice } from "@/utils/ui.util";
 import { createSale } from "@/hooks/sales";
 
@@ -19,30 +19,37 @@ const CreateSale = () => {
   const [loading, setLoading] = useState(false);
   const [customerId, setCustomerId] = useState(null);
   const [selectedProducts, setSelectedProducts] = useState([]);
-  const { inventory, error, isLoading } = useInventory();
+  const { inventory, error, isLoading } = useInventoryAttributes(["itemName", "id", "onHand"]);
+  const [form] = Form.useForm();
 
   const selectCustomerOnChange = useCallback((id) => setCustomerId(id), [customerId]);
   const totalAmount = useMemo(() => sumItemsPrice(selectedProducts), [selectedProducts]);
 
   const selectProductsOnChange = useCallback(
     (selectedId) => {
-      const selectedItem = inventory.rows.filter((item) => selectedId.includes(item.id));
+      const selectedItem = inventory.filter((item) => selectedId.includes(item.id));
       setSelectedProducts(selectedItem);
     },
     [inventory]
   );
+
+  useEffect(() => {
+    form.setFieldsValue({
+      soldDate: moment(new Date()),
+    });
+  }, []);
 
   const onFinish = async (value) => {
     setLoading(false);
     const orderData = { ...value };
     orderData.soldDate = orderData.soldDate.toISOString();
     orderData.customerId = customerId;
+    orderData.totalAmount = totalAmount;
     orderData.soldProducts = selectedProducts.map((product) => {
-      const { itemName, noOfBales, ratePerBale, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs } = product;
+      const { itemName, noOfBales, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs } = product;
       return {
         itemName,
         noOfBales,
-        ...(ratePerBale && { ratePerBale }),
         ...(baleWeightLbs && { baleWeightLbs }),
         ...(baleWeightKgs && { baleWeightKgs }),
         ...(ratePerLbs && { ratePerLbs }),
@@ -63,7 +70,7 @@ const CreateSale = () => {
   return (
     <div>
       <AppTitle level={2}>Create Sale</AppTitle>
-      <Form layout="vertical" name="nest-messages" onFinish={onFinish} validateMessages={VALIDATE_MESSAGE}>
+      <Form form={form} layout="vertical" name="nest-messages" onFinish={onFinish} validateMessages={VALIDATE_MESSAGE}>
         <Row gutter={24}>
           <Col span={8}>
             <Form.Item label="Select Customer">
@@ -72,7 +79,6 @@ const CreateSale = () => {
           </Col>
           <Col span={8}>
             <Form.Item
-              // name="totalAmount"
               label="Total Amount (RS)"
               rules={[
                 {
@@ -89,7 +95,6 @@ const CreateSale = () => {
                 style={{ width: "100%" }}
                 disabledDate={(current) => current && current.valueOf() > Date.now()}
                 format={DATE_FORMAT}
-                defaultValue={moment(new Date())}
               />
             </Form.Item>
           </Col>
@@ -105,7 +110,7 @@ const CreateSale = () => {
                 filterOption={(input, option) => option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}
               >
                 {inventory &&
-                  inventory.rows.map((obj) => (
+                  inventory.map((obj) => (
                     <Option key={obj.id} value={obj.id}>
                       {`${obj.itemName} (${obj.company.companyName})`}
                     </Option>

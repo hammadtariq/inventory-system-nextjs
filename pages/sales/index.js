@@ -40,9 +40,9 @@ const Sales = () => {
       { title: "No of Bales", dataIndex: "noOfBales", key: "noOfBales" },
       { title: "Bale Weight (LBS)", dataIndex: "baleWeightLbs", key: "baleWeightLbs", render: (text) => text ?? "N/A" },
       { title: "Bale Weight (KGS)", dataIndex: "baleWeightKgs", key: "baleWeightKgs", render: (text) => text ?? "N/A" },
-      { title: "Rate per LBS (Rs)", dataIndex: "ratePerLgs", key: "ratePerLgs", render: (text) => text ?? "N/A" },
+      { title: "Rate per LBS (Rs)", dataIndex: "ratePerLbs", key: "ratePerLbs", render: (text) => text ?? "N/A" },
       { title: "Rate per KGS (Rs)", dataIndex: "ratePerKgs", key: "ratePerKgs", render: (text) => text ?? "N/A" },
-      { title: "Rate per Bale (Rs)", dataIndex: "ratePerBale", key: "ratePerBale" },
+      // { title: "Rate per Bale (Rs)", dataIndex: "ratePerBale", key: "ratePerBale" },
     ];
     return <AppTable columns={columns} dataSource={record.soldProducts} pagination={false} />;
   };
