@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 import { Form, DatePicker, Button, Row, Col, Input } from "antd";
 import moment from "moment";
@@ -6,8 +6,9 @@ import moment from "moment";
 import SelectCompany from "@/components/selectCompany";
 import SelectItemList from "@/components/selectItemList";
 import AddItemsInPo from "@/components/addItemsInPo";
+
 import { createPurchaseOrder, updatePurchaseOrder } from "@/hooks/purchase";
-import { DATE_FORMAT, VALIDATE_MESSAGE, DATE_PICKER_CONFIG } from "@/utils/ui.util";
+import { DATE_FORMAT, VALIDATE_MESSAGE, DATE_PICKER_CONFIG, sumItemsPrice } from "@/utils/ui.util";
 import AppBackButton from "@/components/backButton";
 
 const AddEditPurchase = ({ purchase }) => {
@@ -46,6 +47,7 @@ const AddEditPurchase = ({ purchase }) => {
 
   const selectCompanyOnChange = useCallback((id) => setCompanyId(id), [companyId]);
   const selectItemListOnChange = useCallback((type) => setSelectedListType(type), [selectedListType]);
+  const totalAmount = useMemo(() => sumItemsPrice(data), [data]);
 
   const onFinish = async (value) => {
     setLoading(true);
@@ -102,7 +104,7 @@ const AddEditPurchase = ({ purchase }) => {
           </Col>
           <Col span={8}>
             <Form.Item
-              name="totalAmount"
+              // name="totalAmount"
               label="Total Amount (RS)"
               rules={[
                 {
@@ -110,7 +112,7 @@ const AddEditPurchase = ({ purchase }) => {
                 },
               ]}
             >
-              <Input type="number" />
+              <Input type="number" defaultValue={totalAmount} value={totalAmount} readOnly />
             </Form.Item>
           </Col>
           <Col span={8}>
@@ -129,6 +131,7 @@ const AddEditPurchase = ({ purchase }) => {
                 style={{ width: "100%" }}
                 disabledDate={(current) => current && current.valueOf() > Date.now()}
                 format={DATE_FORMAT}
+                defaultValue={moment(new Date())}
               />
             </Form.Item>
           </Col>
