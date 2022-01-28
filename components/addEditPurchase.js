@@ -16,7 +16,6 @@ const AddEditPurchase = ({ purchase }) => {
   const [companyId, setCompanyId] = useState(null);
   const [selectedListType, setSelectedListType] = useState(null);
   const [data, setData] = useState([]);
-  console.log("data: ", data);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
