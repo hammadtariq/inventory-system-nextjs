@@ -17,15 +17,12 @@ const AddEditPurchase = ({ purchase }) => {
   const [selectedListType, setSelectedListType] = useState(null);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [totalAmount, setTotalAmount] = useState(0);
+  // const [totalAmount, setTotalAmount] = useState(0);
   const [form] = Form.useForm();
 
   const selectCompanyOnChange = useCallback((id) => setCompanyId(id), [companyId]);
   const selectItemListOnChange = useCallback((type) => setSelectedListType(type), [selectedListType]);
-  useMemo(() => {
-    const total = sumItemsPrice(data);
-    setTotalAmount(total);
-  }, [data]);
+  const totalAmount = useMemo(() => sumItemsPrice(data), [data]);
 
   useEffect(() => {
     if (purchase) {
@@ -50,7 +47,6 @@ const AddEditPurchase = ({ purchase }) => {
 
       setData(purchasedProducts);
       setCompanyId(id);
-      setTotalAmount(totalAmount);
       setSelectedListType(baleType);
     }
 
@@ -62,7 +58,6 @@ const AddEditPurchase = ({ purchase }) => {
   const onFinish = async (value) => {
     setLoading(true);
     const orderData = { ...value };
-    console.log("orderData: ", orderData);
     orderData.purchaseDate = orderData.purchaseDate ? orderData?.purchaseDate?.toISOString() : moment();
     orderData.companyId = companyId;
     orderData.baleType = selectedListType;
