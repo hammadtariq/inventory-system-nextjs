@@ -65,6 +65,7 @@ const AddEditSale = ({ sale }) => {
       return {
         itemName,
         noOfBales,
+        companyId: product.company.id,
         ...(baleWeightLbs && { baleWeightLbs }),
         ...(baleWeightKgs && { baleWeightKgs }),
         ...(ratePerLbs && { ratePerLbs }),
