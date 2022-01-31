@@ -46,6 +46,14 @@ const AddEditSale = ({ sale }) => {
     }
   }, [sale]);
 
+  useEffect(() => {
+    form.setFieldsValue({ totalAmount });
+  }, [totalAmount]);
+
+  useEffect(() => {
+    form.setFieldsValue({ soldDate: sale?.soldDate ? moment(sale.soldDate) : moment() });
+  }, []);
+
   const onFinish = async (value) => {
     setLoading(false);
     const orderData = { ...value };
@@ -105,7 +113,7 @@ const AddEditSale = ({ sale }) => {
                 style={{ width: "100%" }}
                 disabledDate={(current) => current && current.valueOf() > Date.now()}
                 format={DATE_FORMAT}
-                defaultValue={moment(new Date())}
+                // defaultValue={moment(new Date())}
               />
             </Form.Item>
           </Col>
