@@ -3,7 +3,7 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
-import { STATUS, EDIT_PO_STATUS } from "@/utils/api.util";
+import { STATUS, EDITABLE_STATUS } from "@/utils/api.util";
 
 const inventorySchema = Joi.object().keys({
   itemName: Joi.string().min(3).trim().lowercase(),
@@ -70,7 +70,7 @@ const updatePurchaseOrder = async (req, res) => {
       return res.status(404).send({ message: "purchase order not exist" });
     }
 
-    if (!EDIT_PO_STATUS.includes(purchase.status)) {
+    if (!EDITABLE_STATUS.includes(purchase.status)) {
       return res.status(400).send({ message: `purchase order status is ${STATUS.APPROVED}` });
     }
 
