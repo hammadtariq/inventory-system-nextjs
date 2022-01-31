@@ -19,6 +19,10 @@ const AddEditPurchase = ({ purchase }) => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
+  const selectCompanyOnChange = useCallback((id) => setCompanyId(id), [companyId]);
+  const selectItemListOnChange = useCallback((type) => setSelectedListType(type), [selectedListType]);
+  const totalAmount = useMemo(() => sumItemsPrice(data), [data]);
+
   useEffect(() => {
     if (purchase) {
       const {
@@ -28,7 +32,7 @@ const AddEditPurchase = ({ purchase }) => {
         purchaseDate = "",
         purchasedProducts = [],
         surCharge = "",
-        totalAmount = "",
+        totalAmount = 0,
       } = purchase;
       const { id, companyName } = company;
       form.setFieldsValue({
@@ -39,20 +43,32 @@ const AddEditPurchase = ({ purchase }) => {
         totalAmount,
         purchaseDate: moment(purchaseDate),
       });
+
       setData(purchasedProducts);
       setCompanyId(id);
       setSelectedListType(baleType);
     }
   }, [purchase]);
 
-  const selectCompanyOnChange = useCallback((id) => setCompanyId(id), [companyId]);
-  const selectItemListOnChange = useCallback((type) => setSelectedListType(type), [selectedListType]);
-  const totalAmount = useMemo(() => sumItemsPrice(data), [data]);
+  // update total amount value useing form field
+  useEffect(() => {
+    form.setFieldsValue({
+      totalAmount,
+    });
+  }, [totalAmount]);
+
+  // to set default and previous date in form
+  useEffect(() => {
+    form.setFieldsValue({
+      purchaseDate: purchase?.purchaseDate ? moment(purchase?.purchaseDate) : moment(),
+    });
+  }, []);
 
   const onFinish = async (value) => {
     setLoading(true);
     const orderData = { ...value };
-    orderData.purchaseDate = orderData.purchaseDate.toISOString();
+
+    orderData.purchaseDate = orderData.purchaseDate ? moment(orderData.purchaseDate) : moment();
     orderData.companyId = companyId;
     orderData.baleType = selectedListType;
     orderData.purchasedProducts = data.map((product) => {
@@ -112,7 +128,7 @@ const AddEditPurchase = ({ purchase }) => {
                 },
               ]}
             >
-              <Input type="number" defaultValue={totalAmount} value={totalAmount} readOnly />
+              <Input type="number" readOnly />
             </Form.Item>
           </Col>
           <Col span={8}>
@@ -126,12 +142,12 @@ const AddEditPurchase = ({ purchase }) => {
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item label="Select PO Date" name="purchaseDate" {...DATE_PICKER_CONFIG}>
+            <Form.Item label="Select PO Date" name="purchaseDate">
               <DatePicker
                 style={{ width: "100%" }}
                 disabledDate={(current) => current && current.valueOf() > Date.now()}
                 format={DATE_FORMAT}
-                defaultValue={moment(new Date())}
+                // defaultValue={moment()}
               />
             </Form.Item>
           </Col>
