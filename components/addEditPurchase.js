@@ -17,7 +17,15 @@ const AddEditPurchase = ({ purchase }) => {
   const [selectedListType, setSelectedListType] = useState(null);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [totalAmount, setTotalAmount] = useState(0);
   const [form] = Form.useForm();
+
+  const selectCompanyOnChange = useCallback((id) => setCompanyId(id), [companyId]);
+  const selectItemListOnChange = useCallback((type) => setSelectedListType(type), [selectedListType]);
+  useMemo(() => {
+    const total = sumItemsPrice(data);
+    setTotalAmount(total);
+  }, [data]);
 
   useEffect(() => {
     if (purchase) {
@@ -28,7 +36,7 @@ const AddEditPurchase = ({ purchase }) => {
         purchaseDate = "",
         purchasedProducts = [],
         surCharge = "",
-        totalAmount = "",
+        totalAmount = 0,
       } = purchase;
       const { id, companyName } = company;
       form.setFieldsValue({
@@ -37,22 +45,25 @@ const AddEditPurchase = ({ purchase }) => {
         invoiceNumber,
         surCharge,
         totalAmount,
-        purchaseDate: moment(purchaseDate),
+        purchaseDate,
       });
+
       setData(purchasedProducts);
       setCompanyId(id);
+      setTotalAmount(totalAmount);
       setSelectedListType(baleType);
     }
-  }, [purchase]);
 
-  const selectCompanyOnChange = useCallback((id) => setCompanyId(id), [companyId]);
-  const selectItemListOnChange = useCallback((type) => setSelectedListType(type), [selectedListType]);
-  const totalAmount = useMemo(() => sumItemsPrice(data), [data]);
+    form.setFieldsValue({
+      totalAmount,
+    });
+  }, [purchase, totalAmount]);
 
   const onFinish = async (value) => {
     setLoading(true);
     const orderData = { ...value };
-    orderData.purchaseDate = orderData.purchaseDate.toISOString();
+    console.log("orderData: ", orderData);
+    orderData.purchaseDate = orderData.purchaseDate ? orderData?.purchaseDate?.toISOString() : moment();
     orderData.companyId = companyId;
     orderData.baleType = selectedListType;
     orderData.purchasedProducts = data.map((product) => {
@@ -104,7 +115,7 @@ const AddEditPurchase = ({ purchase }) => {
           </Col>
           <Col span={8}>
             <Form.Item
-              // name="totalAmount"
+              name="totalAmount"
               label="Total Amount (RS)"
               rules={[
                 {
@@ -112,7 +123,7 @@ const AddEditPurchase = ({ purchase }) => {
                 },
               ]}
             >
-              <Input type="number" defaultValue={totalAmount} value={totalAmount} readOnly />
+              <Input type="number" readOnly />
             </Form.Item>
           </Col>
           <Col span={8}>
@@ -131,7 +142,7 @@ const AddEditPurchase = ({ purchase }) => {
                 style={{ width: "100%" }}
                 disabledDate={(current) => current && current.valueOf() > Date.now()}
                 format={DATE_FORMAT}
-                defaultValue={moment(new Date())}
+                defaultValue={moment()}
               />
             </Form.Item>
           </Col>

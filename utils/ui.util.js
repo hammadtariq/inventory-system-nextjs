@@ -26,7 +26,7 @@ export const DATE_PICKER_CONFIG = {
   rules: [
     {
       type: "object",
-      required: true,
+      required: false,
       message: "Please select time!",
     },
   ],
