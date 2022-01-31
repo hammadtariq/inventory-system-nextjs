@@ -50,7 +50,7 @@ const AddEditPurchase = ({ purchase }) => {
     }
   }, [purchase]);
 
-  //
+  // update total amount value useing form field
   useEffect(() => {
     form.setFieldsValue({
       totalAmount,
