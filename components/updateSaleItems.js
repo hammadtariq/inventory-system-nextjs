@@ -19,7 +19,6 @@ export default function UpdateSalesItems({ setSelectedProducts, data }) {
       baleWeightKgs: "",
       ratePerLbs: "",
       ratePerKgs: "",
-      ...(record.ratePerBale && { ratePerBale: "" }),
       ...record,
     });
     setEditingKey(record.id);
@@ -91,19 +90,6 @@ export default function UpdateSalesItems({ setSelectedProducts, data }) {
       width: "10%",
       editable: true,
       required: false,
-    },
-    {
-      title: "Rate Per Bale",
-      dataIndex: "ratePerBale",
-      width: "17%",
-      editable: true,
-      required: false,
-      render: (_, data) => {
-        if (!data.ratePerBale) {
-          return null;
-        }
-        return <span>{data.ratePerBale}</span>;
-      },
     },
     {
       title: "operation",

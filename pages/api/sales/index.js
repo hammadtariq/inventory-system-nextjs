@@ -12,7 +12,6 @@ const inventorySchema = Joi.object().keys({
   baleWeightKgs: Joi.number(),
   ratePerLbs: Joi.number(),
   ratePerKgs: Joi.number(),
-  ratePerBale: Joi.number(),
 });
 const apiSchema = Joi.object({
   customerId: Joi.number().required(),

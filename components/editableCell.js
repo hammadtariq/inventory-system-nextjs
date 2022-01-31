@@ -14,7 +14,6 @@ const EditableCell = ({ editing, dataIndex, title, inputType, children, required
     <td {...restProps} className={styles.editableTd}>
       {editing ? (
         <Form.Item
-          hidden={dataIndex === "ratePerBale" && !record.ratePerBale}
           name={dataIndex}
           style={{
             margin: 0,
@@ -23,6 +22,11 @@ const EditableCell = ({ editing, dataIndex, title, inputType, children, required
             {
               required,
               message: `Please Input ${title}!`,
+            },
+            {
+              type: "number",
+              max: dataIndex === "noOfBales" ? record.onHand : null,
+              message: `${title} cannot be greater than ${record.onHand}`,
             },
           ]}
         >

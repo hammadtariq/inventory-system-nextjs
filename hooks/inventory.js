@@ -22,6 +22,16 @@ export const useInventory = () => {
   };
 };
 
+export const useInventoryAttributes = (attr = []) => {
+  const { data, error } = useSWR(`/api/inventory?attributes=${JSON.stringify(attr)}`, get);
+
+  return {
+    inventory: data?.rows,
+    isLoading: !error && !data,
+    error,
+  };
+};
+
 export const useInventoryByCompanyId = (companyId) => {
   const { data, error } = useSWR(`/api/inventory/byCompanyId/${companyId}`, get);
 
