@@ -17,7 +17,6 @@ const AddEditPurchase = ({ purchase }) => {
   const [selectedListType, setSelectedListType] = useState(null);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  // const [totalAmount, setTotalAmount] = useState(0);
   const [form] = Form.useForm();
 
   const selectCompanyOnChange = useCallback((id) => setCompanyId(id), [companyId]);
@@ -42,23 +41,34 @@ const AddEditPurchase = ({ purchase }) => {
         invoiceNumber,
         surCharge,
         totalAmount,
-        purchaseDate,
+        purchaseDate: moment(purchaseDate),
       });
 
       setData(purchasedProducts);
       setCompanyId(id);
       setSelectedListType(baleType);
     }
+  }, [purchase]);
 
+  //
+  useEffect(() => {
     form.setFieldsValue({
       totalAmount,
     });
-  }, [purchase, totalAmount]);
+  }, [totalAmount]);
+
+  // to set default and previous date in form
+  useEffect(() => {
+    form.setFieldsValue({
+      purchaseDate: purchase?.purchaseDate ? moment(purchase?.purchaseDate) : moment(),
+    });
+  }, []);
 
   const onFinish = async (value) => {
     setLoading(true);
     const orderData = { ...value };
-    orderData.purchaseDate = orderData.purchaseDate ? orderData?.purchaseDate?.toISOString() : moment();
+
+    orderData.purchaseDate = orderData.purchaseDate ? moment(orderData.purchaseDate) : moment();
     orderData.companyId = companyId;
     orderData.baleType = selectedListType;
     orderData.purchasedProducts = data.map((product) => {
@@ -132,12 +142,12 @@ const AddEditPurchase = ({ purchase }) => {
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item label="Select PO Date" name="purchaseDate" {...DATE_PICKER_CONFIG}>
+            <Form.Item label="Select PO Date" name="purchaseDate">
               <DatePicker
                 style={{ width: "100%" }}
                 disabledDate={(current) => current && current.valueOf() > Date.now()}
                 format={DATE_FORMAT}
-                defaultValue={moment()}
+                // defaultValue={moment()}
               />
             </Form.Item>
           </Col>
