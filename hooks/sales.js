@@ -23,8 +23,20 @@ export const useSales = () => {
   };
 };
 
+export const useSale = (id) => {
+  const { data, error } = useSWR(`/api/sales/${id}`, get);
+
+  return {
+    sale: data,
+    isLoading: !error && !data,
+    error,
+  };
+};
+
 export const createSale = async (data) => post("/api/sales", data);
 
-export const approveSale = async (id) => put(`/api/sales/${id}`);
+export const updateSale = async (id, data) => put(`/api/sales/${id}`, data);
+
+export const approveSale = async (id) => put(`/api/sales/approve/${id}`);
 
 export const cancelSale = async (id) => put(`/api/sales/cancel/${id}`);
