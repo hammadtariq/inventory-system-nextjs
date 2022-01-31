@@ -8,7 +8,7 @@ import { usePurchaseOrders, approvePurchase, cancelPurchase } from "@/hooks/purc
 import styles from "@/styles/Purchase.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import { STATUS_COLORS } from "@/utils/ui.util";
-import { EDIT_PO_STATUS } from "@/utils/api.util";
+import { EDITABLE_STATUS } from "@/utils/api.util";
 import permissionsUtil from "@/utils/permission.util";
 import AppTitle from "@/components/title";
 import AppCreateButton from "@/components/createButton";
@@ -85,7 +85,7 @@ const PurchaseOrders = () => {
           </Popconfirm>
         </>
       );
-    } else if (EDIT_PO_STATUS.includes(record.status) && canEdit) {
+    } else if (EDITABLE_STATUS.includes(record.status) && canEdit) {
       return (
         <Button onClick={() => router.push(`/purchase/${text.id}`)} icon={<EditOutlined />}>
           Edit

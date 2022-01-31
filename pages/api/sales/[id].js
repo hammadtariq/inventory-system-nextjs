@@ -3,9 +3,22 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
-import { STATUS, SPEND_TYPE } from "@/utils/api.util";
+import { STATUS } from "@/utils/api.util";
+import { EDITABLE_STATUS } from "@/utils/api.util";
 
+const inventorySchema = Joi.object().keys({
+  itemName: Joi.string().min(3).trim().lowercase(),
+  noOfBales: Joi.number(),
+  baleWeightLbs: Joi.number(),
+  baleWeightKgs: Joi.number(),
+  ratePerLbs: Joi.number(),
+  ratePerKgs: Joi.number(),
+});
 const apiSchema = Joi.object({
+  customerId: Joi.number(),
+  totalAmount: Joi.number(),
+  soldDate: Joi.date(),
+  soldProducts: Joi.array().items(inventorySchema),
   id: Joi.number().required(),
 });
 
@@ -36,67 +49,36 @@ const getSale = async (req, res) => {
   }
 };
 
-const approveSaleOrder = async (req, res) => {
-  console.log("Approve sale order Request Start");
+const updateSaleOrder = async (req, res) => {
+  console.log("Update sale order Request Start");
   const { error, value } = apiSchema.validate({
+    ...req.body,
     id: req.query.id,
   });
 
   if (error && error && Object.keys(error).length) {
     return res.status(400).send({ message: error.toString() });
   }
-  if (req.user.role !== "ADMIN") {
-    return res.status(400).send({ message: "Operation not permitted." });
-  }
-  const t = await db.sequelize.transaction();
   try {
     await db.dbConnect();
     const { id } = value;
-    const sale = await db.Sale.findByPk(id, { include: [db.Customer] });
+    const sale = await db.Sale.findByPk(id);
 
     if (!sale) {
-      return res.status(404).send({ message: "sale order not exists" });
+      return res.status(404).send({ message: "sale order not exist" });
     }
 
-    const { soldProducts, customerId, totalAmount } = sale;
-    await db.dbConnect();
-    for await (const product of soldProducts) {
-      const { itemName, noOfBales } = product;
-      const inventory = await db.Inventory.findOne({
-        where: {
-          itemName,
-          onHand: {
-            [db.Sequelize.Op.or]: {
-              [db.Sequelize.Op.gt]: noOfBales,
-              [db.Sequelize.Op.eq]: noOfBales,
-            },
-          },
-        },
-        transaction: t,
-      });
-      if (!inventory) {
-        return res.status(404).send({ message: `"${itemName}" out of stock` });
-      }
-      await inventory.decrement(["onHand"], { by: noOfBales, transaction: t });
+    if (!EDITABLE_STATUS.includes(sale.status)) {
+      return res.status(400).send({ message: `sale order status is ${STATUS.APPROVED}` });
     }
-    await sale.update({ status: STATUS.APPROVED }, { transaction: t });
-    await db.Ledger.create(
-      {
-        customerId,
-        amount: totalAmount,
-        spendType: SPEND_TYPE.CREDIT,
-      },
-      { transaction: t }
-    );
-    await t.commit();
-    console.log("Approve sale order Request End");
-    return res.send();
+
+    await sale.update({ ...value, status: STATUS.PENDING });
+    console.log("Update sale order Request End");
+    return res.send(sale);
   } catch (error) {
-    await t.rollback();
-    console.log("Approve sale order Request Error:", error);
-
+    console.log("Update sale order Request Error:", error);
     return res.status(500).send({ message: error.toString() });
   }
 };
 
-export default nextConnect().use(auth).put(approveSaleOrder).get(getSale);
+export default nextConnect().use(auth).put(updateSaleOrder).get(getSale);

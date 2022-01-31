@@ -104,7 +104,7 @@ const AddEditPurchase = ({ purchase }) => {
           </Col>
           <Col span={8}>
             <Form.Item
-              // name="totalAmount"
+              name="totalAmount"
               label="Total Amount (RS)"
               rules={[
                 {
