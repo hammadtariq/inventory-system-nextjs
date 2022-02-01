@@ -1,7 +1,5 @@
 import { Button, Drawer } from "antd";
 import { useEffect, useState } from "react";
-import AppMenuItems from "./menuItems";
-import styles from "@/styles/Navbar.module.css";
 import { useRouter } from "next/router";
 import {
   DatabaseOutlined,
@@ -15,6 +13,8 @@ import {
   DashboardOutlined,
 } from "@ant-design/icons";
 import NextLink from "next/link";
+import AppMenuItems from "./menuItems";
+import styles from "@/styles/Navbar.module.css";
 
 const items = [
   {
