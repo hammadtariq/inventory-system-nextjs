@@ -7,7 +7,7 @@ import AppBackButton from "@/components/backButton";
 import SelectCustomer from "@/components/selectCustomer";
 import UpdateSalesItems from "@/components/updateSaleItems";
 
-import { useInventory } from "@/hooks/inventory";
+import { useInventoryAttributes } from "@/hooks/inventory";
 import { DATE_FORMAT, VALIDATE_MESSAGE, DATE_PICKER_CONFIG, sumItemsPrice } from "@/utils/ui.util";
 import { createSale, updateSale } from "@/hooks/sales";
 
@@ -18,7 +18,7 @@ const AddEditSale = ({ sale }) => {
   const [loading, setLoading] = useState(false);
   const [customerId, setCustomerId] = useState(null);
   const [selectedProducts, setSelectedProducts] = useState([]);
-  const { inventory, error, isLoading } = useInventory();
+  const { inventory, error, isLoading } = useInventoryAttributes(["itemName", "id", "onHand"]);
   const [form] = Form.useForm();
 
   const selectCustomerOnChange = useCallback((id) => setCustomerId(id), [customerId]);
@@ -26,7 +26,7 @@ const AddEditSale = ({ sale }) => {
 
   const selectProductsOnChange = useCallback(
     (selectedId) => {
-      const selectedItem = inventory.rows.filter((item) => selectedId.includes(item.id));
+      const selectedItem = inventory.filter((item) => selectedId.includes(item.id));
       setSelectedProducts(selectedItem);
     },
     [inventory]
@@ -114,7 +114,6 @@ const AddEditSale = ({ sale }) => {
                 style={{ width: "100%" }}
                 disabledDate={(current) => current && current.valueOf() > Date.now()}
                 format={DATE_FORMAT}
-                // defaultValue={moment(new Date())}
               />
             </Form.Item>
           </Col>
@@ -130,7 +129,7 @@ const AddEditSale = ({ sale }) => {
                 filterOption={(input, option) => option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}
               >
                 {inventory &&
-                  inventory.rows.map((obj) => (
+                  inventory.map((obj) => (
                     <Option key={obj.id} value={obj.id}>
                       {`${obj.itemName} (${obj.company.companyName})`}
                     </Option>
