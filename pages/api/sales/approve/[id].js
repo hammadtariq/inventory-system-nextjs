@@ -31,17 +31,21 @@ const approveSaleOrder = async (req, res) => {
       return res.status(404).send({ message: "sale order not exists" });
     }
 
+    if (sale.status === STATUS.APPROVED) {
+      return res.status(400).send({ message: "sale order already approved" });
+    }
+
     const { soldProducts, customerId, totalAmount } = sale;
     await db.dbConnect();
     for await (const product of soldProducts) {
-      const { itemName, noOfBales } = product;
+      const { itemName, noOfBales, companyId } = product;
       const inventory = await db.Inventory.findOne({
         where: {
           itemName,
+          companyId,
           onHand: {
             [db.Sequelize.Op.or]: {
-              [db.Sequelize.Op.gt]: noOfBales,
-              [db.Sequelize.Op.eq]: noOfBales,
+              [db.Sequelize.Op.gte]: noOfBales,
             },
           },
         },
@@ -58,6 +62,7 @@ const approveSaleOrder = async (req, res) => {
         customerId,
         amount: totalAmount,
         spendType: SPEND_TYPE.CREDIT,
+        invoiceNumber: id,
       },
       { transaction: t }
     );
