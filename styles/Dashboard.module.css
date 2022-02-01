@@ -1,0 +1,15 @@
+.dCard {
+  box-shadow: 0 0 5px 5px rgb(0 0 0 / 3%);
+  border-radius: 8px;
+  -webkit-border-radius: 8px;
+  -moz-border-radius: 8px;
+  -ms-border-radius: 8px;
+  -o-border-radius: 8px;
+}
+.dCard h2 {
+  font-size: 40px;
+}
+.dCard p {
+  font-size: 14px;
+  color: #8c8c8c;
+}

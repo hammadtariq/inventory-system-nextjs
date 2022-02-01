@@ -1,5 +1,5 @@
 import { Button, Drawer } from "antd";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AppMenuItems from "./menuItems";
 import styles from "@/styles/Navbar.module.css";
 import { useRouter } from "next/router";
@@ -14,6 +14,7 @@ import {
   DollarCircleOutlined,
   DashboardOutlined,
 } from "@ant-design/icons";
+import NextLink from "next/link";
 
 const items = [
   {
@@ -79,9 +80,9 @@ const items = [
 ];
 
 export default function AppNavbar() {
-  const [visible, setVisible] = useState(false);
-  const [isSelected, setIsSelected] = useState("0");
   const router = useRouter();
+  const [visible, setVisible] = useState(false);
+  const [isSelected, setIsSelected] = useState();
 
   const onClickHandler = (url, id) => {
     setIsSelected(id);
@@ -96,8 +97,24 @@ export default function AppNavbar() {
     setVisible(false);
   };
 
+  useEffect(() => {
+    const splitUrl = router.asPath.split("/").slice(1, router.asPath.length);
+    const activeItem = items.find((item) => {
+      if (splitUrl.length > 0 && item.url === `/${splitUrl[0]}`) {
+        return item;
+      }
+    });
+    const activeId = activeItem ? activeItem.id : items[0].id;
+    setIsSelected(activeId);
+  }, [router]);
+
   return (
     <>
+      <NextLink href="/" passHref>
+        <div className="logo" onClick={() => onClickHandler(items[0].url, items[0].id)}>
+          Inventory
+        </div>
+      </NextLink>
       <div className={styles.navigationBar}>
         <AppMenuItems mode="horizontal" items={items} onClickHandler={onClickHandler} selected={isSelected} />
       </div>

@@ -1,6 +1,8 @@
-import { Card, Col, Progress, Row } from "antd";
+import { Card, Col, Row } from "antd";
 import { Line, Column } from "@ant-design/plots";
 import { DollarCircleOutlined, ShopOutlined, TeamOutlined, UserOutlined } from "@ant-design/icons";
+
+import styles from "@/styles/Dashboard.module.css";
 
 const items = [
   {
@@ -17,18 +19,12 @@ const items = [
   },
   {
     id: 3,
-    title: "Users",
-    count: 20,
-    icon: <UserOutlined />,
-  },
-  {
-    id: 4,
     title: "Inventory",
     count: 20,
     icon: <ShopOutlined />,
   },
   {
-    id: 5,
+    id: 4,
     title: "Cheques",
     count: 8,
     icon: <DollarCircleOutlined />,
@@ -108,11 +104,11 @@ export default function Home() {
     ],
   };
   return (
-    <div className="dashboard">
+    <>
       <Row gutter={[40, 40]} justify="space-between">
         {items.map((item) => (
-          <Col span={4} key={item.id}>
-            <Card bordered={false}>
+          <Col xs={24} sm={12} md={6} lg={5} key={item.id}>
+            <Card className={styles.dCard} bordered={false}>
               <Row>
                 <Col flex="1 0 80%">
                   <h2>{item.count}</h2>
@@ -125,19 +121,19 @@ export default function Home() {
             </Card>
           </Col>
         ))}
-        <Col span={12}>
+        <Col xs={24} md={12}>
           <Card bordered={false}>
             <h3>Purchase</h3>
             <Line {...config} />
           </Card>
         </Col>
-        <Col span={12}>
+        <Col xs={24} md={12}>
           <Card bordered={false}>
             <h3>Sales</h3>
             <Column {...config} />
           </Card>
         </Col>
       </Row>
-    </div>
+    </>
   );
 }
