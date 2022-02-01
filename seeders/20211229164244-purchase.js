@@ -17,6 +17,7 @@ module.exports = {
           purchasedProducts: JSON.stringify([
             {
               ratePerLbs: 50,
+              id: 1,
               ratePerKgs: null,
               ratePerBale: 5,
               noOfBales: 60,
@@ -27,6 +28,7 @@ module.exports = {
             {
               ratePerLbs: null,
               ratePerKgs: 900,
+              id: 2,
               ratePerBale: 80,
               noOfBales: 50,
               itemName: "inventory product",
@@ -52,6 +54,7 @@ module.exports = {
               ratePerBale: 25,
               ratePerLbs: null,
               noOfBales: 20,
+              id: 3,
               itemName: "inventory product",
               baleWeightLbs: null,
               baleWeightKgs: 5,
@@ -61,6 +64,7 @@ module.exports = {
               ratePerKgs: null,
               ratePerBale: 5,
               noOfBales: 60,
+              id: 4,
               itemName: "testing first inventory",
               baleWeightLbs: 3,
               baleWeightKgs: null,
@@ -84,6 +88,7 @@ module.exports = {
               ratePerBale: 5,
               ratePerLbs: null,
               noOfBales: 50,
+              id: 5,
               itemName: "test item product",
               baleWeightLbs: null,
               baleWeightKgs: 5,
@@ -93,6 +98,7 @@ module.exports = {
               ratePerKgs: null,
               ratePerBale: 5,
               noOfBales: 60,
+              id: 6,
               itemName: "testing first inventory",
               baleWeightLbs: 3,
               baleWeightKgs: null,

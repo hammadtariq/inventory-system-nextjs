@@ -5,13 +5,15 @@ import { useItemsByCompanyIdAndType } from "@/hooks/items";
 import EditableCell from "@/components/editableCell";
 import styles from "@/styles/EditAbleTable.module.css";
 
-export default function AddItemsInPo({ companyId, type, setData, data }) {
-  const { items, isLoading, error } = useItemsByCompanyIdAndType(companyId, type);
+export default function AddItemsInPo({ companyId, type, setData, data, isEdit }) {
   const [editingKey, setEditingKey] = useState("");
   const [form] = Form.useForm();
+  const { items, isLoading, error } = useItemsByCompanyIdAndType(companyId, type, isEdit);
 
   useEffect(() => {
-    setData(items);
+    if (!isEdit) {
+      setData(items);
+    }
   }, [items]);
 
   const isEditing = (record) => record.id === editingKey;

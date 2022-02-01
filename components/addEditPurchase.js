@@ -23,6 +23,9 @@ const AddEditPurchase = ({ purchase }) => {
   const selectItemListOnChange = useCallback((type) => setSelectedListType(type), [selectedListType]);
   const totalAmount = useMemo(() => sumItemsPrice(data), [data]);
 
+  const setDataHandler = (data) => {
+    setData(data);
+  };
   useEffect(() => {
     if (purchase) {
       const {
@@ -72,9 +75,10 @@ const AddEditPurchase = ({ purchase }) => {
     orderData.companyId = companyId;
     orderData.baleType = selectedListType;
     orderData.purchasedProducts = data.map((product) => {
-      const { itemName, noOfBales, ratePerBale, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs } = product;
+      const { itemName, noOfBales, ratePerBale, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs, id } = product;
       return {
         itemName,
+        id,
         noOfBales,
         ratePerBale,
         ...(baleWeightLbs && { baleWeightLbs }),
@@ -95,7 +99,6 @@ const AddEditPurchase = ({ purchase }) => {
       setLoading(false);
     }
   };
-
   return (
     <div>
       <Form form={form} layout="vertical" name="nest-messages" onFinish={onFinish} validateMessages={VALIDATE_MESSAGE}>
@@ -155,7 +158,13 @@ const AddEditPurchase = ({ purchase }) => {
 
         {companyId && selectedListType && (
           <>
-            <AddItemsInPo companyId={companyId} type={selectedListType} setData={setData} data={data} />
+            <AddItemsInPo
+              isEdit={purchase && true}
+              companyId={companyId}
+              type={selectedListType}
+              setData={setDataHandler}
+              data={data}
+            />
             <Form.Item>
               <Button loading={loading} type="primary" htmlType="submit">
                 {purchase ? "Update" : " Create"} Purchase

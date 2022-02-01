@@ -32,12 +32,12 @@ export const useItem = (id) => {
     error,
   };
 };
-export const useItemsByCompanyIdAndType = (companyId, type) => {
-  const { data, error } = useSWR(`/api/items?type=${type}&companyId=${companyId}`, get);
+export const useItemsByCompanyIdAndType = (companyId, type, isEdit = false) => {
+  const { data, error } = useSWR(isEdit ? null : `/api/items?type=${type}&companyId=${companyId}`, get);
 
   return {
     items: data?.rows,
-    isLoading: !error && !data,
+    isLoading: !error && !data && !isEdit,
     error,
   };
 };
