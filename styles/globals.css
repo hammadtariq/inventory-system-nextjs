@@ -33,9 +33,14 @@ a {
 .logo {
   float: left;
   width: 200px;
-  height: 31px;
-  margin: 16px 50px 16px 16px;
-  background: rgba(255, 255, 255, 0.3);
+  color: #f58748;
+  font-size: 24px;
+  font-family: sans-serif;
+  font-weight: 600;
+  font-style: oblique;
+  margin: 0 50px 0 16px;
+  text-transform: uppercase;
+  cursor: pointer;
 }
 
 .app_spinner {
