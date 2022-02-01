@@ -98,7 +98,7 @@ export default function AppNavbar() {
   };
 
   useEffect(() => {
-    const splitUrl = router.asPath.split("/").slice(1, router.asPath.length);
+    const splitUrl = router.pathname.split("/").slice(1, router.pathname.length);
     const activeItem = items.find((item) => {
       if (splitUrl.length > 0 && item.url === `/${splitUrl[0]}`) {
         return item;
@@ -106,7 +106,7 @@ export default function AppNavbar() {
     });
     const activeId = activeItem ? activeItem.id : items[0].id;
     setIsSelected(activeId);
-  }, [router]);
+  }, []);
 
   return (
     <>
