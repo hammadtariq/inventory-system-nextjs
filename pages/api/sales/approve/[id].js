@@ -45,8 +45,7 @@ const approveSaleOrder = async (req, res) => {
           companyId,
           onHand: {
             [db.Sequelize.Op.or]: {
-              [db.Sequelize.Op.gt]: noOfBales,
-              [db.Sequelize.Op.eq]: noOfBales,
+              [db.Sequelize.Op.gte]: noOfBales,
             },
           },
         },

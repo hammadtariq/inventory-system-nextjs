@@ -12,7 +12,7 @@ const inventorySchema = Joi.object().keys({
   baleWeightKgs: Joi.number(),
   ratePerLbs: Joi.number(),
   ratePerKgs: Joi.number(),
-  ratePerBale: Joi.number(),
+  ratePerBale: Joi.number().allow(null),
 });
 const apiSchema = Joi.object({
   companyId: Joi.number(),
