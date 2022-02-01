@@ -11,7 +11,6 @@ module.exports = {
       itemName: {
         type: Sequelize.STRING,
         allowNull: false,
-        unique: true,
         validate: {
           isLowercase: {
             msg: "Item Name must be lowercase",

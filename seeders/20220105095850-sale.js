@@ -3,7 +3,9 @@
 module.exports = {
   up: async (queryInterface) => {
     const customers = await queryInterface.sequelize.query(`SELECT id from customers;`);
+    const companies = await queryInterface.sequelize.query(`SELECT id from companies;`);
     const customersRows = customers[0];
+    const companiesRows = companies[0];
     await queryInterface.bulkInsert(
       "sales",
       [
@@ -14,6 +16,7 @@ module.exports = {
           soldProducts: JSON.stringify([
             {
               ratePerLbs: 50,
+              companyId: `${companiesRows[0].id}`,
               ratePerKgs: null,
               ratePerBale: 5,
               noOfBales: 60,
@@ -24,6 +27,7 @@ module.exports = {
             {
               ratePerLbs: null,
               ratePerKgs: 900,
+              companyId: `${companiesRows[1].id}`,
               ratePerBale: 80,
               noOfBales: 50,
               itemName: "inventory product",
@@ -45,6 +49,7 @@ module.exports = {
               ratePerKgs: 250,
               ratePerBale: 25,
               ratePerLbs: null,
+              companyId: `${companiesRows[0].id}`,
               noOfBales: 20,
               itemName: "inventory product",
               baleWeightLbs: null,
@@ -55,6 +60,7 @@ module.exports = {
               ratePerKgs: null,
               ratePerBale: 5,
               noOfBales: 60,
+              companyId: `${companiesRows[1].id}`,
               itemName: "testing first inventory",
               baleWeightLbs: 3,
               baleWeightKgs: null,
@@ -73,5 +79,6 @@ module.exports = {
   down: async (queryInterface) => {
     await queryInterface.bulkDelete("sales", null, {});
     await queryInterface.bulkDelete("customers", null, {});
+    await queryInterface.bulkDelete("companies", null, {});
   },
 };
