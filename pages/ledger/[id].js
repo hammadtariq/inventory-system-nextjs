@@ -18,7 +18,11 @@ const columns = [
     render: (text, _data) =>
       _data.customer ? (text ? `${text.firstName} ${text.lastName}` : "") : _data.otherName ? _data.otherName : "",
   },
-
+  {
+    title: "Invoice Number",
+    dataIndex: "invoiceNumber",
+    key: "invoiceNumber",
+  },
   {
     title: "Debit Amount (Rs)",
     dataIndex: "amount",

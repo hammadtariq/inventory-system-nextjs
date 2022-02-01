@@ -58,6 +58,7 @@ const approveSaleOrder = async (req, res) => {
         customerId,
         amount: totalAmount,
         spendType: SPEND_TYPE.CREDIT,
+        invoiceNumber: id,
       },
       { transaction: t }
     );

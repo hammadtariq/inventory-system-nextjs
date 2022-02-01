@@ -31,7 +31,7 @@ const approvePurchaseOrder = async (req, res) => {
     if (!purchase) {
       return res.status(404).send({ message: "purchase order not exist" });
     }
-    const { purchasedProducts, companyId, totalAmount } = purchase;
+    const { purchasedProducts, companyId, totalAmount, invoiceNumber } = purchase;
     for await (const product of purchasedProducts) {
       const { itemName, noOfBales, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs, ratePerBale } = product;
       const inventory = await db.Inventory.findOne({ where: { itemName }, transaction: t });
@@ -64,6 +64,7 @@ const approvePurchaseOrder = async (req, res) => {
         companyId,
         amount: totalAmount,
         spendType: SPEND_TYPE.CREDIT,
+        invoiceNumber,
       },
       { transaction: t }
     );

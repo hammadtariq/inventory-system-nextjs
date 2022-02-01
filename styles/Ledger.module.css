@@ -8,6 +8,7 @@
 .headingStyle {
   font-size: small;
   font-weight: bold;
+  margin-bottom: 10px;
 }
 .contentStyle {
   font-size: small;
@@ -30,4 +31,12 @@
 .radioButtonStyle {
   display: flex;
   justify-content: flex-end;
+}
+.companySelection {
+  text-align: right;
+}
+@media (max-width: 576px) {
+  .companySelection {
+    text-align: left;
+  }
 }
