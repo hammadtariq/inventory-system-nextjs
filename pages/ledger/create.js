@@ -94,7 +94,7 @@ const CreateTransaction = () => {
             },
           ]}
         >
-          <DatePicker style={{ width: "100%" }} disabledDate={(current) => current && current.valueOf() > Date.now()} />
+          <DatePicker style={{ width: "100%" }} />
         </Form.Item>
       </>
     );

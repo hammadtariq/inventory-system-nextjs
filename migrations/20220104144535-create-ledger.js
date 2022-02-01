@@ -32,6 +32,10 @@ module.exports = {
         type: Sequelize.FLOAT,
         allowNull: false,
       },
+      invoiceNumber: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
       paymentDate: {
         allowNull: true,
         type: Sequelize.DATE,
