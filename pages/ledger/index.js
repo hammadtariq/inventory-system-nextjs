@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { isEmpty } from "lodash";
+import _isEmpty from "lodash/isEmpty";
 import { Alert, Card, Empty, Radio, Row, Col } from "antd";
 import { useLedger } from "@/hooks/ledger";
 import styles from "@/styles/Ledger.module.css";
@@ -10,7 +10,7 @@ import AppCreateButton from "@/components/createButton";
 const Ledger = () => {
   const router = useRouter();
   const { query } = router;
-  const [type, setType] = useState(!isEmpty(query.type) ? query.type : "company");
+  const [type, setType] = useState(!_isEmpty(query.type) ? query.type : "company");
   const { transactions, totalBalance, error, isLoading } = useLedger(type);
 
   useEffect(() => {

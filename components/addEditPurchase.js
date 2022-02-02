@@ -2,6 +2,7 @@ import { useCallback, useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 import { Form, DatePicker, Button, Row, Col, Input } from "antd";
 import moment from "moment";
+import _isEmpty from "lodash/isEmpty";
 
 import SelectCompany from "@/components/selectCompany";
 import SelectItemList from "@/components/selectItemList";
@@ -18,10 +19,6 @@ const AddEditPurchase = ({ purchase }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
-
-  const selectCompanyOnChange = useCallback((id) => setCompanyId(id), [companyId]);
-  const selectItemListOnChange = useCallback((type) => setSelectedListType(type), [selectedListType]);
-  const totalAmount = useMemo(() => sumItemsPrice(data), [data]);
 
   useEffect(() => {
     if (purchase) {
@@ -64,6 +61,12 @@ const AddEditPurchase = ({ purchase }) => {
     });
   }, []);
 
+  const selectCompanyOnChange = useCallback((id) => setCompanyId(id), [companyId]);
+  const selectItemListOnChange = useCallback((type) => setSelectedListType(type), [selectedListType]);
+  const totalAmount = useMemo(() => sumItemsPrice(data), [data]);
+
+  const setDataHandler = useCallback((data) => setData(data), [data]);
+
   const onFinish = async (value) => {
     setLoading(true);
     const orderData = { ...value };
@@ -72,9 +75,10 @@ const AddEditPurchase = ({ purchase }) => {
     orderData.companyId = companyId;
     orderData.baleType = selectedListType;
     orderData.purchasedProducts = data.map((product) => {
-      const { itemName, noOfBales, ratePerBale, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs } = product;
+      const { itemName, noOfBales, ratePerBale, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs, id } = product;
       return {
         itemName,
+        id,
         noOfBales,
         ratePerBale,
         ...(baleWeightLbs && { baleWeightLbs }),
@@ -95,7 +99,6 @@ const AddEditPurchase = ({ purchase }) => {
       setLoading(false);
     }
   };
-
   return (
     <div>
       <Form form={form} layout="vertical" name="nest-messages" onFinish={onFinish} validateMessages={VALIDATE_MESSAGE}>
@@ -155,7 +158,13 @@ const AddEditPurchase = ({ purchase }) => {
 
         {companyId && selectedListType && (
           <>
-            <AddItemsInPo companyId={companyId} type={selectedListType} setData={setData} data={data} />
+            <AddItemsInPo
+              isEdit={!_isEmpty(purchase)}
+              companyId={companyId}
+              type={selectedListType}
+              setData={setDataHandler}
+              data={data}
+            />
             <Form.Item>
               <Button loading={loading} type="primary" htmlType="submit">
                 {purchase ? "Update" : " Create"} Purchase
