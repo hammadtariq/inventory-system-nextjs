@@ -2,7 +2,7 @@ import { useCallback, useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 import { Form, DatePicker, Button, Row, Col, Input } from "antd";
 import moment from "moment";
-import { isEmpty } from "lodash";
+import _isEmpty from "lodash/isEmpty";
 
 import SelectCompany from "@/components/selectCompany";
 import SelectItemList from "@/components/selectItemList";
@@ -159,7 +159,7 @@ const AddEditPurchase = ({ purchase }) => {
         {companyId && selectedListType && (
           <>
             <AddItemsInPo
-              isEdit={!isEmpty(purchase)}
+              isEdit={!_isEmpty(purchase)}
               companyId={companyId}
               type={selectedListType}
               setData={setDataHandler}
