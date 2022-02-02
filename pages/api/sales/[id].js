@@ -8,12 +8,13 @@ import { EDITABLE_STATUS } from "@/utils/api.util";
 
 const inventorySchema = Joi.object().keys({
   itemName: Joi.string().min(3).trim().lowercase(),
-  noOfBales: Joi.number(),
-  baleWeightLbs: Joi.number(),
-  baleWeightKgs: Joi.number(),
-  ratePerLbs: Joi.number(),
-  ratePerKgs: Joi.number(),
+  noOfBales: Joi.number().allow(null),
+  baleWeightLbs: Joi.number().allow(null),
+  baleWeightKgs: Joi.number().allow(null),
+  ratePerLbs: Joi.number().allow(null),
+  ratePerKgs: Joi.number().allow(null),
   companyId: Joi.number(),
+  id: Joi.number().required(),
 });
 const apiSchema = Joi.object({
   customerId: Joi.number(),

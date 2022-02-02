@@ -18,19 +18,8 @@ const AddEditSale = ({ sale }) => {
   const [loading, setLoading] = useState(false);
   const [customerId, setCustomerId] = useState(null);
   const [selectedProducts, setSelectedProducts] = useState([]);
-  const { inventory, error, isLoading } = useInventoryAttributes(["itemName", "id", "onHand"]);
+  const { inventory, error, isLoading } = useInventoryAttributes(["itemName", "id", "onHand", "companyId"]);
   const [form] = Form.useForm();
-
-  const selectCustomerOnChange = useCallback((id) => setCustomerId(id), [customerId]);
-  const totalAmount = useMemo(() => sumItemsPrice(selectedProducts), [selectedProducts]);
-
-  const selectProductsOnChange = useCallback(
-    (selectedId) => {
-      const selectedItem = inventory.filter((item) => selectedId.includes(item.id));
-      setSelectedProducts(selectedItem);
-    },
-    [inventory]
-  );
 
   useEffect(() => {
     if (sale) {
@@ -39,7 +28,7 @@ const AddEditSale = ({ sale }) => {
       form.setFieldsValue({
         soldDate: moment(soldDate),
         totalAmount,
-        selectedProduct: soldProducts.map((product) => product.itemName),
+        selectedProduct: soldProducts.map((product) => product.id),
       });
       setCustomerId(id);
       setSelectedProducts(soldProducts);
@@ -54,6 +43,17 @@ const AddEditSale = ({ sale }) => {
     form.setFieldsValue({ soldDate: sale?.soldDate ? moment(sale.soldDate) : moment() });
   }, []);
 
+  const selectCustomerOnChange = useCallback((id) => setCustomerId(id), [customerId]);
+  const totalAmount = useMemo(() => sumItemsPrice(selectedProducts), [selectedProducts]);
+
+  const selectProductsOnChange = useCallback(
+    (selectedId) => {
+      const selectedItem = inventory.filter((item) => selectedId.includes(item.id));
+      setSelectedProducts(selectedItem);
+    },
+    [inventory]
+  );
+
   const onFinish = async (value) => {
     setLoading(false);
     const orderData = { ...value };
@@ -61,11 +61,12 @@ const AddEditSale = ({ sale }) => {
     orderData.soldDate = orderData.soldDate.toISOString();
     orderData.customerId = customerId;
     orderData.soldProducts = selectedProducts.map((product) => {
-      const { itemName, noOfBales, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs } = product;
+      const { itemName, noOfBales, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs, id, companyId } = product;
       return {
         itemName,
         noOfBales,
-        companyId: product.company.id,
+        id,
+        companyId,
         ...(baleWeightLbs && { baleWeightLbs }),
         ...(baleWeightKgs && { baleWeightKgs }),
         ...(ratePerLbs && { ratePerLbs }),
