@@ -1,8 +1,7 @@
 import { Alert, Popconfirm, Button } from "antd";
 import { useRef, useState } from "react";
-import { CheckCircleOutlined, CloseCircleOutlined, EditOutlined } from "@ant-design/icons";
+import { CheckCircleOutlined, CloseCircleOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
-
 import { useSales, approveSale, cancelSale } from "@/hooks/sales";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import { STATUS_COLORS } from "@/utils/ui.util";
@@ -28,31 +27,31 @@ const Sales = () => {
     action: "edit",
   });
 
-  const expandedRowRender = (record) => {
-    const columns = [
-      {
-        title: "Item Name",
-        dataIndex: "itemName",
-        key: "itemName",
-        ...getColumnSearchProps({
-          dataIndex: "itemName",
-          dataIndexName: "item name",
-          searchInput,
-          searchText,
-          searchedColumn,
-          setSearchText,
-          setSearchedColumn,
-        }),
-      },
-      { title: "No of Bales", dataIndex: "noOfBales", key: "noOfBales" },
-      { title: "Bale Weight (LBS)", dataIndex: "baleWeightLbs", key: "baleWeightLbs", render: (text) => text ?? "N/A" },
-      { title: "Bale Weight (KGS)", dataIndex: "baleWeightKgs", key: "baleWeightKgs", render: (text) => text ?? "N/A" },
-      { title: "Rate per LBS (Rs)", dataIndex: "ratePerLbs", key: "ratePerLbs", render: (text) => text ?? "N/A" },
-      { title: "Rate per KGS (Rs)", dataIndex: "ratePerKgs", key: "ratePerKgs", render: (text) => text ?? "N/A" },
-      // { title: "Rate per Bale (Rs)", dataIndex: "ratePerBale", key: "ratePerBale" },
-    ];
-    return <AppTable columns={columns} dataSource={record.soldProducts} pagination={false} />;
-  };
+  // const expandedRowRender = (record) => {
+  //   const columns = [
+  //     {
+  //       title: "Item Name",
+  //       dataIndex: "itemName",
+  //       key: "itemName",
+  //       ...getColumnSearchProps({
+  //         dataIndex: "itemName",
+  //         dataIndexName: "item name",
+  //         searchInput,
+  //         searchText,
+  //         searchedColumn,
+  //         setSearchText,
+  //         setSearchedColumn,
+  //       }),
+  //     },
+  //     { title: "No of Bales", dataIndex: "noOfBales", key: "noOfBales" },
+  //     { title: "Bale Weight (LBS)", dataIndex: "baleWeightLbs", key: "baleWeightLbs", render: (text) => text ?? "N/A" },
+  //     { title: "Bale Weight (KGS)", dataIndex: "baleWeightKgs", key: "baleWeightKgs", render: (text) => text ?? "N/A" },
+  //     { title: "Rate per LBS (Rs)", dataIndex: "ratePerLbs", key: "ratePerLbs", render: (text) => text ?? "N/A" },
+  //     { title: "Rate per KGS (Rs)", dataIndex: "ratePerKgs", key: "ratePerKgs", render: (text) => text ?? "N/A" },
+  //     // { title: "Rate per Bale (Rs)", dataIndex: "ratePerBale", key: "ratePerBale" },
+  //   ];
+  //   return <AppTable columns={columns} dataSource={record.soldProducts} pagination={false} />;
+  // };
 
   const renderActions = (text, record) => {
     if (record.status === "PENDING" && canApprove) {
@@ -93,6 +92,16 @@ const Sales = () => {
   };
 
   const columns = [
+    {
+      title: "",
+      dataIndex: "id",
+      key: "id",
+      render: (_, record) => {
+        return (
+          <Button shape="circle" icon={<EyeOutlined />} onClick={() => router.push(`/sales/detail/${record.id}`)} />
+        );
+      },
+    },
     {
       title: "Customer Name",
       dataIndex: ["customer", "firstName"],
@@ -169,7 +178,7 @@ const Sales = () => {
         rowKey={"id"}
         className="components-table-demo-nested"
         columns={columns}
-        expandable={{ expandedRowRender: (record) => expandedRowRender(record) }}
+        // expandable={{ expandedRowRender: (record) => expandedRowRender(record) }}
         dataSource={sales ? sales.rows : []}
         pagination={true}
         paginationHandler={paginationHandler}

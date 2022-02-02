@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Popconfirm, Typography, Form } from "antd";
 
 import EditableCell from "@/components/editableCell";
 import styles from "@/styles/EditAbleTable.module.css";
 import AppTable from "./table";
 
-export default function UpdateSalesItems({ setSelectedProducts, data }) {
+export default function UpdateSalesItems({ setSelectedProducts, data, viewOnly = false }) {
   const [editingKey, setEditingKey] = useState("");
   const [form] = Form.useForm();
 
@@ -47,6 +47,35 @@ export default function UpdateSalesItems({ setSelectedProducts, data }) {
     } catch (errInfo) {
       console.log("Validate Failed:", errInfo);
     }
+  };
+
+  const getOperationColumn = () => {
+    return {
+      title: "operation",
+      dataIndex: "operation",
+      render: (_, record) => {
+        const editable = isEditing(record);
+        return editable ? (
+          <span>
+            <Typography.Link
+              onClick={() => save(record.id)}
+              style={{
+                marginRight: 8,
+              }}
+            >
+              Save
+            </Typography.Link>
+            <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
+              <a>Cancel</a>
+            </Popconfirm>
+          </span>
+        ) : (
+          <Typography.Link disabled={editingKey !== ""} onClick={() => edit(record)}>
+            Edit
+          </Typography.Link>
+        );
+      },
+    };
   };
 
   const columns = [
@@ -91,33 +120,9 @@ export default function UpdateSalesItems({ setSelectedProducts, data }) {
       editable: true,
       required: false,
     },
-    {
-      title: "operation",
-      dataIndex: "operation",
-      render: (_, record) => {
-        const editable = isEditing(record);
-        return editable ? (
-          <span>
-            <Typography.Link
-              onClick={() => save(record.id)}
-              style={{
-                marginRight: 8,
-              }}
-            >
-              Save
-            </Typography.Link>
-            <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
-              <a>Cancel</a>
-            </Popconfirm>
-          </span>
-        ) : (
-          <Typography.Link disabled={editingKey !== ""} onClick={() => edit(record)}>
-            Edit
-          </Typography.Link>
-        );
-      },
-    },
   ];
+
+  if (!viewOnly) columns.push(getOperationColumn());
 
   const mergedColumns = columns.map((col) => {
     if (!col.editable) {
