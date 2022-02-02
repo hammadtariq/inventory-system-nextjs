@@ -2,6 +2,7 @@ import { useCallback, useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 import { Form, DatePicker, Button, Row, Col, Input } from "antd";
 import moment from "moment";
+import { isEmpty } from "lodash";
 
 import SelectCompany from "@/components/selectCompany";
 import SelectItemList from "@/components/selectItemList";
@@ -19,13 +20,6 @@ const AddEditPurchase = ({ purchase }) => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
-  const selectCompanyOnChange = useCallback((id) => setCompanyId(id), [companyId]);
-  const selectItemListOnChange = useCallback((type) => setSelectedListType(type), [selectedListType]);
-  const totalAmount = useMemo(() => sumItemsPrice(data), [data]);
-
-  const setDataHandler = (data) => {
-    setData(data);
-  };
   useEffect(() => {
     if (purchase) {
       const {
@@ -66,6 +60,12 @@ const AddEditPurchase = ({ purchase }) => {
       purchaseDate: purchase?.purchaseDate ? moment(purchase?.purchaseDate) : moment(),
     });
   }, []);
+
+  const selectCompanyOnChange = useCallback((id) => setCompanyId(id), [companyId]);
+  const selectItemListOnChange = useCallback((type) => setSelectedListType(type), [selectedListType]);
+  const totalAmount = useMemo(() => sumItemsPrice(data), [data]);
+
+  const setDataHandler = useCallback((data) => setData(data), [data]);
 
   const onFinish = async (value) => {
     setLoading(true);
@@ -159,7 +159,7 @@ const AddEditPurchase = ({ purchase }) => {
         {companyId && selectedListType && (
           <>
             <AddItemsInPo
-              isEdit={purchase && true}
+              isEdit={!isEmpty(purchase)}
               companyId={companyId}
               type={selectedListType}
               setData={setDataHandler}
