@@ -17,6 +17,7 @@ module.exports = {
             {
               ratePerLbs: 50,
               companyId: `${companiesRows[0].id}`,
+              id: 1,
               ratePerKgs: null,
               ratePerBale: 5,
               noOfBales: 60,
@@ -27,6 +28,7 @@ module.exports = {
             {
               ratePerLbs: null,
               ratePerKgs: 900,
+              id: 2,
               companyId: `${companiesRows[1].id}`,
               ratePerBale: 80,
               noOfBales: 50,
@@ -48,6 +50,7 @@ module.exports = {
             {
               ratePerKgs: 250,
               ratePerBale: 25,
+              id: 2,
               ratePerLbs: null,
               companyId: `${companiesRows[0].id}`,
               noOfBales: 20,
@@ -58,6 +61,7 @@ module.exports = {
             {
               ratePerLbs: 50,
               ratePerKgs: null,
+              id: 1,
               ratePerBale: 5,
               noOfBales: 60,
               companyId: `${companiesRows[1].id}`,

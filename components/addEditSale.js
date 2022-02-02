@@ -21,6 +21,18 @@ const AddEditSale = ({ sale }) => {
   const { inventory, error, isLoading } = useInventoryAttributes(["itemName", "id", "onHand", "companyId"]);
   const [form] = Form.useForm();
 
+  const selectCustomerOnChange = useCallback((id) => setCustomerId(id), [customerId]);
+
+  const totalAmount = useMemo(() => sumItemsPrice(selectedProducts), [selectedProducts]);
+
+  const selectProductsOnChange = useCallback(
+    (selectedId) => {
+      const selectedItem = inventory.filter((item) => selectedId.includes(item.id));
+      setSelectedProducts(selectedItem);
+    },
+    [inventory]
+  );
+
   useEffect(() => {
     if (sale) {
       const { customer, soldDate, soldProducts, totalAmount } = sale;
@@ -42,17 +54,6 @@ const AddEditSale = ({ sale }) => {
   useEffect(() => {
     form.setFieldsValue({ soldDate: sale?.soldDate ? moment(sale.soldDate) : moment() });
   }, []);
-
-  const selectCustomerOnChange = useCallback((id) => setCustomerId(id), [customerId]);
-  const totalAmount = useMemo(() => sumItemsPrice(selectedProducts), [selectedProducts]);
-
-  const selectProductsOnChange = useCallback(
-    (selectedId) => {
-      const selectedItem = inventory.filter((item) => selectedId.includes(item.id));
-      setSelectedProducts(selectedItem);
-    },
-    [inventory]
-  );
 
   const onFinish = async (value) => {
     setLoading(false);
