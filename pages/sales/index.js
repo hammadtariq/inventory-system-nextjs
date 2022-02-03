@@ -93,13 +93,11 @@ const Sales = () => {
 
   const columns = [
     {
-      title: "",
+      title: "View",
       dataIndex: "id",
       key: "id",
       render: (_, record) => {
-        return (
-          <Button shape="circle" icon={<EyeOutlined />} onClick={() => router.push(`/sales/detail/${record.id}`)} />
-        );
+        return <EyeOutlined onClick={() => router.push(`/sales/${record.id}?type=view`)} />;
       },
     },
     {
