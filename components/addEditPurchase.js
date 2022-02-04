@@ -7,18 +7,21 @@ import _isEmpty from "lodash/isEmpty";
 import SelectCompany from "@/components/selectCompany";
 import SelectItemList from "@/components/selectItemList";
 import AddItemsInPo from "@/components/addItemsInPo";
-
-import { createPurchaseOrder, updatePurchaseOrder } from "@/hooks/purchase";
-import { DATE_FORMAT, VALIDATE_MESSAGE, DATE_PICKER_CONFIG, sumItemsPrice } from "@/utils/ui.util";
 import AppBackButton from "@/components/backButton";
 
-const AddEditPurchase = ({ purchase }) => {
+import { createPurchaseOrder, updatePurchaseOrder } from "@/hooks/purchase";
+import { DATE_FORMAT, VALIDATE_MESSAGE, sumItemsPrice } from "@/utils/ui.util";
+import { EditOutlined } from "@ant-design/icons";
+import { EDITABLE_STATUS } from "@/utils/api.util";
+
+const AddEditPurchase = ({ purchase, type = null }) => {
   const router = useRouter();
   const [companyId, setCompanyId] = useState(null);
   const [selectedListType, setSelectedListType] = useState(null);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
+  const isView = type === "view";
 
   useEffect(() => {
     if (purchase) {
@@ -47,6 +50,8 @@ const AddEditPurchase = ({ purchase }) => {
     }
   }, [purchase]);
 
+  const totalAmount = useMemo(() => sumItemsPrice(data), [data]);
+
   // update total amount value useing form field
   useEffect(() => {
     form.setFieldsValue({
@@ -63,8 +68,6 @@ const AddEditPurchase = ({ purchase }) => {
 
   const selectCompanyOnChange = useCallback((id) => setCompanyId(id), [companyId]);
   const selectItemListOnChange = useCallback((type) => setSelectedListType(type), [selectedListType]);
-  const totalAmount = useMemo(() => sumItemsPrice(data), [data]);
-
   const setDataHandler = useCallback((data) => setData(data), [data]);
 
   const onFinish = async (value) => {
@@ -104,18 +107,18 @@ const AddEditPurchase = ({ purchase }) => {
       <Form form={form} layout="vertical" name="nest-messages" onFinish={onFinish} validateMessages={VALIDATE_MESSAGE}>
         <Row gutter={24}>
           <Col span={8}>
-            <Form.Item label="Select Company">
+            <Form.Item label="Company">
               <SelectCompany
-                disabled={purchase && true}
+                disabled={isView || (purchase && true)}
                 defaultValue={purchase && purchase.company.id}
                 selectCompanyOnChange={selectCompanyOnChange}
               />
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item label="Select List Type">
+            <Form.Item label="List Type">
               <SelectItemList
-                disabled={purchase && true}
+                disabled={isView || (purchase && true)}
                 defaultValue={purchase && purchase.baleType}
                 selectItemListOnChange={selectItemListOnChange}
               />
@@ -131,25 +134,26 @@ const AddEditPurchase = ({ purchase }) => {
                 },
               ]}
             >
-              <Input type="number" readOnly />
+              <Input type="number" disabled={isView} readOnly />
             </Form.Item>
           </Col>
           <Col span={8}>
             <Form.Item name="invoiceNumber" label="Invoice No">
-              <Input type="text" />
+              <Input type="text" disabled={isView} />
             </Form.Item>
           </Col>
           <Col span={8}>
             <Form.Item name="surCharge" label="Sur Charge (RS)">
-              <Input type="number" />
+              <Input type="number" disabled={isView} />
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item label="Select PO Date" name="purchaseDate">
+            <Form.Item label="PO Date" name="purchaseDate">
               <DatePicker
                 style={{ width: "100%" }}
                 disabledDate={(current) => current && current.valueOf() > Date.now()}
                 format={DATE_FORMAT}
+                disabled={isView}
                 // defaultValue={moment()}
               />
             </Form.Item>
@@ -157,22 +161,28 @@ const AddEditPurchase = ({ purchase }) => {
         </Row>
 
         {companyId && selectedListType && (
-          <>
-            <AddItemsInPo
-              isEdit={!_isEmpty(purchase)}
-              companyId={companyId}
-              type={selectedListType}
-              setData={setDataHandler}
-              data={data}
-            />
-            <Form.Item>
-              <Button loading={loading} type="primary" htmlType="submit">
-                {purchase ? "Update" : " Create"} Purchase
-              </Button>
-            </Form.Item>
-          </>
+          <AddItemsInPo
+            isEdit={!_isEmpty(purchase)}
+            companyId={companyId}
+            type={selectedListType}
+            setData={setDataHandler}
+            data={data}
+            viewOnly={isView}
+          />
         )}
-        <AppBackButton />
+        <Form.Item>
+          <AppBackButton />
+          {!isView && (
+            <Button loading={loading} type="primary" htmlType="submit" disabled={!companyId && !selectedListType}>
+              {purchase ? "Update" : " Create"} Purchase
+            </Button>
+          )}
+          {isView && EDITABLE_STATUS.includes(purchase?.status) && (
+            <Button icon={<EditOutlined />} type="primary" onClick={() => router.push(`/purchase/${purchase.id}`)}>
+              Edit
+            </Button>
+          )}
+        </Form.Item>
       </Form>
     </div>
   );

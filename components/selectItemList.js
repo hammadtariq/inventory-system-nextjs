@@ -7,7 +7,7 @@ const { Option } = Select;
 
 export default memo(function SelectItemList({ selectItemListOnChange, ...props }) {
   return (
-    <Select {...props} onChange={selectItemListOnChange}>
+    <Select {...props} placeholder="Select List Type" onChange={selectItemListOnChange}>
       {ITEMS_LIST.map((val) => (
         <Option key={val} value={val}>
           {val}
