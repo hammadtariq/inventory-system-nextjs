@@ -2,11 +2,13 @@ import { useRouter } from "next/router";
 import { useRef, useState } from "react";
 import { Alert, Popconfirm, Button } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
 
 import { useCustomers, deleteCustomer } from "@/hooks/customers";
 import permissionsUtil from "@/utils/permission.util";
 import styles from "@/styles/Customer.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
+import { DATE_TIME_FORMAT } from "@/utils/ui.util";
 import AppTitle from "@/components/title";
 import AppCreateButton from "@/components/createButton";
 import AppTable from "@/components/table";
@@ -107,14 +109,9 @@ export default function Customers() {
       key: "address",
     },
     {
-      title: "Created At",
-      dataIndex: "createdAt",
-      render: (text) => new Date(text).toLocaleString(),
-    },
-    {
       title: "Updated At",
       dataIndex: "updatedAt",
-      render: (text) => new Date(text).toLocaleString(),
+      render: (text) => dayjs(text).format(DATE_TIME_FORMAT),
     },
     {
       title: "Action",

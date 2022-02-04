@@ -1,8 +1,10 @@
 import { Alert } from "antd";
 import { useRef, useState } from "react";
+import dayjs from "dayjs";
 
 import { useInventory } from "@/hooks/inventory";
 import { getColumnSearchProps } from "@/utils/filter.util";
+import { DATE_TIME_FORMAT } from "@/utils/ui.util";
 import AppTitle from "@/components/title";
 import AppTable from "@/components/table";
 
@@ -51,14 +53,9 @@ const Inventory = () => {
     { title: "On Hand", dataIndex: "onHand", key: "onHand" },
     { title: "Rate per Bale (Rs)", dataIndex: "ratePerBale", key: "ratePerBale" },
     {
-      title: "Created At",
-      dataIndex: "createdAt",
-      render: (text) => new Date(text).toLocaleString(),
-    },
-    {
       title: "Updated At",
       dataIndex: "updatedAt",
-      render: (text) => new Date(text).toLocaleString(),
+      render: (text) => dayjs(text).format(DATE_TIME_FORMAT),
     },
   ];
 

@@ -1,14 +1,15 @@
-import moment from "moment";
 import { useCallback, useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/router";
-import { Form, DatePicker, Button, Row, Col, Input, Select, Alert } from "antd";
+import { Form, Button, Row, Col, Input, Select, Alert } from "antd";
+import dayjs from "dayjs";
 
 import AppBackButton from "@/components/backButton";
 import SelectCustomer from "@/components/selectCustomer";
 import UpdateSalesItems from "@/components/updateSaleItems";
+import DatePicker from "@/components/datePicker";
 
 import { useInventoryAttributes } from "@/hooks/inventory";
-import { DATE_FORMAT, VALIDATE_MESSAGE, DATE_PICKER_CONFIG, sumItemsPrice } from "@/utils/ui.util";
+import { DATE_FORMAT, VALIDATE_MESSAGE, sumItemsPrice } from "@/utils/ui.util";
 import { createSale, updateSale } from "@/hooks/sales";
 
 const { Option } = Select;
@@ -23,8 +24,6 @@ const AddEditSale = ({ sale }) => {
 
   const selectCustomerOnChange = useCallback((id) => setCustomerId(id), [customerId]);
 
-  const totalAmount = useMemo(() => sumItemsPrice(selectedProducts), [selectedProducts]);
-
   const selectProductsOnChange = useCallback(
     (selectedId) => {
       const selectedItem = inventory.filter((item) => selectedId.includes(item.id));
@@ -32,13 +31,14 @@ const AddEditSale = ({ sale }) => {
     },
     [inventory]
   );
+  const totalAmount = useMemo(() => sumItemsPrice(selectedProducts), [selectedProducts]);
 
   useEffect(() => {
     if (sale) {
       const { customer, soldDate, soldProducts, totalAmount } = sale;
       const { id } = customer;
       form.setFieldsValue({
-        soldDate: moment(soldDate),
+        soldDate: dayjs(soldDate),
         totalAmount,
         selectedProduct: soldProducts.map((product) => product.id),
       });
@@ -52,7 +52,7 @@ const AddEditSale = ({ sale }) => {
   }, [totalAmount]);
 
   useEffect(() => {
-    form.setFieldsValue({ soldDate: sale?.soldDate ? moment(sale.soldDate) : moment() });
+    form.setFieldsValue({ soldDate: sale?.soldDate ? dayjs(sale.soldDate) : dayjs() });
   }, []);
 
   const onFinish = async (value) => {
@@ -111,7 +111,7 @@ const AddEditSale = ({ sale }) => {
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item label="Select Sales Date" name="soldDate" {...DATE_PICKER_CONFIG}>
+            <Form.Item label="Select Sales Date" name="soldDate">
               <DatePicker
                 style={{ width: "100%" }}
                 disabledDate={(current) => current && current.valueOf() > Date.now()}
