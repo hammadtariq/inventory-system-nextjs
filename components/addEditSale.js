@@ -25,13 +25,10 @@ const AddEditSale = ({ sale }) => {
 
   const totalAmount = useMemo(() => sumItemsPrice(selectedProducts), [selectedProducts]);
 
-  const selectProductsOnChange = useCallback(
-    (selectedId) => {
-      const selectedItem = inventory.filter((item) => selectedId.includes(item.id));
-      setSelectedProducts(selectedItem);
-    },
-    [inventory]
-  );
+  const selectProductsOnChange = useCallback((selectedId) => {
+    const selectedItem = inventory.filter((item) => selectedId.includes(item.id));
+    setSelectedProducts(selectedItem);
+  }, []);
 
   useEffect(() => {
     if (sale) {

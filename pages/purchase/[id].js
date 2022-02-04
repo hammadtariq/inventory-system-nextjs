@@ -1,24 +1,25 @@
 import { Spin, Alert } from "antd";
+import { usePurchaseOrder } from "@/hooks/purchase";
 
 import AddEditPurchase from "@/components/addEditPurchase";
 import AppTitle from "@/components/title";
-import { usePurchaseOrder } from "@/hooks/purchase";
 
-function Update({ id }) {
+function Update({ id, type }) {
   const { purchase, error, isLoading } = usePurchaseOrder(id);
   if (error) return <Alert message={error} type="error" />;
+
   return (
     <div>
-      <AppTitle level={2}>Update Purchase Order</AppTitle>
-      {isLoading ? <Spin size="large" /> : <AddEditPurchase purchase={purchase} />}
+      <AppTitle level={2}>{type === "view" ? `Purchase Order` : "Update Purchase Order"}</AppTitle>
+      {isLoading ? <Spin size="large" /> : <AddEditPurchase purchase={purchase} type={type} />}
     </div>
   );
 }
 
 export default Update;
 
-export async function getServerSideProps({ params }) {
+export async function getServerSideProps({ query }) {
   return {
-    props: { id: params.id },
+    props: query,
   };
 }

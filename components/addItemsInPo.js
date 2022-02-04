@@ -5,7 +5,7 @@ import { useItemsByCompanyIdAndType } from "@/hooks/items";
 import EditableCell from "@/components/editableCell";
 import styles from "@/styles/EditAbleTable.module.css";
 
-export default function AddItemsInPo({ companyId, type, setData, data, isEdit }) {
+export default function AddItemsInPo({ companyId, type, setData, data, isEdit, viewOnly = false }) {
   const [editingKey, setEditingKey] = useState("");
   const [form] = Form.useForm();
   const { items, isLoading, error } = useItemsByCompanyIdAndType(companyId, type, isEdit);
@@ -57,6 +57,36 @@ export default function AddItemsInPo({ companyId, type, setData, data, isEdit })
     }
   };
 
+  const getOperationColumn = () => {
+    return {
+      title: "operation",
+      dataIndex: "operation",
+      width: "20%",
+      render: (_, record) => {
+        const editable = isEditing(record);
+        return editable ? (
+          <span>
+            <Typography.Link
+              onClick={() => save(record.id)}
+              style={{
+                marginRight: 8,
+              }}
+            >
+              Save
+            </Typography.Link>
+            <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
+              <a>Cancel</a>
+            </Popconfirm>
+          </span>
+        ) : (
+          <Typography.Link disabled={editingKey !== ""} onClick={() => edit(record)}>
+            Edit
+          </Typography.Link>
+        );
+      },
+    };
+  };
+
   const columns = [
     {
       title: "Item Name",
@@ -99,35 +129,10 @@ export default function AddItemsInPo({ companyId, type, setData, data, isEdit })
       editable: true,
       required: false,
     },
-    {
-      title: "operation",
-      dataIndex: "operation",
-      render: (_, record) => {
-        const editable = isEditing(record);
-        return editable ? (
-          <span>
-            <Typography.Link
-              onClick={() => save(record.id)}
-              style={{
-                marginRight: 8,
-              }}
-            >
-              Save
-            </Typography.Link>
-            <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
-              <a>Cancel</a>
-            </Popconfirm>
-          </span>
-        ) : (
-          <Typography.Link disabled={editingKey !== ""} onClick={() => edit(record)}>
-            Edit
-          </Typography.Link>
-        );
-      },
-    },
   ];
+
   if (type === "SMALL_BALES") {
-    columns.splice(columns.length - 1, 0, {
+    columns.push({
       title: "Rate Per Bale",
       dataIndex: "ratePerBale",
       width: "17%",
@@ -135,6 +140,9 @@ export default function AddItemsInPo({ companyId, type, setData, data, isEdit })
       required: true,
     });
   }
+
+  if (!viewOnly) columns.push(getOperationColumn());
+
   const mergedColumns = columns.map((col) => {
     if (!col.editable) {
       return col;
