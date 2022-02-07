@@ -1,18 +1,19 @@
-import { Alert, Popconfirm, Button } from "antd";
+import { Alert, Popconfirm } from "antd";
 import { useRef, useState } from "react";
 import { useRouter } from "next/router";
-import { CheckCircleOutlined, CloseCircleOutlined, EditOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
+import { CheckOutlined, CloseOutlined, EditOutlined } from "@ant-design/icons";
 
 import { usePurchaseOrders, approvePurchase, cancelPurchase } from "@/hooks/purchase";
 
-import styles from "@/styles/Purchase.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
-import { STATUS_COLORS } from "@/utils/ui.util";
+import { STATUS_COLORS, DATE_FORMAT } from "@/utils/ui.util";
 import { EDITABLE_STATUS } from "@/utils/api.util";
 import permissionsUtil from "@/utils/permission.util";
 import AppTitle from "@/components/title";
 import AppCreateButton from "@/components/createButton";
 import AppTable from "@/components/table";
+import NextLink from "next/link";
 
 const PurchaseOrders = () => {
   const { purchaseOrders, error, isLoading, paginationHandler, mutate } = usePurchaseOrders();
@@ -26,36 +27,36 @@ const PurchaseOrders = () => {
     action: "approve",
   });
 
-  const canEdit = permissionsUtil.checkAuth({
-    category: "purchase",
-    action: "edit",
-  });
+  // const canEdit = permissionsUtil.checkAuth({
+  //   category: "purchase",
+  //   action: "edit",
+  // });
 
-  const expandedRowRender = (record) => {
-    const columns = [
-      {
-        title: "Item Name",
-        dataIndex: "itemName",
-        key: "itemName",
-        ...getColumnSearchProps({
-          dataIndex: "itemName",
-          dataIndexName: "item name",
-          searchInput,
-          searchText,
-          searchedColumn,
-          setSearchText,
-          setSearchedColumn,
-        }),
-      },
-      { title: "No of Bales", dataIndex: "noOfBales", key: "noOfBales" },
-      { title: "Bale Weight (LBS)", dataIndex: "baleWeightLbs", key: "baleWeightLbs", render: (text) => text ?? "N/A" },
-      { title: "Bale Weight (KGS)", dataIndex: "baleWeightKgs", key: "baleWeightKgs", render: (text) => text ?? "N/A" },
-      { title: "Rate per LBS (Rs)", dataIndex: "ratePerLgs", key: "ratePerLgs", render: (text) => text ?? "N/A" },
-      { title: "Rate per KGS (Rs)", dataIndex: "ratePerKgs", key: "ratePerKgs", render: (text) => text ?? "N/A" },
-      { title: "Rate per Bale (Rs)", dataIndex: "ratePerBale", key: "ratePerBale" },
-    ];
-    return <AppTable columns={columns} dataSource={record.purchasedProducts} pagination={false} />;
-  };
+  // const expandedRowRender = (record) => {
+  //   const columns = [
+  //     {
+  //       title: "Item Name",
+  //       dataIndex: "itemName",
+  //       key: "itemName",
+  //       ...getColumnSearchProps({
+  //         dataIndex: "itemName",
+  //         dataIndexName: "item name",
+  //         searchInput,
+  //         searchText,
+  //         searchedColumn,
+  //         setSearchText,
+  //         setSearchedColumn,
+  //       }),
+  //     },
+  //     { title: "No of Bales", dataIndex: "noOfBales", key: "noOfBales" },
+  //     { title: "Bale Weight (LBS)", dataIndex: "baleWeightLbs", key: "baleWeightLbs", render: (text) => text ?? "N/A" },
+  //     { title: "Bale Weight (KGS)", dataIndex: "baleWeightKgs", key: "baleWeightKgs", render: (text) => text ?? "N/A" },
+  //     { title: "Rate per LBS (Rs)", dataIndex: "ratePerLgs", key: "ratePerLgs", render: (text) => text ?? "N/A" },
+  //     { title: "Rate per KGS (Rs)", dataIndex: "ratePerKgs", key: "ratePerKgs", render: (text) => text ?? "N/A" },
+  //     { title: "Rate per Bale (Rs)", dataIndex: "ratePerBale", key: "ratePerBale" },
+  //   ];
+  //   return <AppTable columns={columns} dataSource={record.purchasedProducts} pagination={false} />;
+  // };
 
   const renderActions = (text, record) => {
     if (record.status === "PENDING" && canApprove) {
@@ -70,7 +71,7 @@ const PurchaseOrders = () => {
             okText="Yes"
             cancelText="No"
           >
-            <CheckCircleOutlined style={{ color: STATUS_COLORS.APPROVED }} className={styles.cancelBtn} />
+            <CheckOutlined style={{ color: STATUS_COLORS.APPROVED }} className="cancelBtn" />
           </Popconfirm>
           <Popconfirm
             title="Are you sure for cancel?"
@@ -81,19 +82,37 @@ const PurchaseOrders = () => {
             okText="Yes"
             cancelText="No"
           >
-            <CloseCircleOutlined style={{ color: STATUS_COLORS.CANCEL }} className={styles.approveBtn} />
+            <CloseOutlined style={{ color: STATUS_COLORS.CANCEL }} className="approveBtn" />
           </Popconfirm>
+          <EditOutlined
+            style={{ color: STATUS_COLORS.EDIT }}
+            className="editBtn"
+            onClick={() => router.push(`/purchase/${text.id}`)}
+          />
         </>
       );
-    } else if (EDITABLE_STATUS.includes(record.status) && canEdit) {
+    } else if (EDITABLE_STATUS.includes(record.status)) {
       return (
-        <Button onClick={() => router.push(`/purchase/${text.id}`)} icon={<EditOutlined />}>
-          Edit
-        </Button>
+        <EditOutlined
+          style={{ color: STATUS_COLORS.EDIT }}
+          className="editBtn"
+          onClick={() => router.push(`/purchase/${text.id}`)}
+        />
       );
     }
+    // else if (EDITABLE_STATUS.includes(record.status) && canEdit)
   };
   const columns = [
+    {
+      title: "Id",
+      dataIndex: "id",
+      key: "id",
+      render: (_, record) => (
+        <NextLink href={`/purchase/${record.id}?type=view`} passHref>
+          <a>{record.id}</a>
+        </NextLink>
+      ),
+    },
     {
       title: "Company Name",
       dataIndex: ["company", "companyName"],
@@ -118,13 +137,13 @@ const PurchaseOrders = () => {
       title: "Purchase Date",
       dataIndex: "purchaseDate",
       key: "purchaseDate",
-      render: (text) => new Date(text).toLocaleString(),
+      render: (text) => dayjs(text).format(DATE_FORMAT),
     },
     {
       title: "Updated At",
       dataIndex: "updatedAt",
       key: "updatedAt",
-      render: (text) => new Date(text).toLocaleString(),
+      render: (text) => dayjs(text).format(DATE_FORMAT),
     },
     {
       title: "Status",
@@ -167,7 +186,7 @@ const PurchaseOrders = () => {
         rowKey={"id"}
         className="components-table-demo-nested"
         columns={columns}
-        expandable={{ expandedRowRender: (record) => expandedRowRender(record) }}
+        // expandable={{ expandedRowRender: (record) => expandedRowRender(record) }}
         dataSource={purchaseOrders ? purchaseOrders.rows : []}
         pagination={true}
         paginationHandler={paginationHandler}

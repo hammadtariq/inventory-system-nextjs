@@ -86,14 +86,15 @@ a {
   margin: 0 !important;
 }
 
+.editBtn,
+.approveBtn,
 .cancelBtn {
-  margin-left: 5px;
-  font-size: 25px;
-}
-.approveBtn {
-  margin-top: 5px;
-  margin-left: 5px;
-  font-size: 25px;
+  font-size: 16px;
+  border: 2px solid;
+  padding: 4px;
+  border-radius: 100%;
+  margin-left: 4px;
+  margin-bottom: 5px;
 }
 
 @media (min-width: 993px) {

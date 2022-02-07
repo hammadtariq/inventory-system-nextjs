@@ -1,10 +1,12 @@
 import { Alert, Popconfirm, Button } from "antd";
 import { useRef, useState } from "react";
-import { CheckCircleOutlined, CloseCircleOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
+import { CheckOutlined, CloseOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
+import dayjs from "dayjs";
+
 import { useSales, approveSale, cancelSale } from "@/hooks/sales";
 import { getColumnSearchProps } from "@/utils/filter.util";
-import { STATUS_COLORS } from "@/utils/ui.util";
+import { STATUS_COLORS, DATE_FORMAT } from "@/utils/ui.util";
 import { EDITABLE_STATUS } from "@/utils/api.util";
 import permissionsUtil from "@/utils/permission.util";
 import AppTitle from "@/components/title";
@@ -66,7 +68,7 @@ const Sales = () => {
             okText="Yes"
             cancelText="No"
           >
-            <CheckCircleOutlined style={{ color: STATUS_COLORS.APPROVED }} className="cancelBtn" />
+            <CheckOutlined style={{ color: STATUS_COLORS.APPROVED }} className="cancelBtn" />
           </Popconfirm>
           <Popconfirm
             title="Are you sure you want to cancel?"
@@ -77,7 +79,7 @@ const Sales = () => {
             okText="Yes"
             cancelText="No"
           >
-            <CloseCircleOutlined style={{ color: STATUS_COLORS.CANCEL }} className="approveBtn" />
+            <CloseOutlined style={{ color: STATUS_COLORS.CANCEL }} className="approveBtn" />
           </Popconfirm>
         </>
       );
@@ -121,19 +123,13 @@ const Sales = () => {
       title: "Sold Date",
       dataIndex: "soldDate",
       key: "soldDate",
-      render: (text) => new Date(text).toLocaleString(),
-    },
-    {
-      title: "Created At",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      render: (text) => new Date(text).toLocaleString(),
+      render: (text) => dayjs(text).format(DATE_FORMAT),
     },
     {
       title: "Updated At",
       dataIndex: "updatedAt",
       key: "updatedAt",
-      render: (text) => new Date(text).toLocaleString(),
+      render: (text) => dayjs(text).format(DATE_FORMAT),
     },
     {
       title: "Status",

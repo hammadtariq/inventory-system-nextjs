@@ -22,20 +22,13 @@ export const ITEMS_LIST = ["SMALL_BALES", "BIG_BALES"];
 
 export const DATE_FORMAT = "DD-MM-YYYY";
 
-export const DATE_PICKER_CONFIG = {
-  rules: [
-    {
-      type: "object",
-      required: false,
-      message: "Please select time!",
-    },
-  ],
-};
+export const DATE_TIME_FORMAT = "DD-MM-YYYY HH:MM A";
 
 export const STATUS_COLORS = {
   PENDING: "#FFC900",
   APPROVED: "#4E9F3D",
   CANCEL: "#F05454",
+  EDIT: "#f58748",
 };
 
 export const CHEQUE_STATUS_COLORS = {
