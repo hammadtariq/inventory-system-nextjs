@@ -1,7 +1,7 @@
 import { useCallback, useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
-import { Form, DatePicker, Button, Row, Col, Input } from "antd";
-import moment from "moment";
+import { Form, Button, Row, Col, Input } from "antd";
+import dayjs from "dayjs";
 import _isEmpty from "lodash/isEmpty";
 
 import SelectCompany from "@/components/selectCompany";
@@ -11,6 +11,7 @@ import AppBackButton from "@/components/backButton";
 
 import { createPurchaseOrder, updatePurchaseOrder } from "@/hooks/purchase";
 import { DATE_FORMAT, VALIDATE_MESSAGE, sumItemsPrice } from "@/utils/ui.util";
+import DatePicker from "@/components/datePicker";
 import { EditOutlined } from "@ant-design/icons";
 import { EDITABLE_STATUS } from "@/utils/api.util";
 
@@ -22,6 +23,12 @@ const AddEditPurchase = ({ purchase, type = null }) => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const isView = type === "view";
+
+  const selectCompanyOnChange = useCallback((id) => setCompanyId(id), [companyId]);
+  const setDataHandler = useCallback((data) => setData(data), [data]);
+  const selectItemListOnChange = useCallback((type) => setSelectedListType(type), [selectedListType]);
+
+  const totalAmount = useMemo(() => sumItemsPrice(data), [data]);
 
   useEffect(() => {
     if (purchase) {
@@ -41,7 +48,7 @@ const AddEditPurchase = ({ purchase, type = null }) => {
         invoiceNumber,
         surCharge,
         totalAmount,
-        purchaseDate: moment(purchaseDate),
+        purchaseDate: dayjs(purchaseDate),
       });
 
       setData(purchasedProducts);
@@ -49,8 +56,6 @@ const AddEditPurchase = ({ purchase, type = null }) => {
       setSelectedListType(baleType);
     }
   }, [purchase]);
-
-  const totalAmount = useMemo(() => sumItemsPrice(data), [data]);
 
   // update total amount value useing form field
   useEffect(() => {
@@ -62,19 +67,15 @@ const AddEditPurchase = ({ purchase, type = null }) => {
   // to set default and previous date in form
   useEffect(() => {
     form.setFieldsValue({
-      purchaseDate: purchase?.purchaseDate ? moment(purchase?.purchaseDate) : moment(),
+      purchaseDate: purchase?.purchaseDate ? dayjs(purchase?.purchaseDate) : dayjs(),
     });
   }, []);
-
-  const selectCompanyOnChange = useCallback((id) => setCompanyId(id), [companyId]);
-  const selectItemListOnChange = useCallback((type) => setSelectedListType(type), [selectedListType]);
-  const setDataHandler = useCallback((data) => setData(data), [data]);
 
   const onFinish = async (value) => {
     setLoading(true);
     const orderData = { ...value };
 
-    orderData.purchaseDate = orderData.purchaseDate ? moment(orderData.purchaseDate) : moment();
+    orderData.purchaseDate = orderData.purchaseDate ? dayjs(orderData.purchaseDate) : dayjs();
     orderData.companyId = companyId;
     orderData.baleType = selectedListType;
     orderData.purchasedProducts = data.map((product) => {
@@ -153,8 +154,8 @@ const AddEditPurchase = ({ purchase, type = null }) => {
                 style={{ width: "100%" }}
                 disabledDate={(current) => current && current.valueOf() > Date.now()}
                 format={DATE_FORMAT}
+                // defaultValue={dayjs()}
                 disabled={isView}
-                // defaultValue={moment()}
               />
             </Form.Item>
           </Col>

@@ -2,11 +2,13 @@ import { useRouter } from "next/router";
 import { useRef, useState } from "react";
 import { Alert, Button, Popconfirm } from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
 
 import { useCompanies, deleteCompany } from "@/hooks/company";
 import styles from "@/styles/Company.module.css";
 import permissionsUtil from "@/utils/permission.util";
 import { getColumnSearchProps } from "@/utils/filter.util";
+import { DATE_TIME_FORMAT } from "@/utils/ui.util";
 import AppTitle from "@/components/title";
 import AppCreateButton from "@/components/createButton";
 import AppTable from "@/components/table";
@@ -85,14 +87,9 @@ const Company = () => {
       render: (text) => text ?? "N/A",
     },
     {
-      title: "Created At",
-      dataIndex: "createdAt",
-      render: (text) => new Date(text).toLocaleString(),
-    },
-    {
       title: "Updated At",
       dataIndex: "updatedAt",
-      render: (text) => new Date(text).toLocaleString(),
+      render: (text) => dayjs(text).format(DATE_TIME_FORMAT),
     },
     {
       title: "Action",

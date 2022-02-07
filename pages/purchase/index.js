@@ -1,12 +1,13 @@
 import { Alert, Popconfirm } from "antd";
 import { useRef, useState } from "react";
 import { useRouter } from "next/router";
+import dayjs from "dayjs";
 import { CheckOutlined, CloseOutlined, EditOutlined } from "@ant-design/icons";
 
 import { usePurchaseOrders, approvePurchase, cancelPurchase } from "@/hooks/purchase";
 
 import { getColumnSearchProps } from "@/utils/filter.util";
-import { STATUS_COLORS } from "@/utils/ui.util";
+import { STATUS_COLORS, DATE_FORMAT } from "@/utils/ui.util";
 import { EDITABLE_STATUS } from "@/utils/api.util";
 import permissionsUtil from "@/utils/permission.util";
 import AppTitle from "@/components/title";
@@ -136,13 +137,13 @@ const PurchaseOrders = () => {
       title: "Purchase Date",
       dataIndex: "purchaseDate",
       key: "purchaseDate",
-      render: (text) => new Date(text).toLocaleString(),
+      render: (text) => dayjs(text).format(DATE_FORMAT),
     },
     {
       title: "Updated At",
       dataIndex: "updatedAt",
       key: "updatedAt",
-      render: (text) => new Date(text).toLocaleString(),
+      render: (text) => dayjs(text).format(DATE_FORMAT),
     },
     {
       title: "Status",

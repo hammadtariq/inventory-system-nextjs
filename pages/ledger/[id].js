@@ -1,7 +1,10 @@
 import { Alert } from "antd";
+import dayjs from "dayjs";
+
 import { useLedgerDetails } from "@/hooks/ledger";
 import styles from "@/styles/Ledger.module.css";
 import { SPEND_TYPE } from "@/utils/api.util";
+import { DATE_FORMAT } from "@/utils/ui.util";
 import AppTable from "@/components/table";
 
 const columns = [
@@ -44,7 +47,7 @@ const columns = [
     title: "Paid At",
     dataIndex: "paymentDate",
     key: "paymentDate",
-    render: (text) => (text ? new Date(text).toDateString() : ""),
+    render: (text) => (text ? dayjs(text).format(DATE_FORMAT) : ""),
   },
 ];
 

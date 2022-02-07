@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
-import { Button, Form, Input, Radio, DatePicker, Select } from "antd";
+import { Button, Form, Input, Radio, Select } from "antd";
+import dayjs from "dayjs";
+
 import { VALIDATE_MESSAGE, LAYOUT } from "@/utils/ui.util";
 import permissionsUtil from "@/utils/permission.util";
 import { createPayment } from "../../hooks/ledger";
 import { useCompanyAttributes } from "@/hooks/company";
 import { useCustomerAttributes } from "@/hooks/customers";
 import AppBackButton from "@/components/backButton";
+import DatePicker from "@/components/datePicker";
 import { SPEND_TYPE, PAYMENT_TYPE } from "@/utils/api.util";
 
 const canCreate = permissionsUtil.checkAuth({
@@ -39,7 +42,7 @@ const CreateTransaction = () => {
       let params = {
         totalAmount,
         spendType: SPEND_TYPE.DEBIT,
-        paymentDate: new Date(paymentDate),
+        paymentDate: dayjs(paymentDate),
         paymentType,
         otherName: companyId === -1 || customerId === -1 ? otherName : "",
       };
