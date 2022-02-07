@@ -28,6 +28,7 @@ export const STATUS_COLORS = {
   PENDING: "#FFC900",
   APPROVED: "#4E9F3D",
   CANCEL: "#F05454",
+  EDIT: "#f58748",
 };
 
 export const CHEQUE_STATUS_COLORS = {

@@ -1,6 +1,6 @@
 import { Alert, Popconfirm, Button } from "antd";
 import { useRef, useState } from "react";
-import { CheckCircleOutlined, CloseCircleOutlined, EditOutlined } from "@ant-design/icons";
+import { CheckOutlined, CloseOutlined, EditOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
 
@@ -68,7 +68,7 @@ const Sales = () => {
             okText="Yes"
             cancelText="No"
           >
-            <CheckCircleOutlined style={{ color: STATUS_COLORS.APPROVED }} className="cancelBtn" />
+            <CheckOutlined style={{ color: STATUS_COLORS.APPROVED }} className="cancelBtn" />
           </Popconfirm>
           <Popconfirm
             title="Are you sure you want to cancel?"
@@ -79,7 +79,7 @@ const Sales = () => {
             okText="Yes"
             cancelText="No"
           >
-            <CloseCircleOutlined style={{ color: STATUS_COLORS.CANCEL }} className="approveBtn" />
+            <CloseOutlined style={{ color: STATUS_COLORS.CANCEL }} className="approveBtn" />
           </Popconfirm>
         </>
       );
