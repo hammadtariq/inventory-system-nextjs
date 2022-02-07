@@ -12,11 +12,13 @@ import { useInventoryAttributes } from "@/hooks/inventory";
 import { DATE_FORMAT, VALIDATE_MESSAGE, sumItemsPrice } from "@/utils/ui.util";
 import { createSale, updateSale } from "@/hooks/sales";
 import { EditOutlined } from "@ant-design/icons";
+import { EDITABLE_STATUS } from "@/utils/api.util";
 
 const { Option } = Select;
 
 const AddEditSale = ({ sale, type = null }) => {
   const router = useRouter();
+  const isView = type === "view";
   const [loading, setLoading] = useState(false);
   const [customerId, setCustomerId] = useState(null);
   const [selectedProducts, setSelectedProducts] = useState([]);
@@ -98,7 +100,7 @@ const AddEditSale = ({ sale, type = null }) => {
               <SelectCustomer
                 defaultValue={sale && sale.customer.id}
                 selectCustomerOnChange={selectCustomerOnChange}
-                disabled={type === "view"}
+                disabled={isView}
               />
             </Form.Item>
           </Col>
@@ -112,16 +114,16 @@ const AddEditSale = ({ sale, type = null }) => {
                 },
               ]}
             >
-              <Input type="number" defaultValue={totalAmount} value={totalAmount} readOnly disabled={type === "view"} />
+              <Input type="number" defaultValue={totalAmount} value={totalAmount} readOnly disabled={isView} />
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item label="Sales Date" name="soldDate" {...DATE_PICKER_CONFIG}>
+            <Form.Item label="Sales Date" name="soldDate">
               <DatePicker
                 style={{ width: "100%" }}
                 disabledDate={(current) => current && current.valueOf() > Date.now()}
                 format={DATE_FORMAT}
-                disabled={type === "view"}
+                disabled={isView}
               />
             </Form.Item>
           </Col>
@@ -135,7 +137,7 @@ const AddEditSale = ({ sale, type = null }) => {
                 allowClear
                 onChange={selectProductsOnChange}
                 filterOption={(input, option) => option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}
-                disabled={type === "view"}
+                disabled={isView}
               >
                 {inventory &&
                   inventory.map((obj) => (
@@ -148,26 +150,22 @@ const AddEditSale = ({ sale, type = null }) => {
           </Col>
           {customerId && !!selectedProducts.length && (
             <Col span={24}>
-              <UpdateSalesItems
-                setSelectedProducts={setSelectedProducts}
-                data={selectedProducts}
-                viewOnly={type === "view"}
-              />
+              <UpdateSalesItems setSelectedProducts={setSelectedProducts} data={selectedProducts} viewOnly={isView} />
             </Col>
           )}
           <Col span={24}>
             <Form.Item>
               <AppBackButton />
-              {type !== "view" ? (
+              {!isView ? (
                 <Button loading={loading} type="primary" htmlType="submit">
                   {sale ? "Update" : "Create"} Sale
                 </Button>
               ) : null}
-              {type === "view" && (
+              {EDITABLE_STATUS.includes(sale.status) && isView ? (
                 <Button icon={<EditOutlined />} type="primary" onClick={() => router.push(`/sales/${sale.id}`)}>
                   Edit
                 </Button>
-              )}
+              ) : null}
             </Form.Item>
           </Col>
         </Row>

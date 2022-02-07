@@ -11,12 +11,14 @@ export const adminPermissions = {
 
   purchase_approve: true,
 
+  purchase_edit: true,
+
   item_create: true,
   item_edit: true,
   item_delete: true,
 
   sales_approve: true,
-  sales_edit: false,
+  sales_edit: true,
 
   cheques_approve: true,
 };

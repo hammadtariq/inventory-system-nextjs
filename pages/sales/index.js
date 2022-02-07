@@ -1,6 +1,7 @@
 import { Alert, Popconfirm, Button } from "antd";
 import { useRef, useState } from "react";
-import { CheckOutlined, CloseOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
+import { CheckOutlined, CloseOutlined, EditOutlined, EditFilled } from "@ant-design/icons";
+import NextLink from "next/link";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
 
@@ -22,11 +23,6 @@ const Sales = () => {
   const canApprove = permissionsUtil.checkAuth({
     category: "sales",
     action: "approve",
-  });
-
-  const canEdit = permissionsUtil.checkAuth({
-    category: "sales",
-    action: "edit",
   });
 
   // const expandedRowRender = (record) => {
@@ -81,25 +77,37 @@ const Sales = () => {
           >
             <CloseOutlined style={{ color: STATUS_COLORS.CANCEL }} className="approveBtn" />
           </Popconfirm>
+
+          <EditOutlined
+            style={{ color: STATUS_COLORS.EDIT }}
+            className="editBtn"
+            onClick={() => router.push(`/sales/${text.id}`)}
+          />
         </>
       );
-    } else if (EDITABLE_STATUS.includes(record.status) && canEdit) {
+    } else if (EDITABLE_STATUS.includes(record.status)) {
       return (
-        <Button onClick={() => router.push(`/sales/${text.id}`)} icon={<EditOutlined />}>
-          Edit
-        </Button>
+        <EditOutlined
+          style={{ color: STATUS_COLORS.EDIT }}
+          className="editBtn"
+          onClick={() => router.push(`/sales/${text.id}`)}
+        />
       );
     }
-    return null;
   };
 
   const columns = [
     {
-      title: "View",
+      title: "Invoice Number",
       dataIndex: "id",
       key: "id",
       render: (_, record) => {
-        return <EyeOutlined onClick={() => router.push(`/sales/${record.id}?type=view`)} />;
+        return (
+          <NextLink href={`/sales/${record.id}?type=view`} passHref>
+            <a>{record.id}</a>
+          </NextLink>
+        );
+        // <EyeOutlined onClick={() => router.push(`/sales/${record.id}?type=view`)} />;
       },
     },
     {

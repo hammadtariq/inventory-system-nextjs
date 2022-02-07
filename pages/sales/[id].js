@@ -3,24 +3,18 @@ import { Spin, Alert } from "antd";
 import AddEditSale from "@/components/addEditSale";
 import AppTitle from "@/components/title";
 import { useSale } from "@/hooks/sales";
-import permissionsUtil from "@/utils/permission.util";
+import { STATUS } from "@/utils/api.util";
 
 function Update({ id, type }) {
-  const canApprove = permissionsUtil.checkAuth({
-    category: "sales",
-    action: "approve",
-  });
+  const isView = type === "view";
 
-  const canEdit = permissionsUtil.checkAuth({
-    category: "sales",
-    action: "edit",
-  });
   const { sale, error, isLoading } = useSale(id);
   if (error) return <Alert message={error} type="error" />;
-  if (!canEdit && type !== "view") return <Alert message={"Not authorized to view this page"} type="error" />;
+  if (!isLoading && sale.status === STATUS.APPROVED && !isView)
+    return <Alert message={"Operation not allowed"} type="error" />;
   return (
     <div>
-      <AppTitle level={2}>{type === "view" ? `Sale Order #${id}` : "Update Sale Order"}</AppTitle>
+      <AppTitle level={2}>{isView ? `Sale Order #${id}` : "Update Sale Order"}</AppTitle>
       {isLoading ? <Spin size="large" /> : <AddEditSale sale={sale} type={type} />}
     </div>
   );
