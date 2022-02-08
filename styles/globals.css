@@ -96,6 +96,15 @@ a {
   margin-left: 4px;
   margin-bottom: 5px;
 }
+/* .editBtn {
+  margin-top: 5px;
+  margin-left: 5px;
+  border: 2px solid #f58748;
+  border-radius: 50%;
+  padding: 3px;
+  font-size: 15px;
+  color: #f58748;
+} */
 
 @media (min-width: 993px) {
   .drawer {

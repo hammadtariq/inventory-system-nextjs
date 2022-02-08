@@ -1,6 +1,7 @@
 import { Alert, Popconfirm, Button } from "antd";
 import { useRef, useState } from "react";
-import { CheckOutlined, CloseOutlined, EditOutlined } from "@ant-design/icons";
+import { CheckOutlined, CloseOutlined, EditOutlined, EditFilled } from "@ant-design/icons";
+import NextLink from "next/link";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
 
@@ -24,36 +25,31 @@ const Sales = () => {
     action: "approve",
   });
 
-  const canEdit = permissionsUtil.checkAuth({
-    category: "sales",
-    action: "edit",
-  });
-
-  const expandedRowRender = (record) => {
-    const columns = [
-      {
-        title: "Item Name",
-        dataIndex: "itemName",
-        key: "itemName",
-        ...getColumnSearchProps({
-          dataIndex: "itemName",
-          dataIndexName: "item name",
-          searchInput,
-          searchText,
-          searchedColumn,
-          setSearchText,
-          setSearchedColumn,
-        }),
-      },
-      { title: "No of Bales", dataIndex: "noOfBales", key: "noOfBales" },
-      { title: "Bale Weight (LBS)", dataIndex: "baleWeightLbs", key: "baleWeightLbs", render: (text) => text ?? "N/A" },
-      { title: "Bale Weight (KGS)", dataIndex: "baleWeightKgs", key: "baleWeightKgs", render: (text) => text ?? "N/A" },
-      { title: "Rate per LBS (Rs)", dataIndex: "ratePerLbs", key: "ratePerLbs", render: (text) => text ?? "N/A" },
-      { title: "Rate per KGS (Rs)", dataIndex: "ratePerKgs", key: "ratePerKgs", render: (text) => text ?? "N/A" },
-      // { title: "Rate per Bale (Rs)", dataIndex: "ratePerBale", key: "ratePerBale" },
-    ];
-    return <AppTable columns={columns} dataSource={record.soldProducts} pagination={false} />;
-  };
+  // const expandedRowRender = (record) => {
+  //   const columns = [
+  //     {
+  //       title: "Item Name",
+  //       dataIndex: "itemName",
+  //       key: "itemName",
+  //       ...getColumnSearchProps({
+  //         dataIndex: "itemName",
+  //         dataIndexName: "item name",
+  //         searchInput,
+  //         searchText,
+  //         searchedColumn,
+  //         setSearchText,
+  //         setSearchedColumn,
+  //       }),
+  //     },
+  //     { title: "No of Bales", dataIndex: "noOfBales", key: "noOfBales" },
+  //     { title: "Bale Weight (LBS)", dataIndex: "baleWeightLbs", key: "baleWeightLbs", render: (text) => text ?? "N/A" },
+  //     { title: "Bale Weight (KGS)", dataIndex: "baleWeightKgs", key: "baleWeightKgs", render: (text) => text ?? "N/A" },
+  //     { title: "Rate per LBS (Rs)", dataIndex: "ratePerLbs", key: "ratePerLbs", render: (text) => text ?? "N/A" },
+  //     { title: "Rate per KGS (Rs)", dataIndex: "ratePerKgs", key: "ratePerKgs", render: (text) => text ?? "N/A" },
+  //     // { title: "Rate per Bale (Rs)", dataIndex: "ratePerBale", key: "ratePerBale" },
+  //   ];
+  //   return <AppTable columns={columns} dataSource={record.soldProducts} pagination={false} />;
+  // };
 
   const renderActions = (text, record) => {
     if (record.status === "PENDING" && canApprove) {
@@ -81,19 +77,39 @@ const Sales = () => {
           >
             <CloseOutlined style={{ color: STATUS_COLORS.CANCEL }} className="approveBtn" />
           </Popconfirm>
+
+          <EditOutlined
+            style={{ color: STATUS_COLORS.EDIT }}
+            className="editBtn"
+            onClick={() => router.push(`/sales/${text.id}`)}
+          />
         </>
       );
-    } else if (EDITABLE_STATUS.includes(record.status) && canEdit) {
+    } else if (EDITABLE_STATUS.includes(record.status)) {
       return (
-        <Button onClick={() => router.push(`/sales/${text.id}`)} icon={<EditOutlined />}>
-          Edit
-        </Button>
+        <EditOutlined
+          style={{ color: STATUS_COLORS.EDIT }}
+          className="editBtn"
+          onClick={() => router.push(`/sales/${text.id}`)}
+        />
       );
     }
-    return null;
   };
 
   const columns = [
+    {
+      title: "Invoice Number",
+      dataIndex: "id",
+      key: "id",
+      render: (_, record) => {
+        return (
+          <NextLink href={`/sales/${record.id}?type=view`} passHref>
+            <a>{record.id}</a>
+          </NextLink>
+        );
+        // <EyeOutlined onClick={() => router.push(`/sales/${record.id}?type=view`)} />;
+      },
+    },
     {
       title: "Customer Name",
       dataIndex: ["customer", "firstName"],
@@ -164,7 +180,7 @@ const Sales = () => {
         rowKey={"id"}
         className="components-table-demo-nested"
         columns={columns}
-        expandable={{ expandedRowRender: (record) => expandedRowRender(record) }}
+        // expandable={{ expandedRowRender: (record) => expandedRowRender(record) }}
         dataSource={sales ? sales.rows : []}
         pagination={true}
         paginationHandler={paginationHandler}
