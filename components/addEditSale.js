@@ -22,19 +22,35 @@ const AddEditSale = ({ sale, type = null }) => {
   const [loading, setLoading] = useState(false);
   const [customerId, setCustomerId] = useState(null);
   const [selectedProducts, setSelectedProducts] = useState([]);
+  const [updatedProducts, setUpdatedProducts] = useState([]);
   const { inventory, error, isLoading } = useInventoryAttributes(["itemName", "id", "onHand", "companyId"]);
   const [form] = Form.useForm();
+
+  useEffect(() => {
+    setUpdatedProducts(inventory);
+  }, [inventory]);
 
   const selectCustomerOnChange = useCallback((id) => setCustomerId(id), [customerId]);
 
   const selectProductsOnChange = useCallback(
     (selectedId) => {
-      const selectedItem = inventory.filter((item) => selectedId.includes(item.id));
+      const selectedItem = updatedProducts.filter((item) => selectedId.includes(item.id));
       setSelectedProducts(selectedItem);
     },
-    [inventory]
+    [updatedProducts]
   );
   const totalAmount = useMemo(() => sumItemsPrice(selectedProducts), [selectedProducts]);
+
+  const onRemove = (id) => {
+    const index = updatedProducts.findIndex((item) => id === item.id);
+    const item = updatedProducts[index];
+    delete item.noOfBales;
+    delete item.ratePerKgs;
+    delete item.baleWeightKgs;
+    delete item.baleWeightLbs;
+    delete item.ratePerLbs;
+    updatedProducts.splice(index, 1, { ...item });
+  };
 
   useEffect(() => {
     if (sale) {
@@ -136,11 +152,12 @@ const AddEditSale = ({ sale, type = null }) => {
                 placeholder="Search to Select Products"
                 allowClear
                 onChange={selectProductsOnChange}
+                onDeselect={onRemove}
                 filterOption={(input, option) => option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}
                 disabled={isView}
               >
-                {inventory &&
-                  inventory.map((obj) => (
+                {updatedProducts &&
+                  updatedProducts.map((obj) => (
                     <Option key={obj.id} value={obj.id}>
                       {`${obj.itemName} (${obj.company.companyName})`}
                     </Option>
@@ -150,7 +167,13 @@ const AddEditSale = ({ sale, type = null }) => {
           </Col>
           {customerId && !!selectedProducts.length && (
             <Col span={24}>
-              <UpdateSalesItems setSelectedProducts={setSelectedProducts} data={selectedProducts} viewOnly={isView} />
+              <UpdateSalesItems
+                setSelectedProducts={setSelectedProducts}
+                data={selectedProducts}
+                updatedProducts={updatedProducts}
+                setUpdatedProducts={setUpdatedProducts}
+                viewOnly={isView}
+              />
             </Col>
           )}
           <Col span={24}>
@@ -161,7 +184,7 @@ const AddEditSale = ({ sale, type = null }) => {
                   {sale ? "Update" : "Create"} Sale
                 </Button>
               ) : null}
-              {EDITABLE_STATUS.includes(sale.status) && isView ? (
+              {EDITABLE_STATUS.includes(sale?.status) && isView ? (
                 <Button icon={<EditOutlined />} type="primary" onClick={() => router.push(`/sales/${sale.id}`)}>
                   Edit
                 </Button>
