@@ -49,11 +49,13 @@ const AddEditSale = ({ sale, type = null }) => {
     delete item.baleWeightKgs;
     delete item.baleWeightLbs;
     delete item.ratePerLbs;
-    updatedProducts.splice(index, 1, { ...item });
+    const newData = [...updatedProducts];
+    newData.splice(index, 1, { ...item });
+    setUpdatedProducts(newData);
   };
 
   useEffect(() => {
-    if (sale) {
+    if (sale && inventory) {
       const { customer, soldDate, soldProducts, totalAmount } = sale;
       const { id } = customer;
       form.setFieldsValue({
@@ -61,10 +63,19 @@ const AddEditSale = ({ sale, type = null }) => {
         totalAmount,
         selectedProduct: soldProducts.map((product) => product.id),
       });
+      const _soldProducts = soldProducts.reduce((acc, product) => {
+        acc[product.id] = product;
+        return acc;
+      }, {});
+      const updatedItems = inventory.map((item) => {
+        if (_soldProducts[item.id]) return { ..._soldProducts[item.id], company: item.company };
+        return item;
+      });
       setCustomerId(id);
       setSelectedProducts(soldProducts);
+      setUpdatedProducts(updatedItems);
     }
-  }, [sale]);
+  }, [sale, inventory]);
 
   useEffect(() => {
     form.setFieldsValue({ totalAmount });
