@@ -5,7 +5,13 @@ import EditableCell from "@/components/editableCell";
 import styles from "@/styles/EditAbleTable.module.css";
 import AppTable from "./table";
 
-export default function UpdateSalesItems({ setSelectedProducts, data, viewOnly = false }) {
+export default function UpdateSalesItems({
+  setSelectedProducts,
+  data,
+  updatedProducts,
+  setUpdatedProducts,
+  viewOnly = false,
+}) {
   const [editingKey, setEditingKey] = useState("");
   const [form] = Form.useForm();
 
@@ -32,20 +38,25 @@ export default function UpdateSalesItems({ setSelectedProducts, data, viewOnly =
     try {
       const row = await form.validateFields();
       const newData = [...data];
-      const index = newData.findIndex((item) => key === item.id);
-
-      if (index > -1) {
-        const item = newData[index];
-        newData.splice(index, 1, { ...item, ...row });
-        setSelectedProducts(newData);
-        setEditingKey("");
-      } else {
-        newData.push(row);
-        setSelectedProducts(newData);
-        setEditingKey("");
-      }
+      const updatedData = [...updatedProducts];
+      saveIndividual(key, newData, setSelectedProducts, row);
+      saveIndividual(key, updatedData, setUpdatedProducts, row);
+      setEditingKey("");
     } catch (errInfo) {
       console.log("Validate Failed:", errInfo);
+    }
+  };
+
+  const saveIndividual = (key, data, setData, row) => {
+    const newData = [...data];
+    const index = newData.findIndex((item) => key === item.id);
+    if (index > -1) {
+      const item = newData[index];
+      newData.splice(index, 1, { ...item, ...row });
+      setData(newData);
+    } else {
+      newData.push(row);
+      setData(newData);
     }
   };
 
