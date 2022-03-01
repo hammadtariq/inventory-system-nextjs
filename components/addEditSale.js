@@ -1,18 +1,18 @@
-import { useCallback, useState, useMemo, useEffect } from "react";
-import { useRouter } from "next/router";
-import { Form, Button, Row, Col, Input, Select, Alert } from "antd";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+import { Alert, Button, Col, Form, Input, Row, Select } from "antd";
 import dayjs from "dayjs";
+import { useRouter } from "next/router";
 
 import AppBackButton from "@/components/backButton";
+import DatePicker from "@/components/datePicker";
 import SelectCustomer from "@/components/selectCustomer";
 import UpdateSalesItems from "@/components/updateSaleItems";
-import DatePicker from "@/components/datePicker";
-
 import { useInventoryAttributes } from "@/hooks/inventory";
-import { DATE_FORMAT, VALIDATE_MESSAGE, sumItemsPrice } from "@/utils/ui.util";
 import { createSale, updateSale } from "@/hooks/sales";
-import { EditOutlined } from "@ant-design/icons";
 import { EDITABLE_STATUS } from "@/utils/api.util";
+import { DATE_FORMAT, sumItemsPrice, VALIDATE_MESSAGE } from "@/utils/ui.util";
+import { EditOutlined } from "@ant-design/icons";
 
 const { Option } = Select;
 
@@ -49,6 +49,7 @@ const AddEditSale = ({ sale, type = null }) => {
     delete item.baleWeightKgs;
     delete item.baleWeightLbs;
     delete item.ratePerLbs;
+    delete item.ratePerBale;
     const newData = [...updatedProducts];
     newData.splice(index, 1, { ...item });
     setUpdatedProducts(newData);
@@ -92,7 +93,8 @@ const AddEditSale = ({ sale, type = null }) => {
     orderData.soldDate = orderData.soldDate.toISOString();
     orderData.customerId = customerId;
     orderData.soldProducts = selectedProducts.map((product) => {
-      const { itemName, noOfBales, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs, id, companyId } = product;
+      const { itemName, noOfBales, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs, id, companyId, ratePerBale } =
+        product;
       return {
         itemName,
         noOfBales,
@@ -102,6 +104,7 @@ const AddEditSale = ({ sale, type = null }) => {
         ...(baleWeightKgs && { baleWeightKgs }),
         ...(ratePerLbs && { ratePerLbs }),
         ...(ratePerKgs && { ratePerKgs }),
+        ...(ratePerBale && { ratePerBale }),
       };
     });
     try {

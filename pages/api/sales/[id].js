@@ -3,8 +3,7 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
-import { STATUS } from "@/utils/api.util";
-import { EDITABLE_STATUS } from "@/utils/api.util";
+import { EDITABLE_STATUS, STATUS } from "@/utils/api.util";
 
 const inventorySchema = Joi.object().keys({
   itemName: Joi.string().min(3).trim().lowercase(),
@@ -13,6 +12,7 @@ const inventorySchema = Joi.object().keys({
   baleWeightKgs: Joi.number().allow(null),
   ratePerLbs: Joi.number().allow(null),
   ratePerKgs: Joi.number().allow(null),
+  ratePerBale: Joi.number().allow(null),
   companyId: Joi.number(),
   id: Joi.number().required(),
 });

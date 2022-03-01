@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { Popconfirm, Typography, Form } from "antd";
+
+import { Form, Popconfirm, Typography } from "antd";
 
 import EditableCell from "@/components/editableCell";
 import styles from "@/styles/EditAbleTable.module.css";
+
 import AppTable from "./table";
 
 export default function UpdateSalesItems({
@@ -25,6 +27,7 @@ export default function UpdateSalesItems({
       baleWeightKgs: "",
       ratePerLbs: "",
       ratePerKgs: "",
+      ratePerBale: "",
       ...record,
     });
     setEditingKey(record.id);
@@ -127,6 +130,13 @@ export default function UpdateSalesItems({
     {
       title: "Rate Per (KGS)",
       dataIndex: "ratePerKgs",
+      width: "10%",
+      editable: true,
+      required: false,
+    },
+    {
+      title: "Rate Per Bale",
+      dataIndex: "ratePerBale",
       width: "10%",
       editable: true,
       required: false,
