@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/router";
+
 import { Button, Form, Input, InputNumber } from "antd";
+import { useRouter } from "next/router";
 
 import SelectCompany from "@/components/selectCompany";
 import SelectItemList from "@/components/selectItemList";
 import { createItem, updateItem } from "@/hooks/items";
-import { VALIDATE_MESSAGE, LAYOUT } from "@/utils/ui.util";
 import permissionsUtil from "@/utils/permission.util";
+import { VALIDATE_MESSAGE } from "@/utils/ui.util";
+
 import AppBackButton from "./backButton";
 
 const AddEditItem = ({ item }) => {
@@ -52,7 +54,7 @@ const AddEditItem = ({ item }) => {
   };
 
   return (
-    <Form form={form} {...LAYOUT} name="nest-messages" onFinish={onFinish} validateMessages={VALIDATE_MESSAGE}>
+    <Form form={form} layout="vertical" name="nest-messages" onFinish={onFinish} validateMessages={VALIDATE_MESSAGE}>
       <Form.Item
         label="Select Company"
         rules={[
@@ -120,7 +122,7 @@ const AddEditItem = ({ item }) => {
           <InputNumber />
         </Form.Item>
       )}
-      <Form.Item wrapperCol={{ ...LAYOUT.wrapperCol, offset: 2 }}>
+      <Form.Item className="action-btn">
         <AppBackButton />
         <Button type="primary" htmlType="submit" loading={loading} disabled={!canCreate}>
           Submit

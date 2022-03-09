@@ -86,6 +86,11 @@ a {
   margin: 0 !important;
 }
 
+.action-btn {
+  padding: 20px 0 !important;
+  text-align: right;
+}
+
 .editBtn,
 .approveBtn,
 .cancelBtn {

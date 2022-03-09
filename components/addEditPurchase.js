@@ -1,19 +1,19 @@
-import { useCallback, useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/router";
-import { Form, Button, Row, Col, Input } from "antd";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+import { Button, Col, Form, Input, Row } from "antd";
 import dayjs from "dayjs";
 import _isEmpty from "lodash/isEmpty";
+import { useRouter } from "next/router";
 
-import SelectCompany from "@/components/selectCompany";
-import SelectItemList from "@/components/selectItemList";
 import AddItemsInPo from "@/components/addItemsInPo";
 import AppBackButton from "@/components/backButton";
-
-import { createPurchaseOrder, updatePurchaseOrder } from "@/hooks/purchase";
-import { DATE_FORMAT, VALIDATE_MESSAGE, sumItemsPrice } from "@/utils/ui.util";
 import DatePicker from "@/components/datePicker";
-import { EditOutlined } from "@ant-design/icons";
+import SelectCompany from "@/components/selectCompany";
+import SelectItemList from "@/components/selectItemList";
+import { createPurchaseOrder, updatePurchaseOrder } from "@/hooks/purchase";
 import { EDITABLE_STATUS } from "@/utils/api.util";
+import { DATE_FORMAT, sumItemsPrice, VALIDATE_MESSAGE } from "@/utils/ui.util";
+import { EditOutlined } from "@ant-design/icons";
 
 const AddEditPurchase = ({ purchase, type = null }) => {
   const router = useRouter();
@@ -171,7 +171,7 @@ const AddEditPurchase = ({ purchase, type = null }) => {
             viewOnly={isView}
           />
         )}
-        <Form.Item>
+        <Form.Item className="action-btn">
           <AppBackButton />
           {!isView && (
             <Button loading={loading} type="primary" htmlType="submit" disabled={!companyId && !selectedListType}>

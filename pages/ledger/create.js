@@ -1,16 +1,18 @@
 import { useState } from "react";
-import { useRouter } from "next/router";
+
 import { Button, Form, Input, Radio, Select } from "antd";
 import dayjs from "dayjs";
+import { useRouter } from "next/router";
 
-import { VALIDATE_MESSAGE, LAYOUT } from "@/utils/ui.util";
-import permissionsUtil from "@/utils/permission.util";
-import { createPayment } from "../../hooks/ledger";
-import { useCompanyAttributes } from "@/hooks/company";
-import { useCustomerAttributes } from "@/hooks/customers";
 import AppBackButton from "@/components/backButton";
 import DatePicker from "@/components/datePicker";
-import { SPEND_TYPE, PAYMENT_TYPE } from "@/utils/api.util";
+import { useCompanyAttributes } from "@/hooks/company";
+import { useCustomerAttributes } from "@/hooks/customers";
+import { PAYMENT_TYPE, SPEND_TYPE } from "@/utils/api.util";
+import permissionsUtil from "@/utils/permission.util";
+import { VALIDATE_MESSAGE } from "@/utils/ui.util";
+
+import { createPayment } from "../../hooks/ledger";
 
 const canCreate = permissionsUtil.checkAuth({
   category: "transaction",
@@ -107,7 +109,7 @@ const CreateTransaction = () => {
     <div>
       <h2>Create Transaction</h2>
 
-      <Form {...LAYOUT} name="nest-messages" onFinish={onFinish} validateMessages={VALIDATE_MESSAGE}>
+      <Form layout="vertical" name="nest-messages" onFinish={onFinish} validateMessages={VALIDATE_MESSAGE}>
         <Form.Item name="paymentType" label="Payment Type">
           <Radio.Group onChange={onChange} defaultValue={PAYMENT_TYPE.CASH} value={paymentType}>
             <Radio value={PAYMENT_TYPE.CASH}>Cash</Radio>
@@ -209,7 +211,7 @@ const CreateTransaction = () => {
           <DatePicker style={{ width: "100%" }} disabledDate={(current) => current && current.valueOf() > Date.now()} />
         </Form.Item>
 
-        <Form.Item wrapperCol={{ ...LAYOUT.wrapperCol, offset: 2 }}>
+        <Form.Item className="action-btn">
           <AppBackButton />
           <Button type="primary" htmlType="submit" loading={loading} disabled={!canCreate}>
             Create

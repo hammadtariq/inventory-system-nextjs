@@ -191,7 +191,7 @@ const AddEditSale = ({ sale, type = null }) => {
             </Col>
           )}
           <Col span={24}>
-            <Form.Item>
+            <Form.Item className="action-btn">
               <AppBackButton />
               {!isView ? (
                 <Button loading={loading} type="primary" htmlType="submit">

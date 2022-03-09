@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
+
 import { Button, Form, Input } from "antd";
+import { useRouter } from "next/router";
 
 import { createCompany, updateCompany } from "@/hooks/company";
-import { VALIDATE_MESSAGE, LAYOUT } from "@/utils/ui.util";
 import permissionsUtil from "@/utils/permission.util";
+import { VALIDATE_MESSAGE } from "@/utils/ui.util";
+
 import AppBackButton from "./backButton";
 
 const canCreate = permissionsUtil.checkAuth({
@@ -40,7 +42,7 @@ const AddEditCompany = ({ company }) => {
   };
 
   return (
-    <Form form={form} {...LAYOUT} name="nest-messages" onFinish={onFinish} validateMessages={VALIDATE_MESSAGE}>
+    <Form form={form} layout="vertical" name="nest-messages" onFinish={onFinish} validateMessages={VALIDATE_MESSAGE}>
       <Form.Item
         name="companyName"
         label="Name"
@@ -88,7 +90,7 @@ const AddEditCompany = ({ company }) => {
       >
         <Input.TextArea />
       </Form.Item>
-      <Form.Item wrapperCol={{ ...LAYOUT.wrapperCol, offset: 2 }}>
+      <Form.Item className="action-btn">
         <AppBackButton />
         <Button type="primary" htmlType="submit" loading={loading} disabled={!canCreate}>
           Submit
