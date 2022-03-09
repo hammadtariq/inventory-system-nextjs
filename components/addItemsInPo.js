@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Popconfirm, Typography, Table, Form, Alert } from "antd";
 
-import { useItemsByCompanyIdAndType } from "@/hooks/items";
+import { Alert, Form, Popconfirm, Typography } from "antd";
+
 import EditableCell from "@/components/editableCell";
+import AppTable from "@/components/table";
+import { useItemsByCompanyIdAndType } from "@/hooks/items";
 import styles from "@/styles/EditAbleTable.module.css";
 
 export default function AddItemsInPo({ companyId, type, setData, data, isEdit, viewOnly = false }) {
@@ -165,17 +167,18 @@ export default function AddItemsInPo({ companyId, type, setData, data, isEdit, v
 
   return (
     <Form form={form} component={false}>
-      <Table
-        loading={isLoading}
+      <AppTable
+        isLoading={isLoading}
         components={{
           body: {
             cell: EditableCell,
           },
         }}
         bordered
-        dataSource={data}
+        dataSource={data ?? []}
         columns={mergedColumns}
         rowClassName={styles.editableRow}
+        rowKey="id"
       />
     </Form>
   );

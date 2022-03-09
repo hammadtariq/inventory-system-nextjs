@@ -1,5 +1,7 @@
-import { useState } from "react";
 import { Table } from "antd";
+
+const pageOptions = ["10", "20", "30", "50"];
+const paginationOptions = { defaultPageSize: pageOptions[0], showSizeChanger: true, pageSizeOptions: pageOptions };
 
 export default function AppTable({
   bordered,
@@ -7,20 +9,17 @@ export default function AppTable({
   rowKey,
   columns,
   dataSource,
+  totalCount = 10,
   expandable,
   className,
-  pagination,
+  pagination = paginationOptions,
   paginationHandler,
   rowClassName,
   components,
 }) {
-  const [total, setTotal] = useState();
-  const pageOptions = ["10", "20", "30", "50"];
-
   const handleChange = (pagination) => {
     const offset = pagination.current * pagination.pageSize - pagination.pageSize;
     const limit = pagination.pageSize;
-    setTotal(pagination.total);
     paginationHandler(limit, offset);
   };
 
@@ -36,11 +35,7 @@ export default function AppTable({
       className={className}
       rowClassName={rowClassName}
       components={components}
-      pagination={
-        pagination
-          ? { defaultPageSize: pageOptions[0], showSizeChanger: true, pageSizeOptions: pageOptions, total: total }
-          : pagination
-      }
+      pagination={paginationHandler ? { ...pagination, total: totalCount } : false}
       onChange={handleChange}
     />
   );

@@ -1,5 +1,7 @@
 import { useCallback, useState } from "react";
+
 import useSWR from "swr";
+
 import { get, post, put, remove } from "@/lib/http-client";
 import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 
@@ -16,6 +18,7 @@ export const useItems = () => {
 
   return {
     items: data?.rows,
+    count: data?.count,
     isLoading: !error && !data,
     error,
     paginationHandler,
@@ -33,7 +36,10 @@ export const useItem = (id) => {
   };
 };
 export const useItemsByCompanyIdAndType = (companyId, type, isEdit = false) => {
-  const { data, error } = useSWR(isEdit ? null : `/api/items?type=${type}&companyId=${companyId}`, get);
+  const { data, error } = useSWR(
+    isEdit ? null : `/api/items?limit=${1000}&offset=${0}&type=${type}&companyId=${companyId}`,
+    get
+  );
 
   return {
     items: data?.rows,
