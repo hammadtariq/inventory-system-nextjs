@@ -57,14 +57,9 @@ const getAllCustomers = async (req, res) => {
 
   try {
     await dbConnect();
-    const customers = await db.Customer.findAll({ ...options, order: [["updatedAt", "DESC"]] });
+    const customers = await db.Customer.findAndCountAll({ ...options, order: [["updatedAt", "DESC"]] });
     console.log("Get all Customer Request End");
-
-    return res.send({
-      succress: true,
-      message: "All Customers",
-      data: customers,
-    });
+    return res.send(customers);
   } catch (error) {
     console.log("Get all Customer Request Error:", error);
     res.status(500).send({ message: error.toString() });

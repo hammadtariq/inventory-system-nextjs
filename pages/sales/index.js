@@ -1,18 +1,19 @@
-import { Alert, Popconfirm, Button } from "antd";
 import { useRef, useState } from "react";
-import { CheckOutlined, CloseOutlined, EditOutlined, EditFilled } from "@ant-design/icons";
+
+import { Alert, Popconfirm } from "antd";
+import dayjs from "dayjs";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
-import dayjs from "dayjs";
 
-import { useSales, approveSale, cancelSale } from "@/hooks/sales";
-import { getColumnSearchProps } from "@/utils/filter.util";
-import { STATUS_COLORS, DATE_FORMAT } from "@/utils/ui.util";
-import { EDITABLE_STATUS } from "@/utils/api.util";
-import permissionsUtil from "@/utils/permission.util";
-import AppTitle from "@/components/title";
 import AppCreateButton from "@/components/createButton";
 import AppTable from "@/components/table";
+import AppTitle from "@/components/title";
+import { approveSale, cancelSale, useSales } from "@/hooks/sales";
+import { EDITABLE_STATUS } from "@/utils/api.util";
+import { getColumnSearchProps } from "@/utils/filter.util";
+import permissionsUtil from "@/utils/permission.util";
+import { DATE_FORMAT, STATUS_COLORS } from "@/utils/ui.util";
+import { CheckOutlined, CloseOutlined, EditOutlined } from "@ant-design/icons";
 
 const Sales = () => {
   const { sales, error, isLoading, paginationHandler, mutate } = useSales();
@@ -182,6 +183,7 @@ const Sales = () => {
         columns={columns}
         // expandable={{ expandedRowRender: (record) => expandedRowRender(record) }}
         dataSource={sales ? sales.rows : []}
+        totalCount={sales ? sales.count : 0}
         pagination={true}
         paginationHandler={paginationHandler}
       />

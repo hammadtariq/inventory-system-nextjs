@@ -1,12 +1,13 @@
-import { Alert } from "antd";
 import { useRef, useState } from "react";
+
+import { Alert } from "antd";
 import dayjs from "dayjs";
 
+import AppTable from "@/components/table";
+import AppTitle from "@/components/title";
 import { useInventory } from "@/hooks/inventory";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import { DATE_TIME_FORMAT } from "@/utils/ui.util";
-import AppTitle from "@/components/title";
-import AppTable from "@/components/table";
 
 const Inventory = () => {
   const { inventory, error, isLoading, paginationHandler } = useInventory();
@@ -68,6 +69,7 @@ const Inventory = () => {
         rowKey="id"
         columns={columns}
         dataSource={inventory ? inventory.rows : []}
+        totalCount={inventory ? inventory.count : 0}
         pagination={true}
         paginationHandler={paginationHandler}
       />

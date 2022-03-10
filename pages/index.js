@@ -1,8 +1,8 @@
 import { Card, Col, Row } from "antd";
-import { Line, Column } from "@ant-design/plots";
-import { DollarCircleOutlined, ShopOutlined, TeamOutlined, UserOutlined } from "@ant-design/icons";
 
 import styles from "@/styles/Dashboard.module.css";
+import { DollarCircleOutlined, ShopOutlined, TeamOutlined, UserOutlined } from "@ant-design/icons";
+import { Column, Line } from "@ant-design/plots";
 
 const items = [
   {

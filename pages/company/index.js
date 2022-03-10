@@ -1,17 +1,18 @@
-import { useRouter } from "next/router";
 import { useRef, useState } from "react";
-import { Alert, Button, Popconfirm } from "antd";
-import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
-import dayjs from "dayjs";
 
-import { useCompanies, deleteCompany } from "@/hooks/company";
-import styles from "@/styles/Company.module.css";
-import permissionsUtil from "@/utils/permission.util";
-import { getColumnSearchProps } from "@/utils/filter.util";
-import { DATE_TIME_FORMAT } from "@/utils/ui.util";
-import AppTitle from "@/components/title";
+import { Alert, Button, Popconfirm } from "antd";
+import dayjs from "dayjs";
+import { useRouter } from "next/router";
+
 import AppCreateButton from "@/components/createButton";
 import AppTable from "@/components/table";
+import AppTitle from "@/components/title";
+import { deleteCompany, useCompanies } from "@/hooks/company";
+import styles from "@/styles/Company.module.css";
+import { getColumnSearchProps } from "@/utils/filter.util";
+import permissionsUtil from "@/utils/permission.util";
+import { DATE_TIME_FORMAT } from "@/utils/ui.util";
+import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 
 const Company = () => {
   const { companies, error, isLoading, paginationHandler, mutate } = useCompanies();
@@ -110,6 +111,7 @@ const Company = () => {
         rowKey="id"
         columns={columns}
         dataSource={companies ? companies.rows : []}
+        totalCount={companies ? companies.count : 0}
         pagination={true}
         paginationHandler={paginationHandler}
       />

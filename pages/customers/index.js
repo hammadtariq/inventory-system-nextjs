@@ -1,17 +1,18 @@
-import { useRouter } from "next/router";
 import { useRef, useState } from "react";
-import { Alert, Popconfirm, Button } from "antd";
-import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import dayjs from "dayjs";
 
-import { useCustomers, deleteCustomer } from "@/hooks/customers";
-import permissionsUtil from "@/utils/permission.util";
-import styles from "@/styles/Customer.module.css";
-import { getColumnSearchProps } from "@/utils/filter.util";
-import { DATE_TIME_FORMAT } from "@/utils/ui.util";
-import AppTitle from "@/components/title";
+import { Alert, Button, Popconfirm } from "antd";
+import dayjs from "dayjs";
+import { useRouter } from "next/router";
+
 import AppCreateButton from "@/components/createButton";
 import AppTable from "@/components/table";
+import AppTitle from "@/components/title";
+import { deleteCustomer, useCustomers } from "@/hooks/customers";
+import styles from "@/styles/Customer.module.css";
+import { getColumnSearchProps } from "@/utils/filter.util";
+import permissionsUtil from "@/utils/permission.util";
+import { DATE_TIME_FORMAT } from "@/utils/ui.util";
+import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 
 export default function Customers() {
   const { customers, error, isLoading, paginationHandler, mutate } = useCustomers();
@@ -119,7 +120,6 @@ export default function Customers() {
       render: renderActions,
     },
   ];
-
   if (error) return <Alert message={error.message} type="error" />;
   return (
     <>
@@ -131,7 +131,8 @@ export default function Customers() {
         columns={columns}
         rowKey="id"
         isLoading={isLoading}
-        dataSource={customers ? customers.data : []}
+        dataSource={customers ? customers.rows : []}
+        totalCount={customers ? customers.count : 0}
         pagination={true}
         paginationHandler={paginationHandler}
       />

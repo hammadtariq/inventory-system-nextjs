@@ -1,10 +1,10 @@
 import { Alert, Button } from "antd";
 
-import AppTitle from "@/components/title";
 import AppTable from "@/components/table";
-import { useCheques, updateCheques } from "@/hooks/cheques";
-import permissionsUtil from "@/utils/permission.util";
+import AppTitle from "@/components/title";
+import { updateCheques, useCheques } from "@/hooks/cheques";
 import styles from "@/styles/Cheques.module.css";
+import permissionsUtil from "@/utils/permission.util";
 import { CHEQUE_STATUS_COLORS } from "@/utils/ui.util";
 
 const canApprove = permissionsUtil.checkAuth({
@@ -105,6 +105,7 @@ const Cheques = () => {
         rowKey="id"
         isLoading={isLoading}
         dataSource={cheques ? cheques.rows : []}
+        totalCount={cheques ? cheques.count : 0}
         paginationHandler={paginationHandler}
       />
     </>

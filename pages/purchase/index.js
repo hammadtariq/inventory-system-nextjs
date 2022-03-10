@@ -1,19 +1,19 @@
-import { Alert, Popconfirm } from "antd";
 import { useRef, useState } from "react";
-import { useRouter } from "next/router";
+
+import { Alert, Popconfirm } from "antd";
 import dayjs from "dayjs";
-import { CheckOutlined, CloseOutlined, EditOutlined } from "@ant-design/icons";
+import NextLink from "next/link";
+import { useRouter } from "next/router";
 
-import { usePurchaseOrders, approvePurchase, cancelPurchase } from "@/hooks/purchase";
-
-import { getColumnSearchProps } from "@/utils/filter.util";
-import { STATUS_COLORS, DATE_FORMAT } from "@/utils/ui.util";
-import { EDITABLE_STATUS } from "@/utils/api.util";
-import permissionsUtil from "@/utils/permission.util";
-import AppTitle from "@/components/title";
 import AppCreateButton from "@/components/createButton";
 import AppTable from "@/components/table";
-import NextLink from "next/link";
+import AppTitle from "@/components/title";
+import { approvePurchase, cancelPurchase, usePurchaseOrders } from "@/hooks/purchase";
+import { EDITABLE_STATUS } from "@/utils/api.util";
+import { getColumnSearchProps } from "@/utils/filter.util";
+import permissionsUtil from "@/utils/permission.util";
+import { DATE_FORMAT, STATUS_COLORS } from "@/utils/ui.util";
+import { CheckOutlined, CloseOutlined, EditOutlined } from "@ant-design/icons";
 
 const PurchaseOrders = () => {
   const { purchaseOrders, error, isLoading, paginationHandler, mutate } = usePurchaseOrders();
@@ -188,6 +188,7 @@ const PurchaseOrders = () => {
         columns={columns}
         // expandable={{ expandedRowRender: (record) => expandedRowRender(record) }}
         dataSource={purchaseOrders ? purchaseOrders.rows : []}
+        totalCount={purchaseOrders ? purchaseOrders.count : 0}
         pagination={true}
         paginationHandler={paginationHandler}
       />
