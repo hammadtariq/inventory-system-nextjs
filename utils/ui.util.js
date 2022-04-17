@@ -64,3 +64,10 @@ export const sumItemsPrice = (data = []) =>
       return acc;
     }
   }, 0);
+
+export const sumBundles = (data = []) =>
+  data.reduce((acc, curr) => {
+    const { noOfBales = 0 } = curr || {};
+    acc += noOfBales;
+    return acc;
+  }, 0);

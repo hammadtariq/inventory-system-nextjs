@@ -12,7 +12,7 @@ import SelectCompany from "@/components/selectCompany";
 import SelectItemList from "@/components/selectItemList";
 import { createPurchaseOrder, updatePurchaseOrder } from "@/hooks/purchase";
 import { EDITABLE_STATUS } from "@/utils/api.util";
-import { DATE_FORMAT, sumItemsPrice, VALIDATE_MESSAGE } from "@/utils/ui.util";
+import { DATE_FORMAT, sumBundles, sumItemsPrice, VALIDATE_MESSAGE } from "@/utils/ui.util";
 import { EditOutlined } from "@ant-design/icons";
 
 const AddEditPurchase = ({ purchase, type = null }) => {
@@ -29,6 +29,7 @@ const AddEditPurchase = ({ purchase, type = null }) => {
   const selectItemListOnChange = useCallback((type) => setSelectedListType(type), [selectedListType]);
 
   const totalAmount = useMemo(() => sumItemsPrice(data), [data]);
+  const totalBundle = useMemo(() => sumBundles(data), [data]);
 
   useEffect(() => {
     if (purchase) {
@@ -40,6 +41,7 @@ const AddEditPurchase = ({ purchase, type = null }) => {
         purchasedProducts = [],
         surCharge = "",
         totalAmount = 0,
+        totalBundle = 0,
       } = purchase;
       const { id, companyName } = company;
       form.setFieldsValue({
@@ -48,6 +50,7 @@ const AddEditPurchase = ({ purchase, type = null }) => {
         invoiceNumber,
         surCharge,
         totalAmount,
+        totalBundle,
         purchaseDate: dayjs(purchaseDate),
       });
 
@@ -57,10 +60,11 @@ const AddEditPurchase = ({ purchase, type = null }) => {
     }
   }, [purchase]);
 
-  // update total amount value useing form field
+  // update total amount value using form field
   useEffect(() => {
     form.setFieldsValue({
       totalAmount,
+      totalBundle,
     });
   }, [totalAmount]);
 
@@ -91,6 +95,7 @@ const AddEditPurchase = ({ purchase, type = null }) => {
         ...(ratePerKgs && { ratePerKgs }),
       };
     });
+    delete orderData.totalBundle;
     try {
       if (purchase) {
         await updatePurchaseOrder(purchase.id, orderData);
@@ -129,6 +134,19 @@ const AddEditPurchase = ({ purchase, type = null }) => {
             <Form.Item
               name="totalAmount"
               label="Total Amount (RS)"
+              rules={[
+                {
+                  required: true,
+                },
+              ]}
+            >
+              <Input type="number" disabled={isView} readOnly />
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item
+              name="totalBundle"
+              label="Total Bundle(s)"
               rules={[
                 {
                   required: true,
