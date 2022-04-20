@@ -50,7 +50,7 @@ create user myuser with encrypted password 'postgres';
 grant all privileges on database databasename to myuser;
 ```
 
-OR 
+OR
 
 Run the following command to create postgres container
 

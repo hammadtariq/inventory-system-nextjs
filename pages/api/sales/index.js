@@ -3,7 +3,7 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
-import { STATUS } from "@/utils/api.util";
+import { DEFAULT_ROWS_LIMIT, STATUS } from "@/utils/api.util";
 
 const inventorySchema = Joi.object().keys({
   itemName: Joi.string().min(3).trim().lowercase().required(),
@@ -46,7 +46,7 @@ const getAllSales = async (req, res) => {
 
   const { limit, offset } = req.query;
   const pagination = {};
-  pagination.limit = limit ? limit : 10;
+  pagination.limit = limit ? limit : DEFAULT_ROWS_LIMIT;
   pagination.offset = offset ? offset : 0;
   try {
     await db.dbConnect();

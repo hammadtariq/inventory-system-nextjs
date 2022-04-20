@@ -3,6 +3,7 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import { DEFAULT_ROWS_LIMIT } from "@/utils/api.util";
 
 const apiSchema = Joi.object({
   companyName: Joi.string().min(3).trim().lowercase().required(),
@@ -42,7 +43,7 @@ const getAllCompanies = async (req, res) => {
 
   const { limit, offset, attributes = [] } = req.query;
   const options = {};
-  options.limit = limit ? limit : 10;
+  options.limit = limit ? limit : DEFAULT_ROWS_LIMIT;
   options.offset = offset ? offset : 0;
   if (attributes.length) {
     options.attributes = JSON.parse(attributes);

@@ -1,8 +1,9 @@
-import nextConnect from "next-connect";
 import Joi from "joi";
+import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import { DEFAULT_ROWS_LIMIT } from "@/utils/api.util";
 
 const dbConnect = db.dbConnect;
 
@@ -15,7 +16,7 @@ const getAllCheques = async (req, res) => {
   console.log("Get all Cheques Request Start");
   const { limit, offset } = req.query;
   const pagination = {};
-  pagination.limit = limit ? limit : 10;
+  pagination.limit = limit ? limit : DEFAULT_ROWS_LIMIT;
   pagination.offset = offset ? offset : 0;
 
   try {

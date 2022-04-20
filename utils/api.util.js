@@ -16,3 +16,5 @@ export const PAYMENT_TYPE = {
 };
 
 export const EDITABLE_STATUS = [STATUS.CANCEL, STATUS.PENDING];
+
+export const DEFAULT_ROWS_LIMIT = 1000;

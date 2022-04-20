@@ -2,6 +2,7 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import { DEFAULT_ROWS_LIMIT } from "@/utils/api.util";
 
 const dbConnect = db.dbConnect;
 
@@ -49,8 +50,10 @@ const customerRegistration = async (req, res) => {
 
 const getAllCustomers = async (req, res) => {
   console.log("Get all Customer Request Start");
-  const { attributes = [] } = req.query;
+  const { limit, offset, attributes = [] } = req.query;
   const options = {};
+  options.limit = limit ? limit : DEFAULT_ROWS_LIMIT;
+  options.offset = offset ? offset : 0;
   if (attributes.length) {
     options.attributes = JSON.parse(attributes);
   }

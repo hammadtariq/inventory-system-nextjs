@@ -3,12 +3,16 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 
-const getAllUsers = async (_, res) => {
+const getAllUsers = async (req, res) => {
   console.log("get all users Request Start");
-
+  const { limit, offset } = req.query;
+  const pagination = {};
+  pagination.limit = limit ? limit : DEFAULT_ROWS_LIMIT;
+  pagination.offset = offset ? offset : 0;
   try {
     await db.dbConnect();
-    const users = await db.User.findAll({
+    const users = await db.User.findAndCountAll({
+      ...pagination,
       attributes: { exclude: ["password"] },
       order: [["updatedAt", "DESC"]],
     });
