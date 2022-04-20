@@ -1,7 +1,10 @@
 import { useCallback, useState } from "react";
+
 import useSWR from "swr";
-import { get, post, put, remove } from "../lib/http-client";
+
 import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
+
+import { get, post, put, remove } from "../lib/http-client";
 
 export const useCustomers = () => {
   const [pagination, setPagination] = useState({ limit: DEFAULT_PAGE_LIMIT, offset: 0 });
@@ -37,7 +40,7 @@ export const useCustomerAttributes = (attr = []) => {
   const { data, error } = useSWR(`/api/customer?attributes=${JSON.stringify(attr)}`, get);
 
   return {
-    customers: data?.data,
+    customers: data?.rows,
     isLoading: !error && !data,
     error,
   };

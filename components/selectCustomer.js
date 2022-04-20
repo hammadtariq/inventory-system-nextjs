@@ -1,5 +1,6 @@
 import { memo } from "react";
-import { Select, Alert } from "antd";
+
+import { Alert, Select } from "antd";
 
 import { useCustomerAttributes } from "@/hooks/customers";
 
