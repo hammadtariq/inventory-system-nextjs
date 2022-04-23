@@ -12,6 +12,10 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
+      laborCharge: {
+        type: Sequelize.FLOAT,
+        allowNull: true,
+      },
       totalAmount: {
         type: Sequelize.FLOAT,
         allowNull: false,

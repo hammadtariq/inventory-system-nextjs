@@ -21,6 +21,7 @@ const AddEditSale = ({ sale, type = null }) => {
   const isView = type === "view";
   const [loading, setLoading] = useState(false);
   const [customerId, setCustomerId] = useState(null);
+  const [_laborCharge, setLaborCharge] = useState(0);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [updatedProducts, setUpdatedProducts] = useState([]);
   const { inventory, error, isLoading } = useInventoryAttributes(["itemName", "id", "onHand", "companyId"]);
@@ -57,11 +58,12 @@ const AddEditSale = ({ sale, type = null }) => {
 
   useEffect(() => {
     if (sale && inventory) {
-      const { customer, soldDate, soldProducts, totalAmount } = sale;
+      const { customer, soldDate, soldProducts, totalAmount, laborCharge } = sale;
       const { id } = customer;
       form.setFieldsValue({
         soldDate: dayjs(soldDate),
         totalAmount,
+        laborCharge,
         selectedProduct: soldProducts.map((product) => product.id),
       });
       const _soldProducts = soldProducts.reduce((acc, product) => {
@@ -72,6 +74,7 @@ const AddEditSale = ({ sale, type = null }) => {
         if (_soldProducts[item.id]) return { ..._soldProducts[item.id], company: item.company };
         return item;
       });
+      setLaborCharge(laborCharge);
       setCustomerId(id);
       setSelectedProducts(soldProducts);
       setUpdatedProducts(updatedItems);
@@ -79,8 +82,9 @@ const AddEditSale = ({ sale, type = null }) => {
   }, [sale, inventory]);
 
   useEffect(() => {
-    form.setFieldsValue({ totalAmount });
-  }, [totalAmount]);
+    const total = totalAmount + _laborCharge;
+    form.setFieldsValue({ totalAmount: total });
+  }, [totalAmount, _laborCharge]);
 
   useEffect(() => {
     form.setFieldsValue({ soldDate: sale?.soldDate ? dayjs(sale.soldDate) : dayjs() });
@@ -92,6 +96,7 @@ const AddEditSale = ({ sale, type = null }) => {
     delete orderData.selectedProduct;
     orderData.soldDate = orderData.soldDate.toISOString();
     orderData.customerId = customerId;
+    orderData.laborCharge = _laborCharge;
     orderData.soldProducts = selectedProducts.map((product) => {
       const { itemName, noOfBales, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs, id, companyId, ratePerBale } =
         product;
@@ -130,6 +135,28 @@ const AddEditSale = ({ sale, type = null }) => {
               <SelectCustomer
                 defaultValue={sale && sale.customer.id}
                 selectCustomerOnChange={selectCustomerOnChange}
+                disabled={isView}
+              />
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item
+              name="laborCharge"
+              label="Labor Charge (RS)"
+              rules={[
+                {
+                  required: true,
+                },
+              ]}
+            >
+              <Input
+                type="number"
+                defaultValue={_laborCharge}
+                value={_laborCharge}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value);
+                  !isNaN(value) ? setLaborCharge(value) : null;
+                }}
                 disabled={isView}
               />
             </Form.Item>
