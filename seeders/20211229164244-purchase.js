@@ -38,7 +38,7 @@ module.exports = {
           updatedAt: "2022-02-17T16:00:26.034Z",
         },
         {
-          companyId: `${companiesRows[0].id}`,
+          companyId: `${companiesRows[1].id}`,
           totalAmount: 100,
           surCharge: 100,
           invoiceNumber: 110001,
