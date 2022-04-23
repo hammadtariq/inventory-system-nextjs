@@ -155,7 +155,7 @@ const AddEditSale = ({ sale, type = null }) => {
                 value={_laborCharge}
                 onChange={(e) => {
                   const value = parseFloat(e.target.value);
-                  !isNaN(value) ? setLaborCharge(value) : null;
+                  !isNaN(value) ? setLaborCharge(value) : setLaborCharge(0);
                 }}
                 disabled={isView}
               />

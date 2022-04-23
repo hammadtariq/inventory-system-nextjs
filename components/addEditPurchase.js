@@ -18,6 +18,7 @@ import { EditOutlined } from "@ant-design/icons";
 const AddEditPurchase = ({ purchase, type = null }) => {
   const router = useRouter();
   const [companyId, setCompanyId] = useState(null);
+  const [_surCharge, setSurCharge] = useState(0);
   const [selectedListType, setSelectedListType] = useState(null);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -39,7 +40,7 @@ const AddEditPurchase = ({ purchase, type = null }) => {
         invoiceNumber = "",
         purchaseDate = "",
         purchasedProducts = [],
-        surCharge = "",
+        surCharge = 0,
         totalAmount = 0,
         totalBundle = 0,
       } = purchase;
@@ -53,7 +54,7 @@ const AddEditPurchase = ({ purchase, type = null }) => {
         totalBundle,
         purchaseDate: dayjs(purchaseDate),
       });
-
+      setSurCharge(surCharge);
       setData(purchasedProducts);
       setCompanyId(id);
       setSelectedListType(baleType);
@@ -62,11 +63,12 @@ const AddEditPurchase = ({ purchase, type = null }) => {
 
   // update total amount value using form field
   useEffect(() => {
+    const total = totalAmount + _surCharge;
     form.setFieldsValue({
-      totalAmount,
+      totalAmount: total,
       totalBundle,
     });
-  }, [totalAmount]);
+  }, [totalAmount, _surCharge]);
 
   // to set default and previous date in form
   useEffect(() => {
@@ -163,7 +165,16 @@ const AddEditPurchase = ({ purchase, type = null }) => {
           </Col>
           <Col span={8}>
             <Form.Item name="surCharge" label="Sur Charge (RS)">
-              <Input type="number" disabled={isView} />
+              <Input
+                type="number"
+                defaultValue={_surCharge}
+                value={_surCharge}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value);
+                  !isNaN(value) ? setSurCharge(value) : setSurCharge(0);
+                }}
+                disabled={isView}
+              />
             </Form.Item>
           </Col>
           <Col span={8}>
