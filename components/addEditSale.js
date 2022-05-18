@@ -200,7 +200,7 @@ const AddEditSale = ({ sale, type = null }) => {
                 {updatedProducts &&
                   updatedProducts.map((obj) => (
                     <Option key={obj.id} value={obj.id}>
-                      {`${obj.itemName} (${obj.company.companyName})`}
+                      {`${obj.itemName} (${obj?.company?.companyName})`}
                     </Option>
                   ))}
               </Select>

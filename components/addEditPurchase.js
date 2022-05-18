@@ -203,7 +203,12 @@ const AddEditPurchase = ({ purchase, type = null }) => {
         <Form.Item className="action-btn">
           <AppBackButton />
           {!isView && (
-            <Button loading={loading} type="primary" htmlType="submit" disabled={!companyId && !selectedListType}>
+            <Button
+              loading={loading}
+              type="primary"
+              htmlType="submit"
+              disabled={(!companyId && !selectedListType) || data?.length === 0}
+            >
               {purchase ? "Update" : " Create"} Purchase
             </Button>
           )}

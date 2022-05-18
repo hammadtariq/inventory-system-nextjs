@@ -39,7 +39,10 @@ export default function AddItemsInPo({ companyId, type, setData, data, isEdit, v
   };
 
   const remove = (record) => {
-    setData(items.filter((item) => item.id !== record.id));
+    const index = data.findIndex((item) => record.id === item.id);
+    const newData = [...data];
+    newData.splice(index, 1);
+    setData(newData);
   };
 
   const save = async (key) => {
