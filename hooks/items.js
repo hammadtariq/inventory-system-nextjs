@@ -37,7 +37,9 @@ export const useItem = (id) => {
 };
 export const useItemsByCompanyIdAndType = (companyId, type, isEdit = false) => {
   const { data, error } = useSWR(
-    isEdit ? null : `/api/items?limit=${1000}&offset=${0}&type=${type}&companyId=${companyId}`,
+    isEdit
+      ? null
+      : `/api/items?limit=${1000}&offset=${0}&type=${type}&companyId=${companyId}&orderBy=itemName&sortOrder=ASC`,
     get
   );
 

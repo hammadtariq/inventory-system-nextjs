@@ -51,7 +51,7 @@ const createItem = async (req, res) => {
 const getAllItems = async (req, res) => {
   console.log("get all items Request Start");
 
-  const { limit, offset, companyId, type } = req.query;
+  const { limit, offset, companyId, type, orderBy, sortOrder } = req.query;
   const options = {};
   options.limit = limit ? limit : DEFAULT_ROWS_LIMIT;
   options.offset = offset ? offset : 0;
@@ -69,9 +69,10 @@ const getAllItems = async (req, res) => {
       type,
     };
   }
+  const order = orderBy && sortOrder ? [orderBy, sortOrder] : ["updatedAt", "DESC"];
   try {
     await db.dbConnect();
-    const data = await db.Items.findAndCountAll({ ...options, include: [db.Company], order: [["updatedAt", "DESC"]] });
+    const data = await db.Items.findAndCountAll({ ...options, include: [db.Company], order: [order] });
     console.log("get all items Request End");
     return res.send(data);
   } catch (error) {

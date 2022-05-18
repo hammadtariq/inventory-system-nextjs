@@ -38,6 +38,10 @@ export default function AddItemsInPo({ companyId, type, setData, data, isEdit, v
     setEditingKey("");
   };
 
+  const remove = (record) => {
+    setData(items.filter((item) => item.id !== record.id));
+  };
+
   const save = async (key) => {
     try {
       const row = await form.validateFields();
@@ -81,9 +85,20 @@ export default function AddItemsInPo({ companyId, type, setData, data, isEdit, v
             </Popconfirm>
           </span>
         ) : (
-          <Typography.Link disabled={editingKey !== ""} onClick={() => edit(record)}>
-            Edit
-          </Typography.Link>
+          <>
+            <Typography.Link
+              disabled={editingKey !== ""}
+              onClick={() => edit(record)}
+              style={{
+                marginRight: 8,
+              }}
+            >
+              Edit
+            </Typography.Link>
+            <Typography.Link disabled={editingKey !== ""} onClick={() => remove(record)}>
+              Remove
+            </Typography.Link>
+          </>
         );
       },
     };
