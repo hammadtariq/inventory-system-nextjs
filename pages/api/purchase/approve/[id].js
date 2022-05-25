@@ -3,7 +3,7 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
-import { STATUS, SPEND_TYPE } from "@/utils/api.util";
+import { SPEND_TYPE, STATUS } from "@/utils/api.util";
 
 const apiSchema = Joi.object({
   id: Joi.number().required(),
@@ -37,8 +37,10 @@ const approvePurchaseOrder = async (req, res) => {
     const { purchasedProducts, companyId, totalAmount, invoiceNumber } = purchase;
 
     for await (const product of purchasedProducts) {
-      const { itemName, noOfBales, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs, ratePerBale } = product;
-      const inventory = await db.Inventory.findOne({ where: { itemName, companyId }, transaction: t });
+      const { id, itemName, noOfBales, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs, ratePerBale } = product;
+      // TODO: testing id for this query is itemName was causing issues
+      // const inventory = await db.Inventory.findOne({ where: { itemName, companyId }, transaction: t });
+      const inventory = await db.Inventory.findOne({ where: { id, companyId }, transaction: t });
       if (inventory) {
         await inventory.increment(["onHand", "noOfBales"], { by: noOfBales, transaction: t });
         await inventory.update(
