@@ -38,10 +38,10 @@ const approveSaleOrder = async (req, res) => {
     const { soldProducts, customerId, totalAmount } = sale;
     await db.dbConnect();
     for await (const product of soldProducts) {
-      const { itemName, noOfBales, companyId } = product;
+      const { id, itemName, noOfBales, companyId, baleWeightKgs, baleWeightLbs } = product;
       const inventory = await db.Inventory.findOne({
         where: {
-          itemName,
+          id,
           companyId,
           onHand: {
             [db.Sequelize.Op.or]: {
@@ -54,7 +54,12 @@ const approveSaleOrder = async (req, res) => {
       if (!inventory) {
         return res.status(404).send({ message: `"${itemName}" out of stock` });
       }
+      let decrementQuery = { baleWeightKgs };
+      if (baleWeightLbs) {
+        decrementQuery = { baleWeightLbs };
+      }
       await inventory.decrement(["onHand"], { by: noOfBales, transaction: t });
+      await inventory.decrement(decrementQuery, { transaction: t });
     }
     await sale.update({ status: STATUS.APPROVED }, { transaction: t });
     await db.Ledger.create(
