@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Alert } from "antd";
 import dayjs from "dayjs";
@@ -6,15 +6,20 @@ import dayjs from "dayjs";
 import SearchInput from "@/components/SearchInput";
 import AppTable from "@/components/table";
 import AppTitle from "@/components/title";
-import { useInventory } from "@/hooks/inventory";
+import { getInventory, searchInventory, useInventory } from "@/hooks/inventory";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import { DATE_TIME_FORMAT } from "@/utils/ui.util";
 
 const Inventory = () => {
   const { inventory, error, isLoading, paginationHandler } = useInventory();
+  const [updatedInventory, setUpdatedInventory] = useState();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+
+  useEffect(() => {
+    setUpdatedInventory(inventory);
+  }, [inventory]);
 
   const columns = [
     {
@@ -62,16 +67,20 @@ const Inventory = () => {
   ];
 
   const handleSearch = async (value) => {
-    const searchResults = await searchInventory(value);
-    return searchResults;
+    if (!value) {
+      setUpdatedInventory(inventory);
+      return inventory;
+    } else {
+      const searchResults = await searchInventory(value);
+      return searchResults;
+    }
   };
 
   const handleSelect = async (id) => {
     const data = await getInventory(id);
-    console.log({ inventory });
-    const updatedInventory = { ...inventory, rows: [data], count: 1 };
-    mutate(updatedInventory);
-    return updatedInventory;
+    const newInventory = { ...inventory, rows: [data], count: 1 };
+    setUpdatedInventory(newInventory);
+    return newInventory;
   };
 
   if (error) return <Alert message={error} type="error" />;
@@ -85,8 +94,8 @@ const Inventory = () => {
         isLoading={isLoading}
         rowKey="id"
         columns={columns}
-        dataSource={inventory ? inventory.rows : []}
-        totalCount={inventory ? inventory.count : 0}
+        dataSource={updatedInventory ? updatedInventory.rows : []}
+        totalCount={updatedInventory ? updatedInventory.count : 0}
         pagination={true}
         paginationHandler={paginationHandler}
       />

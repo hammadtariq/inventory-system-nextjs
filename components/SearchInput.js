@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { Input, AutoComplete } from "antd";
+
+import { AutoComplete, Input } from "antd";
 import _debounce from "lodash/debounce";
+
 import styles from "@/styles/SearchInput.module.css";
 
 const { Search } = Input;
@@ -23,13 +25,15 @@ const SearchInput = ({ handleSearch, handleSelect, valueKey }) => {
     if (value) {
       const results = await handleSearch(value.toLowerCase());
       setOptions(searchResult(results, valueKey));
+    } else {
+      handleSearch();
     }
     return value;
   };
 
-  const _handleSelect = (itemId) => {
-    console.log("handleSelect", itemId);
-    handleSelect(itemId);
+  const _handleSelect = (itemId, option) => {
+    const id = option.label.key;
+    handleSelect(id);
   };
 
   return (
