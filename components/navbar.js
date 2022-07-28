@@ -1,7 +1,5 @@
 import { Button, Drawer } from "antd";
-import { useState } from "react";
-import AppMenuItems from "./menuItems";
-import styles from "@/styles/Navbar.module.css";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import {
   DatabaseOutlined,
@@ -10,57 +8,81 @@ import {
   ShopOutlined,
   TeamOutlined,
   UserOutlined,
+  UnorderedListOutlined,
+  DollarCircleOutlined,
+  DashboardOutlined,
 } from "@ant-design/icons";
+import NextLink from "next/link";
+import AppMenuItems from "./menuItems";
+import styles from "@/styles/Navbar.module.css";
 
 const items = [
   {
     id: "1",
+    title: "Overview",
+    url: "/",
+    icon: <DashboardOutlined />,
+  },
+  {
+    id: "2",
     title: "Customers",
     url: "/customers",
     icon: <UserOutlined />,
   },
   {
-    id: "2",
+    id: "3",
     title: "Company",
     url: "/company",
     icon: <TeamOutlined />,
   },
   {
-    id: "3",
+    id: "4",
+    title: "Items List",
+    url: "/items",
+    icon: <UnorderedListOutlined />,
+  },
+  {
+    id: "5",
     title: "Purchase",
     url: "/purchase",
     icon: <FileOutlined />,
   },
   {
-    id: "4",
+    id: "6",
     title: "Inventory",
     url: "/inventory",
     icon: <ShopOutlined />,
   },
   {
-    id: "5",
+    id: "7",
     title: "Sales",
     url: "/sales",
     icon: <FileOutlined />,
   },
   {
-    id: "6",
+    id: "8",
     title: "Ledger",
     url: "/ledger",
     icon: <DatabaseOutlined />,
   },
   {
-    id: "7",
+    id: "9",
     title: "Reports",
     url: "/reports",
     icon: <FilePptOutlined />,
   },
+  {
+    id: "10",
+    title: "Cheques",
+    url: "/cheques",
+    icon: <DollarCircleOutlined />,
+  },
 ];
 
 export default function AppNavbar() {
-  const [visible, setVisible] = useState(false);
-  const [isSelected, setIsSelected] = useState("0");
   const router = useRouter();
+  const [visible, setVisible] = useState(false);
+  const [isSelected, setIsSelected] = useState();
 
   const onClickHandler = (url, id) => {
     setIsSelected(id);
@@ -75,8 +97,24 @@ export default function AppNavbar() {
     setVisible(false);
   };
 
+  useEffect(() => {
+    const splitUrl = router.pathname.split("/").slice(1, router.pathname.length);
+    const activeItem = items.find((item) => {
+      if (splitUrl.length > 0 && item.url === `/${splitUrl[0]}`) {
+        return item;
+      }
+    });
+    const activeId = activeItem ? activeItem.id : items[0].id;
+    setIsSelected(activeId);
+  }, []);
+
   return (
     <>
+      <NextLink href="/" passHref>
+        <div className="logo" onClick={() => onClickHandler(items[0].url, items[0].id)}>
+          Inventory
+        </div>
+      </NextLink>
       <div className={styles.navigationBar}>
         <AppMenuItems mode="horizontal" items={items} onClickHandler={onClickHandler} selected={isSelected} />
       </div>

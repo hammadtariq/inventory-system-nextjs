@@ -16,12 +16,21 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+      laborCharge: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+      },
       totalAmount: {
         type: DataTypes.FLOAT,
         allowNull: false,
       },
       soldProducts: {
         type: DataTypes.JSONB,
+        allowNull: false,
+      },
+      status: DataTypes.ENUM(["PENDING", "APPROVED", "CANCEL"]),
+      soldDate: {
+        type: DataTypes.DATE,
         allowNull: false,
       },
       uuid: {

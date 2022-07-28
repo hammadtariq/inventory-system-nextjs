@@ -14,7 +14,7 @@ const getInventoryNameByCompanyId = async (req, res) => {
     await db.dbConnect();
     const data = await db.Inventory.findAndCountAll({
       ...pagination,
-      where: { companyId },
+      where: { onHand: { [db.Sequelize.Op.gt]: 0 }, companyId },
       attributes: ["itemName", "id"],
     });
     console.log("getInventoryNameByCompanyId Request End");

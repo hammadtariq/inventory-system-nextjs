@@ -12,12 +12,21 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
+      laborCharge: {
+        type: Sequelize.FLOAT,
+        allowNull: true,
+      },
       totalAmount: {
         type: Sequelize.FLOAT,
         allowNull: false,
       },
       soldProducts: {
         type: Sequelize.JSONB,
+        allowNull: false,
+      },
+      status: Sequelize.ENUM(["PENDING", "APPROVED", "CANCEL"]),
+      soldDate: {
+        type: Sequelize.DATE,
         allowNull: false,
       },
       uuid: {

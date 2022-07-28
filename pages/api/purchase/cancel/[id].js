@@ -16,16 +16,15 @@ const cancelPurchaseOrder = async (req, res) => {
   });
 
   if (error && error && Object.keys(error).length) {
-    return res.status(400).send({ message: error });
+    return res.status(400).send({ message: error.toString() });
   }
   if (req.user.role !== "ADMIN") {
     return res.status(400).send({ message: "Operation not permitted." });
   }
-  const t = await db.sequelize.transaction();
   try {
     await db.dbConnect();
     const { id } = value;
-    const purchase = await db.Purchase.findByPk(id, { include: [db.Company] });
+    const purchase = await db.Purchase.findByPk(id);
 
     if (!purchase) {
       return res.status(404).send({ message: "purchase order not exist" });

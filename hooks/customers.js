@@ -1,13 +1,27 @@
+import { useCallback, useState } from "react";
+
 import useSWR from "swr";
+
+import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
+
 import { get, post, put, remove } from "../lib/http-client";
 
 export const useCustomers = () => {
-  const { data, error, mutate } = useSWR("/api/customer", get);
+  const [pagination, setPagination] = useState({ limit: DEFAULT_PAGE_LIMIT, offset: 0 });
+  const { data, error, mutate } = useSWR(`/api/customer?limit=${pagination.limit}&offset=${pagination.offset}`, get);
+
+  const paginationHandler = useCallback(
+    (limit, offset) => {
+      setPagination({ limit, offset });
+    },
+    [setPagination]
+  );
 
   return {
     customers: data,
     isLoading: !error && !data,
     error,
+    paginationHandler,
     mutate,
   };
 };
@@ -17,6 +31,16 @@ export const useCustomer = (id) => {
 
   return {
     customer: data,
+    isLoading: !error && !data,
+    error,
+  };
+};
+
+export const useCustomerAttributes = (attr = []) => {
+  const { data, error } = useSWR(`/api/customer?attributes=${JSON.stringify(attr)}`, get);
+
+  return {
+    customers: data?.rows,
     isLoading: !error && !data,
     error,
   };

@@ -1,13 +1,17 @@
+import { useRef, useState } from "react";
+
+import { Alert } from "antd";
+import dayjs from "dayjs";
+
 import SearchInput from "@/components/SearchInput";
 import AppTable from "@/components/table";
 import AppTitle from "@/components/title";
-import { getInventory, searchInventory, useInventory } from "@/hooks/inventory";
+import { useInventory } from "@/hooks/inventory";
 import { getColumnSearchProps } from "@/utils/filter.util";
-import { Alert } from "antd";
-import { useRef, useState } from "react";
+import { DATE_TIME_FORMAT } from "@/utils/ui.util";
 
 const Inventory = () => {
-  const { inventory, error, isLoading, mutate } = useInventory();
+  const { inventory, error, isLoading, paginationHandler } = useInventory();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
@@ -46,19 +50,14 @@ const Inventory = () => {
     { title: "No of Bales", dataIndex: "noOfBales", key: "noOfBales" },
     { title: "Bale Weight (LBS)", dataIndex: "baleWeightLbs", key: "baleWeightLbs", render: (text) => text ?? "N/A" },
     { title: "Bale Weight (KGS)", dataIndex: "baleWeightKgs", key: "baleWeightKgs", render: (text) => text ?? "N/A" },
-    { title: "Rate per LBS (Rs)", dataIndex: "ratePerLgs", key: "ratePerLgs", render: (text) => text ?? "N/A" },
+    { title: "Rate per LBS (Rs)", dataIndex: "ratePerLbs", key: "ratePerLbs", render: (text) => text ?? "N/A" },
     { title: "Rate per KGS (Rs)", dataIndex: "ratePerKgs", key: "ratePerKgs", render: (text) => text ?? "N/A" },
     { title: "On Hand", dataIndex: "onHand", key: "onHand" },
     { title: "Rate per Bale (Rs)", dataIndex: "ratePerBale", key: "ratePerBale" },
     {
-      title: "Created At",
-      dataIndex: "createdAt",
-      render: (text) => new Date(text).toLocaleString(),
-    },
-    {
       title: "Updated At",
       dataIndex: "updatedAt",
-      render: (text) => new Date(text).toLocaleString(),
+      render: (text) => dayjs(text).format(DATE_TIME_FORMAT),
     },
   ];
 
@@ -82,7 +81,15 @@ const Inventory = () => {
       <SearchInput valueKey="itemName" handleSearch={handleSearch} handleSelect={handleSelect} />
       <br />
       <br />
-      <AppTable isLoading={isLoading} rowKey="id" columns={columns} dataSource={inventory ? inventory.rows : []} />
+      <AppTable
+        isLoading={isLoading}
+        rowKey="id"
+        columns={columns}
+        dataSource={inventory ? inventory.rows : []}
+        totalCount={inventory ? inventory.count : 0}
+        pagination={true}
+        paginationHandler={paginationHandler}
+      />
     </>
   );
 };

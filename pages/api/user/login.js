@@ -19,7 +19,7 @@ const login = async (req, res) => {
   const { error, value } = apiSchema.validate({ ...req.body });
 
   if (error && Object.keys(error).length) {
-    return res.status(400).send({ error });
+    return res.status(400).send({ message: error.toString() });
   }
 
   try {
@@ -70,7 +70,7 @@ const login = async (req, res) => {
     });
   } catch (error) {
     console.log("Login Request Error:", error);
-    res.status(500).send(error);
+    res.status(500).send({ message: error.toString() });
   }
 };
 

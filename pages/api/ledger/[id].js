@@ -2,38 +2,35 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import { companySumQuery, customerSumQuery } from "../../../query";
 
 const getTransactions = async (req, res) => {
   console.log("get transaction Request Start");
 
   try {
     await db.dbConnect();
-    const { id } = req.query;
+    const { id, type = "company" } = req.query;
+    const condtion = type === "company" ? { companyId: id } : { customerId: id };
     const transactions = await db.Ledger.findAll({
-      where: { companyId: id },
-      include: {
-        model: db.Company,
-        as: "company",
-      },
+      where: condtion,
+      order: [["updatedAt", "DESC"]],
+      include: [
+        {
+          model: db.Company,
+          as: "company",
+        },
+        {
+          model: db.Customer,
+          as: "customer",
+        },
+      ],
     });
 
-    const totalBalance = await db.sequelize.query(
-      `SELECT SUM(
-              CASE WHEN "ledgers"."spendType" = 'CREDIT' THEN
-                  amount
-              WHEN "ledgers"."spendType" = 'DEBIT' THEN
-                  - amount
-              ELSE
-                  0
-              END) AS amount
-          FROM ledgers
-          INNER JOIN companies ON "ledgers"."companyId" = companies.id
-          WHERE "ledgers"."companyId" = ${id}
-          GROUP BY "companies"."companyName"`,
-      {
-        type: db.Sequelize.QueryTypes.SELECT,
-      }
-    );
+    const rawQuery = type === "company" ? companySumQuery(id) : customerSumQuery(id);
+
+    const totalBalance = await db.sequelize.query(rawQuery, {
+      type: db.Sequelize.QueryTypes.SELECT,
+    });
     console.log("get transaction Request End");
 
     return res.send({
@@ -42,7 +39,7 @@ const getTransactions = async (req, res) => {
     });
   } catch (error) {
     console.log("get transaction Request Error:", error);
-    res.send(error);
+    res.status(500).send({ message: error.toString() });
   }
 };
 

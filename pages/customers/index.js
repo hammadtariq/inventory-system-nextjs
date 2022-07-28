@@ -1,18 +1,21 @@
-import { useRouter } from "next/router";
 import { useRef, useState } from "react";
-import { Alert, Popconfirm, Button } from "antd";
-import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 
-import { useCustomers, deleteCustomer } from "@/hooks/customers";
-import permissionsUtil from "@/utils/permission.util";
-import styles from "@/styles/Customer.module.css";
-import { getColumnSearchProps } from "@/utils/filter.util";
-import AppTitle from "@/components/title";
+import { Alert, Button, Popconfirm } from "antd";
+import dayjs from "dayjs";
+import { useRouter } from "next/router";
+
 import AppCreateButton from "@/components/createButton";
 import AppTable from "@/components/table";
+import AppTitle from "@/components/title";
+import { deleteCustomer, useCustomers } from "@/hooks/customers";
+import styles from "@/styles/Customer.module.css";
+import { getColumnSearchProps } from "@/utils/filter.util";
+import permissionsUtil from "@/utils/permission.util";
+import { DATE_TIME_FORMAT } from "@/utils/ui.util";
+import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 
 export default function Customers() {
-  const { customers, error, isLoading, mutate } = useCustomers();
+  const { customers, error, isLoading, paginationHandler, mutate } = useCustomers();
   const router = useRouter();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
@@ -107,14 +110,9 @@ export default function Customers() {
       key: "address",
     },
     {
-      title: "Created At",
-      dataIndex: "createdAt",
-      render: (text) => new Date(text).toLocaleString(),
-    },
-    {
       title: "Updated At",
       dataIndex: "updatedAt",
-      render: (text) => new Date(text).toLocaleString(),
+      render: (text) => dayjs(text).format(DATE_TIME_FORMAT),
     },
     {
       title: "Action",
@@ -122,7 +120,6 @@ export default function Customers() {
       render: renderActions,
     },
   ];
-
   if (error) return <Alert message={error.message} type="error" />;
   return (
     <>
@@ -130,7 +127,15 @@ export default function Customers() {
         Customer List
         <AppCreateButton url="/customers/create" />
       </AppTitle>
-      <AppTable columns={columns} rowKey="id" isLoading={isLoading} dataSource={customers ? customers.data : []} />
+      <AppTable
+        columns={columns}
+        rowKey="id"
+        isLoading={isLoading}
+        dataSource={customers ? customers.rows : []}
+        totalCount={customers ? customers.count : 0}
+        pagination={true}
+        paginationHandler={paginationHandler}
+      />
     </>
   );
 }

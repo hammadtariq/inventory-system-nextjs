@@ -2,6 +2,7 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import { DEFAULT_ROWS_LIMIT } from "@/utils/api.util";
 
 const dbConnect = db.dbConnect;
 
@@ -24,7 +25,7 @@ const customerRegistration = async (req, res) => {
 
     // if user already exist
     if (customer) {
-      return res.status(409).send({ success: false, message: "Customer already exist" });
+      return res.status(409).send({ message: "Customer already exist" });
     }
 
     await db.Customer.create({
@@ -43,26 +44,28 @@ const customerRegistration = async (req, res) => {
   } catch (error) {
     console.log("Create Customer Request Error:", error);
 
-    return res.send(error);
+    return res.status(500).send({ message: error.toString() });
   }
 };
 
 const getAllCustomers = async (req, res) => {
   console.log("Get all Customer Request Start");
+  const { limit, offset, attributes = [] } = req.query;
+  const options = {};
+  options.limit = limit ? limit : DEFAULT_ROWS_LIMIT;
+  options.offset = offset ? offset : 0;
+  if (attributes.length) {
+    options.attributes = JSON.parse(attributes);
+  }
 
   try {
     await dbConnect();
-    const customers = await db.Customer.findAll({ order: [["updatedAt", "DESC"]] });
+    const customers = await db.Customer.findAndCountAll({ ...options, order: [["updatedAt", "DESC"]] });
     console.log("Get all Customer Request End");
-
-    return res.send({
-      succress: true,
-      message: "All Customers",
-      data: customers,
-    });
+    return res.send(customers);
   } catch (error) {
     console.log("Get all Customer Request Error:", error);
-    res.send(error);
+    res.status(500).send({ message: error.toString() });
   }
 };
 

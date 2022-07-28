@@ -11,7 +11,6 @@ module.exports = {
       itemName: {
         type: Sequelize.STRING,
         allowNull: false,
-        unique: true,
         validate: {
           isLowercase: {
             msg: "Item Name must be lowercase",
@@ -40,7 +39,7 @@ module.exports = {
       },
       ratePerBale: {
         type: Sequelize.FLOAT,
-        allowNull: false,
+        allowNull: true,
       },
       onHand: {
         type: Sequelize.INTEGER,

@@ -33,6 +33,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       status: DataTypes.ENUM(["PENDING", "APPROVED", "CANCEL"]),
+      baleType: DataTypes.ENUM(["SMALL_BALES", "BIG_BALES"]),
       purchaseDate: {
         type: DataTypes.DATE,
         allowNull: false,

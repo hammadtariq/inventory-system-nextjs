@@ -3,10 +3,11 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import { DEFAULT_ROWS_LIMIT } from "@/utils/api.util";
 
 const apiSchema = Joi.object({
   companyId: Joi.number().required(),
-  itemName: Joi.string().min(3).trim().lowercase().required(),
+  itemName: Joi.string().trim().lowercase().required(),
   ratePerLbs: Joi.number(),
   ratePerKgs: Joi.number(),
   ratePerBale: Joi.number(),
@@ -18,7 +19,7 @@ const createItem = async (req, res) => {
 
   const { error, value } = apiSchema.validate(req.body);
   if (error && Object.keys(error).length) {
-    return res.status(400).send({ message: error });
+    return res.status(400).send({ message: error.toString() });
   }
   try {
     const { itemName, companyId, type, ratePerBale } = value;
@@ -50,9 +51,9 @@ const createItem = async (req, res) => {
 const getAllItems = async (req, res) => {
   console.log("get all items Request Start");
 
-  const { limit, offset, companyId, type } = req.query;
+  const { limit, offset, companyId, type, orderBy, sortOrder } = req.query;
   const options = {};
-  options.limit = limit ? limit : 10;
+  options.limit = limit ? limit : DEFAULT_ROWS_LIMIT;
   options.offset = offset ? offset : 0;
   if (companyId && type) {
     options.where = {
@@ -68,9 +69,10 @@ const getAllItems = async (req, res) => {
       type,
     };
   }
+  const order = orderBy && sortOrder ? [orderBy, sortOrder] : ["updatedAt", "DESC"];
   try {
     await db.dbConnect();
-    const data = await db.Items.findAndCountAll({ ...options, include: [db.Company], order: [["updatedAt", "DESC"]] });
+    const data = await db.Items.findAndCountAll({ ...options, include: [db.Company], order: [order] });
     console.log("get all items Request End");
     return res.send(data);
   } catch (error) {

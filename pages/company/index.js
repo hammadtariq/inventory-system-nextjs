@@ -1,18 +1,21 @@
-import { useRouter } from "next/router";
 import { useRef, useState } from "react";
-import { Alert, Button, Popconfirm } from "antd";
-import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 
-import { useCompanies, deleteCompany } from "@/hooks/company";
-import styles from "@/styles/Company.module.css";
-import permissionsUtil from "@/utils/permission.util";
-import { getColumnSearchProps } from "@/utils/filter.util";
-import AppTitle from "@/components/title";
+import { Alert, Button, Popconfirm } from "antd";
+import dayjs from "dayjs";
+import { useRouter } from "next/router";
+
 import AppCreateButton from "@/components/createButton";
 import AppTable from "@/components/table";
+import AppTitle from "@/components/title";
+import { deleteCompany, useCompanies } from "@/hooks/company";
+import styles from "@/styles/Company.module.css";
+import { getColumnSearchProps } from "@/utils/filter.util";
+import permissionsUtil from "@/utils/permission.util";
+import { DATE_TIME_FORMAT } from "@/utils/ui.util";
+import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 
 const Company = () => {
-  const { companies, error, isLoading, mutate } = useCompanies();
+  const { companies, error, isLoading, paginationHandler, mutate } = useCompanies();
   const router = useRouter();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
@@ -85,14 +88,9 @@ const Company = () => {
       render: (text) => text ?? "N/A",
     },
     {
-      title: "Created At",
-      dataIndex: "createdAt",
-      render: (text) => new Date(text).toLocaleString(),
-    },
-    {
       title: "Updated At",
       dataIndex: "updatedAt",
-      render: (text) => new Date(text).toLocaleString(),
+      render: (text) => dayjs(text).format(DATE_TIME_FORMAT),
     },
     {
       title: "Action",
@@ -108,7 +106,15 @@ const Company = () => {
         Company List
         <AppCreateButton url="/company/create" />
       </AppTitle>
-      <AppTable isLoading={isLoading} rowKey="id" columns={columns} dataSource={companies ? companies.rows : []} />
+      <AppTable
+        isLoading={isLoading}
+        rowKey="id"
+        columns={columns}
+        dataSource={companies ? companies.rows : []}
+        totalCount={companies ? companies.count : 0}
+        pagination={true}
+        paginationHandler={paginationHandler}
+      />
     </>
   );
 };

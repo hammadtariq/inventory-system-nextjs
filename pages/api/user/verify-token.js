@@ -24,7 +24,7 @@ const verifyToken = async (req, res) => {
     return res.send({ isValid: true });
   } catch (error) {
     console.log("Verify token Request Error:", error);
-    res.status(500).send(error);
+    res.status(500).send({ message: error.toString() });
   }
 };
 

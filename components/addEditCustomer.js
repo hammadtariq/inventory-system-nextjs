@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
-import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+
 import { Button, Form, Input } from "antd";
+import { useRouter } from "next/router";
+
+import permissionsUtil from "@/utils/permission.util";
+import { VALIDATE_MESSAGE } from "@/utils/ui.util";
 
 import { createCustomer, updateCustomer } from "../hooks/customers";
-import { VALIDATE_MESSAGE, LAYOUT } from "@/utils/ui.util";
-import permissionsUtil from "@/utils/permission.util";
 import AppBackButton from "./backButton";
 
 const canCreate = permissionsUtil.checkAuth({
@@ -45,7 +47,7 @@ const AddEditCustomer = ({ customer }) => {
     }
   };
   return (
-    <Form form={form} {...LAYOUT} name="nest-messages" onFinish={onFinish} validateMessages={VALIDATE_MESSAGE}>
+    <Form form={form} layout="vertical" name="nest-messages" onFinish={onFinish} validateMessages={VALIDATE_MESSAGE}>
       <Form.Item
         name="firstName"
         label="First Name"
@@ -107,7 +109,7 @@ const AddEditCustomer = ({ customer }) => {
       >
         <Input.TextArea />
       </Form.Item>
-      <Form.Item wrapperCol={{ ...LAYOUT.wrapperCol, offset: 2 }}>
+      <Form.Item className="action-btn">
         <AppBackButton />
         <Button type="primary" htmlType="submit" loading={loading} disabled={!canCreate}>
           {customer ? "Update" : "Create"}

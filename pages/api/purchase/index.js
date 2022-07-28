@@ -3,23 +3,25 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
-import { STATUS } from "@/utils/api.util";
+import { DEFAULT_ROWS_LIMIT, STATUS } from "@/utils/api.util";
 
 const inventorySchema = Joi.object().keys({
   itemName: Joi.string().min(3).trim().lowercase().required(),
   noOfBales: Joi.number().required(),
-  baleWeightLbs: Joi.number(),
-  baleWeightKgs: Joi.number(),
-  ratePerLbs: Joi.number(),
-  ratePerKgs: Joi.number(),
-  ratePerBale: Joi.number().required(),
+  baleWeightLbs: Joi.number().allow(null),
+  baleWeightKgs: Joi.number().allow(null),
+  ratePerLbs: Joi.number().allow(null),
+  ratePerKgs: Joi.number().allow(null),
+  ratePerBale: Joi.number().allow(null),
+  id: Joi.number().required(),
 });
 const apiSchema = Joi.object({
   companyId: Joi.number().required(),
   totalAmount: Joi.number().required(),
-  surCharge: Joi.number(),
-  invoiceNumber: Joi.string().trim(),
+  surCharge: Joi.number().allow(null),
+  invoiceNumber: Joi.string().trim().allow(null),
   purchaseDate: Joi.date().required(),
+  baleType: Joi.string().valid("SMALL_BALES", "BIG_BALES").required(),
   purchasedProducts: Joi.array().items(inventorySchema).required(),
 });
 
@@ -28,7 +30,7 @@ const createPurchaseOrder = async (req, res) => {
 
   const { error, value } = apiSchema.validate(req.body);
   if (error && Object.keys(error).length) {
-    return res.status(400).send({ message: error });
+    return res.status(400).send({ message: error.toString() });
   }
   try {
     await db.dbConnect();
@@ -46,7 +48,7 @@ const getAllPurchase = async (req, res) => {
 
   const { limit, offset } = req.query;
   const pagination = {};
-  pagination.limit = limit ? limit : 10;
+  pagination.limit = limit ? limit : DEFAULT_ROWS_LIMIT;
   pagination.offset = offset ? offset : 0;
   try {
     await db.dbConnect();

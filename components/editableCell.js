@@ -3,7 +3,7 @@ import { Input, InputNumber, Form } from "antd";
 
 import styles from "@/styles/EditAbleTable.module.css";
 
-const EditableCell = ({ editing, dataIndex, title, inputType, children, required, ...restProps }) => {
+const EditableCell = ({ editing, dataIndex, title, inputType, children, required, record, ...restProps }) => {
   const inputNode =
     inputType === "number" ? (
       <InputNumber className={styles.editableCellInput} />
@@ -22,6 +22,11 @@ const EditableCell = ({ editing, dataIndex, title, inputType, children, required
             {
               required,
               message: `Please Input ${title}!`,
+            },
+            {
+              type: "number",
+              max: dataIndex === "noOfBales" ? record.onHand : null,
+              message: `${title} cannot be greater than ${record.onHand}`,
             },
           ]}
         >
