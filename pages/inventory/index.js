@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 
-import { Alert } from "antd";
+import { Alert, Row, Col } from "antd";
 import dayjs from "dayjs";
 
 import SearchInput from "@/components/SearchInput";
 import AppTable from "@/components/table";
 import AppTitle from "@/components/title";
+import ExportToExcel from "@/components/ExportToExcel";
 import { getInventory, searchInventory, useInventory } from "@/hooks/inventory";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import { DATE_TIME_FORMAT } from "@/utils/ui.util";
@@ -87,7 +88,16 @@ const Inventory = () => {
   return (
     <>
       <AppTitle level={2}>Inventory List</AppTitle>
-      <SearchInput valueKey="itemName" handleSearch={handleSearch} handleSelect={handleSelect} />
+      <Row>
+        <Col span={6}>
+          <SearchInput valueKey="itemName" handleSearch={handleSearch} handleSelect={handleSelect} />
+        </Col>
+        <Col span={6}></Col>
+        <Col span={6}></Col>
+        <Col span={6}>
+          <ExportToExcel />
+        </Col>
+      </Row>
       <br />
       <br />
       <AppTable

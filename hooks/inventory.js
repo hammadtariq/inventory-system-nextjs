@@ -48,3 +48,5 @@ export const useInventoryByCompanyId = (companyId) => {
 export const searchInventory = (value) => get(`/api/inventory/search?value=${value}`);
 
 export const getInventory = (id) => get(`/api/inventory/${id}`);
+
+export const exportInventory = (value) => get(`/api/inventory/export`);
