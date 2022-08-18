@@ -49,4 +49,4 @@ export const searchInventory = (value) => get(`/api/inventory/search?value=${val
 
 export const getInventory = (id) => get(`/api/inventory/${id}`);
 
-export const exportInventory = (value) => get(`/api/inventory/export`);
+export const exportInventory = () => get(`/api/inventory/export`);

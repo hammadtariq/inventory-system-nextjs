@@ -1,3 +1,8 @@
+import nextConnect from "next-connect";
+
+import db from "@/lib/postgres";
+import { auth } from "@/middlewares/auth";
+
 const path = require("path");
 const fs = require("fs");
 const XLSX = require("XLSX");
@@ -13,10 +18,6 @@ const exportXLS = (data, filePath) => {
   XLSX.writeFile(wb, filePath);
 };
 
-import nextConnect from "next-connect";
-
-import db from "@/lib/postgres";
-import { auth } from "@/middlewares/auth";
 const Op = db.Sequelize.Op;
 
 const exportInventry = async (req, res) => {
@@ -26,26 +27,15 @@ const exportInventry = async (req, res) => {
 
     const dataForExcel = data.rows.map((el) => el.dataValues);
 
-    // const fileName = HELPER_TEXT_EXPORT_FILENAME || "helperText.xlsx";
-    const fileName = "helperText.xlsx";
-    // console.log("HelperText export filename", fileName);
-
-    // const filePath = EXPORT_FILEPATH || path.join(global.appRoot, "exports");
-    global.appRoot = path.resolve(__dirname);
-    // console.log('====>', global.appRoot);
-    const filePath = path.join(global.appRoot, "excelData");
-    // console.log("HelperText export filepath", filePath);
+    const timestamp = new Date().getTime();
+    const fileName = `inventory-${timestamp}.xlsx`;
+    const filePath = path.resolve(".", "exportedFiles");
 
     if (!fs.existsSync(filePath)) {
       fs.mkdirSync(filePath);
     }
     const newPath = path.join(filePath, fileName);
-    // const [err, helperTexts] = await to(HelperText.scan().all().exec());
-
-    // if (err) return badRes(res, err);
-
     exportXLS(dataForExcel, newPath);
-    // exportXLS(dataForExcel, 'sampleData.export.xlsx');
 
     const newFile = fs.readFileSync(newPath, { encoding: "base64" });
 

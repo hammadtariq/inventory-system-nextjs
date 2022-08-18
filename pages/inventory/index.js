@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 
-import { Alert, Row, Col } from "antd";
+import { Alert, Col, Row } from "antd";
 import dayjs from "dayjs";
 
+import ExportButton from "@/components/exportButton";
 import SearchInput from "@/components/SearchInput";
 import AppTable from "@/components/table";
 import AppTitle from "@/components/title";
-import ExportToExcel from "@/components/ExportToExcel";
-import { getInventory, searchInventory, useInventory } from "@/hooks/inventory";
+import { exportInventory, getInventory, searchInventory, useInventory } from "@/hooks/inventory";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import { DATE_TIME_FORMAT } from "@/utils/ui.util";
 
@@ -84,18 +84,26 @@ const Inventory = () => {
     return newInventory;
   };
 
+  const handleExport = async () => {
+    try {
+      const response = await exportInventory();
+      return response;
+    } catch (error) {
+      console.log("export error", error);
+      return error;
+    }
+  };
+
   if (error) return <Alert message={error} type="error" />;
   return (
     <>
       <AppTitle level={2}>Inventory List</AppTitle>
-      <Row>
-        <Col span={6}>
+      <Row justify="space-between">
+        <Col>
           <SearchInput valueKey="itemName" handleSearch={handleSearch} handleSelect={handleSelect} />
         </Col>
-        <Col span={6}></Col>
-        <Col span={6}></Col>
-        <Col span={6}>
-          <ExportToExcel />
+        <Col>
+          <ExportButton handleExport={handleExport} filename="inventory" />
         </Col>
       </Row>
       <br />
