@@ -20,7 +20,7 @@ const getAllInventory = async (req, res) => {
       ...options,
       where: { onHand: { [db.Sequelize.Op.gt]: 0 } },
       include: [db.Company],
-      order: [["updatedAt", "DESC"]],
+      order: [["itemName", "ASC"]],
     });
 
     console.log("Get all inventory Request End");

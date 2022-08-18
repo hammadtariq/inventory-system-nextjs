@@ -2,7 +2,7 @@
   "name": "inventory-system-nextjs",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3004",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

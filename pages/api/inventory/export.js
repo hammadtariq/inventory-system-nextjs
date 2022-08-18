@@ -20,12 +20,19 @@ const exportXLS = (data, filePath) => {
 
 const Op = db.Sequelize.Op;
 
-const exportInventry = async (req, res) => {
+const exportInventory = async (req, res) => {
   try {
     await db.dbConnect();
-    const data = await db.Inventory.findAndCountAll();
+    const data = await db.Inventory.findAndCountAll({ include: [db.Company], order: [["itemName", "ASC"]] });
 
-    const dataForExcel = data.rows.map((el) => el.dataValues);
+    const dataForExcel = data.rows.map((element) => ({
+      itemName: element.itemName,
+      companyName: element.company.companyName ?? "N/A",
+      onHand: element.onHand ?? "0",
+      ratePerKgs: element.ratePerKgs ?? "N/A",
+      ratePerLbs: element.ratePerLbs ?? "N/A",
+      ratePerBale: element.ratePerBale ?? "N/A",
+    }));
 
     const timestamp = new Date().getTime();
     const fileName = `inventory-${timestamp}.xlsx`;
@@ -49,37 +56,4 @@ const exportInventry = async (req, res) => {
   }
 };
 
-export default nextConnect().use(auth).get(exportInventry);
-
-// exports.export = async (req, res) => {
-//     console.log(req);
-//     console.log("HelperText export started");
-//     console.time("HelperTextExport");
-
-//     const fileName = HELPER_TEXT_EXPORT_FILENAME || "helperText.xlsx";
-//     console.log("HelperText export filename", fileName);
-
-//     const filePath = EXPORT_FILEPATH || path.join(global.appRoot, "exports");
-//     console.log("HelperText export filepath", filePath);
-
-//     if (!fs.existsSync(filePath)) {
-//         fs.mkdirSync(filePath);
-//     }
-//     const newPath = path.join(filePath, fileName);
-//     const [err, helperTexts] = await to(HelperText.scan().all().exec());
-
-//     if (err) return badRes(res, err);
-
-//     exportXLS(helperTexts, newPath);
-//     console.log("HelperText export newPath", newPath);
-//     console.log("HelperText export ended");
-//     console.timeEnd("HelperTextExport");
-
-//     res.setHeader("Content-disposition", `inline; filename="${fileName}"`);
-//     res.setHeader("Content-type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-//     res.setHeader("isBase64Encoded", true);
-
-//     const newFile = fs.readFileSync(newPath, { encoding: "base64" });
-//     return res.status(200).send(newFile);
-//     // return res.send("results");
-// };
+export default nextConnect().use(auth).get(exportInventory);
