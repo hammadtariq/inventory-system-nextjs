@@ -1,5 +1,6 @@
-import { Input, Button, Space } from "antd";
+import { Button, Input, Space } from "antd";
 import Highlighter from "react-highlight-words";
+
 import { SearchOutlined } from "@ant-design/icons";
 
 export const getColumnSearchProps = ({
@@ -58,7 +59,10 @@ export const getColumnSearchProps = ({
     filterIcon: (filtered) => <SearchOutlined style={{ color: filtered ? "#1890ff" : undefined }} />,
     onFilter: (value, record) => {
       if (nested) {
-        return record[parentDataIndex][dataIndex].toString().toLowerCase().includes(value.toLowerCase());
+        if (record[parentDataIndex] && record[parentDataIndex][dataIndex]) {
+          return record[parentDataIndex][dataIndex].toString().toLowerCase().includes(value.toLowerCase());
+        }
+        return false;
       } else {
         return record[dataIndex].toString().toLowerCase().includes(value.toLowerCase());
       }
