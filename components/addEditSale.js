@@ -96,7 +96,7 @@ const AddEditSale = ({ sale, type = null }) => {
     delete orderData.selectedProduct;
     orderData.soldDate = orderData.soldDate.toISOString();
     orderData.customerId = customerId;
-    orderData.laborCharge = _laborCharge;
+    orderData.laborCharge = _laborCharge || 0;
     orderData.soldProducts = selectedProducts.map((product) => {
       const { itemName, noOfBales, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs, id, companyId, ratePerBale } =
         product;
