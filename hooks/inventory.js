@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 
 import useSWR from "swr";
 
-import { get } from "@/lib/http-client";
+import { get, put } from "@/lib/http-client";
 import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 
 export const useInventory = () => {
@@ -45,8 +45,20 @@ export const useInventoryByCompanyId = (companyId) => {
   };
 };
 
+export const useInventoryItem = (id) => {
+  const { data, error } = useSWR(`/api/inventory/${id}`, get);
+
+  return {
+    item: data,
+    isLoading: !error && !data,
+    error,
+  };
+};
+
 export const searchInventory = (value) => get(`/api/inventory/search?value=${value}`);
 
 export const getInventory = (id) => get(`/api/inventory/${id}`);
+
+export const updateInventory = (id, data) => put(`/api/inventory/${id}`, data);
 
 export const exportInventory = () => get(`/api/inventory/export`);

@@ -3,30 +3,37 @@ import { useEffect, useRef, useState } from "react";
 import { Alert, Col, Row } from "antd";
 import dayjs from "dayjs";
 
+import EditableInventoryCell from "@/components/editableInventoryCell";
 import ExportButton from "@/components/exportButton";
 import SearchInput from "@/components/SearchInput";
+import Spinner from "@/components/spinner";
 import AppTable from "@/components/table";
 import AppTitle from "@/components/title";
-import { exportInventory, getInventory, searchInventory, useInventory } from "@/hooks/inventory";
+import { exportInventory, getInventory, searchInventory, updateInventory, useInventory } from "@/hooks/inventory";
+import styles from "@/styles/EditAbleTable.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import { DATE_TIME_FORMAT } from "@/utils/ui.util";
 
 const Inventory = () => {
-  const { inventory, error, isLoading, paginationHandler } = useInventory();
+  const { inventory, error, isLoading, mutate, paginationHandler } = useInventory();
   const [updatedInventory, setUpdatedInventory] = useState();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const searchInput = useRef(null);
 
   useEffect(() => {
     setUpdatedInventory(inventory);
   }, [inventory]);
 
-  const columns = [
+  const defaultColumns = [
     {
       title: "Item Name",
       dataIndex: "itemName",
       key: "itemName",
+      width: "30%",
+      editable: true,
       ...getColumnSearchProps({
         dataIndex: "itemName",
         dataIndexName: "item name",
@@ -66,6 +73,37 @@ const Inventory = () => {
       render: (text) => dayjs(text).format(DATE_TIME_FORMAT),
     },
   ];
+
+  const columns = defaultColumns.map((col) => {
+    if (!col.editable) {
+      return col;
+    }
+
+    return {
+      ...col,
+      onCell: (record) => ({
+        record,
+        editable: col.editable,
+        dataIndex: col.dataIndex,
+        title: col.title,
+        handleSave,
+      }),
+    };
+  });
+
+  const handleSave = async (row) => {
+    setLoading(true);
+    const newData = [...updatedInventory.rows];
+    const index = newData.findIndex((item) => row.key === item.key);
+    const item = newData[index];
+    try {
+      await updateInventory(item.id, { itemName: row.itemName });
+      mutate();
+    } catch (error) {
+      console.log("update inventory item name error", error);
+    }
+    setLoading(false);
+  };
 
   const handleSearch = async (value) => {
     if (!value) {
@@ -108,10 +146,17 @@ const Inventory = () => {
       </Row>
       <br />
       <br />
+      {loading && <Spinner />}
       <AppTable
         isLoading={isLoading}
         rowKey="id"
         columns={columns}
+        components={{
+          body: {
+            cell: EditableInventoryCell,
+          },
+        }}
+        rowClassName={styles.editableRow}
         dataSource={updatedInventory ? updatedInventory.rows : []}
         totalCount={updatedInventory ? updatedInventory.count : 0}
         pagination={true}

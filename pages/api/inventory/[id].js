@@ -6,7 +6,45 @@ import { auth } from "@/middlewares/auth";
 
 const apiSchema = Joi.object({
   id: Joi.number().required(),
+  itemName: Joi.string().min(3).trim(),
 });
+
+const updateInventory = async (req, res) => {
+  console.log("update inventory Request Start");
+
+  const { error, value } = apiSchema.validate({
+    ...req.body,
+    id: req.query.id,
+  });
+
+  if (error && Object.keys(error).length) {
+    return res.status(400).send({ message: error.toString() });
+  }
+
+  try {
+    await db.dbConnect();
+
+    const inventoryItem = await db.Inventory.findByPk(value.id);
+    if (!inventoryItem) {
+      return res.status(404).send({ message: "inventory item not found" });
+    }
+    if (!Object.keys(req.body).length) {
+      res.status(400).send({
+        message: "Item name cannot be empty",
+        allowedFields: ["itemName"],
+      });
+    }
+
+    await inventoryItem.update({ ...value });
+    console.log("update inventory Request End");
+
+    return res.send();
+  } catch (error) {
+    console.log("update inventory Request Error:", error);
+
+    return res.status(500).send({ message: error.toString() });
+  }
+};
 
 const deleteInventory = async (req, res) => {
   console.log("delete inventory Request Start");
@@ -66,4 +104,4 @@ const getInventory = async (req, res) => {
   }
 };
 
-export default nextConnect().use(auth).delete(deleteInventory).get(getInventory);
+export default nextConnect().use(auth).delete(deleteInventory).get(getInventory).put(updateInventory);
