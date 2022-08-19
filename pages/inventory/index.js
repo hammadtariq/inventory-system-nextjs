@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
 import { Alert, Col, Row } from "antd";
-import dayjs from "dayjs";
 
 import EditableInventoryCell from "@/components/editableInventoryCell";
 import ExportButton from "@/components/exportButton";
@@ -13,7 +12,6 @@ import { exportInventory, getInventory, searchInventory, updateInventory, useInv
 import styles from "@/styles/EditableCell.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import permissionsUtil from "@/utils/permission.util";
-import { DATE_TIME_FORMAT } from "@/utils/ui.util";
 
 const Inventory = () => {
   const { inventory, error, isLoading, mutate, paginationHandler } = useInventory();
@@ -38,7 +36,6 @@ const Inventory = () => {
       title: "Item Name",
       dataIndex: "itemName",
       key: "itemName",
-      width: "30%",
       editable: canEditItemName,
       ...getColumnSearchProps({
         dataIndex: "itemName",
@@ -66,18 +63,18 @@ const Inventory = () => {
         setSearchedColumn,
       }),
     },
-    { title: "No of Bales", dataIndex: "noOfBales", key: "noOfBales" },
+    // { title: "No of Bales", dataIndex: "noOfBales", key: "noOfBales" },
+    { title: "On Hand", dataIndex: "onHand", key: "onHand" },
     { title: "Bale Weight (LBS)", dataIndex: "baleWeightLbs", key: "baleWeightLbs", render: (text) => text ?? "N/A" },
     { title: "Bale Weight (KGS)", dataIndex: "baleWeightKgs", key: "baleWeightKgs", render: (text) => text ?? "N/A" },
     { title: "Rate per LBS (Rs)", dataIndex: "ratePerLbs", key: "ratePerLbs", render: (text) => text ?? "N/A" },
     { title: "Rate per KGS (Rs)", dataIndex: "ratePerKgs", key: "ratePerKgs", render: (text) => text ?? "N/A" },
-    { title: "On Hand", dataIndex: "onHand", key: "onHand" },
     { title: "Rate per Bale (Rs)", dataIndex: "ratePerBale", key: "ratePerBale" },
-    {
-      title: "Updated At",
-      dataIndex: "updatedAt",
-      render: (text) => dayjs(text).format(DATE_TIME_FORMAT),
-    },
+    // {
+    //   title: "Updated At",
+    //   dataIndex: "updatedAt",
+    //   render: (text) => dayjs(text).format(DATE_TIME_FORMAT),
+    // },
   ];
 
   const columns = canEditItemName
@@ -101,11 +98,8 @@ const Inventory = () => {
 
   const handleSave = async (row) => {
     setLoading(true);
-    const newData = [...updatedInventory.rows];
-    const index = newData.findIndex((item) => row.key === item.key);
-    const item = newData[index];
     try {
-      await updateInventory(item.id, { itemName: row.itemName });
+      await updateInventory(row.id, { itemName: row.itemName });
       mutate();
     } catch (error) {
       console.log("update inventory item name error", error);

@@ -55,10 +55,12 @@ const EditableInventoryCell = ({ title, editable, children, dataIndex, record, h
     ) : (
       <div
         className={styles.editableCellValueWrap}
-        style={{
-          paddingRight: 24,
-        }}
-        onClick={toggleEdit}
+        style={
+          {
+            // paddingRight: 24,
+          }
+        }
+        onDoubleClick={toggleEdit}
       >
         {children}
       </div>
