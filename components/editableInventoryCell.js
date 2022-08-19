@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 
 import { Form, Input } from "antd";
 
+import styles from "@/styles/EditableCell.module.css";
+
 const EditableInventoryCell = ({ title, editable, children, dataIndex, record, handleSave, ...restProps }) => {
   const [editing, setEditing] = useState(false);
   const inputRef = useRef(null);
@@ -52,7 +54,7 @@ const EditableInventoryCell = ({ title, editable, children, dataIndex, record, h
       </Form>
     ) : (
       <div
-        className="editable-cell-value-wrap"
+        className={styles.editableCellValueWrap}
         style={{
           paddingRight: 24,
         }}

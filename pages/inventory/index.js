@@ -10,8 +10,9 @@ import Spinner from "@/components/spinner";
 import AppTable from "@/components/table";
 import AppTitle from "@/components/title";
 import { exportInventory, getInventory, searchInventory, updateInventory, useInventory } from "@/hooks/inventory";
-import styles from "@/styles/EditAbleTable.module.css";
+import styles from "@/styles/EditableCell.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
+import permissionsUtil from "@/utils/permission.util";
 import { DATE_TIME_FORMAT } from "@/utils/ui.util";
 
 const Inventory = () => {
@@ -23,6 +24,11 @@ const Inventory = () => {
 
   const searchInput = useRef(null);
 
+  const canEditItemName = permissionsUtil.checkAuth({
+    category: "inventory",
+    action: "edit",
+  });
+
   useEffect(() => {
     setUpdatedInventory(inventory);
   }, [inventory]);
@@ -33,7 +39,7 @@ const Inventory = () => {
       dataIndex: "itemName",
       key: "itemName",
       width: "30%",
-      editable: true,
+      editable: canEditItemName,
       ...getColumnSearchProps({
         dataIndex: "itemName",
         dataIndexName: "item name",
@@ -74,22 +80,24 @@ const Inventory = () => {
     },
   ];
 
-  const columns = defaultColumns.map((col) => {
-    if (!col.editable) {
-      return col;
-    }
+  const columns = canEditItemName
+    ? defaultColumns.map((col) => {
+        if (!col.editable) {
+          return col;
+        }
 
-    return {
-      ...col,
-      onCell: (record) => ({
-        record,
-        editable: col.editable,
-        dataIndex: col.dataIndex,
-        title: col.title,
-        handleSave,
-      }),
-    };
-  });
+        return {
+          ...col,
+          onCell: (record) => ({
+            record,
+            editable: col.editable,
+            dataIndex: col.dataIndex,
+            title: col.title,
+            handleSave,
+          }),
+        };
+      })
+    : defaultColumns;
 
   const handleSave = async (row) => {
     setLoading(true);
@@ -151,11 +159,15 @@ const Inventory = () => {
         isLoading={isLoading}
         rowKey="id"
         columns={columns}
-        components={{
-          body: {
-            cell: EditableInventoryCell,
-          },
-        }}
+        components={
+          canEditItemName
+            ? {
+                body: {
+                  cell: EditableInventoryCell,
+                },
+              }
+            : {}
+        }
         rowClassName={styles.editableRow}
         dataSource={updatedInventory ? updatedInventory.rows : []}
         totalCount={updatedInventory ? updatedInventory.count : 0}

@@ -7,10 +7,11 @@ export const adminPermissions = {
   company_edit: true,
   company_delete: true,
 
+  inventory_edit: true,
+
   transaction_create: true,
 
   purchase_approve: true,
-
   purchase_edit: true,
 
   item_create: true,
@@ -31,6 +32,8 @@ export const editorPermissions = {
   company_create: true,
   company_edit: true,
   company_delete: false,
+
+  inventory_edit: false,
 
   purchase_edit: true,
 

@@ -1,7 +1,8 @@
 import React from "react";
-import { Input, InputNumber, Form } from "antd";
 
-import styles from "@/styles/EditAbleTable.module.css";
+import { Form, Input, InputNumber } from "antd";
+
+import styles from "@/styles/EditableCell.module.css";
 
 const EditableCell = ({ editing, dataIndex, title, inputType, children, required, record, ...restProps }) => {
   const inputNode =
