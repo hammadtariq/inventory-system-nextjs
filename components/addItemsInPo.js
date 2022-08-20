@@ -5,7 +5,7 @@ import { Alert, Form, Popconfirm, Typography } from "antd";
 import EditableCell from "@/components/editableCell";
 import AppTable from "@/components/table";
 import { useItemsByCompanyIdAndType } from "@/hooks/items";
-import styles from "@/styles/EditAbleTable.module.css";
+import styles from "@/styles/EditableCell.module.css";
 
 export default function AddItemsInPo({ companyId, type, setData, data, isEdit, viewOnly = false }) {
   const [editingKey, setEditingKey] = useState("");

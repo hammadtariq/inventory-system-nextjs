@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Form, Popconfirm, Typography } from "antd";
 
 import EditableCell from "@/components/editableCell";
-import styles from "@/styles/EditAbleTable.module.css";
+import styles from "@/styles/EditableCell.module.css";
 
 import AppTable from "./table";
 
