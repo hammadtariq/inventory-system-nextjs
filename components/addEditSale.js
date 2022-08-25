@@ -143,14 +143,15 @@ const AddEditSale = ({ sale, type = null }) => {
             <Form.Item
               name="laborCharge"
               label="Labor Charge (RS)"
-              rules={[
-                {
-                  required: true,
-                },
-              ]}
+              // rules={[
+              //   {
+              //     required: true,
+              //   },
+              // ]}
             >
               <Input
                 type="number"
+                min="0"
                 defaultValue={_laborCharge}
                 value={_laborCharge}
                 onChange={(e) => {
