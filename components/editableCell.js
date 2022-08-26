@@ -3,21 +3,13 @@ import React from "react";
 import { Form, Input, InputNumber } from "antd";
 
 import styles from "@/styles/EditableCell.module.css";
+import { kgLbConversion } from "@/utils/conversion.utils";
 
-const EditableCell = ({
-  editing,
-  handleFormValues,
-  dataIndex,
-  title,
-  inputType,
-  children,
-  required,
-  record,
-  ...restProps
-}) => {
+const EditableCell = ({ dataIndex, title, inputType, form, children, required, record, ...restProps }) => {
   const handleChange = (e, name) => {
     const data = { e, name };
-    handleFormValues(data);
+    kgLbConversion(data, form);
+    console.log(values, values.baleWeightLbs);
   };
   const inputNode =
     inputType === "number" ? (
