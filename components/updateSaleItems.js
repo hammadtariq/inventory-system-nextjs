@@ -19,6 +19,25 @@ export default function UpdateSalesItems({
 
   const isEditing = (record) => record.id === editingKey;
 
+  const handleFormValues = ({ e, name }) => {
+    const values = form.getFieldsValue();
+    if (name === "noOfBales") {
+      return;
+    }
+    if (name === "baleWeightKgs" && values.baleWeightLbs !== null) {
+      return form.setFieldsValue({
+        ["baleWeightLbs"]: Number((e * 2.20462262).toFixed(2)),
+      });
+    }
+
+    if (name === "baleWeightLbs") {
+      return form.setFieldsValue({
+        ["baleWeightKgs"]: Number((e / 2.20462262).toFixed(2)),
+      });
+    }
+    console.log(values, values.baleWeightLbs);
+  };
+
   const edit = (record) => {
     form.setFieldsValue({
       itemName: "",
@@ -155,6 +174,7 @@ export default function UpdateSalesItems({
       onCell: (record) => ({
         record,
         inputType: "number",
+        handleFormValues: handleFormValues,
         dataIndex: col.dataIndex,
         title: col.title,
         required: col.required,

@@ -4,12 +4,26 @@ import { Form, Input, InputNumber } from "antd";
 
 import styles from "@/styles/EditableCell.module.css";
 
-const EditableCell = ({ editing, dataIndex, title, inputType, children, required, record, ...restProps }) => {
+const EditableCell = ({
+  editing,
+  handleFormValues,
+  dataIndex,
+  title,
+  inputType,
+  children,
+  required,
+  record,
+  ...restProps
+}) => {
+  const handleChange = (e, name) => {
+    const data = { e, name };
+    handleFormValues(data);
+  };
   const inputNode =
     inputType === "number" ? (
-      <InputNumber className={styles.editableCellInput} />
+      <InputNumber name={dataIndex} className={styles.editableCellInput} onChange={(e) => handleChange(e, dataIndex)} />
     ) : (
-      <Input className={styles.editableCellInput} />
+      <Input name={dataIndex} className={styles.editableCellInput} onChange={(e) => handleChange(e, dataIndex)} />
     );
   return (
     <td {...restProps} className={styles.editableTd}>
