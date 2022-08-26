@@ -20,8 +20,22 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.FLOAT,
         allowNull: false,
       },
+      surCharge: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+      },
+      invoiceNumber: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
       purchasedProducts: {
         type: DataTypes.JSONB,
+        allowNull: false,
+      },
+      status: DataTypes.ENUM(["PENDING", "APPROVED", "CANCEL"]),
+      baleType: DataTypes.ENUM(["SMALL_BALES", "BIG_BALES"]),
+      purchaseDate: {
+        type: DataTypes.DATE,
         allowNull: false,
       },
       uuid: {

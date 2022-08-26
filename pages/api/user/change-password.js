@@ -12,11 +12,13 @@ const apiSchema = Joi.object({
 });
 
 const changePassword = async (req, res) => {
+  console.log("change password Request Start");
+
   // validate api fields
   const { error, value } = apiSchema.validate({ ...req.body });
 
   if (error && Object.keys(error).length) {
-    return res.status(400).send({ success: false, error });
+    return res.status(400).send({ message: error.toString() });
   }
 
   try {
@@ -25,23 +27,26 @@ const changePassword = async (req, res) => {
 
     // if user not found
     if (!user) {
-      return res.status(404).send({ success: false, message: "User not found" });
+      return res.status(404).send({ message: "User not found" });
     }
 
     const isMatchPassword = await compareHash(value.oldPassword, user.password);
 
     if (!isMatchPassword) {
-      return res.status(401).send({ success: false, message: "Password could not be verified" });
+      return res.status(401).send({ message: "Password could not be verified" });
     }
 
     await user.update({ password: value.newPassword });
+    console.log("change password Request End");
 
     return res.send({
       success: true,
       message: "Password updated successfully",
     });
   } catch (error) {
-    return res.status(500).send({ success: false, message });
+    console.log("change password Request Error:", error);
+
+    return res.status(500).send({ message: error.toString() });
   }
 };
 

@@ -1,4 +1,11 @@
-import { FileOutlined, FilePptOutlined, TeamOutlined, UserOutlined, ShopOutlined } from "@ant-design/icons";
+import {
+  FileOutlined,
+  FilePptOutlined,
+  TeamOutlined,
+  UserOutlined,
+  ShopOutlined,
+  DatabaseOutlined,
+} from "@ant-design/icons";
 import { Layout, Menu } from "antd";
 import { useRouter } from "next/router";
 
@@ -38,7 +45,23 @@ export default function AppSider({ collapsed, onCollapse }) {
         <Menu.Item key="10" onClick={() => router.push("/inventory")} icon={<ShopOutlined />}>
           Inventory
         </Menu.Item>
-        <Menu.Item key="11" icon={<FileOutlined />}>
+        <SubMenu key="sub5" icon={<FilePptOutlined />} title="Sales">
+          <Menu.Item onClick={() => router.push("/sales")} key="12">
+            List
+          </Menu.Item>
+          <Menu.Item onClick={() => router.push("/sales/create")} key="13">
+            Create
+          </Menu.Item>
+        </SubMenu>
+        <SubMenu key="sub6" icon={<DatabaseOutlined />} title="Ledger">
+          <Menu.Item onClick={() => router.push("/ledger")} key="14">
+            List
+          </Menu.Item>
+          <Menu.Item onClick={() => router.push("/ledger/create")} key="15">
+            Create
+          </Menu.Item>
+        </SubMenu>
+        <Menu.Item key="19" icon={<FileOutlined />}>
           Reports
         </Menu.Item>
       </Menu>

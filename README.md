@@ -41,6 +41,17 @@ POSTGRES_PASSWORD=password
 TOKEN_SECRET=minimum-32-characters-long-token-secret
 ```
 
+Setup postgres locally
+
+```sh
+brew install postgres
+create database databasename;
+create user myuser with encrypted password 'postgres';
+grant all privileges on database databasename to myuser;
+```
+
+OR
+
 Run the following command to create postgres container
 
 ```sh

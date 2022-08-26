@@ -14,10 +14,12 @@ const apiSchema = Joi.object({
 });
 
 const login = async (req, res) => {
+  console.log("Login Request Start");
+
   const { error, value } = apiSchema.validate({ ...req.body });
 
   if (error && Object.keys(error).length) {
-    return res.status(400).send({ error });
+    return res.status(400).send({ message: error.toString() });
   }
 
   try {
@@ -54,6 +56,7 @@ const login = async (req, res) => {
     const sealedToken = await Iron.seal(tokenWithouPassword, TOKEN_SECRET, Iron.defaults);
 
     setTokenCookie(res, sealedToken);
+    console.log("Login Request End");
 
     return res.send({
       token: sealedToken,
@@ -66,8 +69,8 @@ const login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.log(error);
-    res.status(500).send(error);
+    console.log("Login Request Error:", error);
+    res.status(500).send({ message: error.toString() });
   }
 };
 

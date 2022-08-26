@@ -24,7 +24,7 @@ export const auth = async (req, res, next) => {
     const user = await db.User.findByPk(unsealedToken?.user?.id, { attributes: { exclude: ["password"] } });
     if (!user) return res.status(401).send({ message: "User not found" });
 
-    res.user = user;
+    req.user = user;
 
     next();
   } catch (error) {

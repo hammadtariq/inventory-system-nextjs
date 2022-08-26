@@ -4,9 +4,7 @@ const { createHash } = require("@/lib/bcrypt");
 
 module.exports = (sequelize, DataTypes) => {
   class user extends Model {
-    static associate(models) {
-      // define association here
-    }
+    static associate() {}
   }
   user.init(
     {
@@ -57,12 +55,12 @@ module.exports = (sequelize, DataTypes) => {
   );
 
   // define hooks here
-  user.beforeCreate(async (user, _) => {
+  user.beforeCreate(async (user) => {
     const hashPassword = await createHash(user.password);
     user.password = hashPassword;
   });
 
-  user.beforeUpdate(async (user, _) => {
+  user.beforeUpdate(async (user) => {
     if (user.password) {
       const hashPassword = await createHash(user.password);
       user.password = hashPassword;

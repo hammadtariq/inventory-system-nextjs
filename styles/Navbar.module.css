@@ -1,0 +1,43 @@
+.barsMenu {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  padding: 12px;
+  display: none;
+}
+.barsBtn {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: #fff;
+  position: relative;
+}
+
+.barsBtn:after,
+.barsBtn:before {
+  content: attr(x);
+  width: 20px;
+  position: absolute;
+  top: -6px;
+  left: 0;
+  height: 2px;
+  background: #fff;
+}
+
+.barsBtn:after {
+  top: auto;
+  bottom: -6px;
+}
+
+.barsMenu > span {
+  display: block;
+}
+
+@media (max-width: 992px) {
+  .barsMenu {
+    display: inline-block;
+  }
+  .navigationBar {
+    display: none;
+  }
+}

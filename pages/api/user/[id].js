@@ -13,12 +13,13 @@ const apiSchema = Joi.object({
 });
 
 const getUser = async (req, res) => {
+  console.log("Get user Request Start");
   // validate api fields
   const { error, value } = apiSchema.validate({ id: req.query.id });
 
   //   if api fields errors
   if (error && Object.keys(error).length) {
-    return res.status(400).send({ success: false, error });
+    return res.status(400).send({ message: error.toString() });
   }
 
   try {
@@ -30,17 +31,21 @@ const getUser = async (req, res) => {
 
     // if user not found
     if (!user) {
-      return res.status(404).send({ success: false, message: "User not found" });
+      return res.status(404).send({ message: "User not found" });
     }
+    console.log("Get user Request End");
 
     return res.send({ success: true, user });
   } catch (error) {
-    return res.status(500).send({ success: false, error });
+    console.log("Get user Request Error:", error);
+    return res.status(500).send({ message: error.toString() });
   }
 };
 
 const updateUser = async (req, res) => {
   // validate api fields
+  console.log("update user Request Start");
+
   const { error, value } = apiSchema.validate({
     ...req.body,
     id: req.query.id,
@@ -48,7 +53,7 @@ const updateUser = async (req, res) => {
 
   //   if api fields errors
   if (error && Object.keys(error).length) {
-    return res.status(400).send({ success: false, error });
+    return res.status(400).send({ message: error.toString() });
   }
 
   try {
@@ -61,13 +66,12 @@ const updateUser = async (req, res) => {
 
     // if user not found
     if (!user) {
-      return res.status(404).send({ success: false, message: "User not found" });
+      return res.status(404).send({ message: "User not found" });
     }
 
     // if req.body is empty
     if (!Object.keys(req.body).length) {
       res.status(400).send({
-        success: false,
         message: "Please provide at least one field",
         allowedFields: ["fisrtName", "lastName", "email"],
       });
@@ -75,6 +79,7 @@ const updateUser = async (req, res) => {
 
     // update user
     await user.update({ ...value });
+    console.log("update user Request End");
 
     return res.send({
       success: true,
@@ -82,18 +87,20 @@ const updateUser = async (req, res) => {
       user,
     });
   } catch (error) {
+    console.log("update user Request Error:", error);
     return res.status(500).send({ success: false, error });
   }
 };
 
 const deleteUser = async (req, res) => {
+  console.log("delete user Request Start");
   // validate api fields
   const { error, value } = apiSchema.validate({
     id: req.query.id,
   });
 
   if (error && error && Object.keys(error).length) {
-    return res.status(400).send({ success: false, error });
+    return res.status(400).send({ message: error.toString() });
   }
 
   try {
@@ -102,18 +109,19 @@ const deleteUser = async (req, res) => {
 
     // if user not found
     if (!user) {
-      return res.status(404).send({ success: false, message: "User does not exist" });
+      return res.status(404).send({ message: "User does not exist" });
     }
 
     // delete user
     await db.User.destroy({ where: { id: value.id } });
+    console.log("delete user Request End");
 
     return res.send({
-      success: true,
       message: "User deleted succesfully",
     });
   } catch (error) {
-    return res.status(500).send({ success: false, error });
+    console.log("delete user Request Error:", error);
+    return res.status(500).send({ message: error.toString() });
   }
 };
 

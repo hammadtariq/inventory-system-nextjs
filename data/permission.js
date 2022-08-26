@@ -6,6 +6,22 @@ export const adminPermissions = {
   company_create: true,
   company_edit: true,
   company_delete: true,
+
+  inventory_edit: true,
+
+  transaction_create: true,
+
+  purchase_approve: true,
+  purchase_edit: true,
+
+  item_create: true,
+  item_edit: true,
+  item_delete: true,
+
+  sales_approve: true,
+  sales_edit: true,
+
+  cheques_approve: true,
 };
 
 export const editorPermissions = {
@@ -16,4 +32,19 @@ export const editorPermissions = {
   company_create: true,
   company_edit: true,
   company_delete: false,
+
+  inventory_edit: false,
+
+  purchase_edit: true,
+
+  transaction_create: true,
+
+  item_create: true,
+  item_edit: true,
+  item_delete: false,
+
+  sales_approve: false,
+  sales_edit: true,
+
+  cheques_approve: false,
 };

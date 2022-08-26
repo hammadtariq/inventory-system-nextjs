@@ -20,16 +20,27 @@ a {
 }
 
 .site-layout .site-layout-background {
-  background: #fff;
+  /* background: #fff; */
+  position: fixed;
+  z-index: 99;
+  width: 100%;
+  padding: 0;
 }
 [data-theme="dark"] .siteLayout .site-layout-background {
   background: #141414;
 }
 
 .logo {
-  height: 32px;
-  margin: 16px;
-  background: rgba(255, 255, 255, 0.3);
+  float: left;
+  width: 200px;
+  color: #f58748;
+  font-size: 24px;
+  font-family: sans-serif;
+  font-weight: 600;
+  font-style: oblique;
+  margin: 0 50px 0 16px;
+  text-transform: uppercase;
+  cursor: pointer;
 }
 
 .app_spinner {
@@ -49,4 +60,59 @@ a {
   background-color: white;
   padding: 8px 8px 4px 8px;
   border-radius: 4px;
+}
+
+.drawer .ant-drawer-content-wrapper {
+  width: 300px !important;
+}
+.drawer .ant-drawer-header {
+  border-radius: 0;
+  padding: 16px;
+  background-color: #001529;
+  border-bottom: 1px solid #f58748;
+}
+
+.drawer .ant-drawer-close {
+  color: #fff;
+}
+
+.drawer .ant-drawer-body {
+  padding: 0;
+  color: #fff;
+  background-color: #001529;
+  height: calc(100vh - 55px);
+}
+.drawer .ant-menu-item {
+  margin: 0 !important;
+}
+
+.action-btn {
+  padding: 20px 0 !important;
+  text-align: right;
+}
+
+.editBtn,
+.approveBtn,
+.cancelBtn {
+  font-size: 16px;
+  border: 2px solid;
+  padding: 4px;
+  border-radius: 100%;
+  margin-left: 4px;
+  margin-bottom: 5px;
+}
+/* .editBtn {
+  margin-top: 5px;
+  margin-left: 5px;
+  border: 2px solid #f58748;
+  border-radius: 50%;
+  padding: 3px;
+  font-size: 15px;
+  color: #f58748;
+} */
+
+@media (min-width: 993px) {
+  .drawer {
+    display: none;
+  }
 }

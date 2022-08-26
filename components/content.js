@@ -14,7 +14,8 @@ export default function AppContent({ children }) {
       const linkPath = router.asPath.split("/");
       linkPath.shift();
       const pathArray = linkPath.map((item, i) => {
-        return { breadcrumb: item, href: `/${linkPath.slice(0, i + 1).join("/")}/` };
+        const breadcrumb = item.includes("?") ? item.split("?")[0] : item;
+        return { breadcrumb, href: `/${linkPath.slice(0, i + 1).join("/")}` };
       });
       setRoutes(pathArray);
     }

@@ -6,6 +6,8 @@ import { getTokenCookie } from "@/lib/auth-cookies";
 const TOKEN_SECRET = process.env.TOKEN_SECRET;
 
 const verifyToken = async (req, res) => {
+  console.log("Verify token Request Start");
+
   const token = getTokenCookie(req);
 
   if (!token) {
@@ -18,9 +20,11 @@ const verifyToken = async (req, res) => {
     if (unsealedToken && Date.now() > new Date(unsealedToken?.token?.maxAge)) {
       return res.status(401).send({ message: "Token expired" });
     }
+    console.log("Verify token Request End");
     return res.send({ isValid: true });
   } catch (error) {
-    res.status(500).send(error);
+    console.log("Verify token Request Error:", error);
+    res.status(500).send({ message: error.toString() });
   }
 };
 

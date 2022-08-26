@@ -5,9 +5,6 @@ module.exports = (sequelize, DataTypes) => {
     static associate({ Company }) {
       this.belongsTo(Company, { foreignKey: "companyId" });
     }
-    toJSON() {
-      return { ...this.get(), companyId: undefined };
-    }
   }
   inventory.init(
     {
@@ -18,7 +15,6 @@ module.exports = (sequelize, DataTypes) => {
       itemName: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true,
         validate: {
           isLowercase: {
             msg: "Item Name must be lowercase",
@@ -47,7 +43,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       ratePerBale: {
         type: DataTypes.FLOAT,
-        allowNull: false,
+        allowNull: true,
       },
       onHand: {
         type: DataTypes.INTEGER,

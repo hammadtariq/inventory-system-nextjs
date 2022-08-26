@@ -1,25 +1,36 @@
+import { useRef, useState } from "react";
+
+import { Alert, Button, Popconfirm } from "antd";
+import dayjs from "dayjs";
 import { useRouter } from "next/router";
-import { Alert, Button, Popconfirm, Table } from "antd";
+
+import AppCreateButton from "@/components/createButton";
+import AppTable from "@/components/table";
+import AppTitle from "@/components/title";
+import { deleteCompany, useCompanies } from "@/hooks/company";
+import styles from "@/styles/Company.module.css";
+import { getColumnSearchProps } from "@/utils/filter.util";
+import permissionsUtil from "@/utils/permission.util";
+import { DATE_TIME_FORMAT } from "@/utils/ui.util";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 
-import { useCompanies, deleteCompany } from "@/hooks/company";
-import Title from "@/components/title";
-import styles from "@/styles/Company.module.css";
-import permissionsUtil from "@/utils/permission.util";
-
-const canDelete = permissionsUtil.checkAuth({
-  category: "company",
-  action: "delete",
-});
-
-const canEdit = permissionsUtil.checkAuth({
-  category: "company",
-  action: "edit",
-});
-
 const Company = () => {
-  const { companies, error, isLoading, mutate } = useCompanies();
+  const { companies, error, isLoading, paginationHandler, mutate } = useCompanies();
   const router = useRouter();
+  const [searchText, setSearchText] = useState("");
+  const [searchedColumn, setSearchedColumn] = useState("");
+  const searchInput = useRef(null);
+
+  const canDelete = permissionsUtil.checkAuth({
+    category: "company",
+    action: "delete",
+  });
+
+  const canEdit = permissionsUtil.checkAuth({
+    category: "company",
+    action: "edit",
+  });
+
   const renderActions = (text) => (
     <>
       <Popconfirm
@@ -51,6 +62,15 @@ const Company = () => {
     {
       title: "Company Name",
       dataIndex: "companyName",
+      ...getColumnSearchProps({
+        dataIndex: "companyName",
+        searchInput,
+        searchText,
+        searchedColumn,
+        setSearchText,
+        setSearchedColumn,
+        dataIndexName: "company name",
+      }),
     },
     {
       title: "Email",
@@ -68,14 +88,9 @@ const Company = () => {
       render: (text) => text ?? "N/A",
     },
     {
-      title: "Created At",
-      dataIndex: "createdAt",
-      render: (text) => new Date(text).toLocaleString(),
-    },
-    {
       title: "Updated At",
       dataIndex: "updatedAt",
-      render: (text) => new Date(text).toLocaleString(),
+      render: (text) => dayjs(text).format(DATE_TIME_FORMAT),
     },
     {
       title: "Action",
@@ -87,8 +102,19 @@ const Company = () => {
   if (error) return <Alert message={error} type="error" />;
   return (
     <>
-      <Title level={2}>Company List</Title>
-      <Table loading={isLoading} rowKey="id" columns={columns} dataSource={companies ? companies.rows : []} />
+      <AppTitle level={2}>
+        Company List
+        <AppCreateButton url="/company/create" />
+      </AppTitle>
+      <AppTable
+        isLoading={isLoading}
+        rowKey="id"
+        columns={columns}
+        dataSource={companies ? companies.rows : []}
+        totalCount={companies ? companies.count : 0}
+        pagination={true}
+        paginationHandler={paginationHandler}
+      />
     </>
   );
 };

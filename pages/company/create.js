@@ -1,10 +1,10 @@
 import AddEditCompany from "@/components/addEditCompany";
-import Title from "@/components/title";
+import AppTitle from "@/components/title";
 
 const CreateCompany = () => {
   return (
     <div>
-      <Title level={2}>Create Company</Title>
+      <AppTitle level={2}>Create Company</AppTitle>
       <AddEditCompany />
     </div>
   );
