@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { Alert, Form, Popconfirm, Typography } from "antd";
+import { Alert, Button, Form, Popconfirm, Typography } from "antd";
 
 import EditableCell from "@/components/editableCell";
 import AppTable from "@/components/table";
@@ -9,7 +9,8 @@ import styles from "@/styles/EditableCell.module.css";
 import { kgLbConversion } from "@/utils/conversion.utils";
 
 export default function AddItemsInPo({ companyId, type, setData, data, isEdit, viewOnly = false }) {
-  const [editingKey, setEditingKey] = useState("");
+  const [editingKey, setEditingKey] = useState([]);
+  const [editAll, setEditAll] = useState(false);
   const [form] = Form.useForm();
   const { items, isLoading, error } = useItemsByCompanyIdAndType(companyId, type, isEdit);
 
@@ -19,7 +20,20 @@ export default function AddItemsInPo({ companyId, type, setData, data, isEdit, v
     }
   }, [items]);
 
-  const isEditing = (record) => record.id === editingKey;
+  useEffect(() => {
+    if (editAll) {
+      data.forEach((record) => {
+        edit(record);
+        setEditingKey((prev) => {
+          return [...prev, record.key];
+        });
+      });
+    }
+  }, [editAll]);
+
+  const isEditing = (record) => {
+    return editingKey.includes(record.key);
+  };
 
   const edit = (record) => {
     form.setFieldsValue({
@@ -32,7 +46,6 @@ export default function AddItemsInPo({ companyId, type, setData, data, isEdit, v
       ...(type === "SMALL_BALES" && { ratePerBale: "" }),
       ...record,
     });
-    setEditingKey(record.id);
   };
 
   const cancel = () => {
@@ -46,21 +59,41 @@ export default function AddItemsInPo({ companyId, type, setData, data, isEdit, v
     setData(newData);
   };
 
-  const save = async (key) => {
+  const saveAll = async () => {
     try {
       const row = await form.validateFields();
-      const newData = [...data];
-      const index = newData.findIndex((item) => key === item.id);
 
+      const arrayOfObj = [];
+
+      Object.entries(row).map((item) => {
+        arrayOfObj.push({ ...item[1], key: Number(item[0]) });
+      });
+
+      arrayOfObj.forEach((rec) => {
+        return save(rec.key, rec);
+      });
+      setData(data);
+      setEditAll(false);
+      setEditingKey([]);
+    } catch (error) {
+      console.log("Validate Failed:", error);
+    }
+  };
+
+  const save = async (key, row) => {
+    debugger;
+    try {
+      const newData = [...data];
+
+      const index = newData.findIndex((item) => key === item.id);
+      console.log(index, key);
       if (index > -1) {
         const item = newData[index];
         newData.splice(index, 1, { ...item, ...row });
-        setData(newData);
-        setEditingKey("");
+        data = newData;
       } else {
         newData.push(row);
-        setData(newData);
-        setEditingKey("");
+        data = newData;
       }
     } catch (errInfo) {
       console.log("Validate Failed:", errInfo);
@@ -74,36 +107,37 @@ export default function AddItemsInPo({ companyId, type, setData, data, isEdit, v
       width: "20%",
       render: (_, record) => {
         const editable = isEditing(record);
-        return editable ? (
-          <span>
-            <Typography.Link
-              onClick={() => save(record.id)}
-              style={{
-                marginRight: 8,
-              }}
-            >
-              Save
-            </Typography.Link>
-            <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
-              <a>Cancel</a>
-            </Popconfirm>
-          </span>
-        ) : (
-          <>
-            <Typography.Link
-              disabled={editingKey !== ""}
-              onClick={() => edit(record)}
-              style={{
-                marginRight: 8,
-              }}
-            >
-              Edit
-            </Typography.Link>
-            <Typography.Link disabled={editingKey !== ""} onClick={() => remove(record)}>
-              Remove
-            </Typography.Link>
-          </>
-        );
+        return <Typography.Link onClick={() => remove(record)}>Remove</Typography.Link>;
+        // return editable ? (
+        //   <span>
+        //     <Typography.Link
+        //       onClick={() => save(record.id)}
+        //       style={{
+        //         marginRight: 8,
+        //       }}
+        //     >
+        //       Save
+        //     </Typography.Link>
+        //     <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
+        //       <a>Cancel</a>
+        //     </Popconfirm>
+        //   </span>
+        // ) : (
+        //   <>
+        //     <Typography.Link
+        //       disabled={editingKey !== ""}
+        //       onClick={() => edit(record)}
+        //       style={{
+        //         marginRight: 8,
+        //       }}
+        //     >
+        //       Edit
+        //     </Typography.Link>
+        //     <Typography.Link disabled={editingKey !== ""} onClick={() => remove(record)}>
+        //       Remove
+        //     </Typography.Link>
+        //   </>
+        // );
       },
     };
   };
@@ -186,20 +220,39 @@ export default function AddItemsInPo({ companyId, type, setData, data, isEdit, v
   if (error) return <Alert message={error} type="error" />;
 
   return (
-    <Form form={form} component={false}>
-      <AppTable
-        isLoading={isLoading}
-        components={{
-          body: {
-            cell: EditableCell,
-          },
-        }}
-        bordered
-        dataSource={data ?? []}
-        columns={mergedColumns}
-        rowClassName={styles.editableRow}
-        rowKey="id"
-      />
-    </Form>
+    <>
+      <div className="editAll">
+        {!editAll ? (
+          <Button onClick={() => setEditAll(true)} type="primary">
+            Edit All
+          </Button>
+        ) : (
+          <>
+            <Button className="saveAll" type="primary" onClick={saveAll}>
+              Save All
+            </Button>
+            <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
+              <Button>Cancel</Button>
+            </Popconfirm>
+          </>
+        )}
+      </div>
+
+      <Form form={form} component={false}>
+        <AppTable
+          isLoading={isLoading}
+          components={{
+            body: {
+              cell: EditableCell,
+            },
+          }}
+          bordered
+          dataSource={data ?? []}
+          columns={mergedColumns}
+          rowClassName={styles.editableRow}
+          rowKey="id"
+        />
+      </Form>
+    </>
   );
 }

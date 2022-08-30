@@ -103,13 +103,13 @@ a {
 }
 
 .editAll {
-  display:flex !important;
+  display: flex !important;
   justify-content: flex-end;
   align-items: center;
   margin: 1rem 0;
 }
 
-.saveAll{
+.saveAll {
   margin: 0 1rem;
 }
 
