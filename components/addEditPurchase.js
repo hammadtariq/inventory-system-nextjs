@@ -19,6 +19,7 @@ const AddEditPurchase = ({ purchase, type = null }) => {
   const router = useRouter();
   const [companyId, setCompanyId] = useState(null);
   const [_surCharge, setSurCharge] = useState(0);
+
   const [selectedListType, setSelectedListType] = useState(null);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);

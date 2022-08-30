@@ -5,23 +5,32 @@ import { Form, Input, InputNumber } from "antd";
 import styles from "@/styles/EditableCell.module.css";
 import { kgLbConversion } from "@/utils/conversion.utils";
 
-const EditableCell = ({ dataIndex, title, inputType, form, children, required, record, ...restProps }) => {
-  const handleChange = (e, name) => {
-    const data = { e, name };
+const EditableCell = ({ dataIndex, title, inputType, editing, form, children, required, record, ...restProps }) => {
+  const handleChange = (e, name, id) => {
+    const data = { e, name, id };
     kgLbConversion(data, form);
-    console.log(values, values.baleWeightLbs);
   };
   const inputNode =
     inputType === "number" ? (
-      <InputNumber name={dataIndex} className={styles.editableCellInput} onChange={(e) => handleChange(e, dataIndex)} />
+      <InputNumber
+        name={dataIndex}
+        className={styles.editableCellInput}
+        onChange={(e) => handleChange(e, dataIndex, record.id)}
+      />
     ) : (
-      <Input name={dataIndex} className={styles.editableCellInput} onChange={(e) => handleChange(e, dataIndex)} />
+      <Input
+        name={dataIndex}
+        className={styles.editableCellInput}
+        onChange={(e) => handleChange(e, dataIndex, record.id)}
+      />
     );
   return (
     <td {...restProps} className={styles.editableTd}>
       {editing ? (
         <Form.Item
-          name={dataIndex}
+          name={[record.id, dataIndex]}
+          initialValue={record[dataIndex]}
+          key={record.key}
           style={{
             margin: 0,
           }}
