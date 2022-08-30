@@ -1,15 +1,15 @@
 export const kgLbConversion = (data, form) => {
-  const { e, name } = data;
+  const { e, name, id } = data;
+  const values = form.getFieldsValue();
+
   switch (name) {
     case "baleWeightKgs":
-      return form.setFieldsValue({
-        ["baleWeightLbs"]: Number((e * 2.20462262).toFixed(2)),
-      });
+      values[id]["baleWeightLbs"] = Number((e * 2.20462262).toFixed(2));
+      return form.setFieldsValue(values);
 
     case "baleWeightLbs":
-      return form.setFieldsValue({
-        ["baleWeightKgs"]: Number((e / 2.20462262).toFixed(2)),
-      });
+      values[id]["baleWeightKgs"] = Number((e / 2.20462262).toFixed(2));
+      return form.setFieldsValue(values);
 
     default:
       break;
