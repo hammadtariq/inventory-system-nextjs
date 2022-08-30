@@ -48,6 +48,7 @@ export default function UpdateSalesItems({
 
   const cancel = () => {
     setEditingKey([]);
+    setEditAll(false);
   };
 
   const saveAll = async () => {

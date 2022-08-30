@@ -49,7 +49,8 @@ export default function AddItemsInPo({ companyId, type, setData, data, isEdit, v
   };
 
   const cancel = () => {
-    setEditingKey("");
+    setEditingKey([]);
+    setEditAll(false);
   };
 
   const remove = (record) => {
@@ -81,12 +82,10 @@ export default function AddItemsInPo({ companyId, type, setData, data, isEdit, v
   };
 
   const save = async (key, row) => {
-    debugger;
     try {
       const newData = [...data];
 
       const index = newData.findIndex((item) => key === item.id);
-      console.log(index, key);
       if (index > -1) {
         const item = newData[index];
         newData.splice(index, 1, { ...item, ...row });
