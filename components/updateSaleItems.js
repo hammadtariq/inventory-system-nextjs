@@ -21,16 +21,20 @@ export default function UpdateSalesItems({
   useEffect(() => {
     if (editAll) {
       data.forEach((record) => {
+        if (editingKey.includes(record.id)) {
+          console.log("id exist");
+          return;
+        }
         edit(record);
         setEditingKey((prev) => {
-          return [...prev, record.key];
+          return [...prev, record.id];
         });
       });
     }
-  }, [editAll]);
+  }, [editAll, data]);
 
   const isEditing = (record) => {
-    return editingKey.includes(record.key);
+    return editingKey.includes(record.id);
   };
 
   const edit = (record) => {
@@ -58,13 +62,13 @@ export default function UpdateSalesItems({
       const arrayOfObj = [];
 
       Object.entries(row).map((item) => {
-        arrayOfObj.push({ ...item[1], key: Number(item[0]) });
+        arrayOfObj.push({ ...item[1], id: Number(item[0]) });
       });
       const newData = [...data];
       const updatedData = [...updatedProducts];
       arrayOfObj.forEach((rec) => {
-        saveIndividual(rec.key, newData, setSelectedProducts, rec);
-        saveIndividual(rec.key, updatedData, setUpdatedProducts, rec);
+        saveIndividual(rec.id, newData, setSelectedProducts, rec);
+        saveIndividual(rec.id, updatedData, setUpdatedProducts, rec);
       });
       setEditAll(false);
       setEditingKey([]);
@@ -73,16 +77,9 @@ export default function UpdateSalesItems({
     }
   };
 
-  const save = async (key, row) => {
-    try {
-      const newData = [...data];
-      const updatedData = [...updatedProducts];
-      saveIndividual(key, newData, setSelectedProducts, row);
-      saveIndividual(key, updatedData, setUpdatedProducts, row);
-    } catch (errInfo) {
-      console.log("Validate Failed:", errInfo);
-    }
-  };
+  // const save = async (key, row) => {
+
+  // };
 
   const saveIndividual = (key, data, setData, row) => {
     const newData = [...data];
@@ -90,41 +87,41 @@ export default function UpdateSalesItems({
     if (index > -1) {
       const item = newData[index];
       newData.splice(index, 1, { ...item, ...row });
-      setData(newData);
+      setData((prev) => [...newData]);
     } else {
       newData.push(row);
-      setData(newData);
+      setData((prev) => [...newData]);
     }
   };
 
-  // const getOperationColumn = () => {
-  //   return {
-  //     title: "operation",
-  //     dataIndex: "operation",
-  //     render: (_, record) => {
-  //       const editable = isEditing(record);
-  //       return editable ? (
-  //         <span>
-  //           <Typography.Link
-  //             onClick={() => save(record.id)}
-  //             style={{
-  //               marginRight: 8,
-  //             }}
-  //           >
-  //             Save
-  //           </Typography.Link>
-  //           <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
-  //             <a>Cancel</a>
-  //           </Popconfirm>
-  //         </span>
-  //       ) : (
-  //         <Typography.Link disabled={editingKey !== ""} onClick={() => edit(record)}>
-  //           Edit
-  //         </Typography.Link>
-  //       );
-  //     },
-  //   };
-  // };
+  const getOperationColumn = () => {
+    return {
+      title: "operation",
+      dataIndex: "operation",
+      render: (_, record) => {
+        const editable = isEditing(record);
+        // return editable ? (
+        //   <span>
+        //     <Typography.Link
+        //       onClick={() => save(record.id)}
+        //       style={{
+        //         marginRight: 8,
+        //       }}
+        //     >
+        //       Save
+        //     </Typography.Link>
+        //     <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
+        //       <a>Cancel</a>
+        //     </Popconfirm>
+        //   </span>
+        // ) : (
+        //   <Typography.Link disabled={editingKey !== ""} onClick={() => edit(record)}>
+        //     Edit
+        //   </Typography.Link>
+        // );
+      },
+    };
+  };
 
   const columns = [
     {
