@@ -59,17 +59,15 @@ export default function UpdateSalesItems({
     try {
       const row = await form.validateFields();
 
-      const arrayOfObj = [];
-
+      let newData = [...data];
+      let updatedData = [...updatedProducts];
       Object.entries(row).map((item) => {
-        arrayOfObj.push({ ...item[1], id: Number(item[0]) });
+        newData = saveIndividual(Number(item[0]), newData, item[1]);
+        updatedData = saveIndividual(Number(item[0]), updatedData, item[1]);
       });
-      const newData = [...data];
-      const updatedData = [...updatedProducts];
-      arrayOfObj.forEach((rec) => {
-        saveIndividual(rec.id, newData, setSelectedProducts, rec);
-        saveIndividual(rec.id, updatedData, setUpdatedProducts, rec);
-      });
+
+      setSelectedProducts(newData);
+      setUpdatedProducts(updatedData);
       setEditAll(false);
       setEditingKey([]);
     } catch (error) {
@@ -77,20 +75,16 @@ export default function UpdateSalesItems({
     }
   };
 
-  // const save = async (key, row) => {
-
-  // };
-
-  const saveIndividual = (key, data, setData, row) => {
-    const newData = [...data];
-    const index = newData.findIndex((item) => key === item.id);
+  const saveIndividual = (key, arr, row) => {
+    const arrData = [...arr];
+    const index = arrData.findIndex((item) => key === item.id);
     if (index > -1) {
-      const item = newData[index];
-      newData.splice(index, 1, { ...item, ...row });
-      setData((prev) => [...newData]);
+      const item = arrData[index];
+      arrData.splice(index, 1, { ...item, ...row });
+      return arrData;
     } else {
-      newData.push(row);
-      setData((prev) => [...newData]);
+      arrData.push(row);
+      return arrData;
     }
   };
 
