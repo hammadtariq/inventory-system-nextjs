@@ -64,15 +64,22 @@ export default function AddItemsInPo({ companyId, type, setData, data, isEdit, v
     try {
       const row = await form.validateFields();
 
-      const arrayOfObj = [];
+      for (const key in row) {
+        if (Object.hasOwnProperty.call(row, key)) {
+          const item = row[key];
+          save(Number(key), item);
+        }
+      }
 
-      Object.entries(row).map((item) => {
-        arrayOfObj.push({ ...item[1], key: Number(item[0]) });
-      });
+      // const arrayOfObj = [];
 
-      arrayOfObj.forEach((rec) => {
-        return save(rec.key, rec);
-      });
+      // Object.entries(row).map((item) => {
+      //   arrayOfObj.push({ ...item[1], key: Number(item[0]) });
+      // });
+
+      // arrayOfObj.forEach((rec) => {
+      //   return save(rec.key, rec);
+      // });
       setData(data);
       setEditAll(false);
       setEditingKey([]);

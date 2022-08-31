@@ -61,10 +61,19 @@ export default function UpdateSalesItems({
 
       let newData = [...data];
       let updatedData = [...updatedProducts];
-      Object.entries(row).map((item) => {
-        newData = saveIndividual(Number(item[0]), newData, item[1]);
-        updatedData = saveIndividual(Number(item[0]), updatedData, item[1]);
-      });
+
+      for (const key in row) {
+        if (Object.hasOwnProperty.call(row, key)) {
+          const item = row[key];
+          newData = saveIndividual(Number(key), newData, item);
+          updatedData = saveIndividual(Number(key), updatedData, item);
+        }
+      }
+      // Object.entries(row).map((item) => {
+      //   console.log("ssaas:", item);
+      //   newData = saveIndividual(Number(item[0]), newData, item[1]);
+      //   updatedData = saveIndividual(Number(item[0]), updatedData, item[1]);
+      // });
 
       setSelectedProducts(newData);
       setUpdatedProducts(updatedData);
