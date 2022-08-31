@@ -71,15 +71,6 @@ export default function AddItemsInPo({ companyId, type, setData, data, isEdit, v
         }
       }
 
-      // const arrayOfObj = [];
-
-      // Object.entries(row).map((item) => {
-      //   arrayOfObj.push({ ...item[1], key: Number(item[0]) });
-      // });
-
-      // arrayOfObj.forEach((rec) => {
-      //   return save(rec.key, rec);
-      // });
       setData(data);
       setEditAll(false);
       setEditingKey([]);
@@ -114,36 +105,6 @@ export default function AddItemsInPo({ companyId, type, setData, data, isEdit, v
       render: (_, record) => {
         const editable = isEditing(record);
         return <Typography.Link onClick={() => remove(record)}>Remove</Typography.Link>;
-        // return editable ? (
-        //   <span>
-        //     <Typography.Link
-        //       onClick={() => save(record.id)}
-        //       style={{
-        //         marginRight: 8,
-        //       }}
-        //     >
-        //       Save
-        //     </Typography.Link>
-        //     <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
-        //       <a>Cancel</a>
-        //     </Popconfirm>
-        //   </span>
-        // ) : (
-        //   <>
-        //     <Typography.Link
-        //       disabled={editingKey !== ""}
-        //       onClick={() => edit(record)}
-        //       style={{
-        //         marginRight: 8,
-        //       }}
-        //     >
-        //       Edit
-        //     </Typography.Link>
-        //     <Typography.Link disabled={editingKey !== ""} onClick={() => remove(record)}>
-        //       Remove
-        //     </Typography.Link>
-        //   </>
-        // );
       },
     };
   };
