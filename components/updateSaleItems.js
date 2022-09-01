@@ -69,11 +69,6 @@ export default function UpdateSalesItems({
           updatedData = saveIndividual(Number(key), updatedData, item);
         }
       }
-      // Object.entries(row).map((item) => {
-      //   console.log("ssaas:", item);
-      //   newData = saveIndividual(Number(item[0]), newData, item[1]);
-      //   updatedData = saveIndividual(Number(item[0]), updatedData, item[1]);
-      // });
 
       setSelectedProducts(newData);
       setUpdatedProducts(updatedData);
@@ -103,25 +98,6 @@ export default function UpdateSalesItems({
       dataIndex: "operation",
       render: (_, record) => {
         const editable = isEditing(record);
-        // return editable ? (
-        //   <span>
-        //     <Typography.Link
-        //       onClick={() => save(record.id)}
-        //       style={{
-        //         marginRight: 8,
-        //       }}
-        //     >
-        //       Save
-        //     </Typography.Link>
-        //     <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
-        //       <a>Cancel</a>
-        //     </Popconfirm>
-        //   </span>
-        // ) : (
-        //   <Typography.Link disabled={editingKey !== ""} onClick={() => edit(record)}>
-        //     Edit
-        //   </Typography.Link>
-        // );
       },
     };
   };
@@ -176,8 +152,6 @@ export default function UpdateSalesItems({
       required: false,
     },
   ];
-
-  // if (!viewOnly) columns.push(getOperationColumn());
 
   const mergedColumns = columns.map((col) => {
     if (!col.editable) {
