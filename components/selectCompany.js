@@ -10,11 +10,6 @@ export default memo(function SelectCompany({ selectCompanyOnChange, ...props }) 
   const { company, isLoading, error } = useCompanyAttributes(["companyName", "id"]);
   if (error) return <Alert message={error} type="error" />;
 
-  const onSearch = (value, option) => {
-    console.log(value, option);
-    console.log(option.children.toLowerCase().includes(value.toLowerCase()));
-  };
-
   return (
     <Select
       {...props}
