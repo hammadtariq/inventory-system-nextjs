@@ -2,6 +2,7 @@ import { memo } from "react";
 import { Select, Alert } from "antd";
 
 import { useCompanyAttributes } from "@/hooks/company";
+import { selectSearchFilter } from "@/utils/filter.util";
 
 const { Option } = Select;
 
@@ -13,6 +14,8 @@ export default memo(function SelectCompany({ selectCompanyOnChange, ...props }) 
     <Select
       {...props}
       loading={isLoading}
+      filterOption={selectSearchFilter}
+      optionFilterProp="children"
       showSearch
       placeholder="Search to Select Company"
       allowClear

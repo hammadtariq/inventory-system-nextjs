@@ -21,6 +21,7 @@ const AddEditSale = ({ sale, type = null }) => {
   const isView = type === "view";
   const [loading, setLoading] = useState(false);
   const [customerId, setCustomerId] = useState(null);
+  const [editAll, setEditAll] = useState(false);
   const [_laborCharge, setLaborCharge] = useState(0);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [updatedProducts, setUpdatedProducts] = useState([]);
@@ -204,6 +205,8 @@ const AddEditSale = ({ sale, type = null }) => {
               <UpdateSalesItems
                 setSelectedProducts={setSelectedProducts}
                 data={selectedProducts}
+                editAll={editAll}
+                setEditAll={setEditAll}
                 updatedProducts={updatedProducts}
                 setUpdatedProducts={setUpdatedProducts}
                 viewOnly={isView}
@@ -214,7 +217,7 @@ const AddEditSale = ({ sale, type = null }) => {
             <Form.Item className="action-btn">
               <AppBackButton />
               {!isView ? (
-                <Button loading={loading} type="primary" htmlType="submit">
+                <Button loading={loading} type="primary" htmlType="submit" disabled={editAll}>
                   {sale ? "Update" : "Create"} Sale
                 </Button>
               ) : null}
