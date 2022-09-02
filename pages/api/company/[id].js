@@ -64,6 +64,14 @@ const deleteCompany = async (req, res) => {
       return res.status(404).send({ message: "company does not exist" });
     }
 
+    const items = await db.Items.findAndCountAll({ where: { companyId: value.id } });
+
+    if (items.count > 0) {
+      return res
+        .status(404)
+        .send({ message: `${items.count} items exist against this company. Please remove dependencies first.` });
+    }
+
     await db.Company.destroy({ where: { id: value.id } });
 
     console.log("Delete Company Request End");

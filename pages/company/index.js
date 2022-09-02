@@ -36,7 +36,11 @@ const Company = () => {
       <Popconfirm
         title="Are you sure?"
         onConfirm={async () => {
-          await deleteCompany(text.id);
+          const data = await deleteCompany(text.id);
+          const res = await deleteCompany(text.id);
+          if (res.status === 404) {
+            message.error("Error", data.message);
+          }
           mutate(null);
         }}
         okText="Yes"
