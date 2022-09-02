@@ -8,9 +8,17 @@ import { useItemsByCompanyIdAndType } from "@/hooks/items";
 import styles from "@/styles/EditableCell.module.css";
 import { kgLbConversion } from "@/utils/conversion.utils";
 
-export default function AddItemsInPo({ companyId, type, setData, data, isEdit, viewOnly = false }) {
+export default function AddItemsInPo({
+  companyId,
+  type,
+  setData,
+  editAll,
+  setEditAll,
+  data,
+  isEdit,
+  viewOnly = false,
+}) {
   const [editingKey, setEditingKey] = useState([]);
-  const [editAll, setEditAll] = useState(false);
   const [form] = Form.useForm();
   const { items, isLoading, error } = useItemsByCompanyIdAndType(companyId, type, isEdit);
 
