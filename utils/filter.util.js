@@ -80,3 +80,7 @@ export const getColumnSearchProps = ({
       ),
   };
 };
+
+export const selectSearchFilter = (input, option) => {
+  return option.children.toLowerCase().includes(input.toLowerCase());
+};

@@ -10,12 +10,14 @@ import AppTable from "./table";
 export default function UpdateSalesItems({
   setSelectedProducts,
   data,
+  editAll,
+  setEditAll,
   updatedProducts,
   setUpdatedProducts,
   viewOnly = false,
 }) {
   const [editingKey, setEditingKey] = useState([]);
-  const [editAll, setEditAll] = useState(false);
+
   const [form] = Form.useForm();
 
   useEffect(() => {
