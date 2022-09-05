@@ -23,11 +23,14 @@ const Op = db.Sequelize.Op;
 const exportInventory = async (req, res) => {
   try {
     await db.dbConnect();
-    const data = await db.Inventory.findAndCountAll({ include: [db.Company], order: [["itemName", "ASC"]] });
+    const data = await db.Inventory.findAndCountAll({
+      include: [{ model: db.Company }],
+      order: [["itemName", "ASC"]],
+    });
 
     const dataForExcel = data.rows.map((element) => ({
       itemName: element.itemName,
-      companyName: element.company.companyName ?? "N/A",
+      companyName: element.company?.companyName ?? "N/A",
       onHand: element.onHand ?? "0",
       ratePerKgs: element.ratePerKgs ?? "N/A",
       ratePerLbs: element.ratePerLbs ?? "N/A",
