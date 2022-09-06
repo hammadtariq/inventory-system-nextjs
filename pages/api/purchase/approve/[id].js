@@ -4,6 +4,7 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { SPEND_TYPE, STATUS } from "@/utils/api.util";
+import { companySumQuery } from "query";
 
 const apiSchema = Joi.object({
   id: Joi.number().required(),
@@ -68,12 +69,20 @@ const approvePurchaseOrder = async (req, res) => {
       }
     }
     await purchase.update({ status: STATUS.APPROVED }, { transaction: t });
+
+    const rawQuery = companySumQuery(companyId);
+
+    const totalBalance = await db.sequelize.query(rawQuery, {
+      type: db.Sequelize.QueryTypes.SELECT,
+    });
+
     await db.Ledger.create(
       {
         companyId,
         amount: totalAmount,
         spendType: SPEND_TYPE.CREDIT,
         invoiceNumber,
+        totalBalance: totalBalance[0].amount,
       },
       { transaction: t }
     );

@@ -49,6 +49,11 @@ const columns = [
     key: "paymentDate",
     render: (text) => (text ? dayjs(text).format(DATE_FORMAT) : ""),
   },
+  {
+    title: "Balance",
+    dataIndex: "totalBalance",
+    key: "totalBalance",
+  },
 ];
 
 const LedgerDetails = ({ id, type }) => {
