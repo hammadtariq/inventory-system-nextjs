@@ -35,7 +35,7 @@ const approvePurchaseOrder = async (req, res) => {
     if (purchase.status === STATUS.APPROVED) {
       return res.status(400).send({ message: "purchase order already approved" });
     }
-    const { purchasedProducts, companyId, totalAmount, invoiceNumber } = purchase;
+    const { purchasedProducts, purchaseDate, companyId, totalAmount, invoiceNumber } = purchase;
 
     for await (const product of purchasedProducts) {
       const { id, itemName, noOfBales, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs, ratePerBale } = product;
@@ -82,6 +82,7 @@ const approvePurchaseOrder = async (req, res) => {
         amount: totalAmount,
         spendType: SPEND_TYPE.CREDIT,
         invoiceNumber,
+        paymentDate: purchaseDate,
         totalBalance: totalBalance[0].amount,
       },
       { transaction: t }

@@ -25,6 +25,7 @@ const columns = [
     title: "Invoice Number",
     dataIndex: "invoiceNumber",
     key: "invoiceNumber",
+    render: (text, _data) => (_data.invoiceNumber ? _data.invoiceNumber : "N/A"),
   },
   {
     title: "Debit Amount (Rs)",
