@@ -24,7 +24,7 @@ const exportInventory = async (req, res) => {
   try {
     await db.dbConnect();
     const data = await db.Inventory.findAndCountAll({
-      include: [{ model: db.Company }],
+      include: [db.Company],
       order: [["itemName", "ASC"]],
     });
 
