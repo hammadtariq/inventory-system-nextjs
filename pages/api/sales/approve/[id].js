@@ -54,10 +54,8 @@ const approveSaleOrder = async (req, res) => {
       if (!inventory) {
         return res.status(404).send({ message: `"${itemName}" out of stock` });
       }
-      let decrementQuery = { baleWeightKgs };
-      if (baleWeightLbs) {
-        decrementQuery = { baleWeightLbs };
-      }
+      let decrementQuery = { baleWeightKgs, baleWeightLbs };
+
       await inventory.decrement(["onHand"], { by: noOfBales, transaction: t });
       await inventory.decrement(decrementQuery, { transaction: t });
     }
