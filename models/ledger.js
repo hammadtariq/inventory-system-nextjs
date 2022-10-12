@@ -44,6 +44,9 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         type: DataTypes.DATE,
       },
+      totalBalance: {
+        type: DataTypes.FLOAT,
+      },
     },
     {
       sequelize,

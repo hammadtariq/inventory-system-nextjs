@@ -25,6 +25,7 @@ const columns = [
     title: "Invoice Number",
     dataIndex: "invoiceNumber",
     key: "invoiceNumber",
+    render: (text, _data) => (_data.invoiceNumber ? _data.invoiceNumber : "N/A"),
   },
   {
     title: "Debit Amount (Rs)",
@@ -48,6 +49,11 @@ const columns = [
     dataIndex: "paymentDate",
     key: "paymentDate",
     render: (text) => (text ? dayjs(text).format(DATE_FORMAT) : ""),
+  },
+  {
+    title: "Balance",
+    dataIndex: "totalBalance",
+    key: "totalBalance",
   },
 ];
 
