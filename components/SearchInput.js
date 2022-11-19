@@ -10,8 +10,9 @@ const { Search } = Input;
 const searchResult = (results = [], valueKey = "") =>
   results.map((result) => ({
     value: result[valueKey],
+    key: result.id,
     label: (
-      <div key={result.id} className={styles.listItem}>
+      <div className={styles.listItem}>
         {result[valueKey]}
       </div>
     ),
@@ -32,7 +33,7 @@ const SearchInput = ({ handleSearch, handleSelect, valueKey }) => {
   };
 
   const _handleSelect = (itemId, option) => {
-    const id = option.label.key;
+    const id = option.key;
     handleSelect(id);
   };
 

@@ -49,6 +49,28 @@ module.exports = {
           createdAt: "2021-12-20T10:04:35.978Z",
           updatedAt: "2021-12-20T10:04:35.978Z",
         },
+        {
+          id: 5,
+          uuid: "8f59ac18-0cb0-4c85-819e-1be407a8711e",
+          firstName: "Taib",
+          lastName: "Bilal",
+          email: "taib@test.com",
+          role: "EDITOR",
+          password: "$2b$10$XM3tMAOI1xi91Bm8F.hCE.EXMEldjWItarKWXEQZ0RD1jqiAtXSNq",
+          createdAt: "2021-12-20T10:04:35.978Z",
+          updatedAt: "2021-12-20T10:04:35.978Z",
+        },
+        {
+          id: 6,
+          uuid: "8f59ac18-0cb0-4c85-819e-1be407a8710e",
+          firstName: "asad",
+          lastName: "tariq",
+          email: "asad@test.com",
+          role: "ADMIN",
+          password: "$2b$10$XM3tMAOI1xi91Bm8F.hCE.EXMEldjWItarKWXEQZ0RD1jqiAtXSNq",
+          createdAt: "2021-12-20T10:04:35.978Z",
+          updatedAt: "2021-12-20T10:04:35.978Z",
+        },
       ],
       {}
     );
