@@ -1,85 +1,42 @@
 import { getReport } from "@/hooks/reports";
 import AppTitle from "@/components/title";
-import SelectCompany from "@/components/selectCompany";
-import { useCallback, useState } from "react";
-import { Button, Card, Space } from "antd";
-import { ReloadOutlined } from "@ant-design/icons";
+import { useState } from "react";
+import { Button, Empty, Space } from "antd";
 import AppTable from "@/components/table";
-import dayjs from "dayjs";
 import styles from "@/styles/Ledger.module.css";
-import { DATE_FORMAT } from "@/utils/ui.util";
 const columns = [
   {
-    title: "Product Name",
-    dataIndex: "purchasedProducts",
-    key: "id",
-    render: (_, { purchasedProducts }) => (
-      <>
-        {purchasedProducts.map((item) => (
-          <>{item.itemName}</>
-        ))}
-      </>
-    ),
-  },
-  {
-    title: "Id",
-    dataIndex: "id",
-    key: "id",
+    title: "Company ID",
+    dataIndex: "companyId",
+    key: "companyId",
   },
   {
     title: "Company Name",
-    dataIndex: ["company", "companyName"],
-    key: "companyName",
-  },
-  { title: "Invoice Total Amount (Rs)", dataIndex: "totalAmount", key: "totalAmount" },
-  { title: "Bale Type", dataIndex: "baleType", key: "baleType" },
-  {
-    title: "No. Of Bales",
-    dataIndex: "purchasedProducts",
-    key: "noOfBales",
-    render: (_, { purchasedProducts }) => (
-      <>
-        {purchasedProducts.map((item) => (
-          <>{item.noOfBales ?? "N/A"}</>
-        ))}
-      </>
-    ),
+    dataIndex: "company",
+    key: "company",
+    render: (text) => text ?? "N/A",
   },
   {
-    title: "Rate per Bale",
-    dataIndex: "purchasedProducts",
-    key: "ratePerBale",
-    render: (_, { purchasedProducts }) => (
-      <>
-        {purchasedProducts.map((item) => (
-          <>{item.ratePerBale ?? "N/A"}</>
-        ))}
-      </>
-    ),
+    title: "Total Bales",
+    dataIndex: "onHand",
+    key: "onHand",
   },
-  { title: "Invoice Number", dataIndex: "invoiceNumber", key: "invoiceNumber", render: (text) => text ?? "N/A" },
-  { title: "Sur Charge (Rs)", dataIndex: "surCharge", key: "surCharge", render: (text) => text ?? "N/A" },
-  {
-    title: "Purchase Date",
-    dataIndex: "purchaseDate",
-    key: "purchaseDate",
-    render: (text) => dayjs(text).format(DATE_FORMAT),
-  },
+  { title: "Total Cost of Inventory on Hand (Rs)", dataIndex: "totalAmount", key: "totalAmount" },
 ];
 
 export default function Reports() {
-  const [companyId, setCompanyId] = useState(null);
   const [report, setReport] = useState(false);
-  const selectCompanyOnChange = useCallback((id) => setCompanyId(id), [companyId]);
   const handleReport = async () => {
-    const data = await getReport(companyId);
+    const data = await getReport();
     setReport(data);
   };
 
   const renderSummary = () => (
     <div className={styles.rowDirectionTableContainer}>
-      <div className={styles.headingStyle}>Total Products :</div>
-      <div className={styles.contentStyle}>{`${report.products ? report.products.length : 0}`}</div>
+      <div className={styles.headingStyle}>Total Bales in Godown :</div>
+      <div className={styles.contentStyle}>{`${report.total ? report.total.totalBales : 0}`}</div>
+      <div className={styles.headingStyle}>Total Cost of Inventory On hand :</div>
+      <div className={styles.contentStyle}>{`${report.total ? report.total.totalCost : 0}`}</div>
     </div>
   );
 
@@ -89,23 +46,19 @@ export default function Reports() {
         <AppTitle level={2}>Reports</AppTitle>
 
         <Space>
-          <SelectCompany selectCompanyOnChange={selectCompanyOnChange} />
+          {/* <SelectCompany selectCompanyOnChange={selectCompanyOnChange} /> */}
           <Button onClick={handleReport}>Generate</Button>
         </Space>
       </div>
 
-      {!report && (
-        <Card className="generate-report">
-          <ReloadOutlined />
-        </Card>
-      )}
+      {!report && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />}
 
       {report && (
         <AppTable
           rowKey="id"
           className="components-table-demo-nested"
           columns={columns}
-          dataSource={report ? report.data : []}
+          dataSource={report ? report.content : []}
           footer={renderSummary}
         />
       )}

@@ -2,33 +2,67 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
-import { DEFAULT_ROWS_LIMIT } from "@/utils/api.util";
-import sequelize from "sequelize";
+
+const calculateAmount = (totalAmount, a) => {
+  if (a.ratePerKgs && a.baleWeightKgs) {
+    totalAmount += Number(a.ratePerKgs * a.baleWeightKgs);
+  } else if (a.ratePerLbs && a.baleWeightLbs) {
+    totalAmount += Number(a.ratePerLbs * a.baleWeightLbs);
+  } else if (a.noOfBales && a.ratePerBale) {
+    totalAmount += Number(a.noOfBales * a.ratePerBale);
+  }
+
+  return totalAmount;
+};
 
 const getPurchaseReport = async (req, res) => {
   console.log("Get all Purchase order Request Start");
-  const { companyId } = req.query;
   try {
     await db.dbConnect();
-    let data = await db.Purchase.findAll({
-      where: {
-        companyId: companyId,
-      },
+    const inventory = await await db.Inventory.findAll({
+      where: { onHand: { [db.Sequelize.Op.gt]: 0 } },
       include: [
         {
           model: db.Company,
           attributes: ["companyName"],
-
-          required: true,
         },
       ],
-      order: [["updatedAt", "DESC"]],
+      order: [["itemName", "ASC"]],
     });
-    console.log("Get all Purchase order Request End", typeof data);
+    if (!inventory) {
+      return res.status(404).send({ message: "inventory not exist" });
+    }
 
-    const products = [...new Set(data.map((item) => item.purchasedProducts[0].itemName))];
+    const content = inventory.reduce((acc, item) => {
+      const cid = item.companyId;
+      const index = acc.findIndex((e) => {
+        return e.companyId === cid;
+      });
 
-    return res.json({ data, products });
+      if (acc[index]) {
+        acc[index].onHand += Number(item.onHand);
+        acc[index].company = item.company?.companyName;
+        acc[index].companyId = cid;
+        acc[index].totalAmount += calculateAmount(0, item);
+      } else {
+        acc.push({
+          company: item.company ? item.company.companyName : null,
+          onHand: Number(item.onHand),
+          companyId: cid,
+          totalAmount: calculateAmount(0, item),
+        });
+      }
+      return acc;
+    }, []);
+
+    let totalCost = 0;
+    let totalBales = 0;
+    content.forEach((item) => {
+      totalCost += item.totalAmount;
+      totalBales += item.onHand;
+    });
+
+    return res.json({ content, total: { totalBales, totalCost } });
   } catch (error) {
     console.log("Get all Purchase order Request Error:", error);
     return res.status(500).send({ message: error.toString() });
