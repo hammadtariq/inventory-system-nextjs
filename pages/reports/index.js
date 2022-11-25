@@ -1,15 +1,10 @@
 import { getReport } from "@/hooks/reports";
 import AppTitle from "@/components/title";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button, Empty, Space } from "antd";
 import AppTable from "@/components/table";
 import styles from "@/styles/Ledger.module.css";
 const columns = [
-  {
-    title: "Company ID",
-    dataIndex: "companyId",
-    key: "companyId",
-  },
   {
     title: "Company Name",
     dataIndex: "company",
@@ -26,10 +21,14 @@ const columns = [
 
 export default function Reports() {
   const [report, setReport] = useState(false);
-  const handleReport = async () => {
+
+  const fetchReport = async () => {
     const data = await getReport();
-    setReport(data);
+    if (data) setReport(data);
   };
+  useEffect(() => {
+    fetchReport();
+  }, []);
 
   const renderSummary = () => (
     <div className={styles.rowDirectionTableContainer}>
@@ -44,11 +43,6 @@ export default function Reports() {
     <div>
       <div className="container">
         <AppTitle level={2}>Reports</AppTitle>
-
-        <Space>
-          {/* <SelectCompany selectCompanyOnChange={selectCompanyOnChange} /> */}
-          <Button onClick={handleReport}>Generate</Button>
-        </Space>
       </div>
 
       {!report && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />}
