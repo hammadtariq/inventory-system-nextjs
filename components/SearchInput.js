@@ -6,27 +6,22 @@ import _debounce from "lodash/debounce";
 import styles from "@/styles/SearchInput.module.css";
 
 const { Search } = Input;
-const Option = AutoComplete.Option;
+
 const searchResult = (results = [], valueKey = "") =>
-  results.map((result) => {
-    return {
-      value: result[valueKey] + "-" + result.id,
-      label: (
-        <div key={result.id} className={styles.listItem}>
-          {result[valueKey]}
-        </div>
-      ),
-    };
-  });
+  results.map((result) => ({
+    value: result[valueKey],
+    key: result.id,
+    label: <div className={styles.listItem}>{result[valueKey]}</div>,
+  }));
 
 const SearchInput = ({ handleSearch, handleSelect, valueKey }) => {
-  const [results, setResults] = useState([]);
+  const [options, setOptions] = useState([]);
+
   const _handleSearch = async (value) => {
+    console.log("_handleSearch", value);
     if (value) {
-      value = value;
       const results = await handleSearch(value.toLowerCase());
-      setResults(results);
-      // setOptions(searchResult(results, valueKey));
+      setOptions(searchResult(results, valueKey));
     } else {
       handleSearch();
     }
@@ -43,18 +38,11 @@ const SearchInput = ({ handleSearch, handleSelect, valueKey }) => {
       <AutoComplete
         dropdownMatchSelectWidth={252}
         className={styles.inputWrap}
+        options={options}
         onSelect={_handleSelect}
         onSearch={_debounce(_handleSearch, 500)}
-        style={{
-          width: 200,
-        }}
       >
-        {results.map((result) => (
-          <Option key={result.id} value={result[valueKey]}>
-            {result[valueKey]}
-          </Option>
-        ))}
-        {/* <Search size="large" placeholder="Search inventory" allowClear enterButton /> */}
+        <Search size="large" placeholder="Search inventory" loading={false} allowClear enterButton />
       </AutoComplete>
     </>
   );
