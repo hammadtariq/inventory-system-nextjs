@@ -30,6 +30,20 @@ a {
   background: #141414;
 }
 
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.generate-report {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 150px;
+}
+
 .logo {
   float: left;
   width: 200px;

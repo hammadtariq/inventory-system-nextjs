@@ -11,11 +11,7 @@ const searchResult = (results = [], valueKey = "") =>
   results.map((result) => ({
     value: result[valueKey],
     key: result.id,
-    label: (
-      <div className={styles.listItem}>
-        {result[valueKey]}
-      </div>
-    ),
+    label: <div className={styles.listItem}>{result[valueKey]}</div>,
   }));
 
 const SearchInput = ({ handleSearch, handleSelect, valueKey }) => {
