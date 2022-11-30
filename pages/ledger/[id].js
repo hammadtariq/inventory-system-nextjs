@@ -9,10 +9,10 @@ import AppTable from "@/components/table";
 
 const columns = [
   {
-    title: "Paid To",
-    dataIndex: ["company", "companyName"],
-    key: "companyName",
-    render: (text, _data) => (_data.company ? text : _data.otherName ? _data.otherName : ""),
+    title: "Date",
+    dataIndex: "paymentDate",
+    key: "paymentDate",
+    render: (text) => (text ? dayjs(text).format(DATE_FORMAT) : ""),
   },
   {
     title: "Paid By",
@@ -21,6 +21,13 @@ const columns = [
     render: (text, _data) =>
       _data.customer ? (text ? `${text.firstName} ${text.lastName}` : "") : _data.otherName ? _data.otherName : "",
   },
+  {
+    title: "Paid To",
+    dataIndex: ["company", "companyName"],
+    key: "companyName",
+    render: (text, _data) => (_data.company ? text : _data.otherName ? _data.otherName : ""),
+  },
+
   {
     title: "Invoice Number",
     dataIndex: "invoiceNumber",
@@ -43,12 +50,6 @@ const columns = [
     title: "Payment Type",
     dataIndex: "paymentType",
     key: "paymentType",
-  },
-  {
-    title: "Paid At",
-    dataIndex: "paymentDate",
-    key: "paymentDate",
-    render: (text) => (text ? dayjs(text).format(DATE_FORMAT) : ""),
   },
   {
     title: "Balance",
