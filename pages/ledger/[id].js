@@ -1,11 +1,11 @@
 import { Alert } from "antd";
 import dayjs from "dayjs";
 
+import AppTable from "@/components/table";
 import { useLedgerDetails } from "@/hooks/ledger";
 import styles from "@/styles/Ledger.module.css";
 import { SPEND_TYPE } from "@/utils/api.util";
 import { DATE_FORMAT } from "@/utils/ui.util";
-import AppTable from "@/components/table";
 
 const columns = [
   {
@@ -27,12 +27,16 @@ const columns = [
     key: "companyName",
     render: (text, _data) => (_data.company ? text : _data.otherName ? _data.otherName : ""),
   },
-
+  {
+    title: "Payment Type",
+    dataIndex: "paymentType",
+    key: "paymentType",
+  },
   {
     title: "Invoice Number",
     dataIndex: "invoiceNumber",
     key: "invoiceNumber",
-    render: (text, _data) => (_data.invoiceNumber ? _data.invoiceNumber : "N/A"),
+    render: (text, _data) => (_data.invoiceNumber ? _data.invoiceNumber : ""),
   },
   {
     title: "Debit Amount (Rs)",
@@ -45,11 +49,6 @@ const columns = [
     dataIndex: "amount",
     key: "amount",
     render: (text, _data) => (_data.spendType === SPEND_TYPE.CREDIT ? text.toFixed(2) : ""),
-  },
-  {
-    title: "Payment Type",
-    dataIndex: "paymentType",
-    key: "paymentType",
   },
   {
     title: "Balance",
