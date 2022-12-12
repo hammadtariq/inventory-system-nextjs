@@ -64,9 +64,17 @@ const approveSaleOrder = async (req, res) => {
 
     const rawQuery = customerSumQuery(customerId);
 
-    const totalBalance = await db.sequelize.query(rawQuery, {
+    const balance = await db.sequelize.query(rawQuery, {
       type: db.Sequelize.QueryTypes.SELECT,
     });
+
+    let totalBalance;
+
+    if (!balance.length) {
+      totalBalance = totalAmount;
+    } else {
+      totalBalance = balance[0].amount;
+    }
 
     await db.Ledger.create(
       {
@@ -74,7 +82,7 @@ const approveSaleOrder = async (req, res) => {
         amount: totalAmount,
         spendType: SPEND_TYPE.CREDIT,
         invoiceNumber: id,
-        totalBalance: totalBalance[0].amount,
+        totalBalance: totalBalance,
       },
       { transaction: t }
     );
