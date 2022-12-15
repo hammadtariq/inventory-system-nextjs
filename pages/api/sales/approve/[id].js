@@ -5,6 +5,7 @@ import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { STATUS, SPEND_TYPE } from "@/utils/api.util";
 import { customerSumQuery } from "query";
+import { balanceQuery } from "@/utils/query.utils";
 
 const apiSchema = Joi.object({
   id: Joi.number().required(),
@@ -36,7 +37,7 @@ const approveSaleOrder = async (req, res) => {
       return res.status(400).send({ message: "sale order already approved" });
     }
 
-    const { soldProducts, customerId, totalAmount } = sale;
+    const { soldProducts, soldDate, customerId, totalAmount } = sale;
     await db.dbConnect();
     for await (const product of soldProducts) {
       const { id, itemName, noOfBales, companyId, baleWeightKgs, baleWeightLbs } = product;
@@ -62,11 +63,7 @@ const approveSaleOrder = async (req, res) => {
     }
     await sale.update({ status: STATUS.APPROVED }, { transaction: t });
 
-    const rawQuery = customerSumQuery(customerId);
-
-    const balance = await db.sequelize.query(rawQuery, {
-      type: db.Sequelize.QueryTypes.SELECT,
-    });
+    const balance = balanceQuery(customerId, "customer");
 
     let totalBalance;
 
@@ -80,7 +77,8 @@ const approveSaleOrder = async (req, res) => {
       {
         customerId,
         amount: totalAmount,
-        spendType: SPEND_TYPE.CREDIT,
+        spendType: SPEND_TYPE.DEBIT,
+        paymentDate: soldDate,
         invoiceNumber: id,
         totalBalance: totalBalance,
       },
