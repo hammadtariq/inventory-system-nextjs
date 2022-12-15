@@ -177,18 +177,24 @@ export default function UpdateSalesItems({
   return (
     <>
       <div className="editAll">
-        {!editAll ? (
-          <Button onClick={() => setEditAll(true)} type="primary">
-            Edit All
-          </Button>
+        {viewOnly ? (
+          <></>
         ) : (
           <>
-            <Button className="saveAll" type="primary" onClick={saveAll}>
-              Save All
-            </Button>
-            <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
-              <Button>Cancel</Button>
-            </Popconfirm>
+            {!editAll ? (
+              <Button onClick={() => setEditAll(true)} type="primary">
+                Edit All
+              </Button>
+            ) : (
+              <>
+                <Button className="saveAll" type="primary" onClick={saveAll}>
+                  Save All
+                </Button>
+                <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
+                  <Button>Cancel</Button>
+                </Popconfirm>
+              </>
+            )}
           </>
         )}
       </div>
