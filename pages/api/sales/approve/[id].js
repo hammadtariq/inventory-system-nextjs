@@ -63,19 +63,19 @@ const approveSaleOrder = async (req, res) => {
     }
     await sale.update({ status: STATUS.APPROVED }, { transaction: t });
 
-    const balance = balanceQuery(customerId, "customer");
+    const balance = await balanceQuery(customerId, "customer");
 
     let totalBalance;
-
     if (!balance.length) {
       totalBalance = totalAmount;
     } else {
-      totalBalance = balance[0].amount;
+      totalBalance = balance[0].amount + totalAmount;
     }
 
     await db.Ledger.create(
       {
         customerId,
+        transactionId: id,
         amount: totalAmount,
         spendType: SPEND_TYPE.DEBIT,
         paymentDate: soldDate,

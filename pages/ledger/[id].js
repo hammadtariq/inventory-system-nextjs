@@ -10,20 +10,17 @@ import { useRouter } from "next/router";
 
 const LedgerDetails = ({ id, type }) => {
   const router = useRouter();
-  const { transactions, totalBalance, error, isLoading } = useLedgerDetails(id, type);
+  const { transactionId, transactions, totalBalance, error, isLoading } = useLedgerDetails(id, type);
 
   if (error) return <Alert message={error} type="error" />;
 
   const renderActions = (_, record) => {
     return (
       <>
-        {console.log(record.spendType, record.id)}
         <Button
           onClick={() =>
             router.push(
-              `/${record.spendType === SPEND_TYPE.DEBIT ? "sales" : "purchase"}/${
-                record.spendType === SPEND_TYPE.DEBIT ? record.id : record.id
-              }?type=view`
+              `/${record.spendType === SPEND_TYPE.DEBIT ? "sales" : "purchase"}/${record.transactionId}?type=view`
             )
           }
         >
@@ -65,7 +62,7 @@ const LedgerDetails = ({ id, type }) => {
       render: (text, _data) =>
         _data.invoiceNumber ? (
           <NextLink
-            href={`/${_data.spendType === SPEND_TYPE.DEBIT ? "sales" : "purchase"}/${_data.id}?type=view`}
+            href={`/${_data.spendType === SPEND_TYPE.DEBIT ? "sales" : "purchase"}/${_data.transactionId}?type=view`}
             passHref
           >
             {_data.invoiceNumber}

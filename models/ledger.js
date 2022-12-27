@@ -47,6 +47,9 @@ module.exports = (sequelize, DataTypes) => {
       totalBalance: {
         type: DataTypes.FLOAT,
       },
+      transactionId: {
+        type: DataTypes.INTEGER,
+      },
     },
     {
       sequelize,

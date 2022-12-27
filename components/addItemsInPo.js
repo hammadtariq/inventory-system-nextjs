@@ -197,11 +197,8 @@ export default function AddItemsInPo({
   return (
     <>
       <div className="editAll">
-        {viewOnly ? (
-          <></>
-        ) : (
+        {viewOnly ? null : (
           <>
-            {" "}
             {!editAll ? (
               <Button onClick={() => setEditAll(true)} type="primary">
                 Edit All
