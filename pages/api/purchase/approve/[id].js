@@ -68,17 +68,15 @@ const approvePurchaseOrder = async (req, res) => {
     }
     await purchase.update({ status: STATUS.APPROVED }, { transaction: t });
 
-    const balance = balanceQuery(companyId, "company");
+    const balance = await balanceQuery(companyId, "company");
 
     let totalBalance;
 
     if (!balance.length) {
       totalBalance = totalAmount;
     } else {
-      totalBalance = balance[0].amount - totalAmount;
+      totalBalance = balance[0].amount + totalAmount;
     }
-    debugger;
-
     await db.Ledger.create(
       {
         companyId,
