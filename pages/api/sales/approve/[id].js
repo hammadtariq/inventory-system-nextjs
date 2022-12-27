@@ -67,11 +67,10 @@ const approveSaleOrder = async (req, res) => {
 
     let totalBalance;
     if (!balance.length) {
-      totalBalance = totalAmount;
+      totalBalance = -totalAmount;
     } else {
-      totalBalance = balance[0].amount + totalAmount;
+      totalBalance = balance[0].amount - totalAmount;
     }
-
     await db.Ledger.create(
       {
         customerId,
