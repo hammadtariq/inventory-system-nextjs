@@ -1,66 +1,99 @@
-import { Alert } from "antd";
 import dayjs from "dayjs";
-
+import NextLink from "next/link";
 import AppTable from "@/components/table";
-import { useLedgerDetails } from "@/hooks/ledger";
 import styles from "@/styles/Ledger.module.css";
+import { useLedgerDetails } from "@/hooks/ledger";
+import { Alert, Button } from "antd";
 import { SPEND_TYPE } from "@/utils/api.util";
 import { DATE_FORMAT } from "@/utils/ui.util";
-
-const columns = [
-  {
-    title: "Date",
-    dataIndex: "paymentDate",
-    key: "paymentDate",
-    render: (text) => (text ? dayjs(text).format(DATE_FORMAT) : ""),
-  },
-  {
-    title: "Paid By",
-    dataIndex: ["customer"],
-    key: "customerName",
-    render: (text, _data) =>
-      _data.customer ? (text ? `${text.firstName} ${text.lastName}` : "") : _data.otherName ? _data.otherName : "",
-  },
-  {
-    title: "Paid To",
-    dataIndex: ["company", "companyName"],
-    key: "companyName",
-    render: (text, _data) => (_data.company ? text : _data.otherName ? _data.otherName : ""),
-  },
-  {
-    title: "Payment Type",
-    dataIndex: "paymentType",
-    key: "paymentType",
-  },
-  {
-    title: "Invoice Number",
-    dataIndex: "invoiceNumber",
-    key: "invoiceNumber",
-    render: (text, _data) => (_data.invoiceNumber ? _data.invoiceNumber : ""),
-  },
-  {
-    title: "Debit Amount (Rs)",
-    dataIndex: "amount",
-    key: "amount",
-    render: (text, _data) => (_data.spendType === SPEND_TYPE.DEBIT ? text.toFixed(2) : ""),
-  },
-  {
-    title: "Credit Amount (Rs)",
-    dataIndex: "amount",
-    key: "amount",
-    render: (text, _data) => (_data.spendType === SPEND_TYPE.CREDIT ? text.toFixed(2) : ""),
-  },
-  {
-    title: "Balance",
-    dataIndex: "totalBalance",
-    key: "totalBalance",
-  },
-];
+import { useRouter } from "next/router";
 
 const LedgerDetails = ({ id, type }) => {
-  const { transactions, totalBalance, error, isLoading } = useLedgerDetails(id, type);
+  const router = useRouter();
+  const { transactionId, transactions, totalBalance, error, isLoading } = useLedgerDetails(id, type);
 
   if (error) return <Alert message={error} type="error" />;
+
+  const renderActions = (_, record) => {
+    return (
+      <>
+        <Button
+          onClick={() =>
+            router.push(
+              `/${record.spendType === SPEND_TYPE.DEBIT ? "sales" : "purchase"}/${record.transactionId}?type=view`
+            )
+          }
+        >
+          Details
+        </Button>
+      </>
+    );
+  };
+
+  const columns = [
+    {
+      title: "Date",
+      dataIndex: "paymentDate",
+      key: "paymentDate",
+      render: (text) => (text ? dayjs(text).format(DATE_FORMAT) : ""),
+    },
+    {
+      title: "Paid By",
+      dataIndex: ["customer"],
+      key: "customerName",
+      render: (text, _data) =>
+        _data.customer ? (text ? `${text.firstName} ${text.lastName}` : "") : _data.otherName ? _data.otherName : "",
+    },
+    {
+      title: "Paid To",
+      dataIndex: ["company", "companyName"],
+      key: "companyName",
+      render: (text, _data) => (_data.company ? text : _data.otherName ? _data.otherName : ""),
+    },
+    {
+      title: "Payment Type",
+      dataIndex: "paymentType",
+      key: "paymentType",
+    },
+    {
+      title: "Invoice Number",
+      dataIndex: "invoiceNumber",
+      key: "invoiceNumber",
+      render: (text, _data) =>
+        _data.invoiceNumber ? (
+          <NextLink
+            href={`/${_data.spendType === SPEND_TYPE.DEBIT ? "sales" : "purchase"}/${_data.transactionId}?type=view`}
+            passHref
+          >
+            {_data.invoiceNumber}
+          </NextLink>
+        ) : (
+          ""
+        ),
+    },
+    {
+      title: "Debit Amount (Rs)",
+      dataIndex: "amount",
+      key: "amount",
+      render: (text, _data) => (_data.spendType === SPEND_TYPE.DEBIT ? text.toFixed(2) : ""),
+    },
+    {
+      title: "Credit Amount (Rs)",
+      dataIndex: "amount",
+      key: "amount",
+      render: (text, _data) => (_data.spendType === SPEND_TYPE.CREDIT ? text.toFixed(2) : ""),
+    },
+    {
+      title: "Balance",
+      dataIndex: "totalBalance",
+      key: "totalBalance",
+    },
+    {
+      title: "Action",
+      key: "action",
+      render: renderActions,
+    },
+  ];
 
   const renderTotalBalance = () => (
     <div className={styles.rowDirectionTableContainer}>
