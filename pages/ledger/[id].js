@@ -17,15 +17,17 @@ const LedgerDetails = ({ id, type }) => {
   const renderActions = (_, record) => {
     return (
       <>
-        <Button
-          onClick={() =>
-            router.push(
-              `/${record.spendType === SPEND_TYPE.DEBIT ? "sales" : "purchase"}/${record.transactionId}?type=view`
-            )
-          }
-        >
-          Details
-        </Button>
+        {record.transactionId ? (
+          <Button
+            onClick={() =>
+              router.push(
+                `/${record.spendType === SPEND_TYPE.DEBIT ? "sales" : "purchase"}/${record.transactionId}?type=view`
+              )
+            }
+          >
+            Details
+          </Button>
+        ) : null}
       </>
     );
   };
@@ -60,7 +62,7 @@ const LedgerDetails = ({ id, type }) => {
       dataIndex: "invoiceNumber",
       key: "invoiceNumber",
       render: (text, _data) =>
-        _data.invoiceNumber ? (
+        _data.invoiceNumber && _data.transactionId ? (
           <NextLink
             href={`/${_data.spendType === SPEND_TYPE.DEBIT ? "sales" : "purchase"}/${_data.transactionId}?type=view`}
             passHref

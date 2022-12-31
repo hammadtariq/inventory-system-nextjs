@@ -1,9 +1,9 @@
 import Joi from "joi";
 import nextConnect from "next-connect";
 import db from "@/lib/postgres";
-
+import { balanceQuery } from "@/utils/query.utils";
 import { auth } from "@/middlewares/auth";
-import { companySumQuery } from "query";
+import { SPEND_TYPE } from "@/utils/api.util";
 
 const apiSchema = Joi.object({
   companyId: Joi.number(),
@@ -47,19 +47,27 @@ const createPayment = async (req, res) => {
       });
     }
 
-    const rawQuery = companySumQuery(companyId);
-    const totalBalance = await db.sequelize.query(rawQuery, {
-      type: db.Sequelize.QueryTypes.SELECT,
-    });
+    const balance = await balanceQuery(companyId, "company");
+
+    let totalBalance;
+
+    if (!balance.length) {
+      totalBalance = totalAmount;
+    } else if (spendType === SPEND_TYPE.DEBIT) {
+      totalBalance = balance[0].amount + totalAmount;
+    } else {
+      totalBalance = balance[0].amount - totalAmount;
+    }
 
     const data = await db.Ledger.create({
       companyId,
       amount: totalAmount,
       spendType,
       customerId,
+      transactionId: null,
       paymentType,
       paymentDate,
-      totalBalance: totalBalance[0].amount,
+      totalBalance: totalBalance,
       otherName,
     });
     console.log("create transaction Request End");
