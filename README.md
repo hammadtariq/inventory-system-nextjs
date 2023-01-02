@@ -72,6 +72,7 @@ npm install
 Run migrations for first time
 
 ```sh
+npm install -g sequelize-cli
 sequelize db:migrate:undo:all
 sequelize db:migrate
 sequelize db:seed:all

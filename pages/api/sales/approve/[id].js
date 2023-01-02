@@ -69,7 +69,7 @@ const approveSaleOrder = async (req, res) => {
     if (!balance.length) {
       totalBalance = totalAmount;
     } else {
-      totalBalance = balance[0].amount + totalAmount;
+      totalBalance = balance[0].amount - totalAmount;
     }
 
     await db.Ledger.create(
@@ -77,7 +77,7 @@ const approveSaleOrder = async (req, res) => {
         customerId,
         transactionId: id,
         amount: totalAmount,
-        spendType: SPEND_TYPE.DEBIT,
+        spendType: SPEND_TYPE.CREDIT,
         paymentDate: soldDate,
         invoiceNumber: id,
         totalBalance: totalBalance,

@@ -21,7 +21,7 @@ const LedgerDetails = ({ id, type }) => {
           <Button
             onClick={() =>
               router.push(
-                `/${record.spendType === SPEND_TYPE.DEBIT ? "sales" : "purchase"}/${record.transactionId}?type=view`
+                `/${record.spendType === SPEND_TYPE.CREDIT ? "sales" : "purchase"}/${record.transactionId}?type=view`
               )
             }
           >
@@ -64,7 +64,7 @@ const LedgerDetails = ({ id, type }) => {
       render: (text, _data) =>
         _data.invoiceNumber && _data.transactionId ? (
           <NextLink
-            href={`/${_data.spendType === SPEND_TYPE.DEBIT ? "sales" : "purchase"}/${_data.transactionId}?type=view`}
+            href={`/${_data.spendType === SPEND_TYPE.CREDIT ? "sales" : "purchase"}/${_data.transactionId}?type=view`}
             passHref
           >
             {_data.invoiceNumber}
