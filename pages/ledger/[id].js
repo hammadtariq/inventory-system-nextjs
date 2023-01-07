@@ -77,13 +77,26 @@ const LedgerDetails = ({ id, type }) => {
       title: "Debit Amount (Rs)",
       dataIndex: "amount",
       key: "amount",
-      render: (text, _data) => (_data.spendType === SPEND_TYPE.DEBIT ? text.toFixed(2) : ""),
+      render: (text, _data) => {
+        if (_data.paymentType && type === "customer") {
+          return text.toFixed(2);
+        } else if (!_data.paymentType) {
+          return _data.spendType === SPEND_TYPE.DEBIT ? text.toFixed(2) : "";
+        }
+        return "";
+      },
     },
     {
       title: "Credit Amount (Rs)",
       dataIndex: "amount",
       key: "amount",
-      render: (text, _data) => (_data.spendType === SPEND_TYPE.CREDIT ? text.toFixed(2) : ""),
+      render: (text, _data) => {
+        if (_data.paymentType && type === "company") {
+          return text.toFixed(2);
+        } else if (!_data.paymentType) {
+          return _data.spendType === SPEND_TYPE.CREDIT ? text.toFixed(2) : "";
+        }
+      },
     },
     {
       title: "Balance",
@@ -103,7 +116,7 @@ const LedgerDetails = ({ id, type }) => {
       <div className={styles.contentStyle}>{`${totalBalance ? totalBalance.toFixed(2) : 0}`}</div>
     </div>
   );
-
+  console.log("transactions", transactions);
   return (
     <div>
       {renderTotalBalance()}
