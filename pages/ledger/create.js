@@ -24,7 +24,8 @@ const { Option } = Select;
 
 const CreateTransaction = () => {
   const router = useRouter();
-
+  const { query } = router;
+  const type = query.type;
   const [loading, setLoading] = useState(false);
   const [companyId, setCompanyId] = useState();
   const [customerId, setCustomerId] = useState();
@@ -44,7 +45,7 @@ const CreateTransaction = () => {
 
       let params = {
         totalAmount,
-        spendType: SPEND_TYPE.DEBIT,
+        spendType: SPEND_TYPE.DEBIT, // todo
         paymentDate: dayjs(paymentDate),
         paymentType,
         otherName: companyId === -1 || customerId === -1 ? otherName : "",
