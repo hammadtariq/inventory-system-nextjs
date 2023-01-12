@@ -104,7 +104,6 @@ const LedgerDetails = ({ id, type }) => {
       key: "totalBalance",
       render: (text, _data) => {
         if (type === "company") {
-          debugger;
           return _data.companyTotal ? _data.companyTotal.toFixed(2) : text;
         } else {
           return _data.customerTotal ? _data.customerTotal.toFixed(2) : text;
