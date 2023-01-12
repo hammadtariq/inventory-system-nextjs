@@ -47,16 +47,16 @@ const createPayment = async (req, res) => {
       });
     }
 
-    const balance = await balanceQuery(companyId, "company");
+    const companyBalance = await balanceQuery(companyId, "company");
+    const customerBalance = await balanceQuery(customerId, "customer");
 
-    let totalBalance;
+    let companyTotal = totalAmount,
+      customerTotal = totalAmount;
 
-    if (!balance.length) {
-      totalBalance = totalAmount;
-    } else if (spendType === SPEND_TYPE.DEBIT) {
-      totalBalance = balance[0].amount + totalAmount;
-    } else {
-      totalBalance = balance[0].amount - totalAmount;
+    if (paymentType) {
+      // TODO: Need to handle for cash scenario
+      companyTotal = companyBalance[0].amount - totalAmount;
+      customerTotal = customerBalance[0].amount + totalAmount;
     }
 
     const data = await db.Ledger.create({
@@ -67,7 +67,9 @@ const createPayment = async (req, res) => {
       transactionId: null,
       paymentType,
       paymentDate,
-      totalBalance: totalBalance,
+      totalBalance: companyTotal, // not required keeping it just to avoid null error
+      companyTotal,
+      customerTotal,
       otherName,
     });
     console.log("create transaction Request End");
