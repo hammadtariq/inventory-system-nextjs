@@ -4,6 +4,7 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { SPEND_TYPE, STATUS } from "@/utils/api.util";
+import { balanceQuery } from "@/utils/query.utils";
 
 const apiSchema = Joi.object({
   id: Joi.number().required(),
@@ -34,7 +35,7 @@ const approvePurchaseOrder = async (req, res) => {
     if (purchase.status === STATUS.APPROVED) {
       return res.status(400).send({ message: "purchase order already approved" });
     }
-    const { purchasedProducts, companyId, totalAmount, invoiceNumber } = purchase;
+    const { purchasedProducts, purchaseDate, companyId, totalAmount, invoiceNumber } = purchase;
 
     for await (const product of purchasedProducts) {
       const { id, itemName, noOfBales, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs, ratePerBale } = product;
@@ -42,10 +43,8 @@ const approvePurchaseOrder = async (req, res) => {
       // const inventory = await db.Inventory.findOne({ where: { itemName, companyId }, transaction: t });
       const inventory = await db.Inventory.findOne({ where: { id, companyId }, transaction: t });
       if (inventory) {
-        let incrementQuery = { baleWeightKgs };
-        if (baleWeightLbs) {
-          incrementQuery = { baleWeightLbs };
-        }
+        let incrementQuery = { baleWeightKgs, baleWeightLbs };
+
         await inventory.increment(["onHand", "noOfBales"], { by: noOfBales, transaction: t });
         await inventory.increment(incrementQuery, { transaction: t });
         await inventory.update(
@@ -68,12 +67,25 @@ const approvePurchaseOrder = async (req, res) => {
       }
     }
     await purchase.update({ status: STATUS.APPROVED }, { transaction: t });
+
+    const balance = await balanceQuery(companyId, "company");
+
+    let totalBalance;
+
+    if (!balance.length) {
+      totalBalance = totalAmount;
+    } else {
+      totalBalance = balance[0].amount + totalAmount;
+    }
     await db.Ledger.create(
       {
         companyId,
         amount: totalAmount,
-        spendType: SPEND_TYPE.CREDIT,
+        transactionId: id,
+        spendType: SPEND_TYPE.DEBIT,
         invoiceNumber,
+        paymentDate: purchaseDate,
+        totalBalance: totalBalance,
       },
       { transaction: t }
     );

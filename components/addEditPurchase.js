@@ -19,6 +19,7 @@ const AddEditPurchase = ({ purchase, type = null }) => {
   const router = useRouter();
   const [companyId, setCompanyId] = useState(null);
   const [_surCharge, setSurCharge] = useState(0);
+  const [editAll, setEditAll] = useState(false);
   const [selectedListType, setSelectedListType] = useState(null);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -193,6 +194,8 @@ const AddEditPurchase = ({ purchase, type = null }) => {
         {companyId && selectedListType && (
           <AddItemsInPo
             isEdit={!_isEmpty(purchase)}
+            editAll={editAll}
+            setEditAll={setEditAll}
             companyId={companyId}
             type={selectedListType}
             setData={setDataHandler}
@@ -207,7 +210,7 @@ const AddEditPurchase = ({ purchase, type = null }) => {
               loading={loading}
               type="primary"
               htmlType="submit"
-              disabled={(!companyId && !selectedListType) || data?.length === 0}
+              disabled={(!companyId && !selectedListType) || data?.length === 0 || editAll}
             >
               {purchase ? "Update" : " Create"} Purchase
             </Button>

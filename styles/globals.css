@@ -30,6 +30,20 @@ a {
   background: #141414;
 }
 
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.generate-report {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 150px;
+}
+
 .logo {
   float: left;
   width: 200px;
@@ -101,6 +115,18 @@ a {
   margin-left: 4px;
   margin-bottom: 5px;
 }
+
+.editAll {
+  display: flex !important;
+  justify-content: flex-end;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+.saveAll {
+  margin: 0 1rem;
+}
+
 /* .editBtn {
   margin-top: 5px;
   margin-left: 5px;

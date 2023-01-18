@@ -13,6 +13,7 @@ import permissionsUtil from "@/utils/permission.util";
 import { VALIDATE_MESSAGE } from "@/utils/ui.util";
 
 import { createPayment } from "../../hooks/ledger";
+import { selectSearchFilter } from "@/utils/filter.util";
 
 const canCreate = permissionsUtil.checkAuth({
   category: "transaction",
@@ -23,7 +24,8 @@ const { Option } = Select;
 
 const CreateTransaction = () => {
   const router = useRouter();
-
+  const { query } = router;
+  const type = query.type;
   const [loading, setLoading] = useState(false);
   const [companyId, setCompanyId] = useState();
   const [customerId, setCustomerId] = useState();
@@ -43,7 +45,7 @@ const CreateTransaction = () => {
 
       let params = {
         totalAmount,
-        spendType: SPEND_TYPE.DEBIT,
+        spendType: SPEND_TYPE.DEBIT, // todo
         paymentDate: dayjs(paymentDate),
         paymentType,
         otherName: companyId === -1 || customerId === -1 ? otherName : "",
@@ -127,7 +129,15 @@ const CreateTransaction = () => {
             },
           ]}
         >
-          <Select loading={companyLoading} placeholder="Select Company" allowClear onChange={handleSelectCompany}>
+          <Select
+            showSearch
+            filterOption={selectSearchFilter}
+            optionFilterProp="children"
+            loading={companyLoading}
+            placeholder="Select Company"
+            allowClear
+            onChange={handleSelectCompany}
+          >
             {companyData &&
               companyData.map((obj) => (
                 <Option key={obj.id} value={obj.id} disabled={obj.id === -1 && customerId === -1}>
@@ -161,7 +171,15 @@ const CreateTransaction = () => {
             },
           ]}
         >
-          <Select loading={customerLoading} placeholder="Select Customer" allowClear onChange={handleSelectCustomer}>
+          <Select
+            showSearch
+            filterOption={selectSearchFilter}
+            optionFilterProp="children"
+            loading={customerLoading}
+            placeholder="Select Customer"
+            allowClear
+            onChange={handleSelectCustomer}
+          >
             {customerData &&
               customerData.map((obj) => (
                 <Option key={obj.id} value={obj.id} disabled={obj.id === -1 && companyId === -1}>

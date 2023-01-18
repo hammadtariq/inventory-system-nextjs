@@ -44,6 +44,20 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         type: DataTypes.DATE,
       },
+      totalBalance: {
+        type: DataTypes.FLOAT,
+      },
+      companyTotal: {
+        allowNull: true,
+        type: DataTypes.FLOAT,
+      },
+      customerTotal: {
+        allowNull: true,
+        type: DataTypes.FLOAT,
+      },
+      transactionId: {
+        type: DataTypes.INTEGER,
+      },
     },
     {
       sequelize,

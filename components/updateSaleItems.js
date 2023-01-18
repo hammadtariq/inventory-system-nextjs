@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
-import { Form, Popconfirm, Typography } from "antd";
+import { Button, Form, Popconfirm, Typography } from "antd";
 
 import EditableCell from "@/components/editableCell";
 import styles from "@/styles/EditableCell.module.css";
@@ -10,14 +10,34 @@ import AppTable from "./table";
 export default function UpdateSalesItems({
   setSelectedProducts,
   data,
+  editAll,
+  setEditAll,
   updatedProducts,
   setUpdatedProducts,
   viewOnly = false,
 }) {
-  const [editingKey, setEditingKey] = useState("");
+  const [editingKey, setEditingKey] = useState([]);
+
   const [form] = Form.useForm();
 
-  const isEditing = (record) => record.id === editingKey;
+  useEffect(() => {
+    if (editAll) {
+      data.forEach((record) => {
+        if (editingKey.includes(record.id)) {
+          console.log("id exist");
+          return;
+        }
+        edit(record);
+        setEditingKey((prev) => {
+          return [...prev, record.id];
+        });
+      });
+    }
+  }, [editAll, data]);
+
+  const isEditing = (record) => {
+    return editingKey.includes(record.id);
+  };
 
   const edit = (record) => {
     form.setFieldsValue({
@@ -30,36 +50,47 @@ export default function UpdateSalesItems({
       ratePerBale: "",
       ...record,
     });
-    setEditingKey(record.id);
   };
 
   const cancel = () => {
-    setEditingKey("");
+    setEditingKey([]);
+    setEditAll(false);
   };
 
-  const save = async (key) => {
+  const saveAll = async () => {
     try {
       const row = await form.validateFields();
-      const newData = [...data];
-      const updatedData = [...updatedProducts];
-      saveIndividual(key, newData, setSelectedProducts, row);
-      saveIndividual(key, updatedData, setUpdatedProducts, row);
-      setEditingKey("");
-    } catch (errInfo) {
-      console.log("Validate Failed:", errInfo);
+
+      let newData = [...data];
+      let updatedData = [...updatedProducts];
+
+      for (const key in row) {
+        if (Object.hasOwnProperty.call(row, key)) {
+          const item = row[key];
+          newData = saveIndividual(Number(key), newData, item);
+          updatedData = saveIndividual(Number(key), updatedData, item);
+        }
+      }
+
+      setSelectedProducts(newData);
+      setUpdatedProducts(updatedData);
+      setEditAll(false);
+      setEditingKey([]);
+    } catch (error) {
+      console.log("Validate Failed:", error);
     }
   };
 
-  const saveIndividual = (key, data, setData, row) => {
-    const newData = [...data];
-    const index = newData.findIndex((item) => key === item.id);
+  const saveIndividual = (key, arr, row) => {
+    const arrData = [...arr];
+    const index = arrData.findIndex((item) => key === item.id);
     if (index > -1) {
-      const item = newData[index];
-      newData.splice(index, 1, { ...item, ...row });
-      setData(newData);
+      const item = arrData[index];
+      arrData.splice(index, 1, { ...item, ...row });
+      return arrData;
     } else {
-      newData.push(row);
-      setData(newData);
+      arrData.push(row);
+      return arrData;
     }
   };
 
@@ -69,25 +100,6 @@ export default function UpdateSalesItems({
       dataIndex: "operation",
       render: (_, record) => {
         const editable = isEditing(record);
-        return editable ? (
-          <span>
-            <Typography.Link
-              onClick={() => save(record.id)}
-              style={{
-                marginRight: 8,
-              }}
-            >
-              Save
-            </Typography.Link>
-            <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
-              <a>Cancel</a>
-            </Popconfirm>
-          </span>
-        ) : (
-          <Typography.Link disabled={editingKey !== ""} onClick={() => edit(record)}>
-            Edit
-          </Typography.Link>
-        );
       },
     };
   };
@@ -143,8 +155,6 @@ export default function UpdateSalesItems({
     },
   ];
 
-  if (!viewOnly) columns.push(getOperationColumn());
-
   const mergedColumns = columns.map((col) => {
     if (!col.editable) {
       return col;
@@ -155,6 +165,7 @@ export default function UpdateSalesItems({
       onCell: (record) => ({
         record,
         inputType: "number",
+        form: form,
         dataIndex: col.dataIndex,
         title: col.title,
         required: col.required,
@@ -164,18 +175,40 @@ export default function UpdateSalesItems({
   });
 
   return (
-    <Form form={form} component={false}>
-      <AppTable
-        components={{
-          body: {
-            cell: EditableCell,
-          },
-        }}
-        bordered
-        dataSource={data}
-        columns={mergedColumns}
-        rowClassName={styles.editableRow}
-      />
-    </Form>
+    <>
+      <div className="editAll">
+        {viewOnly ? null : (
+          <>
+            {!editAll ? (
+              <Button onClick={() => setEditAll(true)} type="primary">
+                Edit All
+              </Button>
+            ) : (
+              <>
+                <Button className="saveAll" type="primary" onClick={saveAll}>
+                  Save All
+                </Button>
+                <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
+                  <Button>Cancel</Button>
+                </Popconfirm>
+              </>
+            )}
+          </>
+        )}
+      </div>
+      <Form form={form} component={false}>
+        <AppTable
+          components={{
+            body: {
+              cell: EditableCell,
+            },
+          }}
+          bordered
+          dataSource={data}
+          columns={mergedColumns}
+          rowClassName={styles.editableRow}
+        />
+      </Form>
+    </>
   );
 }

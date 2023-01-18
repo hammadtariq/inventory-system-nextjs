@@ -15,6 +15,7 @@ export default function AppTable({
   pagination = paginationOptions,
   paginationHandler,
   rowClassName,
+  footer,
   components,
 }) {
   const handleChange = (pagination) => {
@@ -37,6 +38,7 @@ export default function AppTable({
       components={components}
       pagination={paginationHandler ? { ...pagination, total: totalCount } : false}
       onChange={handleChange}
+      footer={footer}
     />
   );
 }

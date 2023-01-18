@@ -2,10 +2,13 @@ export const companyQuery = `SELECT "companies"."companyName" as name,
 "companies"."createdAt" as "createdAt",
 "companies"."id" as "id",
 SUM(
-    CASE WHEN "ledgers"."spendType" = 'CREDIT' THEN
-        amount
-    WHEN "ledgers"."spendType" = 'DEBIT' THEN
+    CASE 
+        WHEN "ledgers"."paymentType" = 'CASH' OR "ledgers"."paymentType" = 'ONLINE' OR "ledgers"."paymentType" = 'CHEQUE' THEN
         - amount
+        WHEN "ledgers"."spendType" = 'CREDIT' THEN
+        - amount
+        WHEN "ledgers"."spendType" = 'DEBIT' THEN
+        amount
     ELSE
         0
     END) AS total
@@ -16,9 +19,12 @@ GROUP BY "companies"."id"`;
 export const customerQuery = `SELECT CONCAT(c."firstName", ' ', c."lastName") as name,
 c."id" as "id",
 SUM(
-    CASE WHEN "ledgers"."spendType" = 'CREDIT' THEN
+    CASE
+        WHEN "ledgers"."paymentType" = 'CASH' OR "ledgers"."paymentType" = 'ONLINE' OR "ledgers"."paymentType" = 'CHEQUE' THEN
         amount
-    WHEN "ledgers"."spendType" = 'DEBIT' THEN
+        WHEN "ledgers"."spendType" = 'DEBIT' THEN
+        amount
+        WHEN "ledgers"."spendType" = 'CREDIT' THEN
         - amount
     ELSE
         0
@@ -28,10 +34,13 @@ INNER JOIN customers c ON "ledgers"."customerId" = c.id
 GROUP BY c."id"`;
 
 export const companySumQuery = (id) => `SELECT SUM(
-    CASE WHEN "ledgers"."spendType" = 'CREDIT' THEN
-        amount
-    WHEN "ledgers"."spendType" = 'DEBIT' THEN
+    CASE 
+		WHEN "ledgers"."paymentType" = 'CASH' OR "ledgers"."paymentType" = 'ONLINE' OR "ledgers"."paymentType" = 'CHEQUE' THEN
+		- amount
+		WHEN "ledgers"."spendType" = 'CREDIT' THEN
         - amount
+		WHEN "ledgers"."spendType" = 'DEBIT' THEN
+        amount
     ELSE
         0
     END) AS amount
@@ -41,9 +50,12 @@ WHERE "ledgers"."companyId" = ${id}
 GROUP BY "companies"."id"`;
 
 export const customerSumQuery = (id) => `SELECT SUM(
-    CASE WHEN "ledgers"."spendType" = 'CREDIT' THEN
+    CASE
+        WHEN "ledgers"."paymentType" = 'CASH' OR "ledgers"."paymentType" = 'ONLINE' OR "ledgers"."paymentType" = 'CHEQUE' THEN
         amount
-    WHEN "ledgers"."spendType" = 'DEBIT' THEN
+        WHEN "ledgers"."spendType" = 'DEBIT' THEN
+        amount
+        WHEN "ledgers"."spendType" = 'CREDIT' THEN
         - amount
     ELSE
         0
