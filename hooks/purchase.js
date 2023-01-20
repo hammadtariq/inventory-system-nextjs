@@ -36,6 +36,8 @@ export const searchPurchase = (value) => get(`/api/purchase/search?value=${value
 
 export const getPurchase = (id) => get(`/api/purchase/${id}`);
 
+export const getAllPurchasesbyCompany = (id) => get(`/api/purchase/byCompanyId/${id}`);
+
 export const createPurchaseOrder = async (data) => post("/api/purchase", data);
 
 export const approvePurchase = async (id) => put(`/api/purchase/approve/${id}`);
