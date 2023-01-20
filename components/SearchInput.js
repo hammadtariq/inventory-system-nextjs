@@ -14,7 +14,7 @@ const searchResult = (results = [], valueKey = "") =>
     label: <div className={styles.listItem}>{result[valueKey]}</div>,
   }));
 
-const SearchInput = ({ handleSearch, handleSelect, valueKey }) => {
+const SearchInput = ({ handleSearch, handleSelect, valueKey, placeholder }) => {
   const [options, setOptions] = useState([]);
 
   const _handleSearch = async (value) => {
@@ -42,7 +42,7 @@ const SearchInput = ({ handleSearch, handleSelect, valueKey }) => {
         onSelect={_handleSelect}
         onSearch={_debounce(_handleSearch, 500)}
       >
-        <Search size="large" placeholder="Search inventory" loading={false} allowClear enterButton />
+        <Search size="large" placeholder={placeholder} loading={false} allowClear enterButton />
       </AutoComplete>
     </>
   );

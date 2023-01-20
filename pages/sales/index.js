@@ -197,7 +197,12 @@ const Sales = () => {
         Sales List
         <Row justify="space-between">
           <Col>
-            <SearchInput valueKey="firstName" handleSearch={handleSearch} handleSelect={handleSelect} />
+            <SearchInput
+              valueKey="firstName"
+              handleSearch={handleSearch}
+              handleSelect={handleSelect}
+              placeholder="search customer"
+            />
           </Col>
           <Col>
             <AppCreateButton url="/sales/create" />

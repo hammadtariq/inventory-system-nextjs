@@ -140,7 +140,12 @@ const Inventory = () => {
       <AppTitle level={2}>Inventory List</AppTitle>
       <Row justify="space-between">
         <Col>
-          <SearchInput valueKey="itemName" handleSearch={handleSearch} handleSelect={handleSelect} />
+          <SearchInput
+            valueKey="itemName"
+            handleSearch={handleSearch}
+            handleSelect={handleSelect}
+            placeholder="search inventory"
+          />
         </Col>
         <Col>
           <ExportButton handleExport={handleExport} filename="inventory" />
