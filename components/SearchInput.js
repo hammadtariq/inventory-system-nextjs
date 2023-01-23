@@ -7,21 +7,21 @@ import styles from "@/styles/SearchInput.module.css";
 
 const { Search } = Input;
 
-const searchResult = (results = [], valueKey = "") =>
+const searchResult = (results = [], valueKey = "", valueKey2 = "") =>
   results.map((result) => ({
-    value: result[valueKey],
+    value: result[valueKey] + " " + result[valueKey2],
     key: result.id,
-    label: <div className={styles.listItem}>{result[valueKey]}</div>,
+    label: <div className={styles.listItem}>{result[valueKey] + " " + result[valueKey2]}</div>,
   }));
 
-const SearchInput = ({ handleSearch, handleSelect, valueKey, placeholder }) => {
+const SearchInput = ({ handleSearch, handleSelect, valueKey, valueKey2, placeholder }) => {
   const [options, setOptions] = useState([]);
 
   const _handleSearch = async (value) => {
     console.log("_handleSearch", value);
     if (value) {
       const results = await handleSearch(value.toLowerCase());
-      setOptions(searchResult(results, valueKey));
+      setOptions(searchResult(results, valueKey, valueKey2));
     } else {
       handleSearch();
     }

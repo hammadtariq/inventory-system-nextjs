@@ -7,7 +7,7 @@ import AppCreateButton from "@/components/createButton";
 import AppTable from "@/components/table";
 import AppTitle from "@/components/title";
 import SearchInput from "@/components/SearchInput";
-import { approveSale, cancelSale, useSales, searchSales, getSales } from "@/hooks/sales";
+import { approveSale, cancelSale, useSales, searchSales, getAllSalesbyCustomer } from "@/hooks/sales";
 import { EDITABLE_STATUS } from "@/utils/api.util";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import permissionsUtil from "@/utils/permission.util";
@@ -183,9 +183,8 @@ const Sales = () => {
     }
   };
 
-  const handleSelect = async (id) => {
-    const data = await getSales(id);
-    const newItems = { ...sales, rows: [data], count: 1 };
+  const handleSelect = async (customerId) => {
+    const newItems = await getAllSalesbyCustomer(customerId);
     setUpdatedSales(newItems);
     return newItems;
   };
@@ -199,6 +198,7 @@ const Sales = () => {
           <Col>
             <SearchInput
               valueKey="firstName"
+              valueKey2="lastName"
               handleSearch={handleSearch}
               handleSelect={handleSelect}
               placeholder="search customer"
