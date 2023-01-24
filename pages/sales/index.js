@@ -116,7 +116,7 @@ const Sales = () => {
       },
     },
     {
-      title: "Customer Name",
+      title: "First Name",
       dataIndex: ["customer", "firstName"],
       key: "customerName",
       ...getColumnSearchProps({
@@ -130,6 +130,11 @@ const Sales = () => {
         setSearchText,
         setSearchedColumn,
       }),
+    },
+    {
+      title: "Last Name",
+      dataIndex: ["customer", "lastName"],
+      key: "customerName",
     },
     { title: "Invoice Total Amount (Rs)", dataIndex: "totalAmount", key: "totalAmount" },
     {

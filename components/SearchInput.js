@@ -9,9 +9,11 @@ const { Search } = Input;
 
 const searchResult = (results = [], valueKey = "", valueKey2 = "") =>
   results.map((result) => ({
-    value: result[valueKey] + " " + result[valueKey2],
+    value: valueKey2 ? result[valueKey] + " " + result[valueKey2] : result[valueKey],
     key: result.id,
-    label: <div className={styles.listItem}>{result[valueKey] + " " + result[valueKey2]}</div>,
+    label: (
+      <div className={styles.listItem}>{valueKey2 ? result[valueKey] + " " + result[valueKey2] : result[valueKey]}</div>
+    ),
   }));
 
 const SearchInput = ({ handleSearch, handleSelect, valueKey, valueKey2, placeholder }) => {
