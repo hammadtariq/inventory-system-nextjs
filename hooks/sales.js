@@ -37,6 +37,8 @@ export const searchSales = (value) => get(`/api/sales/search?value=${value}`);
 
 export const getSales = (id) => get(`/api/sales/${id}`);
 
+export const getAllSalesbyCustomer = (id) => get(`/api/sales/byCustomerId/${id}`);
+
 export const createSale = async (data) => post("/api/sales", data);
 
 export const updateSale = async (id, data) => put(`/api/sales/${id}`, data);
