@@ -24,9 +24,21 @@ const exportInventory = async (req, res) => {
   try {
     await db.dbConnect();
     const data = await db.Inventory.findAndCountAll({
+      where: { onHand: { [db.Sequelize.Op.gt]: 0 } },
       include: [db.Company],
       order: [["itemName", "ASC"]],
     });
+
+    const calculateAmount = (a) => {
+      if (a.ratePerKgs && a.baleWeightKgs) {
+        return Number(a.ratePerKgs * a.baleWeightKgs);
+      } else if (a.ratePerLbs && a.baleWeightLbs) {
+        return Number(a.ratePerLbs * a.baleWeightLbs);
+      } else if (a.noOfBales && a.ratePerBale) {
+        return Number(a.noOfBales * a.ratePerBale);
+      }
+      return totalAmount;
+    };
 
     const dataForExcel = data.rows.map((element) => ({
       itemName: element.itemName,
@@ -35,6 +47,7 @@ const exportInventory = async (req, res) => {
       ratePerKgs: element.ratePerKgs ?? "N/A",
       ratePerLbs: element.ratePerLbs ?? "N/A",
       ratePerBale: element.ratePerBale ?? "N/A",
+      totalAmount: calculateAmount(element),
     }));
 
     const timestamp = new Date().getTime();
