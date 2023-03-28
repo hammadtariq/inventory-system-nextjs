@@ -17,8 +17,7 @@ export const useItems = () => {
   );
 
   return {
-    items: data?.rows,
-    count: data?.count,
+    items: data,
     isLoading: !error && !data,
     error,
     paginationHandler,
@@ -49,6 +48,10 @@ export const useItemsByCompanyIdAndType = (companyId, type, isEdit = false) => {
     error,
   };
 };
+
+export const searchItems = (value) => get(`/api/items/search?value=${value}`);
+
+export const getAllItemListbyCompany = (id) => get(`/api/items/byCompanyId/${id}`);
 
 export const createItem = async (data) => post("/api/items", data);
 
