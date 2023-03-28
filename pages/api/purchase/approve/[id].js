@@ -56,11 +56,14 @@ const approvePurchaseOrder = async (req, res) => {
           { transaction: t }
         );
       } else {
+        delete product.id;
         await db.Inventory.create(
           {
             ...product,
             companyId,
             onHand: noOfBales,
+            baleWeightKgs,
+            baleWeightLbs,
           },
           { transaction: t }
         );
