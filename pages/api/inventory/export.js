@@ -1,4 +1,5 @@
 import nextConnect from "next-connect";
+import { calculateAmount } from "@/utils/api.util";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
@@ -29,17 +30,6 @@ const exportInventory = async (req, res) => {
       order: [["itemName", "ASC"]],
     });
 
-    const calculateAmount = (a) => {
-      if (a.ratePerKgs && a.baleWeightKgs) {
-        return Number(a.ratePerKgs * a.baleWeightKgs);
-      } else if (a.ratePerLbs && a.baleWeightLbs) {
-        return Number(a.ratePerLbs * a.baleWeightLbs);
-      } else if (a.noOfBales && a.ratePerBale) {
-        return Number(a.noOfBales * a.ratePerBale);
-      }
-      return totalAmount;
-    };
-
     const dataForExcel = data.rows.map((element) => ({
       itemName: element.itemName,
       companyName: element.company?.companyName ?? "N/A",
@@ -47,7 +37,7 @@ const exportInventory = async (req, res) => {
       ratePerKgs: element.ratePerKgs ?? "N/A",
       ratePerLbs: element.ratePerLbs ?? "N/A",
       ratePerBale: element.ratePerBale ?? "N/A",
-      totalAmount: calculateAmount(element),
+      totalAmount: calculateAmount(0, element),
     }));
 
     const timestamp = new Date().getTime();
