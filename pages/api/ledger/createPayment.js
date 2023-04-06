@@ -53,7 +53,7 @@ const createPayment = async (req, res) => {
     let companyTotal = totalAmount,
       customerTotal = totalAmount;
 
-    if (paymentType) {
+    if (paymentType && companyBalance.length && customerBalance.length) {
       // TODO: Need to handle for cash scenario
       companyTotal = companyBalance[0].amount - totalAmount;
       customerTotal = customerBalance[0].amount + totalAmount;

@@ -1,6 +1,6 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 
-import { Alert, Popconfirm } from "antd";
+import { Alert, Popconfirm, Row, Col } from "antd";
 import dayjs from "dayjs";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
@@ -8,55 +8,36 @@ import { useRouter } from "next/router";
 import AppCreateButton from "@/components/createButton";
 import AppTable from "@/components/table";
 import AppTitle from "@/components/title";
-import { approvePurchase, cancelPurchase, usePurchaseOrders } from "@/hooks/purchase";
+import {
+  approvePurchase,
+  cancelPurchase,
+  getAllPurchasesbyCompany,
+  searchPurchase,
+  usePurchaseOrders,
+} from "@/hooks/purchase";
 import { EDITABLE_STATUS } from "@/utils/api.util";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import permissionsUtil from "@/utils/permission.util";
 import { DATE_FORMAT, STATUS_COLORS } from "@/utils/ui.util";
 import { CheckOutlined, CloseOutlined, EditOutlined } from "@ant-design/icons";
+import SearchInput from "@/components/SearchInput";
 
 const PurchaseOrders = () => {
   const { purchaseOrders, error, isLoading, paginationHandler, mutate } = usePurchaseOrders();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
+  const [updatedPurchase, setUpdatedPurchase] = useState();
   const searchInput = useRef(null);
   const router = useRouter();
+
+  useEffect(() => {
+    setUpdatedPurchase(purchaseOrders);
+  }, [purchaseOrders]);
 
   const canApprove = permissionsUtil.checkAuth({
     category: "purchase",
     action: "approve",
   });
-
-  // const canEdit = permissionsUtil.checkAuth({
-  //   category: "purchase",
-  //   action: "edit",
-  // });
-
-  // const expandedRowRender = (record) => {
-  //   const columns = [
-  //     {
-  //       title: "Item Name",
-  //       dataIndex: "itemName",
-  //       key: "itemName",
-  //       ...getColumnSearchProps({
-  //         dataIndex: "itemName",
-  //         dataIndexName: "item name",
-  //         searchInput,
-  //         searchText,
-  //         searchedColumn,
-  //         setSearchText,
-  //         setSearchedColumn,
-  //       }),
-  //     },
-  //     { title: "No of Bales", dataIndex: "noOfBales", key: "noOfBales" },
-  //     { title: "Bale Weight (LBS)", dataIndex: "baleWeightLbs", key: "baleWeightLbs", render: (text) => text ?? "N/A" },
-  //     { title: "Bale Weight (KGS)", dataIndex: "baleWeightKgs", key: "baleWeightKgs", render: (text) => text ?? "N/A" },
-  //     { title: "Rate per LBS (Rs)", dataIndex: "ratePerLgs", key: "ratePerLgs", render: (text) => text ?? "N/A" },
-  //     { title: "Rate per KGS (Rs)", dataIndex: "ratePerKgs", key: "ratePerKgs", render: (text) => text ?? "N/A" },
-  //     { title: "Rate per Bale (Rs)", dataIndex: "ratePerBale", key: "ratePerBale" },
-  //   ];
-  //   return <AppTable columns={columns} dataSource={record.purchasedProducts} pagination={false} />;
-  // };
 
   const renderActions = (text, record) => {
     if (record.status === "PENDING" && canApprove) {
@@ -174,21 +155,50 @@ const PurchaseOrders = () => {
     },
   ];
 
+  const handleSearch = async (value) => {
+    if (!value) {
+      setUpdatedPurchase(purchaseOrders);
+      return purchaseOrders;
+    } else {
+      const searchResults = await searchPurchase(value);
+      return searchResults;
+    }
+  };
+
+  const handleSelect = async (companyId) => {
+    const newItems = await getAllPurchasesbyCompany(companyId);
+    setUpdatedPurchase(newItems);
+    return newItems;
+  };
+
   if (error) return <Alert message={error} type="error" />;
   return (
     <>
       <AppTitle level={2}>
         Purchase Order List
-        <AppCreateButton url="/purchase/create" />
+        <Row justify="space-between">
+          <Col>
+            <SearchInput
+              valueKey="companyName"
+              handleSearch={handleSearch}
+              handleSelect={handleSelect}
+              placeholder="search company"
+            />
+          </Col>
+          <Col>
+            <AppCreateButton url="/purchase/create" />
+          </Col>
+        </Row>
       </AppTitle>
+      <br />
       <AppTable
         isLoading={isLoading}
         rowKey={"id"}
         className="components-table-demo-nested"
         columns={columns}
         // expandable={{ expandedRowRender: (record) => expandedRowRender(record) }}
-        dataSource={purchaseOrders ? purchaseOrders.rows : []}
-        totalCount={purchaseOrders ? purchaseOrders.count : 0}
+        dataSource={updatedPurchase ? updatedPurchase.rows : []}
+        totalCount={updatedPurchase ? updatedPurchase.count : 0}
         pagination={true}
         paginationHandler={paginationHandler}
       />

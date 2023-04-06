@@ -1,27 +1,30 @@
 import nextConnect from "next-connect";
-
+import Joi from "joi";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { DEFAULT_ROWS_LIMIT } from "@/utils/api.util";
 
 const dbConnect = db.dbConnect;
 
+const apiSchema = Joi.object({
+  firstName: Joi.string().min(3).trim().lowercase().required(),
+  lastName: Joi.string().min(3).trim().lowercase().required(),
+  email: Joi.string().email().trim().lowercase().required(),
+  phone: Joi.string().max(24).trim(),
+  address: Joi.string().trim().min(10),
+});
+
 const customerRegistration = async (req, res) => {
   console.log("Create Customer Request Start");
 
-  const { firstName, lastName, email, phone, address } = req.body;
-
-  if (!firstName || !lastName || !email) {
-    return res.status(400).send({
-      success: false,
-      message: "Please provide all fields",
-      required: ["firstName", "lastName", "email"],
-    });
+  const { error, value } = apiSchema.validate(req.body);
+  if (error && Object.keys(error).length) {
+    return res.status(400).send({ message: error.toString() });
   }
 
   try {
     await dbConnect();
-    const customer = await db.Customer.findOne({ where: { email } });
+    const customer = await db.Customer.findOne({ where: { email: value.email } });
 
     // if user already exist
     if (customer) {
@@ -29,11 +32,7 @@ const customerRegistration = async (req, res) => {
     }
 
     await db.Customer.create({
-      firstName,
-      lastName,
-      email,
-      phone,
-      address,
+      ...value,
     });
     console.log("Create Customer Request End");
 

@@ -2,24 +2,13 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
-
-const calculateAmount = (totalAmount, a) => {
-  if (a.ratePerKgs && a.baleWeightKgs) {
-    totalAmount += Number(a.ratePerKgs * a.baleWeightKgs);
-  } else if (a.ratePerLbs && a.baleWeightLbs) {
-    totalAmount += Number(a.ratePerLbs * a.baleWeightLbs);
-  } else if (a.noOfBales && a.ratePerBale) {
-    totalAmount += Number(a.noOfBales * a.ratePerBale);
-  }
-
-  return totalAmount;
-};
+import { calculateAmount } from "@/utils/api.util";
 
 const getPurchaseReport = async (req, res) => {
   console.log("Get all Purchase order Request Start");
   try {
     await db.dbConnect();
-    const inventory = await await db.Inventory.findAll({
+    const inventory = await db.Inventory.findAll({
       where: { onHand: { [db.Sequelize.Op.gt]: 0 } },
       include: [
         {

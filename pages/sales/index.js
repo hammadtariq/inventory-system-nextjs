@@ -1,14 +1,13 @@
-import { useRef, useState } from "react";
-
-import { Alert, Popconfirm } from "antd";
+import { useRef, useState, useEffect } from "react";
+import { Alert, Popconfirm, Row, Col } from "antd";
 import dayjs from "dayjs";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
-
 import AppCreateButton from "@/components/createButton";
 import AppTable from "@/components/table";
 import AppTitle from "@/components/title";
-import { approveSale, cancelSale, useSales } from "@/hooks/sales";
+import SearchInput from "@/components/SearchInput";
+import { approveSale, cancelSale, useSales, searchSales, getAllSalesbyCustomer } from "@/hooks/sales";
 import { EDITABLE_STATUS } from "@/utils/api.util";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import permissionsUtil from "@/utils/permission.util";
@@ -19,12 +18,17 @@ const Sales = () => {
   const { sales, error, isLoading, paginationHandler, mutate } = useSales();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
+  const [updatedSales, setUpdatedSales] = useState("");
   const searchInput = useRef(null);
   const router = useRouter();
   const canApprove = permissionsUtil.checkAuth({
     category: "sales",
     action: "approve",
   });
+
+  useEffect(() => {
+    setUpdatedSales(sales);
+  }, [sales]);
 
   // const expandedRowRender = (record) => {
   //   const columns = [
@@ -112,7 +116,7 @@ const Sales = () => {
       },
     },
     {
-      title: "Customer Name",
+      title: "First Name",
       dataIndex: ["customer", "firstName"],
       key: "customerName",
       ...getColumnSearchProps({
@@ -126,6 +130,11 @@ const Sales = () => {
         setSearchText,
         setSearchedColumn,
       }),
+    },
+    {
+      title: "Last Name",
+      dataIndex: ["customer", "lastName"],
+      key: "customerName",
     },
     { title: "Invoice Total Amount (Rs)", dataIndex: "totalAmount", key: "totalAmount" },
     {
@@ -169,21 +178,51 @@ const Sales = () => {
     },
   ];
 
+  const handleSearch = async (value) => {
+    if (!value) {
+      setUpdatedSales(sales);
+      return sales;
+    } else {
+      const searchResults = await searchSales(value);
+      return searchResults;
+    }
+  };
+
+  const handleSelect = async (customerId) => {
+    const newItems = await getAllSalesbyCustomer(customerId);
+    setUpdatedSales(newItems);
+    return newItems;
+  };
+
   if (error) return <Alert message={error} type="error" />;
   return (
     <>
       <AppTitle level={2}>
         Sales List
-        <AppCreateButton url="/sales/create" />
+        <Row justify="space-between">
+          <Col>
+            <SearchInput
+              valueKey="firstName"
+              valueKey2="lastName"
+              handleSearch={handleSearch}
+              handleSelect={handleSelect}
+              placeholder="search customer"
+            />
+          </Col>
+          <Col>
+            <AppCreateButton url="/sales/create" />
+          </Col>
+        </Row>
       </AppTitle>
+      <br />
       <AppTable
         isLoading={isLoading}
         rowKey={"id"}
         className="components-table-demo-nested"
         columns={columns}
         // expandable={{ expandedRowRender: (record) => expandedRowRender(record) }}
-        dataSource={sales ? sales.rows : []}
-        totalCount={sales ? sales.count : 0}
+        dataSource={updatedSales ? updatedSales.rows : []}
+        totalCount={updatedSales ? updatedSales.count : 0}
         pagination={true}
         paginationHandler={paginationHandler}
       />
