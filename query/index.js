@@ -1,3 +1,13 @@
+export const companyTotalBalesQuery = `
+SELECT "companies"."companyName" as name,
+  SUM(CASE
+    WHEN "inventories"."onHand" > 0 THEN "inventories"."onHand"
+    ELSE 0
+  END) AS total
+FROM inventories
+INNER JOIN companies ON "inventories"."companyId" = companies.id
+GROUP BY "companies"."id";`;
+
 export const companyQuery = `SELECT "companies"."companyName" as name,
 "companies"."createdAt" as "createdAt",
 "companies"."id" as "id",
