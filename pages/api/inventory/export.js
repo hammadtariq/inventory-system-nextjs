@@ -3,17 +3,21 @@ import { calculateAmount } from "@/utils/api.util";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import { companyTotalBalesQuery } from "../../../query";
 
 const path = require("path");
 const fs = require("fs");
 const XLSX = require("XLSX");
 
-const exportXLS = (data, filePath) => {
+const exportXLS = (data, data2, filePath) => {
   /* make the worksheet */
   const ws = XLSX.utils.json_to_sheet(data);
+  const ws2 = XLSX.utils.json_to_sheet(data2);
   /* add to workbook */
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Sheet 1");
+  XLSX.utils.book_append_sheet(wb, ws2, "Sheet 2");
+
   /* generate an XLSX file */
   // XLSX.writeFile(wb, filePath);
   XLSX.writeFile(wb, filePath);
@@ -30,6 +34,11 @@ const exportInventory = async (req, res) => {
       order: [["itemName", "ASC"]],
     });
 
+    await db.dbConnect();
+    const totalBales = await db.sequelize.query(companyTotalBalesQuery, {
+      type: db.Sequelize.QueryTypes.SELECT,
+    });
+
     const dataForExcel = data.rows.map((element) => ({
       itemName: element.itemName,
       companyName: element.company?.companyName ?? "N/A",
@@ -38,6 +47,10 @@ const exportInventory = async (req, res) => {
       ratePerLbs: element.ratePerLbs ?? "N/A",
       ratePerBale: element.ratePerBale ?? "N/A",
       totalAmount: calculateAmount(0, element),
+    }));
+    const dataForExcel2 = totalBales.map((d) => ({
+      company: d.name ?? "N/A",
+      totalBales: d.total ?? "0",
     }));
 
     const timestamp = new Date().getTime();
@@ -48,7 +61,7 @@ const exportInventory = async (req, res) => {
       fs.mkdirSync(filePath);
     }
     const newPath = path.join(filePath, fileName);
-    exportXLS(dataForExcel, newPath);
+    exportXLS(dataForExcel, dataForExcel2, newPath);
 
     const newFile = fs.readFileSync(newPath, { encoding: "base64" });
 
