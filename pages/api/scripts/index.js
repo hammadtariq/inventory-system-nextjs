@@ -14,11 +14,11 @@ const getAllInventory = async (req, res) => {
   }
   try {
     await db.dbConnect();
-    const data = await db.Inventory.findAll({
+    const inventoryItems = await db.Inventory.findAll({
       ...options,
       order: [["id", "ASC"]],
     });
-    const data2 = await db.Items.findAll({
+    const itemList = await db.Items.findAll({
       ...options,
       order: [["id", "ASC"]],
     });
@@ -27,13 +27,13 @@ const getAllInventory = async (req, res) => {
     let inventory;
     let items;
     let itemNotFound = [];
-    for (let i = 0; i < data2.length; i++) {
-      const element = data2[i];
-      items = element.dataValues;
+    for (let i = 0; i < itemList.length; i++) {
+      const element = itemList[i];
+      items = element.inventoryItemsValues;
 
-      for (let j = 0; j < data.length; j++) {
-        const element = data[j];
-        inventory = element.dataValues;
+      for (let j = 0; j < inventoryItems.length; j++) {
+        const element = inventoryItems[j];
+        inventory = element.inventoryItemsValues;
         if (items.id === inventory.id && items.companyId === inventory.companyId) {
           if (items.itemName != inventory.itemName) {
             itemNotFound.push(items);
@@ -42,7 +42,7 @@ const getAllInventory = async (req, res) => {
       }
     }
 
-    return res.send({ data, data2 });
+    return res.send({ inventoryItems, itemList });
   } catch (error) {
     console.log("Get all inventory Request Error:", error);
 
