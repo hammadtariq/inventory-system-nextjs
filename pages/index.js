@@ -6,37 +6,32 @@ import { useEffect, useState } from "react";
 import { graphPurchaseTable, graphSaleTable, graphTablesCount } from "@/hooks/overview";
 
 export default function Home() {
-  const [tableCount, setTableCount] = useState([]);
+  const [tableCount, setTableCount] = useState();
   const [purchaseGraph, setPurchaseGraph] = useState([]);
   const [saleGraph, setSaleGraph] = useState([]);
 
   useEffect(() => {
-    countTables();
-    purchaseTableResult();
-    salesTableResult();
+    fetchData();
   }, []);
 
-  const countTables = async () => {
+  const fetchData = async () => {
     try {
-      const data = await graphTablesCount();
-      setTableCount(data);
-    } catch (error) {
-      console.error("Error retrieving data:", error);
-    }
-  };
-  const purchaseTableResult = async () => {
-    try {
-      const data = await graphPurchaseTable();
-      setPurchaseGraph(data);
-    } catch (error) {
-      console.error("Error retrieving data:", error);
-    }
-  };
+      const [tableData, purchaseData, saleData] = await Promise.all([
+        graphTablesCount(),
+        graphPurchaseTable(),
+        graphSaleTable(),
+      ]);
 
-  const salesTableResult = async () => {
-    try {
-      const data = await graphSaleTable();
-      setSaleGraph(data);
+      const parsedTableData = {
+        customers: parseInt(tableData.customers),
+        companies: parseInt(tableData.companies),
+        inventory: parseInt(tableData.inventory),
+        cheques: parseInt(tableData.cheques),
+      };
+
+      setTableCount(parsedTableData);
+      setPurchaseGraph(purchaseData);
+      setSaleGraph(saleData);
     } catch (error) {
       console.error("Error retrieving data:", error);
     }
