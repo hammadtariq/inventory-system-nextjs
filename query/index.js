@@ -74,3 +74,13 @@ FROM ledgers
 INNER JOIN customers ON "ledgers"."customerId" = customers.id
 WHERE "ledgers"."customerId" = ${id}
 GROUP BY "customers"."id"`;
+
+export const purchaseGraphQuery = `SELECT EXTRACT(YEAR FROM "purchaseDate") AS year, COUNT(*)::integer AS count
+  FROM "purchases"
+  GROUP BY year
+  ORDER BY year;`;
+
+export const saleGraphQuery = `SELECT EXTRACT(YEAR FROM "soldDate") AS year, COUNT(*)::integer AS count
+FROM "sales"
+GROUP BY year
+ORDER BY year`;
