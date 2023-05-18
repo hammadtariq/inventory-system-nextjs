@@ -23,10 +23,10 @@ export default function Home() {
       ]);
 
       const parsedTableData = {
-        customers: parseInt(tableData.customers),
-        companies: parseInt(tableData.companies),
-        inventory: parseInt(tableData.inventory),
-        cheques: parseInt(tableData.cheques),
+        customers: tableData.customers,
+        companies: tableData.companies,
+        inventory: tableData.inventory,
+        cheques: tableData.cheques,
       };
 
       setTableCount(parsedTableData);
