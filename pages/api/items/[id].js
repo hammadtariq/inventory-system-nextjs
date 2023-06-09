@@ -25,28 +25,36 @@ const updateItems = async (req, res) => {
   if (error && Object.keys(error).length) {
     return res.status(400).send({ message: error.toString() });
   }
+  const t = await db.sequelize.transaction();
 
   try {
     await db.dbConnect();
 
-    const item = await db.Items.findByPk(value.id);
+    const item = await db.Items.findByPk(value.id, { transaction: t });
+    const inventoryItem = await db.Inventory.findByPk(value.id, { transaction: t });
+
     if (!item) {
       return res.status(404).send({ message: "item not found" });
     }
+
     if (!Object.keys(req.body).length) {
       res.status(400).send({
         message: "Please provide at least one field",
         allowedFields: ["itemName", "companyId", "ratePerLbs", "ratePerKgs", "ratePerBale", "type"],
       });
     }
-
-    await item.update({ ...value });
+    await item.update({ ...value }, { transaction: t });
     console.log("update items Request End");
 
+    if (inventoryItem) {
+      await inventoryItem.update({ ...value }, { transaction: t });
+      console.log("update inventory Request End");
+    }
+    await t.commit();
     return res.send();
   } catch (error) {
+    await t.rollback();
     console.log("update items Request Error:", error);
-
     return res.status(500).send({ message: error.toString() });
   }
 };

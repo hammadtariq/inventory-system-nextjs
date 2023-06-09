@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 
-import { Alert, Button, Popconfirm, Row, Col } from "antd";
+import { Alert, Button, Popconfirm, Row, Col, message } from "antd";
 import dayjs from "dayjs";
 import { useRouter } from "next/router";
 import EditableInventoryCell from "@/components/editableInventoryCell";
@@ -167,6 +167,7 @@ const Items = () => {
     try {
       await updateItem(row.id, { itemName: row.itemName });
       mutate();
+      message.success("item modified successfully");
     } catch (error) {
       console.log("update itemList item name error", error);
     }
