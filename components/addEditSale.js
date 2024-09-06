@@ -25,12 +25,17 @@ const AddEditSale = ({ sale, type = null }) => {
   const [_laborCharge, setLaborCharge] = useState(0);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [updatedProducts, setUpdatedProducts] = useState([]);
-  const { inventory, error, isLoading } = useInventoryAttributes(["itemName", "id", "onHand", "companyId"]);
+  const { inventory, error, isLoading } = useInventoryAttributes(["itemName", "id", "onHand", "companyId"], type);
   const [form] = Form.useForm();
 
   useEffect(() => {
-    setUpdatedProducts(inventory);
-  }, [inventory]);
+    if (type === "view") {
+      setUpdatedProducts(sale.soldProducts);
+      console.log(sale.soldProducts);
+    } else {
+      setUpdatedProducts(inventory);
+    }
+  }, [inventory, sale]);
 
   const selectCustomerOnChange = useCallback((id) => setCustomerId(id), [customerId]);
 
@@ -71,14 +76,28 @@ const AddEditSale = ({ sale, type = null }) => {
         acc[product.id] = product;
         return acc;
       }, {});
-      const updatedItems = inventory.map((item) => {
+      const updatedItems = soldProducts.map((item) => {
         if (_soldProducts[item.id]) return { ..._soldProducts[item.id], company: item.company };
         return item;
       });
+      // Create a map for quick lookups
+      const inventoryMap = inventory.reduce((acc, item) => {
+        acc[item.id] = item;
+        return acc;
+      }, {});
+      // Update soldProducts with onHand value from inventory
+      const updatedSoldProducts = soldProducts.map((product) => {
+        const inventoryItem = inventoryMap[product.id];
+        return {
+          ...product,
+          onHand: inventoryItem ? inventoryItem.onHand : null, // Add onHand value
+          company: product.company, // Ensure company details are included
+        };
+      });
       setLaborCharge(laborCharge);
       setCustomerId(id);
-      setSelectedProducts(soldProducts);
-      setUpdatedProducts(updatedItems);
+      setSelectedProducts(updatedSoldProducts);
+      setUpdatedProducts(inventory);
     }
   }, [sale, inventory]);
 
@@ -134,8 +153,9 @@ const AddEditSale = ({ sale, type = null }) => {
           <Col span={8}>
             <Form.Item label="Customer">
               <SelectCustomer
-                defaultValue={sale && sale.customer.id}
+                defaultValue={sale && type === "view" ? sale?.customer?.firstName : sale?.customer?.id}
                 selectCustomerOnChange={selectCustomerOnChange}
+                type={type}
                 disabled={isView}
               />
             </Form.Item>

@@ -36,13 +36,20 @@ export const useCustomer = (id) => {
   };
 };
 
-export const useCustomerAttributes = (attr = []) => {
-  const { data, error } = useSWR(`/api/customer?attributes=${JSON.stringify(attr)}`, get);
+export const useCustomerAttributes = (attr = [], type) => {
+  if (type !== "view") {
+    const { data, error } = useSWR(`/api/customer?attributes=${JSON.stringify(attr)}`, get);
 
+    return {
+      customers: data?.rows,
+      isLoading: !error && !data,
+      error,
+    };
+  }
   return {
-    customers: data?.rows,
-    isLoading: !error && !data,
-    error,
+    customers: null,
+    isLoading: false,
+    error: null,
   };
 };
 

@@ -7,6 +7,9 @@ import { Alert, Button } from "antd";
 import { SPEND_TYPE } from "@/utils/api.util";
 import { DATE_FORMAT } from "@/utils/ui.util";
 import { useRouter } from "next/router";
+import ExportButton from "@/components/exportButton";
+import { exportFunc } from "@/utils/export.utils";
+import { EyeOutlined } from "@ant-design/icons";
 
 const LedgerDetails = ({ id, type }) => {
   const router = useRouter();
@@ -18,15 +21,22 @@ const LedgerDetails = ({ id, type }) => {
     return (
       <>
         {record.transactionId ? (
-          <Button
-            onClick={() =>
-              router.push(
-                `/${record.spendType === SPEND_TYPE.CREDIT ? "sales" : "purchase"}/${record.transactionId}?type=view`
-              )
-            }
-          >
-            Details
-          </Button>
+          <>
+            <EyeOutlined
+              style={{ marginRight: "10px" }}
+              onClick={() =>
+                router.push(
+                  `/${record.spendType === SPEND_TYPE.CREDIT ? "sales" : "purchase"}/${record.transactionId}?type=view`
+                )
+              }
+            />
+            <ExportButton
+              handleExport={handleExport}
+              filename="ledger"
+              invoiceNumber={record.invoiceNumber}
+              onlyIcon={true}
+            />
+          </>
         ) : null}
       </>
     );
@@ -116,6 +126,10 @@ const LedgerDetails = ({ id, type }) => {
       render: renderActions,
     },
   ];
+
+  const handleExport = async (fileName, fileExtension, invoiceNumber) => {
+    await exportFunc(fileName, fileExtension, id, type, invoiceNumber);
+  };
 
   const renderTotalBalance = () => (
     <div className={styles.rowDirectionTableContainer}>

@@ -12,6 +12,7 @@ import { exportInventory, getInventory, searchInventory, updateInventory, useInv
 import styles from "@/styles/EditableCell.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import permissionsUtil from "@/utils/permission.util";
+import { exportFunc } from "@/utils/export.utils";
 
 const Inventory = () => {
   const { inventory, error, isLoading, mutate, paginationHandler } = useInventory();
@@ -124,14 +125,8 @@ const Inventory = () => {
     return newInventory;
   };
 
-  const handleExport = async () => {
-    try {
-      const response = await exportInventory();
-      return response;
-    } catch (error) {
-      console.log("export error", error);
-      return error;
-    }
+  const handleExport = async (fileName, type) => {
+    await exportFunc(fileName, type);
   };
 
   if (error) return <Alert message={error} type="error" />;

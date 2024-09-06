@@ -1,20 +1,33 @@
-import { Button, message } from "antd";
-
+import { Button, message, Dropdown, Menu } from "antd";
+import { DownloadOutlined } from "@ant-design/icons";
 import { downloadFile } from "@/utils/ui.util";
 
-const ExportButton = ({ handleExport, filename }) => {
-  const _handleExport = async () => {
-    const response = await handleExport();
-    if (response) {
-      downloadFile(response, filename);
-    } else {
-      message.error("Export failed, please try again later");
-    }
+const ExportButton = ({ handleExport, filename, invoiceNumber, onlyIcon = false }) => {
+  const _handleExport = async (fileExtension) => {
+    await handleExport(filename, fileExtension, invoiceNumber);
   };
+
+  const menu = (
+    <Menu>
+      <Menu.Item key="1" onClick={() => _handleExport("pdf")}>
+        Export as PDF
+      </Menu.Item>
+      <Menu.Item key="2" onClick={() => _handleExport("csv")}>
+        Export as CSV
+      </Menu.Item>
+    </Menu>
+  );
+
   return (
-    <Button type="primary" onClick={_handleExport}>
-      Export to Excel
-    </Button>
+    <Dropdown overlay={menu} trigger={["click"]}>
+      {onlyIcon ? (
+        <DownloadOutlined type="primary" />
+      ) : (
+        <Button type="primary" icon={<DownloadOutlined />}>
+          Export
+        </Button>
+      )}
+    </Dropdown>
   );
 };
 

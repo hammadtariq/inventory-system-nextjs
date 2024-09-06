@@ -1,17 +1,31 @@
-import { post } from "@/lib/http-client";
+import { get } from "@/lib/http-client";
 
-export const exportFile = async (fileName, data) => {
+export const exportFile = async (fileName, fileExtension, id, type, invoiceNumber, companyId) => {
   try {
-    const response = await post(`/api/${fileName}/export`, data, {
-      responseType: 'blob',
-    });
-    if (response) {
+    // Construct the URL with query parameters
+    let baseUrl = `/api/${fileName}/export?fileExtension=${fileExtension}`;
+    // Append only existing parameters
+    const queryParams = new URLSearchParams();
+    if (invoiceNumber) queryParams.append("invoiceNumber", invoiceNumber);
+    if (companyId) queryParams.append("companyId", companyId);
+    if (type) queryParams.append("type", type);
+    if (id) queryParams.append("id", id);
+    // Add query parameters to the URL if they exist
+    if (queryParams.toString()) {
+      baseUrl += `&${queryParams.toString()}`;
+    }
+
+    // Make the API request with responseType as 'blob'
+    const response = await get(baseUrl, { responseType: "blob" });
+
+    // Check if the response is a valid Blob
+    if (response instanceof Blob) {
       return response;
     } else {
-      throw new Error('Expected a Blob response');
+      throw new Error("Expected a Blob response");
     }
   } catch (error) {
-    console.error('Error in exportFile:', error);
+    console.error("Error in exportFile:", error);
     throw error;
   }
 };
