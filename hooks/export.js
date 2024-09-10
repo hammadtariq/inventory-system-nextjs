@@ -1,31 +1,44 @@
+import useSWR from "swr";
 import { get } from "@/lib/http-client";
 
-export const exportFile = async (fileName, fileExtension, id, type, invoiceNumber, companyId) => {
-  try {
-    // Construct the URL with query parameters
-    let baseUrl = `/api/${fileName}/export?fileExtension=${fileExtension}`;
-    // Append only existing parameters
-    const queryParams = new URLSearchParams();
-    if (invoiceNumber) queryParams.append("invoiceNumber", invoiceNumber);
-    if (companyId) queryParams.append("companyId", companyId);
-    if (type) queryParams.append("type", type);
-    if (id) queryParams.append("id", id);
-    // Add query parameters to the URL if they exist
-    if (queryParams.toString()) {
-      baseUrl += `&${queryParams.toString()}`;
-    }
-
-    // Make the API request with responseType as 'blob'
-    const response = await get(baseUrl, { responseType: "blob" });
-
-    // Check if the response is a valid Blob
+// Custom SWR hook for exporting files
+export const useExportFile = (fileDetails) => {
+  // Fetcher function
+  const fetcher = async (url) => {
+    const response = await get(url, { responseType: "blob" });
     if (response instanceof Blob) {
       return response;
     } else {
       throw new Error("Expected a Blob response");
     }
-  } catch (error) {
-    console.error("Error in exportFile:", error);
-    throw error;
-  }
+  };
+
+  // Construct the URL for fetching the file
+  const constructUrl = () => {
+    if (!fileDetails || !fileDetails.fileName || !fileDetails.fileExtension) return null;
+
+    const { fileName, fileExtension, invoiceNumber, companyId, type, id } = fileDetails;
+    const baseUrl = `/api/${fileName}/export?fileExtension=${fileExtension}`;
+    const queryParams = new URLSearchParams();
+
+    if (invoiceNumber) queryParams.append("invoiceNumber", invoiceNumber);
+    if (companyId) queryParams.append("companyId", companyId);
+    if (type) queryParams.append("type", type);
+    if (id) queryParams.append("id", id);
+
+    return queryParams.toString() ? `${baseUrl}&${queryParams.toString()}` : baseUrl;
+  };
+
+  // Use SWR hook with a conditional key
+  const url = constructUrl();
+  const { data, error, isValidating } = useSWR(url, fetcher, {
+    revalidateOnFocus: false,
+    shouldRetryOnError: false,
+  });
+
+  return {
+    fileBlob: data,
+    isLoading: isValidating,
+    isError: error,
+  };
 };

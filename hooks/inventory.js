@@ -25,20 +25,13 @@ export const useInventory = () => {
   };
 };
 
-export const useInventoryAttributes = (attr = [], type) => {
-  if (type !== "view") {
-    const { data, error } = useSWR(`/api/inventory?attributes=${JSON.stringify(attr)}`, get);
+export const useInventoryAttributes = (attr = [], type = true) => {
+  const { data, error } = useSWR(type ? `/api/inventory?attributes=${JSON.stringify(attr)}` : null, get);
 
-    return {
-      inventory: data?.rows,
-      isLoading: !error && !data,
-      error,
-    };
-  }
   return {
-    inventory: null,
-    isLoading: false,
-    error: null,
+    inventory: data?.rows,
+    isLoading: !error && !data,
+    error,
   };
 };
 
@@ -67,5 +60,3 @@ export const searchInventory = (value) => get(`/api/inventory/search?value=${val
 export const getInventory = (id) => get(`/api/inventory/${id}`);
 
 export const updateInventory = (id, data) => put(`/api/inventory/${id}`, data);
-
-// export const exportInventory = () => get(`/api/inventory/export`);

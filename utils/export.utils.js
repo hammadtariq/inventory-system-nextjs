@@ -3,7 +3,6 @@ import { message } from "antd";
 import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import { get } from "@/lib/http-client";
 
 export const exportFunc = async (fileName, fileExtension, id, type, invoiceNumber) => {
   try {

@@ -8,7 +8,6 @@ import { SPEND_TYPE } from "@/utils/api.util";
 import { DATE_FORMAT } from "@/utils/ui.util";
 import { useRouter } from "next/router";
 import ExportButton from "@/components/exportButton";
-import { exportFunc } from "@/utils/export.utils";
 import { EyeOutlined } from "@ant-design/icons";
 
 const LedgerDetails = ({ id, type }) => {
@@ -30,12 +29,7 @@ const LedgerDetails = ({ id, type }) => {
                 )
               }
             />
-            <ExportButton
-              handleExport={handleExport}
-              filename="ledger"
-              invoiceNumber={record.invoiceNumber}
-              onlyIcon={true}
-            />
+            <ExportButton filename="ledger" invoiceNumber={record.invoiceNumber} onlyIcon={true} />
           </>
         ) : null}
       </>
@@ -126,10 +120,6 @@ const LedgerDetails = ({ id, type }) => {
       render: renderActions,
     },
   ];
-
-  const handleExport = async (fileName, fileExtension, invoiceNumber) => {
-    await exportFunc(fileName, fileExtension, id, type, invoiceNumber);
-  };
 
   const renderTotalBalance = () => (
     <div className={styles.rowDirectionTableContainer}>

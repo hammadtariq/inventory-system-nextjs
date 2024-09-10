@@ -12,7 +12,7 @@ const exportInventory = async (req, res) => {
     await db.dbConnect();
 
     // Extract query parameters
-    const { companyId = 1, fileExtension } = req.query;
+    const { companyId, fileExtension } = req.query;
 
     // Fetch data from the database
     const data = await db.Inventory.findAndCountAll({
