@@ -3,67 +3,63 @@ import { calculateAmount } from "@/utils/api.util";
 import { auth } from "@/middlewares/auth";
 import nextConnect from "next-connect";
 import db from "@/lib/postgres";
-const path = require("path");
-const fs = require("fs");
+import { companyTotalBalesQuery } from "@/query/index";
+import path from "path";
+import fs from "fs";
 
 const exportInventory = async (req, res) => {
-  console.log("inventory export file handler started");
   try {
     await db.dbConnect();
 
-    // Extract query parameters
     const { companyId, fileExtension } = req.query;
 
-    // Fetch data from the database
-    const data = await db.Inventory.findAndCountAll({
-      where: { onHand: { [db.Sequelize.Op.gt]: 0 } },
-      include: [db.Company],
-      order: [["itemName", "ASC"]],
-    });
+    const [inventoryData, totalBales] = await Promise.all([
+      db.Inventory.findAndCountAll({
+        where: { onHand: { [db.Sequelize.Op.gt]: 0 } },
+        include: [db.Company],
+        order: [["itemName", "ASC"]],
+      }),
+      db.sequelize.query(companyTotalBalesQuery, {
+        type: db.Sequelize.QueryTypes.SELECT,
+      }),
+    ]);
 
-    await db.dbConnect();
-    const totalBales = await db.sequelize.query(companyTotalBalesQuery, {
-      type: db.Sequelize.QueryTypes.SELECT,
-    });
-
-    const dataForExcel = data.rows.map((element) => ({
-      itemName: element.itemName,
-      companyName: element.company?.companyName ?? "N/A",
-      onHand: element.onHand ?? "0",
-      ratePerKgs: element.ratePerKgs ?? "N/A",
-      ratePerLbs: element.ratePerLbs ?? "N/A",
-      ratePerBale: element.ratePerBale ?? "N/A",
-      totalAmount: calculateAmount(0, element),
-    }));
-    const dataForExcel2 = totalBales.map((d) => ({
-      company: d.name ?? "N/A",
-      totalBales: d.total ?? "0",
+    const formattedInventoryData = inventoryData.rows.map((item) => ({
+      itemName: item.itemName,
+      companyName: item.company?.companyName ?? "N/A",
+      onHand: item.onHand ?? "0",
+      ratePerKgs: item.ratePerKgs ?? "N/A",
+      ratePerLbs: item.ratePerLbs ?? "N/A",
+      ratePerBale: item.ratePerBale ?? "N/A",
+      totalBales: item.total ?? "0",
+      totalAmount: calculateAmount(0, item),
     }));
 
-    // Update req.body with the prepared data
+    // const formattedTotalBales = totalBales.map((entry) => ({
+    //   company: entry.name ?? "N/A",
+    //   totalBales: entry.total ?? "0",
+    // }));
+
     const fileInfo = {
-      data: dataForExcel,
+      headData: inventoryData,
+      data: formattedInventoryData,
       fileName: "inventory",
       type: fileExtension,
     };
-    // Call export handler with the prepared data
-    const response = await exportHandler(fileInfo);
 
-    // Ensure the directory exists
+    const { headers, fileBlob } = await exportHandler(fileInfo);
+
     const filePath = path.resolve(".", "exportedFiles");
     if (!fs.existsSync(filePath)) {
       fs.mkdirSync(filePath);
     }
-    // Set the headers
-    const { headers, fileBlob } = response;
-    for (const [key, value] of Object.entries(headers)) {
-      res.setHeader(key, value);
-    }
 
-    console.log("inventory export file handler ended");
+    Object.entries(headers).forEach(([key, value]) => res.setHeader(key, value));
+
     return res.status(200).send(fileBlob);
   } catch (error) {
-    return res.status(500).send({ message: error.toString() });
+    console.error("Export Inventory Error:", error);
+    return res.status(500).send({ message: error.message.toString() });
   }
 };
 

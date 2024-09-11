@@ -1,44 +1,36 @@
 import useSWR from "swr";
 import { get } from "@/lib/http-client";
 
-// Custom SWR hook for exporting files
 export const useExportFile = (fileDetails) => {
-  // Fetcher function
+  const constructUrl = () => {
+    if (!fileDetails?.fileName || !fileDetails?.fileExtension) return null;
+
+    const queryParams = new URLSearchParams({
+      invoiceNumber: fileDetails.invoiceNumber,
+      companyId: fileDetails.companyId,
+      type: fileDetails.type,
+      id: fileDetails.id,
+    });
+
+    return `/api/${fileDetails.fileName}/export?fileExtension=${fileDetails.fileExtension}&${queryParams}`;
+  };
+
   const fetcher = async (url) => {
     const response = await get(url, { responseType: "blob" });
-    if (response instanceof Blob) {
-      return response;
-    } else {
+    if (!(response instanceof Blob)) {
       throw new Error("Expected a Blob response");
     }
+    return response;
   };
 
-  // Construct the URL for fetching the file
-  const constructUrl = () => {
-    if (!fileDetails || !fileDetails.fileName || !fileDetails.fileExtension) return null;
-
-    const { fileName, fileExtension, invoiceNumber, companyId, type, id } = fileDetails;
-    const baseUrl = `/api/${fileName}/export?fileExtension=${fileExtension}`;
-    const queryParams = new URLSearchParams();
-
-    if (invoiceNumber) queryParams.append("invoiceNumber", invoiceNumber);
-    if (companyId) queryParams.append("companyId", companyId);
-    if (type) queryParams.append("type", type);
-    if (id) queryParams.append("id", id);
-
-    return queryParams.toString() ? `${baseUrl}&${queryParams.toString()}` : baseUrl;
-  };
-
-  // Use SWR hook with a conditional key
-  const url = constructUrl();
-  const { data, error, isValidating } = useSWR(url, fetcher, {
+  const {
+    data: fileBlob,
+    error,
+    isValidating: isLoading,
+  } = useSWR(constructUrl(), fetcher, {
     revalidateOnFocus: false,
     shouldRetryOnError: false,
   });
 
-  return {
-    fileBlob: data,
-    isLoading: isValidating,
-    isError: error,
-  };
+  return { fileBlob, isLoading, isError: error };
 };
