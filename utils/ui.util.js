@@ -108,3 +108,4 @@ export const downloadFile = (file, filename) => {
 
   link.click();
 };
+export const PAGE_TYPE_VIEW = "view";

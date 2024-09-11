@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-
 import { Alert, Button, Col, Form, Input, Row, Select } from "antd";
 import dayjs from "dayjs";
 import { useRouter } from "next/router";
@@ -11,28 +10,63 @@ import UpdateSalesItems from "@/components/updateSaleItems";
 import { useInventoryAttributes } from "@/hooks/inventory";
 import { createSale, updateSale } from "@/hooks/sales";
 import { EDITABLE_STATUS } from "@/utils/api.util";
-import { DATE_FORMAT, sumItemsPrice, VALIDATE_MESSAGE } from "@/utils/ui.util";
+import { DATE_FORMAT, PAGE_TYPE_VIEW, sumItemsPrice, VALIDATE_MESSAGE } from "@/utils/ui.util";
 import { EditOutlined } from "@ant-design/icons";
 
 const { Option } = Select;
 
 const AddEditSale = ({ sale, type = null }) => {
   const router = useRouter();
-  const isView = type === "view";
+  const isView = type === PAGE_TYPE_VIEW;
+  const isEdit = !isView && sale;
+  const isCreate = !isView && !sale;
   const [loading, setLoading] = useState(false);
   const [customerId, setCustomerId] = useState(null);
   const [editAll, setEditAll] = useState(false);
   const [_laborCharge, setLaborCharge] = useState(0);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [updatedProducts, setUpdatedProducts] = useState([]);
-  const { inventory, error, isLoading } = useInventoryAttributes(["itemName", "id", "onHand", "companyId"]);
+  const { inventory, error, isLoading } = useInventoryAttributes(
+    ["itemName", "id", "onHand", "companyId"],
+    type !== PAGE_TYPE_VIEW
+  );
   const [form] = Form.useForm();
 
   useEffect(() => {
-    setUpdatedProducts(inventory);
-  }, [inventory]);
+    if (isView) {
+      setUpdatedProducts(sale.soldProducts);
+      setSelectedProducts(sale.soldProducts);
+      form.setFieldsValue({
+        soldDate: dayjs(sale.soldDate),
+        totalAmount: sale.totalAmount,
+        laborCharge: sale.laborCharge,
+        selectedProduct: sale.soldProducts.map((product) => product.id),
+      });
+      setLaborCharge(sale.laborCharge);
+      setCustomerId(sale.customer.id);
+    } else if (isEdit && inventory) {
+      const soldProductIds = sale.soldProducts.map((product) => product.id);
+      const selectedItems = inventory.map((item) => {
+        const soldProduct = sale.soldProducts.find((product) => product.id === item.id);
+        return soldProduct ? { ...item, ...soldProduct } : item;
+      });
+      setSelectedProducts(selectedItems.filter((item) => soldProductIds.includes(item.id)));
+      setUpdatedProducts(inventory);
+      form.setFieldsValue({
+        selectedProduct: soldProductIds,
+        soldDate: dayjs(sale.soldDate),
+        totalAmount: sale.totalAmount,
+        laborCharge: sale.laborCharge,
+      });
+      setLaborCharge(sale.laborCharge);
+      setCustomerId(sale.customer.id);
+    } else if (isCreate) {
+      setUpdatedProducts(inventory);
+      form.resetFields();
+    }
+  }, [sale, inventory, isView, isEdit, isCreate, form]);
 
-  const selectCustomerOnChange = useCallback((id) => setCustomerId(id), [customerId]);
+  const selectCustomerOnChange = useCallback((id) => setCustomerId(id), []);
 
   const selectProductsOnChange = useCallback(
     (selectedId) => {
@@ -41,6 +75,7 @@ const AddEditSale = ({ sale, type = null }) => {
     },
     [updatedProducts]
   );
+
   const totalAmount = useMemo(() => sumItemsPrice(selectedProducts), [selectedProducts]);
 
   const onRemove = (id) => {
@@ -58,44 +93,15 @@ const AddEditSale = ({ sale, type = null }) => {
   };
 
   useEffect(() => {
-    if (sale && inventory) {
-      const { customer, soldDate, soldProducts, totalAmount, laborCharge } = sale;
-      const { id } = customer;
-      form.setFieldsValue({
-        soldDate: dayjs(soldDate),
-        totalAmount,
-        laborCharge,
-        selectedProduct: soldProducts.map((product) => product.id),
-      });
-      const _soldProducts = soldProducts.reduce((acc, product) => {
-        acc[product.id] = product;
-        return acc;
-      }, {});
-      const updatedItems = inventory.map((item) => {
-        if (_soldProducts[item.id]) return { ..._soldProducts[item.id], company: item.company };
-        return item;
-      });
-      setLaborCharge(laborCharge);
-      setCustomerId(id);
-      setSelectedProducts(soldProducts);
-      setUpdatedProducts(updatedItems);
-    }
-  }, [sale, inventory]);
-
-  useEffect(() => {
     const total = totalAmount + _laborCharge;
     form.setFieldsValue({ totalAmount: total });
-  }, [totalAmount, _laborCharge]);
-
-  useEffect(() => {
-    form.setFieldsValue({ soldDate: sale?.soldDate ? dayjs(sale.soldDate) : dayjs() });
-  }, []);
+  }, [totalAmount, _laborCharge, form]);
 
   const onFinish = async (value) => {
     setLoading(false);
     const orderData = { ...value };
     delete orderData.selectedProduct;
-    orderData.soldDate = orderData.soldDate.toISOString();
+    orderData.soldDate = orderData.soldDate ? orderData.soldDate.toISOString() : new Date().toISOString();
     orderData.customerId = customerId;
     orderData.laborCharge = _laborCharge || 0;
     orderData.soldProducts = selectedProducts.map((product) => {
@@ -134,7 +140,7 @@ const AddEditSale = ({ sale, type = null }) => {
           <Col span={8}>
             <Form.Item label="Customer">
               <SelectCustomer
-                defaultValue={sale && sale.customer.id}
+                defaultValue={sale && (isView || isEdit) ? sale?.customer?.firstName : sale?.customer?.id}
                 selectCustomerOnChange={selectCustomerOnChange}
                 disabled={isView}
               />
