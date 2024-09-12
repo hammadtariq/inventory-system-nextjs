@@ -1,33 +1,20 @@
-import nextConnect from "next-connect";
+import { exportHandler } from "pages/api/export/export-file";
 import { calculateAmount } from "@/utils/api.util";
-
-import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
-import { companyTotalBalesQuery } from "../../../query";
-
+import nextConnect from "next-connect";
+import db from "@/lib/postgres";
 const path = require("path");
 const fs = require("fs");
-const XLSX = require("XLSX");
-
-const exportXLS = (data, data2, filePath) => {
-  /* make the worksheet */
-  const ws = XLSX.utils.json_to_sheet(data);
-  const ws2 = XLSX.utils.json_to_sheet(data2);
-  /* add to workbook */
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Sheet 1");
-  XLSX.utils.book_append_sheet(wb, ws2, "Sheet 2");
-
-  /* generate an XLSX file */
-  // XLSX.writeFile(wb, filePath);
-  XLSX.writeFile(wb, filePath);
-};
-
-const Op = db.Sequelize.Op;
 
 const exportInventory = async (req, res) => {
+  console.log("inventory export file handler started");
   try {
     await db.dbConnect();
+
+    // Extract query parameters
+    const { companyId, fileExtension } = req.query;
+
+    // Fetch data from the database
     const data = await db.Inventory.findAndCountAll({
       where: { onHand: { [db.Sequelize.Op.gt]: 0 } },
       include: [db.Company],
@@ -53,23 +40,28 @@ const exportInventory = async (req, res) => {
       totalBales: d.total ?? "0",
     }));
 
-    const timestamp = new Date().getTime();
-    const fileName = `inventory-${timestamp}.xlsx`;
-    const filePath = path.resolve(".", "exportedFiles");
+    // Update req.body with the prepared data
+    const fileInfo = {
+      data: dataForExcel,
+      fileName: "inventory",
+      type: fileExtension,
+    };
+    // Call export handler with the prepared data
+    const response = await exportHandler(fileInfo);
 
+    // Ensure the directory exists
+    const filePath = path.resolve(".", "exportedFiles");
     if (!fs.existsSync(filePath)) {
       fs.mkdirSync(filePath);
     }
-    const newPath = path.join(filePath, fileName);
-    exportXLS(dataForExcel, dataForExcel2, newPath);
+    // Set the headers
+    const { headers, fileBlob } = response;
+    for (const [key, value] of Object.entries(headers)) {
+      res.setHeader(key, value);
+    }
 
-    const newFile = fs.readFileSync(newPath, { encoding: "base64" });
-
-    res.setHeader("Content-disposition", `inline; filename="${fileName}"`);
-    res.setHeader("Content-type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-    res.setHeader("isBase64Encoded", true);
-
-    return res.status(200).send(newFile);
+    console.log("inventory export file handler ended");
+    return res.status(200).send(fileBlob);
   } catch (error) {
     return res.status(500).send({ message: error.toString() });
   }
