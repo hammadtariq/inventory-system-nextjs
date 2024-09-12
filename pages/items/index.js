@@ -178,7 +178,6 @@ const Items = () => {
         columns={columns}
         dataSource={updatedItemList ? updatedItemList.rows : []}
         totalCount={updatedItemList ? updatedItemList.count : 0}
-        pagination={true}
         paginationHandler={paginationHandler}
       />
     </>

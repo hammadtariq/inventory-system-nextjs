@@ -153,7 +153,6 @@ const Inventory = () => {
         rowClassName={styles.editableRow}
         dataSource={updatedInventory ? updatedInventory.rows : []}
         totalCount={updatedInventory ? updatedInventory.count : 0}
-        pagination={true}
         paginationHandler={paginationHandler}
       />
     </>
