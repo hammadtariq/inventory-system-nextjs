@@ -1,6 +1,5 @@
-import { Button, Input, Space } from "antd";
+import { Button, Input, Space, Select } from "antd";
 import Highlighter from "react-highlight-words";
-
 import { SearchOutlined } from "@ant-design/icons";
 
 export const getColumnSearchProps = ({
@@ -13,28 +12,49 @@ export const getColumnSearchProps = ({
   dataIndexName = null,
   nested = false,
   parentDataIndex = null,
+  selectOptions = [], // If selectOptions is provided, use Select, otherwise use Input
 }) => {
   return {
     filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
       <div style={{ padding: 8 }}>
-        <Input
-          ref={searchInput}
-          placeholder={`Search ${dataIndexName ?? dataIndex}`}
-          value={selectedKeys[0]}
-          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-          onPressEnter={() => {
-            confirm();
-            setSearchText(selectedKeys[0]);
-            setSearchedColumn(dataIndex);
-          }}
-          style={{ width: 188, marginBottom: 8, display: "block" }}
-        />
+        {selectOptions.length > 0 ? (
+          <Select
+            ref={searchInput}
+            mode="multiple"
+            allowClear
+            style={{ width: "100%", marginBottom: 8 }}
+            placeholder={`Select ${dataIndexName ?? dataIndex}`}
+            value={selectedKeys}
+            onChange={(value) => setSelectedKeys(value ? [...value] : [])}
+            onDropdownVisibleChange={(open) => {
+              if (!open) {
+                confirm();
+                setSearchText(selectedKeys);
+                setSearchedColumn(dataIndex);
+              }
+            }}
+            options={selectOptions}
+          />
+        ) : (
+          <Input
+            ref={searchInput}
+            placeholder={`Search ${dataIndexName ?? dataIndex}`}
+            value={selectedKeys[0]}
+            onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+            onPressEnter={() => {
+              confirm();
+              setSearchText(selectedKeys[0]);
+              setSearchedColumn(dataIndex);
+            }}
+            style={{ width: 188, marginBottom: 8, display: "block" }}
+          />
+        )}
         <Space>
           <Button
             type="primary"
             onClick={() => {
               confirm();
-              setSearchText(selectedKeys[0]);
+              setSearchText(selectOptions.length > 0 ? selectedKeys : selectedKeys[0]);
               setSearchedColumn(dataIndex);
             }}
             icon={<SearchOutlined />}
@@ -46,7 +66,7 @@ export const getColumnSearchProps = ({
           <Button
             onClick={() => {
               clearFilters();
-              setSearchText("");
+              setSearchText(selectOptions.length > 0 ? [] : "");
             }}
             size="small"
             style={{ width: 90 }}
@@ -60,10 +80,18 @@ export const getColumnSearchProps = ({
     onFilter: (value, record) => {
       if (nested) {
         if (record[parentDataIndex] && record[parentDataIndex][dataIndex]) {
+          if (Array.isArray(value)) {
+            return value.some((v) =>
+              record[parentDataIndex][dataIndex].toString().toLowerCase().includes(v.toLowerCase())
+            );
+          }
           return record[parentDataIndex][dataIndex].toString().toLowerCase().includes(value.toLowerCase());
         }
         return false;
       } else {
+        if (Array.isArray(value)) {
+          return value.some((v) => record[dataIndex].toString().toLowerCase().includes(v.toLowerCase()));
+        }
         return record[dataIndex].toString().toLowerCase().includes(value.toLowerCase());
       }
     },
@@ -71,7 +99,7 @@ export const getColumnSearchProps = ({
       searchedColumn === dataIndex ? (
         <Highlighter
           highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
-          searchWords={[searchText]}
+          searchWords={Array.isArray(searchText) ? searchText : [searchText]}
           autoEscape
           textToHighlight={text.toString()}
         />

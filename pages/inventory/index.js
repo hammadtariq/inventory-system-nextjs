@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-
 import { Alert, Col, Row } from "antd";
 
 import EditableInventoryCell from "@/components/editableInventoryCell";
@@ -8,11 +7,10 @@ import SearchInput from "@/components/SearchInput";
 import Spinner from "@/components/spinner";
 import AppTable from "@/components/table";
 import AppTitle from "@/components/title";
-import { exportInventory, getInventory, searchInventory, updateInventory, useInventory } from "@/hooks/inventory";
+import { getInventory, searchInventory, updateInventory, useInventory } from "@/hooks/inventory";
 import styles from "@/styles/EditableCell.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import permissionsUtil from "@/utils/permission.util";
-import { exportFunc } from "@/utils/export.utils";
 
 const Inventory = () => {
   const { inventory, error, isLoading, mutate, paginationHandler } = useInventory();
@@ -32,21 +30,20 @@ const Inventory = () => {
     setUpdatedInventory(inventory);
   }, [inventory]);
 
+  // Prepare select options for Company Name
+  const companyOptions = inventory
+    ? Array.from(new Set(inventory.rows.map((item) => item.company.companyName))).map((companyName) => ({
+        label: companyName,
+        value: companyName,
+      }))
+    : [];
+
   const defaultColumns = [
     {
       title: "Item Name",
       dataIndex: "itemName",
       key: "itemName",
       editable: canEditItemName,
-      ...getColumnSearchProps({
-        dataIndex: "itemName",
-        dataIndexName: "item name",
-        searchInput,
-        searchText,
-        searchedColumn,
-        setSearchText,
-        setSearchedColumn,
-      }),
     },
     {
       title: "Company Name",
@@ -62,20 +59,15 @@ const Inventory = () => {
         searchedColumn,
         setSearchText,
         setSearchedColumn,
+        selectOptions: companyOptions, // Pass the select options here
       }),
     },
-    // { title: "No of Bales", dataIndex: "noOfBales", key: "noOfBales" },
     { title: "On Hand", dataIndex: "onHand", key: "onHand" },
     { title: "Bale Weight (LBS)", dataIndex: "baleWeightLbs", key: "baleWeightLbs", render: (text) => text ?? "N/A" },
     { title: "Bale Weight (KGS)", dataIndex: "baleWeightKgs", key: "baleWeightKgs", render: (text) => text ?? "N/A" },
     { title: "Rate per LBS (Rs)", dataIndex: "ratePerLbs", key: "ratePerLbs", render: (text) => text ?? "N/A" },
     { title: "Rate per KGS (Rs)", dataIndex: "ratePerKgs", key: "ratePerKgs", render: (text) => text ?? "N/A" },
     { title: "Rate per Bale (Rs)", dataIndex: "ratePerBale", key: "ratePerBale" },
-    // {
-    //   title: "Updated At",
-    //   dataIndex: "updatedAt",
-    //   render: (text) => dayjs(text).format(DATE_TIME_FORMAT),
-    // },
   ];
 
   const columns = canEditItemName
@@ -125,10 +117,6 @@ const Inventory = () => {
     return newInventory;
   };
 
-  const handleExport = async (fileName, type) => {
-    await exportFunc(fileName, type);
-  };
-
   if (error) return <Alert message={error} type="error" />;
   return (
     <>
@@ -143,7 +131,7 @@ const Inventory = () => {
           />
         </Col>
         <Col>
-          <ExportButton handleExport={handleExport} filename="inventory" />
+          <ExportButton filename="inventory" />
         </Col>
       </Row>
       <br />
@@ -165,7 +153,6 @@ const Inventory = () => {
         rowClassName={styles.editableRow}
         dataSource={updatedInventory ? updatedInventory.rows : []}
         totalCount={updatedInventory ? updatedInventory.count : 0}
-        pagination={true}
         paginationHandler={paginationHandler}
       />
     </>
