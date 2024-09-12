@@ -43,10 +43,10 @@ const approvePurchaseOrder = async (req, res) => {
       // const inventory = await db.Inventory.findOne({ where: { itemName, companyId }, transaction: t });
       const inventory = await db.Inventory.findOne({ where: { id, companyId }, transaction: t });
       if (inventory) {
-        let incrementQuery = { baleWeightKgs, baleWeightLbs };
+        // let incrementQuery = {  };
 
         await inventory.increment(["onHand", "noOfBales"], { by: noOfBales, transaction: t });
-        await inventory.increment(incrementQuery, { transaction: t });
+        await inventory.increment({ baleWeightKgs: baleWeightKgs, baleWeightLbs: baleWeightLbs }, { transaction: t });
         await inventory.update(
           {
             ratePerLbs,
