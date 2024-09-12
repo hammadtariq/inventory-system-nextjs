@@ -1,7 +1,8 @@
+import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 import { Table } from "antd";
 
-const pageOptions = ["10", "20", "30", "50"];
-const paginationOptions = { defaultPageSize: pageOptions[0], showSizeChanger: true, pageSizeOptions: pageOptions };
+const pageOptions = ["30", "50", "100", "150", "200"];
+const paginationOptions = { pageSize: DEFAULT_PAGE_LIMIT, showSizeChanger: true, pageSizeOptions: pageOptions };
 
 export default function AppTable({
   bordered,
@@ -9,7 +10,7 @@ export default function AppTable({
   rowKey,
   columns,
   dataSource,
-  totalCount = 10,
+  totalCount = 50, // Note: not in use yet
   expandable,
   className,
   pagination = paginationOptions,

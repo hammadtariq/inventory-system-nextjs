@@ -1,21 +1,5 @@
-import { exportFile } from "@/hooks/export";
-import { message } from "antd";
-import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-
-export const exportFunc = async (fileName, fileExtension, id, type, invoiceNumber) => {
-  try {
-    const blob = await exportFile(fileName, fileExtension, id, type, invoiceNumber);
-    const fileType = fileExtension === "pdf" ? "application/pdf" : "text/csv";
-    const newBlob = new Blob([blob], { type: fileType });
-    saveAs(newBlob, fileExtension === "pdf" ? `${fileName}.pdf` : `${fileName}.csv`);
-    message.success(`Exported successfully as ${fileExtension.toUpperCase()}`);
-  } catch (error) {
-    console.error("Error exporting file:", error);
-    message.error("Export failed, please try again later");
-  }
-};
 
 // Function to create and configure a new jsPDF instance
 export function createPDF() {
@@ -51,14 +35,14 @@ export function addTitleAndDetails(doc, headData) {
   doc.text(`Customer : ${headData?.customer?.firstName + " " + headData?.customer?.lastName}`, 10, 30);
   doc.text("Ticket : MIXING", 10, 38);
   doc.text(`Date : ${formattedDate}`, 165, 30);
-  doc.text(`Invoice No : ${headData.id}`, 165, 38);
+  doc.text(`Invoice No : ${headData?.id}`, 165, 38);
 }
 
-// Function to map data to table format
+// Function to map data to table format with truncated text fields
 export function mapDataToTable(data) {
   return data.map((item, index) => ({
     sno: index + 1,
-    item: item.itemDetail,
+    item: truncateText(item.itemDetail, 23).toUpperCase(), // Truncate text to 30 characters
     kgs: item.kgs,
     lbs: item.lbs,
     bales: item.bales,
@@ -67,6 +51,102 @@ export function mapDataToTable(data) {
     baleRate: item.baleRate,
     totalAmount: item.totalAmount,
   }));
+}
+
+// Function to truncate text if it exceeds the specified length
+function truncateText(text, maxLength) {
+  if (text.length > maxLength) {
+    return text.slice(0, maxLength - 3) + "...";
+  }
+  return text;
+}
+
+// Function to generate the table using autoTable with responsive column widths
+export function generateTable(doc, tableData) {
+  const columns = [
+    { header: "S.No", dataKey: "sno" },
+    { header: "Item Detail", dataKey: "item" },
+    { header: "KGS", dataKey: "kgs" },
+    { header: "LBS", dataKey: "lbs" },
+    { header: "Bales", dataKey: "bales" },
+    { header: "KG Rate", dataKey: "kgRate" },
+    { header: "LBS Rate", dataKey: "lbsRate" },
+    { header: "Bale Rate", dataKey: "baleRate" },
+    { header: "Total Amount", dataKey: "totalAmount" },
+  ];
+
+  // Generate a temporary table to calculate its width
+  const tempDoc = new jsPDF();
+  autoTable(tempDoc, {
+    head: [columns.map((col) => col.header)],
+    body: tableData.map((row) => columns.map((col) => row[col.dataKey])),
+    styles: {
+      fontSize: 10,
+      halign: "center",
+      cellPadding: [3, 2],
+      lineColor: [0, 0, 0],
+      lineWidth: 0.5,
+    },
+    headStyles: {
+      fillColor: [192, 192, 192],
+      textColor: [0, 0, 0],
+      fontStyle: "bold",
+      lineColor: [0, 0, 0],
+      lineWidth: 0.5,
+    },
+    columnStyles: {
+      sno: { halign: "center", cellWidth: "auto" },
+      item: { halign: "left", cellWidth: "auto" },
+      kgs: { halign: "center", cellWidth: "auto" },
+      lbs: { halign: "center", cellWidth: "auto" },
+      bales: { halign: "right", cellWidth: "auto" },
+      kgRate: { halign: "right", cellWidth: "auto" },
+      lbsRate: { halign: "right", cellWidth: "auto" },
+      baleRate: { halign: "right", cellWidth: "auto" },
+      totalAmount: { halign: "right", cellWidth: "auto" },
+    },
+    theme: "grid",
+    tableWidth: "auto",
+    margin: { left: 10 },
+  });
+
+  const tableWidth = tempDoc.internal.pageSize.width - 20; // Adjust for margins
+  const pageWidth = doc.internal.pageSize.width;
+  const startX = (pageWidth - tableWidth) / 2;
+
+  autoTable(doc, {
+    startY: 60,
+    head: [columns.map((col) => col.header)],
+    body: tableData.map((row) => columns.map((col) => row[col.dataKey])),
+    styles: {
+      fontSize: 10,
+      halign: "center",
+      cellPadding: [3, 2],
+      lineColor: [0, 0, 0],
+      lineWidth: 0.5,
+    },
+    headStyles: {
+      fillColor: [192, 192, 192],
+      textColor: [0, 0, 0],
+      fontStyle: "bold",
+      lineColor: [0, 0, 0],
+      lineWidth: 0.5,
+    },
+    columnStyles: {
+      sno: { halign: "center", cellWidth: "auto" },
+      item: { halign: "left", cellWidth: "auto" },
+      kgs: { halign: "center", cellWidth: "auto" },
+      lbs: { halign: "center", cellWidth: "auto" },
+      bales: { halign: "right", cellWidth: "auto" },
+      kgRate: { halign: "right", cellWidth: "auto" },
+      lbsRate: { halign: "right", cellWidth: "auto" },
+      baleRate: { halign: "right", cellWidth: "auto" },
+      totalAmount: { halign: "right", cellWidth: "auto" },
+    },
+    theme: "grid",
+    tableWidth: "auto",
+    margin: { left: startX },
+  });
 }
 
 // Function to calculate totals
@@ -109,61 +189,6 @@ export function appendTotalsRow(tableData, totals) {
   });
 
   return tableData;
-}
-
-// Function to generate the table using autoTable
-export function generateTable(doc, tableData) {
-  const columns = [
-    { header: "S.No", dataKey: "sno" },
-    { header: "Item Detail", dataKey: "item" },
-    { header: "KGS", dataKey: "kgs" },
-    { header: "LBS", dataKey: "lbs" },
-    { header: "Bales", dataKey: "bales" },
-    { header: "KG Rate", dataKey: "kgRate" },
-    { header: "LBS Rate", dataKey: "lbsRate" },
-    { header: "Bale Rate", dataKey: "baleRate" },
-    { header: "Total Amount", dataKey: "totalAmount" },
-  ];
-
-  autoTable(doc, {
-    startY: 60,
-    head: [columns.map((col) => col.header)],
-    body: tableData.map((row) => columns.map((col) => row[col.dataKey])),
-    styles: {
-      fontSize: 10,
-      halign: "center",
-      cellPadding: [3, 4],
-      lineColor: [0, 0, 0],
-      lineWidth: 0.5,
-    },
-    headStyles: {
-      fillColor: [192, 192, 192],
-      textColor: [0, 0, 0],
-      fontStyle: "bold",
-      lineColor: [0, 0, 0],
-      lineWidth: 0.5,
-    },
-    didParseCell: (data) => {
-      if (data.row.index === tableData.length - 1) {
-        data.cell.styles.fillColor = [220, 220, 220];
-        data.cell.styles.fontStyle = "bold";
-      }
-    },
-    columnStyles: {
-      sno: { halign: "center", cellWidth: 15 },
-      item: { halign: "left", cellWidth: 60 },
-      kgs: { halign: "center", cellWidth: 20 },
-      lbs: { halign: "center", cellWidth: 20 },
-      bales: { halign: "right", cellWidth: 20 },
-      kgRate: { halign: "right", cellWidth: 30 },
-      lbsRate: { halign: "right", cellWidth: 30 },
-      baleRate: { halign: "right", cellWidth: 30 },
-      totalAmount: { halign: "right", cellWidth: 40 },
-    },
-    theme: "grid",
-    tableWidth: "wrap",
-    margin: { left: 10 },
-  });
 }
 
 // Function to add net amount section

@@ -199,7 +199,6 @@ const PurchaseOrders = () => {
         // expandable={{ expandedRowRender: (record) => expandedRowRender(record) }}
         dataSource={updatedPurchase ? updatedPurchase.rows : []}
         totalCount={updatedPurchase ? updatedPurchase.count : 0}
-        pagination={true}
         paginationHandler={paginationHandler}
       />
     </>
