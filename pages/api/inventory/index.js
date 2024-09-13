@@ -7,12 +7,22 @@ import { DEFAULT_ROWS_LIMIT } from "@/utils/api.util";
 const getAllInventory = async (req, res) => {
   console.log("Get all inventory Request Start");
 
-  const { limit, offset, attributes = [] } = req.query;
+  const { limit, offset, attributes = [], filters } = req.query;
   const options = {};
   options.limit = limit ? limit : DEFAULT_ROWS_LIMIT;
   options.offset = offset ? offset : 0;
   if (attributes.length) {
     options.attributes = JSON.parse(attributes);
+  }
+  if (filters) {
+    try {
+      const parsedFilters = JSON.parse(filters);
+      if (parsedFilters.length > 0) {
+        options.filters = parsedFilters;
+      }
+    } catch (error) {
+      console.log("Error parsing filters:", error);
+    }
   }
   try {
     await db.dbConnect();

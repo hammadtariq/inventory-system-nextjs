@@ -1,0 +1,12 @@
+.parentContainer {
+  width: 100%;
+}
+
+.childContainer {
+  width: 17rem;
+}
+
+.custom-select .ant-select-selector {
+    padding: 0.3rem;
+  }
+  

@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Alert, Col, Row } from "antd";
-
 import EditableInventoryCell from "@/components/editableInventoryCell";
 import ExportButton from "@/components/exportButton";
 import SearchInput from "@/components/SearchInput";
+import SelectSearch from "@/components/SelectSearch";
 import Spinner from "@/components/spinner";
 import AppTable from "@/components/table";
 import AppTitle from "@/components/title";
-import { getInventory, searchInventory, updateInventory, useInventory } from "@/hooks/inventory";
+import { getInventory, searchInventory, searchInventoryByIds, updateInventory, useInventory } from "@/hooks/inventory";
 import styles from "@/styles/EditableCell.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import permissionsUtil from "@/utils/permission.util";
@@ -32,10 +32,13 @@ const Inventory = () => {
 
   // Prepare select options for Company Name
   const companyOptions = inventory
-    ? Array.from(new Set(inventory.rows.map((item) => item.company.companyName))).map((companyName) => ({
-        label: companyName,
-        value: companyName,
-      }))
+    ? Array.from(new Set(inventory.rows.map((item) => item.company.id))).map((id) => {
+        const company = inventory.rows.find((item) => item.company.id === id).company;
+        return {
+          label: company.companyName,
+          value: company.id,
+        };
+      })
     : [];
 
   const defaultColumns = [
@@ -117,6 +120,10 @@ const Inventory = () => {
     return newInventory;
   };
 
+  const handleChange = async (filters) => {
+    paginationHandler(filters);
+  };
+
   if (error) return <Alert message={error} type="error" />;
   return (
     <>
@@ -129,6 +136,9 @@ const Inventory = () => {
             handleSelect={handleSelect}
             placeholder="search inventory"
           />
+        </Col>
+        <Col>
+          <SelectSearch onChange={(value) => handleChange(value)} options={companyOptions} />
         </Col>
         <Col>
           <ExportButton filename="inventory" />
