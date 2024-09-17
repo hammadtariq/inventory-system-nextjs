@@ -3,7 +3,7 @@ import { DownloadOutlined, LoadingOutlined } from "@ant-design/icons";
 import { useExportFile } from "@/hooks/export";
 import { useState, useCallback, useEffect } from "react";
 
-const ExportButton = ({ filename, invoiceNumber, id = null, onlyIcon = false }) => {
+const ExportButton = ({ filename, invoiceNumber, id = null, onlyIcon = false, filters }) => {
   const [exportParams, setExportParams] = useState(null);
   const { fileBlob, isLoading: exportLoading, isError } = useExportFile(exportParams);
 
@@ -42,7 +42,7 @@ const ExportButton = ({ filename, invoiceNumber, id = null, onlyIcon = false }) 
 
   const handleExport = (fileExtension) => {
     if (!exportLoading) {
-      setExportParams({ fileName: filename, fileExtension, invoiceNumber, id });
+      setExportParams({ fileName: filename, fileExtension, invoiceNumber, id, filters });
     }
   };
 

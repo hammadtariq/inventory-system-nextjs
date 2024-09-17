@@ -20,6 +20,7 @@ const SelectSearch = ({ onChange, options }) => {
         mode="multiple"
         className={styles.childContainer}
         options={options}
+        showSearch={false}
         value={value}
         placeholder="Select Item..."
         maxTagCount="responsive"

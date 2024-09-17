@@ -7,18 +7,20 @@ import SelectSearch from "@/components/SelectSearch";
 import Spinner from "@/components/spinner";
 import AppTable from "@/components/table";
 import AppTitle from "@/components/title";
-import { getInventory, searchInventory, searchInventoryByIds, updateInventory, useInventory } from "@/hooks/inventory";
+import { getInventory, searchInventory, updateInventory, useInventory } from "@/hooks/inventory";
 import styles from "@/styles/EditableCell.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import permissionsUtil from "@/utils/permission.util";
 
 const Inventory = () => {
-  const { inventory, error, isLoading, mutate, paginationHandler } = useInventory();
-  const [updatedInventory, setUpdatedInventory] = useState();
-  const [searchText, setSearchText] = useState("");
+  const { inventory, error, isLoading, mutate, paginationHandler, filtersHandler } = useInventory();
+  const [updatedInventory, setUpdatedInventory] = useState([]);
+  const [companyOptions, setCompanyOptions] = useState([]);
   const [searchedColumn, setSearchedColumn] = useState("");
+  const [initialSet, setInitialSet] = useState(false);
+  const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(false);
-
+  const [filters, setFilters] = useState([]);
   const searchInput = useRef(null);
 
   const canEditItemName = permissionsUtil.checkAuth({
@@ -28,18 +30,22 @@ const Inventory = () => {
 
   useEffect(() => {
     setUpdatedInventory(inventory);
-  }, [inventory]);
+    if (inventory && !initialSet) {
+      extractCompanyOptions(inventory);
+      setInitialSet(true);
+    }
+  }, [inventory, initialSet]);
 
-  // Prepare select options for Company Name
-  const companyOptions = inventory
-    ? Array.from(new Set(inventory.rows.map((item) => item.company.id))).map((id) => {
-        const company = inventory.rows.find((item) => item.company.id === id).company;
-        return {
-          label: company.companyName,
-          value: company.id,
-        };
-      })
-    : [];
+  const extractCompanyOptions = (inventory) => {
+    const companyOptions = Array.from(new Set(inventory.rows.map((item) => item.company.id))).map((id) => {
+      const company = inventory.rows.find((item) => item.company.id === id).company;
+      return {
+        label: company.companyName,
+        value: company.id,
+      };
+    });
+    setCompanyOptions(companyOptions);
+  };
 
   const defaultColumns = [
     {
@@ -121,7 +127,8 @@ const Inventory = () => {
   };
 
   const handleChange = async (filters) => {
-    paginationHandler(filters);
+    filtersHandler(filters);
+    setFilters(filters);
   };
 
   if (error) return <Alert message={error} type="error" />;
@@ -141,7 +148,7 @@ const Inventory = () => {
           <SelectSearch onChange={(value) => handleChange(value)} options={companyOptions} />
         </Col>
         <Col>
-          <ExportButton filename="inventory" />
+          <ExportButton filename="inventory" filters={filters} />
         </Col>
       </Row>
       <br />

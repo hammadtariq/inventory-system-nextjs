@@ -14,25 +14,26 @@ const getAllInventory = async (req, res) => {
   if (attributes.length) {
     options.attributes = JSON.parse(attributes);
   }
+
+  let companyIds = [];
   if (filters) {
-    try {
-      const parsedFilters = JSON.parse(filters);
-      if (parsedFilters.length > 0) {
-        options.filters = parsedFilters;
-      }
-    } catch (error) {
-      console.log("Error parsing filters:", error);
-    }
+    const parsedFilters = JSON.parse(filters);
+    companyIds = parsedFilters.map((filter) => filter.value);
   }
+
   try {
     await db.dbConnect();
     const data = await db.Inventory.findAndCountAll({
       ...options,
-      where: { onHand: { [db.Sequelize.Op.gt]: 0 } },
+      where: {
+        onHand: { [db.Sequelize.Op.gt]: 0 },
+        ...(companyIds.length > 0 && {
+          companyId: { [db.Sequelize.Op.in]: companyIds },
+        }),
+      },
       include: [db.Company],
       order: [["itemName", "ASC"]],
     });
-
     console.log("Get all inventory Request End");
     return res.send(data);
   } catch (error) {

@@ -22,9 +22,7 @@ export default function AppTable({
   const handleChange = (pagination) => {
     const offset = pagination.current * pagination.pageSize - pagination.pageSize;
     const limit = pagination.pageSize;
-    const filters = pagination.filters;
-    debugger;
-    paginationHandler(limit, offset, filters);
+    paginationHandler(limit, offset);
   };
 
   return (
