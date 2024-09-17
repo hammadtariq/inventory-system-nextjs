@@ -3,6 +3,7 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { DEFAULT_ROWS_LIMIT } from "@/utils/api.util";
+import { parseableJson } from "@/utils/parseStringify.util";
 
 const getAllInventory = async (req, res) => {
   console.log("Get all inventory Request Start");
@@ -16,10 +17,7 @@ const getAllInventory = async (req, res) => {
   }
 
   let companyIds = [];
-  if (filters) {
-    const parsedFilters = JSON.parse(filters);
-    companyIds = parsedFilters.map((filter) => filter.value);
-  }
+  companyIds = filters ? parseableJson(filters) : [];
 
   try {
     await db.dbConnect();
