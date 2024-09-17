@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Alert, Col, Row } from "antd";
-
 import EditableInventoryCell from "@/components/editableInventoryCell";
 import ExportButton from "@/components/exportButton";
 import SearchInput from "@/components/SearchInput";
+import SelectSearch from "@/components/SelectSearch";
 import Spinner from "@/components/spinner";
 import AppTable from "@/components/table";
 import AppTitle from "@/components/title";
@@ -13,12 +13,13 @@ import { getColumnSearchProps } from "@/utils/filter.util";
 import permissionsUtil from "@/utils/permission.util";
 
 const Inventory = () => {
-  const { inventory, error, isLoading, mutate, paginationHandler } = useInventory();
-  const [updatedInventory, setUpdatedInventory] = useState();
-  const [searchText, setSearchText] = useState("");
+  const { inventory, error, isLoading, mutate, paginationHandler, filtersHandler } = useInventory();
+  const [updatedInventory, setUpdatedInventory] = useState([]);
+  const [companyOptions, setCompanyOptions] = useState([]);
   const [searchedColumn, setSearchedColumn] = useState("");
+  const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(false);
-
+  const [filters, setFilters] = useState([]);
   const searchInput = useRef(null);
 
   const canEditItemName = permissionsUtil.checkAuth({
@@ -28,15 +29,21 @@ const Inventory = () => {
 
   useEffect(() => {
     setUpdatedInventory(inventory);
-  }, [inventory]);
+    if (inventory && companyOptions.length === 0) {
+      extractCompanyOptions(inventory);
+    }
+  }, [companyOptions, inventory]);
 
-  // Prepare select options for Company Name
-  const companyOptions = inventory
-    ? Array.from(new Set(inventory.rows.map((item) => item.company.companyName))).map((companyName) => ({
-        label: companyName,
-        value: companyName,
-      }))
-    : [];
+  const extractCompanyOptions = (inventory) => {
+    const companyOptions = Array.from(new Set(inventory.rows.map((item) => item.company.id))).map((id) => {
+      const company = inventory.rows.find((item) => item.company.id === id).company;
+      return {
+        label: company.companyName,
+        value: company.id,
+      };
+    });
+    setCompanyOptions(companyOptions);
+  };
 
   const defaultColumns = [
     {
@@ -117,6 +124,11 @@ const Inventory = () => {
     return newInventory;
   };
 
+  const handleChange = async (filters) => {
+    filtersHandler(filters);
+    setFilters(filters);
+  };
+
   if (error) return <Alert message={error} type="error" />;
   return (
     <>
@@ -131,7 +143,10 @@ const Inventory = () => {
           />
         </Col>
         <Col>
-          <ExportButton filename="inventory" />
+          <SelectSearch onChange={(value) => handleChange(value)} options={companyOptions} />
+        </Col>
+        <Col>
+          <ExportButton filename="inventory" filters={filters} />
         </Col>
       </Row>
       <br />

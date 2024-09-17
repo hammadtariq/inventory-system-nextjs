@@ -7,7 +7,12 @@ import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 
 export const useInventory = () => {
   const [pagination, setPagination] = useState({ limit: DEFAULT_PAGE_LIMIT, offset: 0 });
-  const { data, error, mutate } = useSWR(`/api/inventory?limit=${pagination.limit}&offset=${pagination.offset}`, get);
+  const [filters, setFilters] = useState([]);
+
+  const { data, error, mutate } = useSWR(
+    `/api/inventory?limit=${pagination.limit}&offset=${pagination.offset}&filters=${JSON.stringify(filters)}`,
+    get
+  );
 
   const paginationHandler = useCallback(
     (limit, offset) => {
@@ -16,12 +21,20 @@ export const useInventory = () => {
     [setPagination]
   );
 
+  const filtersHandler = useCallback(
+    (filter) => {
+      setFilters(filter);
+    },
+    [setFilters]
+  );
+
   return {
     inventory: data,
     isLoading: !error && !data,
     error,
     mutate,
     paginationHandler,
+    filtersHandler,
   };
 };
 

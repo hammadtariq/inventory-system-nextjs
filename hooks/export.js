@@ -10,8 +10,8 @@ export const useExportFile = (fileDetails) => {
       companyId: fileDetails.companyId,
       type: fileDetails.type,
       id: fileDetails.id,
+      filters: fileDetails.filters ? JSON.stringify(fileDetails.filters) : undefined,
     });
-
     return `/api/${fileDetails.fileName}/export?fileExtension=${fileDetails.fileExtension}&${queryParams}`;
   };
 
