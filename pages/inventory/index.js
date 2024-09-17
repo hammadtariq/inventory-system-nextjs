@@ -17,7 +17,6 @@ const Inventory = () => {
   const [updatedInventory, setUpdatedInventory] = useState([]);
   const [companyOptions, setCompanyOptions] = useState([]);
   const [searchedColumn, setSearchedColumn] = useState("");
-  const [initialSet, setInitialSet] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState([]);
@@ -30,11 +29,10 @@ const Inventory = () => {
 
   useEffect(() => {
     setUpdatedInventory(inventory);
-    if (inventory && !initialSet) {
+    if (inventory && companyOptions.length === 0) {
       extractCompanyOptions(inventory);
-      setInitialSet(true);
     }
-  }, [inventory, initialSet]);
+  }, [companyOptions, inventory]);
 
   const extractCompanyOptions = (inventory) => {
     const companyOptions = Array.from(new Set(inventory.rows.map((item) => item.company.id))).map((id) => {
