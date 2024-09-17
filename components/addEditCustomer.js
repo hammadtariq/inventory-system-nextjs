@@ -14,6 +14,11 @@ const canCreate = permissionsUtil.checkAuth({
   action: "create",
 });
 
+const canEdit = permissionsUtil.checkAuth({
+  category: "customer",
+  action: "edit",
+});
+
 const AddEditCustomer = ({ customer }) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -31,7 +36,7 @@ const AddEditCustomer = ({ customer }) => {
         address,
       });
     }
-  }, [customer]);
+  }, [customer, form]);
 
   const onFinish = async (values) => {
     setLoading(true);
@@ -111,7 +116,7 @@ const AddEditCustomer = ({ customer }) => {
       </Form.Item>
       <Form.Item className="action-btn">
         <AppBackButton />
-        <Button type="primary" htmlType="submit" loading={loading} disabled={!canCreate}>
+        <Button type="primary" htmlType="submit" loading={loading} disabled={!canCreate || !canEdit}>
           {customer ? "Update" : "Create"}
         </Button>
       </Form.Item>
