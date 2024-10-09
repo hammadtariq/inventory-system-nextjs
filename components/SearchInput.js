@@ -8,7 +8,6 @@ import styles from "@/styles/SearchInput.module.css";
 const { Search } = Input;
 
 const getValueFromPath = (obj, path) => {
-  debugger;
   return path.split(".").reduce((acc, key) => (acc ? acc[key] : undefined), obj);
 };
 
