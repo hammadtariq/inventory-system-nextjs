@@ -137,6 +137,7 @@ const Inventory = () => {
         <Col>
           <SearchInput
             valueKey="itemName"
+            valueKey2="company.companyName"
             handleSearch={handleSearch}
             handleSelect={handleSelect}
             placeholder="search inventory"

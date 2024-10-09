@@ -13,6 +13,10 @@ const searchInventory = async (req, res) => {
         onHand: { [db.Sequelize.Op.gt]: 0 },
         [Op.or]: [{ itemName: { [Op.like]: "%" + value + "%" } }],
       },
+      include: [db.Company],
+    });
+    results.forEach((item) => {
+      delete item.dataValues.companyId;
     });
     return res.send(results);
   } catch (error) {
