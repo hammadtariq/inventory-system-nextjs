@@ -31,8 +31,8 @@ const getCustomer = async (req, res) => {
 const editCustomer = async (req, res) => {
   console.log("Edit Customer Request Start");
   const apiSchema = Joi.object({
-    firstName: Joi.string().min(3).trim(),
-    lastName: Joi.string().min(3).trim(),
+    firstName: Joi.string().min(3).trim().lowercase(),
+    lastName: Joi.string().min(3).trim().lowercase(),
     email: Joi.string().email().trim(),
     phone: Joi.string().max(24).trim(),
     address: Joi.string().trim().min(10),

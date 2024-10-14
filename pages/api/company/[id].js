@@ -5,7 +5,7 @@ import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 
 const apiSchema = Joi.object({
-  companyName: Joi.string().min(3).trim(),
+  companyName: Joi.string().min(3).trim().lowercase(),
   phone: Joi.string().max(24).trim(),
   email: Joi.string().email().trim().lowercase(),
   address: Joi.string().trim().min(10),

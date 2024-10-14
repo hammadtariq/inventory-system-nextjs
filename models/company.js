@@ -15,12 +15,12 @@ module.exports = (sequelize, DataTypes) => {
         unique: true,
         allowNull: false,
         validate: {
-          // isLowercase: {
-          //   msg: "company name must be lowercase",
-          // },
+          isLowercase: {
+            msg: "Company name must be lowercase",
+          },
           len: {
             args: [3],
-            msg: "First name must be greater than 3 characters",
+            msg: "Company name must be greater than 3 characters",
           },
         },
       },

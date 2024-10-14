@@ -7,8 +7,8 @@ import { DEFAULT_ROWS_LIMIT } from "@/utils/api.util";
 const dbConnect = db.dbConnect;
 
 const apiSchema = Joi.object({
-  firstName: Joi.string().min(3).trim().required(),
-  lastName: Joi.string().min(3).trim().required(),
+  firstName: Joi.string().min(3).trim().lowercase().required(),
+  lastName: Joi.string().min(3).trim().lowercase().required(),
   email: Joi.string().email().trim().lowercase().required(),
   phone: Joi.string().max(24).trim(),
   address: Joi.string().trim().min(10),
