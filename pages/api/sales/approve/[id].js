@@ -4,7 +4,6 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { STATUS, SPEND_TYPE } from "@/utils/api.util";
-import { customerSumQuery } from "query";
 import { balanceQuery } from "@/utils/query.utils";
 
 const apiSchema = Joi.object({
@@ -17,7 +16,7 @@ const approveSaleOrder = async (req, res) => {
     id: req.query.id,
   });
 
-  if (error && error && Object.keys(error).length) {
+  if (error && Object.keys(error).length) {
     return res.status(400).send({ message: error.toString() });
   }
   if (req.user.role !== "ADMIN") {
@@ -30,15 +29,19 @@ const approveSaleOrder = async (req, res) => {
     const sale = await db.Sale.findByPk(id, { include: [db.Customer] });
 
     if (!sale) {
-      return res.status(404).send({ message: "sale order not exists" });
+      return res.status(404).send({ message: "Sale order does not exist" });
     }
 
     if (sale.status === STATUS.APPROVED) {
-      return res.status(400).send({ message: "sale order already approved" });
+      return res.status(400).send({ message: "Sale order already approved" });
     }
 
     const { soldProducts, soldDate, customerId, totalAmount } = sale;
-    await db.dbConnect();
+    // I added this check for totalAmount because if it is 0 then it means that sale order cannot be approved with total amount 0
+    if (totalAmount === 0) {
+      return res.status(400).send({ message: "Sale order cannot be approved with total amount 0." });
+    }
+
     for await (const product of soldProducts) {
       const { id, itemName, noOfBales, companyId, baleWeightKgs, baleWeightLbs } = product;
       const inventory = await db.Inventory.findOne({
@@ -54,7 +57,7 @@ const approveSaleOrder = async (req, res) => {
         transaction: t,
       });
       if (!inventory) {
-        return res.status(404).send({ message: `"${itemName}" out of stock` });
+        return res.status(404).send({ message: `"${itemName}" is out of stock` });
       }
       let decrementQuery = { baleWeightKgs, baleWeightLbs };
 
