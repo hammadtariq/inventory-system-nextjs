@@ -7,14 +7,31 @@ import styles from "@/styles/SearchInput.module.css";
 
 const { Search } = Input;
 
+const getValueFromPath = (obj, path) => {
+  return path.split(".").reduce((acc, key) => (acc ? acc[key] : undefined), obj);
+};
+
 const searchResult = (results = [], valueKey = "", valueKey2 = "") =>
-  results.map((result) => ({
-    value: valueKey2 ? result[valueKey] + " " + result[valueKey2] : result[valueKey],
-    key: result.id,
-    label: (
-      <div className={styles.listItem}>{valueKey2 ? result[valueKey] + " " + result[valueKey2] : result[valueKey]}</div>
-    ),
-  }));
+  results.map(({ id, [valueKey]: value1, ...rest }) => {
+    const value2 = valueKey2 ? getValueFromPath(rest, valueKey2) : "";
+    const value = valueKey2 ? `${value1} (${value2})` : value1;
+
+    return {
+      value,
+      key: id,
+      label: (
+        <div className={styles.listItem}>
+          {valueKey2 ? (
+            <>
+              {value1} <span className={styles.value2Color}>({value2})</span>
+            </>
+          ) : (
+            value1
+          )}
+        </div>
+      ),
+    };
+  });
 
 const SearchInput = ({ handleSearch, handleSelect, valueKey, valueKey2, placeholder }) => {
   const [options, setOptions] = useState([]);

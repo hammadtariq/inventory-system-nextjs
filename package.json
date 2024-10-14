@@ -8,7 +8,8 @@
     "lint": "next lint",
     "lint-staged": "lint-staged",
     "prettier": "prettier --write .",
-    "prettier:check": "prettier --check ."
+    "prettier:check": "prettier --check .",
+    "prepare": "husky"
   },
   "pre-commit": [
     "lint-staged"
@@ -46,6 +47,7 @@
     "eslint": "7",
     "eslint-config-next": "12.0.4",
     "eslint-config-prettier": "^8.3.0",
+    "husky": "^9.1.6",
     "lint-staged": "^12.1.2",
     "pre-commit": "^1.2.2",
     "prettier": "^2.5.1"

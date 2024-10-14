@@ -133,20 +133,32 @@ const Inventory = () => {
   return (
     <>
       <AppTitle level={2}>Inventory List</AppTitle>
-      <Row justify="space-between">
+      <Row justify="space-between" align="middle">
         <Col>
           <SearchInput
             valueKey="itemName"
+            valueKey2="company.companyName"
             handleSearch={handleSearch}
             handleSelect={handleSelect}
             placeholder="search inventory"
           />
         </Col>
         <Col>
-          <SelectSearch onChange={(value) => handleChange(value)} options={companyOptions} />
-        </Col>
-        <Col>
-          <ExportButton filename="inventory" filters={filters} />
+          <Row justify="end" gutter={[16, 16]}>
+            <Col>
+              <div className={styles.companyLabel}>
+                <label className={styles.labelWidth}>Filter by :</label>
+                <SelectSearch
+                  placeholder="Company Name"
+                  onChange={(value) => handleChange(value)}
+                  options={companyOptions}
+                />
+              </div>
+            </Col>
+            <Col>
+              <ExportButton filename="inventory" filters={filters} />
+            </Col>
+          </Row>
         </Col>
       </Row>
       <br />

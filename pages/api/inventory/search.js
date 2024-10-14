@@ -13,6 +13,7 @@ const searchInventory = async (req, res) => {
         onHand: { [db.Sequelize.Op.gt]: 0 },
         [Op.or]: [{ itemName: { [Op.like]: "%" + value + "%" } }],
       },
+      include: [db.Company],
     });
     return res.send(results);
   } catch (error) {
