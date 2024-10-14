@@ -23,7 +23,7 @@ const searchResult = (results = [], valueKey = "", valueKey2 = "") =>
         <div className={styles.listItem}>
           {valueKey2 ? (
             <>
-              {value1} <span style={{ color: "#6e6e6e" }}>({value2})</span>
+              {value1} <span className={styles.value2Color}>({value2})</span>
             </>
           ) : (
             value1
