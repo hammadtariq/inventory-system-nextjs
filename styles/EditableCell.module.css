@@ -30,3 +30,12 @@
 [data-theme="dark"] .editableRow:hover .editableCellValueWrap {
   border: 1px solid #434343;
 }
+.companyLabel {
+  display: flex;
+  align-items: center;
+}
+.labelWidth {
+  width: 7rem;
+  font-weight: 500;
+  font-size: 16px;
+}

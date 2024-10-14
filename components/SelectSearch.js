@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Select, Space, Tooltip } from "antd";
 import styles from "@/styles/SelectSearch.module.css";
 
-const SelectSearch = ({ onChange, options }) => {
+const SelectSearch = ({ onChange, options, placeholder }) => {
   const [value, setValue] = useState([]);
 
   const handleChange = (selectedValues) => {
@@ -22,7 +22,7 @@ const SelectSearch = ({ onChange, options }) => {
         options={options}
         showSearch={false}
         value={value}
-        placeholder="Select Item..."
+        placeholder={placeholder}
         maxTagCount="responsive"
         onChange={handleChange}
         maxTagPlaceholder={(omittedValues) => (
