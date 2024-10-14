@@ -11,7 +11,7 @@
     "prettier:check": "prettier --check .",
     "prepare": "husky"
   },
-  "re-commit": [
+  "pre-commit": [
     "lint-staged"
   ],
   "dependencies": {

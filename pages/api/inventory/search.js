@@ -15,9 +15,6 @@ const searchInventory = async (req, res) => {
       },
       include: [db.Company],
     });
-    results.forEach((item) => {
-      delete item.dataValues.companyId;
-    });
     return res.send(results);
   } catch (error) {
     return res.status(500).send({ message: error.toString() });
