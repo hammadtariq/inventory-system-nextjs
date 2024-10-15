@@ -14,6 +14,11 @@ const canCreate = permissionsUtil.checkAuth({
   action: "create",
 });
 
+const canEdit = permissionsUtil.checkAuth({
+  category: "company",
+  action: "edit",
+});
+
 const AddEditCompany = ({ company }) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -24,7 +29,7 @@ const AddEditCompany = ({ company }) => {
       const { companyName, email = "", phone = "", address = "" } = company;
       form.setFieldsValue({ companyName, email, phone, address });
     }
-  }, [company]);
+  }, [company, form]);
 
   const onFinish = async (values) => {
     setLoading(true);
@@ -92,8 +97,8 @@ const AddEditCompany = ({ company }) => {
       </Form.Item>
       <Form.Item className="action-btn">
         <AppBackButton />
-        <Button type="primary" htmlType="submit" loading={loading} disabled={!canCreate}>
-          Submit
+        <Button type="primary" htmlType="submit" loading={loading} disabled={!canCreate || !canEdit}>
+          {company ? "Update" : "Create"}
         </Button>
       </Form.Item>
     </Form>

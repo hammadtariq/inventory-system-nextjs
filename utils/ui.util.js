@@ -40,7 +40,7 @@ export const CHEQUE_STATUS_COLORS = {
   RETURN: "#ff4d4f",
 };
 
-export const DEFAULT_PAGE_LIMIT = 10;
+export const DEFAULT_PAGE_LIMIT = 50;
 
 export const sumItemsPrice = (data = []) =>
   data.reduce((acc, curr) => {
@@ -108,3 +108,4 @@ export const downloadFile = (file, filename) => {
 
   link.click();
 };
+export const PAGE_TYPE_VIEW = "view";

@@ -8,6 +8,7 @@ const getInventoryNameByCompanyId = async (req, res) => {
 
   const { limit, offset, companyId } = req.query;
   const pagination = {};
+
   pagination.limit = limit ? limit : 10;
   pagination.offset = offset ? offset : 0;
   try {

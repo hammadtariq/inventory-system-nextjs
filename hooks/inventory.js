@@ -7,7 +7,12 @@ import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 
 export const useInventory = () => {
   const [pagination, setPagination] = useState({ limit: DEFAULT_PAGE_LIMIT, offset: 0 });
-  const { data, error, mutate } = useSWR(`/api/inventory?limit=${pagination.limit}&offset=${pagination.offset}`, get);
+  const [filters, setFilters] = useState([]);
+
+  const { data, error, mutate } = useSWR(
+    `/api/inventory?limit=${pagination.limit}&offset=${pagination.offset}&filters=${JSON.stringify(filters)}`,
+    get
+  );
 
   const paginationHandler = useCallback(
     (limit, offset) => {
@@ -16,17 +21,25 @@ export const useInventory = () => {
     [setPagination]
   );
 
+  const filtersHandler = useCallback(
+    (filter) => {
+      setFilters(filter);
+    },
+    [setFilters]
+  );
+
   return {
     inventory: data,
     isLoading: !error && !data,
     error,
     mutate,
     paginationHandler,
+    filtersHandler,
   };
 };
 
-export const useInventoryAttributes = (attr = []) => {
-  const { data, error } = useSWR(`/api/inventory?attributes=${JSON.stringify(attr)}`, get);
+export const useInventoryAttributes = (attr = [], type = true) => {
+  const { data, error } = useSWR(type ? `/api/inventory?attributes=${JSON.stringify(attr)}` : null, get);
 
   return {
     inventory: data?.rows,
@@ -60,5 +73,3 @@ export const searchInventory = (value) => get(`/api/inventory/search?value=${val
 export const getInventory = (id) => get(`/api/inventory/${id}`);
 
 export const updateInventory = (id, data) => put(`/api/inventory/${id}`, data);
-
-export const exportInventory = () => get(`/api/inventory/export`);

@@ -133,7 +133,6 @@ export default function Customers() {
         isLoading={isLoading}
         dataSource={customers ? customers.rows : []}
         totalCount={customers ? customers.count : 0}
-        pagination={true}
         paginationHandler={paginationHandler}
       />
     </>

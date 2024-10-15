@@ -23,8 +23,8 @@ export const useSales = () => {
   };
 };
 
-export const useSale = (id) => {
-  const { data, error } = useSWR(`/api/sales/${id}`, get);
+export const useSale = (id, type) => {
+  const { data, error } = useSWR(`/api/sales/${id}?type=${type}`, get);
 
   return {
     sale: data,
@@ -35,7 +35,7 @@ export const useSale = (id) => {
 
 export const searchSales = (value) => get(`/api/sales/search?value=${value}`);
 
-export const getSales = (id) => get(`/api/sales/${id}`);
+export const getSales = (id) => get(`/api/sales/${id}?type=${type}`);
 
 export const getAllSalesbyCustomer = (id) => get(`/api/sales/byCustomerId/${id}`);
 

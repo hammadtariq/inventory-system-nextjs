@@ -6,7 +6,7 @@ import { auth } from "@/middlewares/auth";
 import { DEFAULT_ROWS_LIMIT } from "@/utils/api.util";
 
 const apiSchema = Joi.object({
-  companyName: Joi.string().min(3).trim().lowercase().required(),
+  companyName: Joi.string().min(3).trim().required(),
   phone: Joi.string().max(24).trim(),
   email: Joi.string().email().trim().lowercase(),
   address: Joi.string().trim().min(10),

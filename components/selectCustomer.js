@@ -7,8 +7,8 @@ import { selectSearchFilter } from "@/utils/filter.util";
 
 const { Option } = Select;
 
-export default memo(function SelectCustomer({ selectCustomerOnChange, ...props }) {
-  const { customers, isLoading, error } = useCustomerAttributes(["firstName", "lastName", "id"]);
+export default memo(function SelectCustomer({ selectCustomerOnChange, type, ...props }) {
+  const { customers, isLoading, error } = useCustomerAttributes(["firstName", "lastName", "id"], type);
   if (error) return <Alert message={error} type="error" />;
 
   return (

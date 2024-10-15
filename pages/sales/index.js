@@ -223,7 +223,6 @@ const Sales = () => {
         // expandable={{ expandedRowRender: (record) => expandedRowRender(record) }}
         dataSource={updatedSales ? updatedSales.rows : []}
         totalCount={updatedSales ? updatedSales.count : 0}
-        pagination={true}
         paginationHandler={paginationHandler}
       />
     </>

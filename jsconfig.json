@@ -2,6 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "@/query/*": ["query/*"],
       "@/lib/*": ["lib/*"],
       "@/middlewares/*": ["middlewares/*"],
       "@/models/*": ["models/*"],

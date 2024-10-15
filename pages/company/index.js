@@ -112,7 +112,6 @@ const Company = () => {
         columns={columns}
         dataSource={companies ? companies.rows : []}
         totalCount={companies ? companies.count : 0}
-        pagination={true}
         paginationHandler={paginationHandler}
       />
     </>

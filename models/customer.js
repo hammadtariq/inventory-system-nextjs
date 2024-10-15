@@ -12,21 +12,25 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
         validate: {
-          isLowercase: {
-            msg: "First name must be lowercase",
+          //   isLowercase: {
+          //     msg: "First name must be lowercase",
+          //   },
+          len: {
+            args: [3, 12],
+            msg: "First name must be between 3 and 12 characters",
           },
-          min: 3,
-          max: 12,
         },
       },
       lastName: {
         type: DataTypes.STRING,
         allowNull: false,
         validate: {
-          isLowercase: { msg: "Last name must lowercase" },
+          // isLowercase: { msg: "Last name must lowercase" },
+          len: {
+            args: [3, 12], // Validates string length between 3 and 12 characters
+            msg: "First name must be between 3 and 12 characters",
+          },
         },
-        min: 3,
-        max: 12,
       },
       email: {
         type: DataTypes.STRING,

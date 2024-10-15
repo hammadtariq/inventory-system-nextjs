@@ -36,8 +36,8 @@ export const useCustomer = (id) => {
   };
 };
 
-export const useCustomerAttributes = (attr = []) => {
-  const { data, error } = useSWR(`/api/customer?attributes=${JSON.stringify(attr)}`, get);
+export const useCustomerAttributes = (attr = [], type = true) => {
+  const { data, error } = useSWR(type ? `/api/customer?attributes=${JSON.stringify(attr)}` : null, get);
 
   return {
     customers: data?.rows,

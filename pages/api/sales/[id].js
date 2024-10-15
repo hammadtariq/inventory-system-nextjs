@@ -13,6 +13,7 @@ const inventorySchema = Joi.object().keys({
   ratePerLbs: Joi.number().allow(null),
   ratePerKgs: Joi.number().allow(null),
   ratePerBale: Joi.number().allow(null),
+  onHand: Joi.number(),
   companyId: Joi.number(),
   id: Joi.number().required(),
 });
@@ -37,11 +38,27 @@ const getSale = async (req, res) => {
   try {
     await db.dbConnect();
     const { id } = value;
+
     const sale = await db.Sale.findByPk(id, { include: [db.Customer] });
 
     if (!sale) {
       return res.status(404).send({ message: "sale order not exists" });
     }
+
+    // Fetch full company details for each sold product
+    const soldProductsWithCompany = await Promise.all(
+      sale.soldProducts.map(async (product) => {
+        const company = await db.Company.findByPk(product.companyId);
+        return {
+          ...product, // Directly spread the product object
+          company, // Add full company details
+        };
+      })
+    );
+
+    // Replace the original soldProducts with the enriched data
+    sale.soldProducts = soldProductsWithCompany;
+
     console.log("Get sale order Request End");
 
     return res.send(sale);
