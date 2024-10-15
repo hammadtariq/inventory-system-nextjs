@@ -19,21 +19,27 @@ export default function AppTable({
   components,
 }) {
   const [currentPageSize, setCurrentPageSize] = useState(DEFAULT_PAGE_LIMIT);
-  
-  const handleChange = useCallback((pagination) => {
-    const { current, pageSize } = pagination;
-    const offset = current * pageSize - pageSize;
-    const limit = pageSize;
-    setCurrentPageSize(pageSize);
-    paginationHandler(limit, offset);
-  },[paginationHandler]);
 
-  const paginationConfig = useMemo(() => ({
-    pageSize: currentPageSize,
-    showSizeChanger: true,
-    pageSizeOptions: pageOptions,
-    total: totalCount,
-  }), [currentPageSize, totalCount]);
+  const handleChange = useCallback(
+    (pagination) => {
+      const { current, pageSize } = pagination;
+      const offset = current * pageSize - pageSize;
+      const limit = pageSize;
+      setCurrentPageSize(pageSize);
+      paginationHandler(limit, offset);
+    },
+    [paginationHandler]
+  );
+
+  const paginationConfig = useMemo(
+    () => ({
+      pageSize: currentPageSize,
+      showSizeChanger: true,
+      pageSizeOptions: pageOptions,
+      total: totalCount,
+    }),
+    [currentPageSize, totalCount]
+  );
 
   return (
     <Table
