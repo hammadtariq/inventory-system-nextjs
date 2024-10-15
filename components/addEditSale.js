@@ -140,7 +140,7 @@ const AddEditSale = ({ sale, type = null }) => {
           <Col span={8}>
             <Form.Item label="Customer">
               <SelectCustomer
-                defaultValue={sale && (isView || isEdit) ? sale?.customer?.firstName : sale?.customer?.id}
+                defaultValue={sale && (isView || isEdit) ? sale?.customer?.id : null}
                 selectCustomerOnChange={selectCustomerOnChange}
                 disabled={isView}
               />
