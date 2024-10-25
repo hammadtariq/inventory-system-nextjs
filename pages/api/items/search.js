@@ -12,6 +12,7 @@ const searchItems = async (req, res) => {
       where: {
         [Op.or]: [{ itemName: { [Op.like]: "%" + value + "%" } }],
       },
+      include: [db.Company],
     });
     return res.send(results);
   } catch (error) {

@@ -38,7 +38,10 @@ const searchSalesReport = async (req, res) => {
         // Filter products based on company and item, if provided
         const filteredProducts = sale.soldProducts.filter((product) => {
           const matchCompany = companyId ? product.companyId === +companyId : true;
-          const matchItem = itemName ? product.itemName.toLowerCase().includes(itemName.toLowerCase()) : true;
+          const cleanedItemName = itemName ? itemName.replace(/\s*\(.*?\)/, "").trim() : null;
+          const matchItem = cleanedItemName
+            ? product.itemName.toLowerCase().includes(cleanedItemName.toLowerCase())
+            : true;
           return matchCompany && matchItem;
         });
 

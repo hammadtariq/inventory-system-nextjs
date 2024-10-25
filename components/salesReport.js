@@ -1,35 +1,81 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { Table, InputNumber, Row, Col, Typography, Divider, DatePicker } from "antd";
+import { InputNumber, Row, Col, Typography, Divider, DatePicker } from "antd";
 import styles from "@/styles/SalesReport.module.css";
 import SearchInput from "./SearchInput";
 import { getAllSalesForReport, searchSales } from "@/hooks/sales";
 import { searchCompany } from "@/hooks/company";
 import { searchItems } from "@/hooks/items";
 import moment from "moment";
+import AppTable from "./table";
+import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
+import { comaSeparatedValues } from "@/utils/comaSeparatedValues";
 const { RangePicker } = DatePicker;
 const { Title } = Typography;
 const startToTodayDate = [moment().startOf("month"), moment()];
 
 const columns = [
-  { title: "CUSTOMER", dataIndex: "customer", key: "customer" },
   { title: "Invoice NO", dataIndex: "invoiceNo", key: "invoiceNo" },
   { title: "ITEM NAME", dataIndex: "itemName", key: "itemName" },
   { title: "COMPANY", dataIndex: "company", key: "company" },
-  { title: "Total Amount", dataIndex: "totalAmount", key: "totalAmount" },
+  { title: "CUSTOMER", dataIndex: "customer", key: "customer" },
+  {
+    title: "Bale Weight (LBS)",
+    dataIndex: "baleWeightLbs",
+    key: "baleWeightLbs",
+    render: (value) => (value === "-" ? value : comaSeparatedValues(value)),
+  },
+  {
+    title: "Bale Weight (KGS)",
+    dataIndex: "baleWeightKgs",
+    key: "baleWeightKgs",
+    render: (value) => (value === "-" ? value : comaSeparatedValues(value)),
+  },
+  {
+    title: "Rate Per (LBS)",
+    dataIndex: "ratePerLbs",
+    key: "ratePerLbs",
+    render: (value) => (value === "-" ? value : comaSeparatedValues(value)),
+  },
+  {
+    title: "Rate Per (KGS)",
+    dataIndex: "ratePerKgs",
+    key: "ratePerKgs",
+    render: (value) => (value === "-" ? value : comaSeparatedValues(value)),
+  },
+  {
+    title: "Rate Per Bale",
+    dataIndex: "ratePerBale",
+    key: "ratePerBale",
+    render: (value) => (value === "-" ? value : comaSeparatedValues(value)),
+  },
+  {
+    title: "No Of Bales",
+    dataIndex: "noOfBales",
+    key: "noOfBales",
+    render: (value) => (value === "-" ? value : comaSeparatedValues(value)),
+  },
+  {
+    title: "Total Amount",
+    dataIndex: "totalAmount",
+    key: "totalAmount",
+    render: (value) => comaSeparatedValues(value),
+  },
+  {
+    title: "Labour Charge",
+    dataIndex: "laborCharge",
+    key: "laborCharge",
+    render: (value) => comaSeparatedValues(value),
+  },
   { title: "Sold Date", dataIndex: "soldDate", key: "soldDate" },
-  { title: "Labour Charge", dataIndex: "laborCharge", key: "laborCharge" },
-  { title: "Bale Weight (LBS)", dataIndex: "baleWeightLbs", key: "baleWeightLbs" },
-  { title: "Bale Weight (KGS)", dataIndex: "baleWeightKgs", key: "baleWeightKgs" },
-  { title: "Rate Per (LBS)", dataIndex: "ratePerLbs", key: "ratePerLbs" },
-  { title: "Rate Per (KGS)", dataIndex: "ratePerKgs", key: "ratePerKgs" },
-  { title: "Rate Per Bale", dataIndex: "ratePerBale", key: "ratePerBale" },
-  { title: "No Of Bales", dataIndex: "noOfBales", key: "noOfBales" },
 ];
 
 const SalesReport = () => {
   const [searchCriteria, setSearchCriteria] = useState({ customer: "", company: "", item: "" });
-  const [updatedSales, setUpdatedSales] = useState([]);
   const [dateRange, setDateRange] = useState(startToTodayDate);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_LIMIT);
+  const [updatedSales, setUpdatedSales] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+
   const [total, setTotal] = useState({});
 
   const transformData = (salesData) =>
@@ -39,7 +85,11 @@ const SalesReport = () => {
           customer: `${customer.firstName} ${customer.lastName}`,
           invoiceNo,
           laborCharge,
-          soldDate,
+          soldDate: new Date(soldDate).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          }),
           totalAmount,
           itemName,
           company: company.companyName,
@@ -53,6 +103,12 @@ const SalesReport = () => {
       )
     );
 
+  const handlePagination = (newPageSize, offset) => {
+    setPageSize(newPageSize);
+    setCurrentPage(offset / newPageSize + 1);
+    fetchSalesData();
+  };
+
   const handleSearch = async (value, type) => {
     if (!value) {
       setSearchCriteria((prev) => ({ ...prev, [type]: "" }));
@@ -64,6 +120,7 @@ const SalesReport = () => {
         : type === "item"
         ? await searchItems(value)
         : await searchSales(value);
+    debugger;
     return result;
   };
 
@@ -73,7 +130,13 @@ const SalesReport = () => {
 
   const fetchSalesData = useCallback(async () => {
     const [start, end] = dateRange.map((d) => d.format("YYYY-MM-DD"));
-    const salesResults = await getAllSalesForReport({ ...searchCriteria, dateRangeStart: start, dateRangeEnd: end });
+    const salesResults = await getAllSalesForReport({
+      ...searchCriteria,
+      dateRangeStart: start,
+      dateRangeEnd: end,
+      page: currentPage,
+      limit: pageSize,
+    });
     console.log(salesResults);
     const transformedData = transformData(salesResults.rows);
     const totals = transformedData.reduce((acc, sale) => {
@@ -84,7 +147,7 @@ const SalesReport = () => {
     }, {});
     setUpdatedSales(transformedData);
     setTotal(totals);
-  }, [searchCriteria, dateRange]);
+  }, [dateRange, searchCriteria, currentPage, pageSize]);
 
   useEffect(() => {
     fetchSalesData();
@@ -126,6 +189,7 @@ const SalesReport = () => {
         <Col span={6}>
           <SearchInput
             valueKey="itemName"
+            valueKey2="company.companyName"
             placeholder="Item"
             type="item"
             handleSearch={(value) => handleSearch(value, "item")}
@@ -135,21 +199,31 @@ const SalesReport = () => {
       </Row>
 
       <Divider />
-      <Table
+      <AppTable
         columns={columns}
         dataSource={updatedSales}
+        paginationHandler={handlePagination}
+        current={currentPage}
+        pageSize={pageSize}
+        rowKey="id"
+        rowClassName={styles.editableRow}
+        totalCount={updatedSales ? updatedSales.count : 0}
         footer={() => (
           <div>
             <Row gutter={16}>
               <Col span={16} />
               <Col span={8}>
-                {["totalAmount", "laborCharge", "ratePerBale", "ratePerLbs", "ratePerKgs", "noOfBales"].map((key) => (
+                {["totalAmount", "ratePerBale", "ratePerLbs", "ratePerKgs", "noOfBales"].map((key) => (
                   <Row justify="end" key={key}>
                     <Col span={12}>
                       <strong>{key.replace(/([A-Z])/g, " $1").toUpperCase()}:</strong>
                     </Col>
                     <Col span={12}>
-                      <InputNumber value={total[key] || 0} readOnly className={styles.inputNumberField} />
+                      <InputNumber
+                        value={comaSeparatedValues(total[key] || 0)}
+                        readOnly
+                        className={styles.inputNumberField}
+                      />
                     </Col>
                   </Row>
                 ))}
