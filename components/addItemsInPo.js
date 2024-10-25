@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { Alert, Button, Form, Popconfirm, Typography } from "antd";
+import { Alert, Button, Checkbox, Form, Popconfirm, Typography } from "antd";
 
 import EditableCell from "@/components/editableCell";
 import AppTable from "@/components/table";
@@ -19,6 +19,8 @@ export default function AddItemsInPo({
   viewOnly = false,
 }) {
   const [editingKey, setEditingKey] = useState([]);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [selectAllChecked, setSelectAllChecked] = useState(false);
   const [form] = Form.useForm();
   const { items, isLoading, error } = useItemsByCompanyIdAndType(companyId, type, isEdit);
 
@@ -66,6 +68,14 @@ export default function AddItemsInPo({
     const newData = [...data];
     newData.splice(index, 1);
     setData(newData);
+    setSelectedRowKeys((prev) => prev.filter((key) => key !== record.id));
+  };
+
+  const removeSelected = () => {
+    const newData = data.filter((item) => !selectedRowKeys.includes(item.id));
+    setData(newData);
+    setSelectedRowKeys([]);
+    setSelectAllChecked(false);
   };
 
   const saveAll = async () => {
@@ -105,6 +115,25 @@ export default function AddItemsInPo({
     }
   };
 
+  const handleSelectAll = (e) => {
+    setSelectAllChecked(e.target.checked);
+    setSelectedRowKeys(e.target.checked ? data.map((item) => item.id) : []);
+  };
+
+  const handleRowSelect = (selected, record) => {
+    setSelectedRowKeys((prev) => {
+      const updatedSelectedRowKeys = selected ? [...prev, record.id] : prev.filter((key) => key !== record.id);
+
+      if (updatedSelectedRowKeys.length === data.length) {
+        setSelectAllChecked(true);
+      } else {
+        setSelectAllChecked(false);
+      }
+
+      return updatedSelectedRowKeys;
+    });
+  };
+
   const getOperationColumn = () => {
     return {
       title: "operation",
@@ -116,6 +145,24 @@ export default function AddItemsInPo({
       },
     };
   };
+
+  const getSelectAllColumn = () => ({
+    title: (
+      <Checkbox checked={selectAllChecked} onChange={handleSelectAll} disabled={data?.length === 0}>
+        Select All
+      </Checkbox>
+    ),
+    dataIndex: "operation",
+    width: "10%",
+    render: (_, record) => (
+      <div className={styles.centerAlign}>
+        <Checkbox
+          checked={selectedRowKeys.includes(record.id)}
+          onChange={(e) => handleRowSelect(e.target.checked, record)}
+        />
+      </div>
+    ),
+  });
 
   const columns = [
     {
@@ -171,7 +218,10 @@ export default function AddItemsInPo({
     });
   }
 
-  if (!viewOnly) columns.push(getOperationColumn());
+  if (!viewOnly) {
+    columns.unshift(getSelectAllColumn());
+    columns.push(getOperationColumn());
+  }
 
   const mergedColumns = columns.map((col) => {
     if (!col.editable) {
@@ -200,7 +250,7 @@ export default function AddItemsInPo({
         {viewOnly ? null : (
           <>
             {!editAll ? (
-              <Button onClick={() => setEditAll(true)} type="primary">
+              <Button onClick={() => setEditAll(true)} type="primary" className={styles.marginRight}>
                 Edit All
               </Button>
             ) : (
@@ -213,6 +263,9 @@ export default function AddItemsInPo({
                 </Popconfirm>
               </>
             )}
+            <Button onClick={removeSelected} type="danger" disabled={selectedRowKeys.length === 0}>
+              Remove Selected
+            </Button>
           </>
         )}
       </div>
