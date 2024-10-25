@@ -39,6 +39,17 @@ export const getSales = (id) => get(`/api/sales/${id}?type=${type}`);
 
 export const getAllSalesbyCustomer = (id) => get(`/api/sales/byCustomerId/${id}`);
 
+export const getAllSalesForReport = async ({ customer, company, item, dateRangeStart, dateRangeEnd }) => {
+  const params = new URLSearchParams({
+    ...(customer && { customerId: customer }),
+    ...(company && { companyId: company }),
+    ...(item && { itemName: item }),
+    ...(dateRangeStart && { dateRangeStart }),
+    ...(dateRangeEnd && { dateRangeEnd }),
+  });
+  return await get(`/api/sales/report/search?${params.toString()}`);
+};
+
 export const createSale = async (data) => post("/api/sales", data);
 
 export const updateSale = async (id, data) => put(`/api/sales/${id}`, data);

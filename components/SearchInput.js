@@ -11,14 +11,14 @@ const getValueFromPath = (obj, path) => {
   return path.split(".").reduce((acc, key) => (acc ? acc[key] : undefined), obj);
 };
 
-const searchResult = (results = [], valueKey = "", valueKey2 = "") =>
+const searchResult = (results = [], valueKey = "", valueKey2 = "", type) =>
   results.map(({ id, [valueKey]: value1, ...rest }) => {
     const value2 = valueKey2 ? getValueFromPath(rest, valueKey2) : "";
     const value = valueKey2 ? `${value1} (${value2})` : value1;
 
     return {
       value,
-      key: id,
+      key: type === "item" ? value : id,
       label: (
         <div className={styles.listItem}>
           {valueKey2 ? (
@@ -33,14 +33,14 @@ const searchResult = (results = [], valueKey = "", valueKey2 = "") =>
     };
   });
 
-const SearchInput = ({ handleSearch, handleSelect, valueKey, valueKey2, placeholder }) => {
+const SearchInput = ({ handleSearch, handleSelect, valueKey, valueKey2, placeholder, type }) => {
   const [options, setOptions] = useState([]);
 
   const _handleSearch = async (value) => {
     console.log("_handleSearch", value);
     if (value) {
       const results = await handleSearch(value.toLowerCase());
-      setOptions(searchResult(results, valueKey, valueKey2));
+      setOptions(searchResult(results, valueKey, valueKey2, type));
     } else {
       handleSearch();
     }

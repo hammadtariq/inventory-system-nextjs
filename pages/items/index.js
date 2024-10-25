@@ -15,6 +15,7 @@ import permissionsUtil from "@/utils/permission.util";
 import { DATE_TIME_FORMAT } from "@/utils/ui.util";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import SearchInput from "@/components/SearchInput";
+import { searchCompany } from "@/hooks/company";
 
 const Items = () => {
   const { items, error, isLoading, paginationHandler, mutate } = useItems();
@@ -175,10 +176,10 @@ const Items = () => {
   };
   const handleSearch = async (value) => {
     if (!value) {
-      setUpdatedItemList(updatedItemList);
-      return updatedItemList;
+      setUpdatedItemList(items);
+      return items;
     } else {
-      const searchResults = await searchItems(value);
+      const searchResults = await searchCompany(value);
       return searchResults;
     }
   };

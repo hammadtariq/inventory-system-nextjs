@@ -4,13 +4,13 @@ import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 const Op = db.Sequelize.Op;
 
-const searchItems = async (req, res) => {
+const searchCompany = async (req, res) => {
   const { value } = req.query;
   try {
     await db.dbConnect();
-    const results = await db.Items.findAll({
+    const results = await db.Company.findAll({
       where: {
-        [Op.or]: [{ itemName: { [Op.like]: "%" + value + "%" } }],
+        [Op.or]: [{ companyName: { [Op.like]: "%" + value + "%" } }],
       },
     });
     return res.send(results);
@@ -19,4 +19,4 @@ const searchItems = async (req, res) => {
   }
 };
 
-export default nextConnect().use(auth).get(searchItems);
+export default nextConnect().use(auth).get(searchCompany);
