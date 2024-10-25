@@ -120,7 +120,6 @@ const SalesReport = () => {
         : type === "item"
         ? await searchItems(value)
         : await searchSales(value);
-    debugger;
     return result;
   };
 
