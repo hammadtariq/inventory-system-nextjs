@@ -45,6 +45,8 @@ export const useCompanyAttributes = (attr = []) => {
 
 export const createCompany = async (data) => post("/api/company", data);
 
+export const searchCompany = async (data) => get(`/api/company/search?value=${data}`);
+
 export const updateCompany = async (id, data) => put(`/api/company/${id}`, data);
 
 export const deleteCompany = async (id) => remove(`/api/company/${id}`);
