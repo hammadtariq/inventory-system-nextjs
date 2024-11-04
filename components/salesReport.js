@@ -144,7 +144,6 @@ const SalesReport = () => {
       return acc;
     }, {});
     setUpdatedSales(transformedData);
-    console.log(transformedData);
     setTotal(totals);
   }, [dateRange, searchCriteria, currentPage, pageSize]);
 

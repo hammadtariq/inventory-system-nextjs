@@ -10,10 +10,10 @@ const getTransactions = async (req, res) => {
   try {
     await db.dbConnect();
     const { id, type = "company" } = req.query;
-    const condtion = type === "company" ? { companyId: id } : { customerId: id };
+    const condition = type === "company" ? { companyId: id } : { customerId: id };
     const transactions = await db.Ledger.findAll({
-      where: condtion,
-      order: [["updatedAt", "DESC"]],
+      where: condition,
+      order: [["paymentDate", "DESC"]],
       include: [
         {
           model: db.Company,
