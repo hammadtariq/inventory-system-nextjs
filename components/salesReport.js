@@ -172,7 +172,7 @@ const SalesReport = () => {
           />
         </Col>
         <Col span={6}>
-          <RangePicker className={styles.marginTop} value={dateRange} onChange={(newRange) => setDateRange(newRange)} />
+          <RangePicker className={styles.gap} value={dateRange} onChange={(newRange) => setDateRange(newRange)} />
         </Col>
       </Row>
       <Row gutter={16}>
