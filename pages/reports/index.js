@@ -1,8 +1,6 @@
 import AppTitle from "@/components/title";
 import { useState } from "react";
-import styles from "@/styles/Ledger.module.css";
 import { Tabs } from "antd";
-import TabPane from "antd/lib/tabs/TabPane";
 import CompanyReports from "@/components/companyReports";
 import SalesReport from "@/components/salesReport";
 
@@ -16,12 +14,12 @@ export default function ReportsOverview() {
       </div>
 
       <Tabs activeKey={activeKey} onChange={setActiveKey}>
-        <TabPane tab="Sales" key="sales">
+        <Tabs.TabPane tab="Sales" key="sales">
           <SalesReport />
-        </TabPane>
-        <TabPane tab="Company" key="company">
+        </Tabs.TabPane>
+        <Tabs.TabPane tab="Company" key="company">
           <CompanyReports />
-        </TabPane>
+        </Tabs.TabPane>
       </Tabs>
     </div>
   );
