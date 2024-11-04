@@ -9,10 +9,18 @@ import { DATE_FORMAT } from "@/utils/ui.util";
 import { useRouter } from "next/router";
 import ExportButton from "@/components/exportButton";
 import { EyeOutlined } from "@ant-design/icons";
+import { useMemo } from "react";
 
 const LedgerDetails = ({ id, type }) => {
   const router = useRouter();
   const { transactionId, transactions, totalBalance, error, isLoading } = useLedgerDetails(id, type);
+  const sortedTransactions = useMemo(
+    () =>
+      transactions
+        ? [...transactions].sort((a, b) => dayjs(b.paymentDate).valueOf() - dayjs(a.paymentDate).valueOf())
+        : [],
+    [transactions]
+  );
 
   if (error) return <Alert message={error} type="error" />;
 
@@ -136,7 +144,7 @@ const LedgerDetails = ({ id, type }) => {
         rowKey="id"
         className="components-table-demo-nested"
         columns={columns}
-        dataSource={transactions ? transactions : []}
+        dataSource={sortedTransactions}
       />
     </div>
   );

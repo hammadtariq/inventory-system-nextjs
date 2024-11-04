@@ -136,7 +136,6 @@ const SalesReport = () => {
       page: currentPage,
       limit: pageSize,
     });
-    console.log(salesResults);
     const transformedData = transformData(salesResults.rows);
     const totals = transformedData.reduce((acc, sale) => {
       Object.keys(sale).forEach((key) => {
@@ -145,6 +144,7 @@ const SalesReport = () => {
       return acc;
     }, {});
     setUpdatedSales(transformedData);
+    console.log(transformedData);
     setTotal(totals);
   }, [dateRange, searchCriteria, currentPage, pageSize]);
 
@@ -206,7 +206,7 @@ const SalesReport = () => {
         pageSize={pageSize}
         rowKey="id"
         rowClassName={styles.editableRow}
-        totalCount={updatedSales ? updatedSales.count : 0}
+        totalCount={updatedSales ? updatedSales.length : 0}
         footer={() => (
           <div>
             <Row gutter={16}>
