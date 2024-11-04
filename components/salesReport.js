@@ -5,13 +5,13 @@ import SearchInput from "./SearchInput";
 import { getAllSalesForReport, searchSales } from "@/hooks/sales";
 import { searchCompany } from "@/hooks/company";
 import { searchItems } from "@/hooks/items";
-import moment from "moment";
+import dayjs from "dayjs";
 import AppTable from "./table";
 import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 import { comaSeparatedValues } from "@/utils/comaSeparatedValues";
 const { RangePicker } = DatePicker;
 const { Title } = Typography;
-const startToTodayDate = [moment().startOf("month"), moment()];
+const startToTodayDate = [dayjs().startOf("month"), dayjs().endOf("month")];
 
 const columns = [
   { title: "Invoice NO", dataIndex: "invoiceNo", key: "invoiceNo" },
@@ -128,7 +128,7 @@ const SalesReport = () => {
   };
 
   const fetchSalesData = useCallback(async () => {
-    const [start, end] = dateRange.map((d) => d.format("YYYY-MM-DD"));
+    const [start, end] = dateRange ? dateRange.map((d) => d.format("YYYY-MM-DD")) : startToTodayDate;
     const salesResults = await getAllSalesForReport({
       ...searchCriteria,
       dateRangeStart: start,
