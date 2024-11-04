@@ -9,7 +9,6 @@ import { DATE_FORMAT } from "@/utils/ui.util";
 import { useRouter } from "next/router";
 import ExportButton from "@/components/exportButton";
 import { EyeOutlined } from "@ant-design/icons";
-import { useMemo } from "react";
 
 const LedgerDetails = ({ id, type }) => {
   const router = useRouter();
