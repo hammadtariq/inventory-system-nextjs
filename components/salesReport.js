@@ -9,6 +9,12 @@ import dayjs from "dayjs";
 import AppTable from "./table";
 import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 import { comaSeparatedValues } from "@/utils/comaSeparatedValues";
+import weekday from "dayjs/plugin/weekday";
+import localeData from "dayjs/plugin/localeData";
+
+dayjs.extend(weekday);
+dayjs.extend(localeData);
+
 const { RangePicker } = DatePicker;
 const { Title } = Typography;
 const startToTodayDate = [dayjs().startOf("month"), dayjs().endOf("month")];
