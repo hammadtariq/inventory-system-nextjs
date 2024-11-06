@@ -1,25 +1,25 @@
 import { useEffect, useRef, useState } from "react";
-
 import { Alert, Col, Row } from "antd";
-
 import EditableInventoryCell from "@/components/editableInventoryCell";
 import ExportButton from "@/components/exportButton";
 import SearchInput from "@/components/SearchInput";
+import SelectSearch from "@/components/SelectSearch";
 import Spinner from "@/components/spinner";
 import AppTable from "@/components/table";
 import AppTitle from "@/components/title";
-import { exportInventory, getInventory, searchInventory, updateInventory, useInventory } from "@/hooks/inventory";
+import { getInventory, searchInventory, updateInventory, useInventory } from "@/hooks/inventory";
 import styles from "@/styles/EditableCell.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import permissionsUtil from "@/utils/permission.util";
 
 const Inventory = () => {
-  const { inventory, error, isLoading, mutate, paginationHandler } = useInventory();
-  const [updatedInventory, setUpdatedInventory] = useState();
-  const [searchText, setSearchText] = useState("");
+  const { inventory, error, isLoading, mutate, paginationHandler, filtersHandler } = useInventory();
+  const [updatedInventory, setUpdatedInventory] = useState([]);
+  const [companyOptions, setCompanyOptions] = useState([]);
   const [searchedColumn, setSearchedColumn] = useState("");
+  const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(false);
-
+  const [filters, setFilters] = useState([]);
   const searchInput = useRef(null);
 
   const canEditItemName = permissionsUtil.checkAuth({
@@ -29,7 +29,21 @@ const Inventory = () => {
 
   useEffect(() => {
     setUpdatedInventory(inventory);
-  }, [inventory]);
+    if (inventory && companyOptions.length === 0) {
+      extractCompanyOptions(inventory);
+    }
+  }, [companyOptions, inventory]);
+
+  const extractCompanyOptions = (inventory) => {
+    const companyOptions = Array.from(new Set(inventory.rows.map((item) => item.company.id))).map((id) => {
+      const company = inventory.rows.find((item) => item.company.id === id).company;
+      return {
+        label: company.companyName,
+        value: company.id,
+      };
+    });
+    setCompanyOptions(companyOptions);
+  };
 
   const defaultColumns = [
     {
@@ -37,15 +51,6 @@ const Inventory = () => {
       dataIndex: "itemName",
       key: "itemName",
       editable: canEditItemName,
-      ...getColumnSearchProps({
-        dataIndex: "itemName",
-        dataIndexName: "item name",
-        searchInput,
-        searchText,
-        searchedColumn,
-        setSearchText,
-        setSearchedColumn,
-      }),
     },
     {
       title: "Company Name",
@@ -61,20 +66,15 @@ const Inventory = () => {
         searchedColumn,
         setSearchText,
         setSearchedColumn,
+        selectOptions: companyOptions, // Pass the select options here
       }),
     },
-    // { title: "No of Bales", dataIndex: "noOfBales", key: "noOfBales" },
     { title: "On Hand", dataIndex: "onHand", key: "onHand" },
     { title: "Bale Weight (LBS)", dataIndex: "baleWeightLbs", key: "baleWeightLbs", render: (text) => text ?? "N/A" },
     { title: "Bale Weight (KGS)", dataIndex: "baleWeightKgs", key: "baleWeightKgs", render: (text) => text ?? "N/A" },
     { title: "Rate per LBS (Rs)", dataIndex: "ratePerLbs", key: "ratePerLbs", render: (text) => text ?? "N/A" },
     { title: "Rate per KGS (Rs)", dataIndex: "ratePerKgs", key: "ratePerKgs", render: (text) => text ?? "N/A" },
     { title: "Rate per Bale (Rs)", dataIndex: "ratePerBale", key: "ratePerBale" },
-    // {
-    //   title: "Updated At",
-    //   dataIndex: "updatedAt",
-    //   render: (text) => dayjs(text).format(DATE_TIME_FORMAT),
-    // },
   ];
 
   const columns = canEditItemName
@@ -124,31 +124,41 @@ const Inventory = () => {
     return newInventory;
   };
 
-  const handleExport = async () => {
-    try {
-      const response = await exportInventory();
-      return response;
-    } catch (error) {
-      console.log("export error", error);
-      return error;
-    }
+  const handleChange = async (filters) => {
+    filtersHandler(filters);
+    setFilters(filters);
   };
 
   if (error) return <Alert message={error} type="error" />;
   return (
     <>
       <AppTitle level={2}>Inventory List</AppTitle>
-      <Row justify="space-between">
+      <Row justify="space-between" align="middle">
         <Col>
           <SearchInput
             valueKey="itemName"
+            valueKey2="company.companyName"
             handleSearch={handleSearch}
             handleSelect={handleSelect}
             placeholder="search inventory"
           />
         </Col>
         <Col>
-          <ExportButton handleExport={handleExport} filename="inventory" />
+          <Row justify="end" gutter={[16, 16]}>
+            <Col>
+              <div className={styles.companyLabel}>
+                <label className={styles.labelWidth}>Filter by :</label>
+                <SelectSearch
+                  placeholder="Company Name"
+                  onChange={(value) => handleChange(value)}
+                  options={companyOptions}
+                />
+              </div>
+            </Col>
+            <Col>
+              <ExportButton filename="inventory" filters={filters} />
+            </Col>
+          </Row>
         </Col>
       </Row>
       <br />
@@ -170,7 +180,6 @@ const Inventory = () => {
         rowClassName={styles.editableRow}
         dataSource={updatedInventory ? updatedInventory.rows : []}
         totalCount={updatedInventory ? updatedInventory.count : 0}
-        pagination={true}
         paginationHandler={paginationHandler}
       />
     </>

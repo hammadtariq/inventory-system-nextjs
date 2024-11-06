@@ -8,7 +8,7 @@ import { STATUS } from "@/utils/api.util";
 function Update({ id, type }) {
   const isView = type === "view";
 
-  const { sale, error, isLoading } = useSale(id);
+  const { sale, error, isLoading } = useSale(id, type);
   if (error) return <Alert message={error} type="error" />;
   if (!isLoading && sale.status === STATUS.APPROVED && !isView)
     return <Alert message={"Operation not allowed"} type="error" />;

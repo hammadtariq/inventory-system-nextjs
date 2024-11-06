@@ -1,7 +1,8 @@
+import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 import { Table } from "antd";
+import { useCallback, useMemo, useState } from "react";
 
-const pageOptions = ["10", "20", "30", "50"];
-const paginationOptions = { defaultPageSize: pageOptions[0], showSizeChanger: true, pageSizeOptions: pageOptions };
+const pageOptions = ["30", "50", "100", "150", "200"];
 
 export default function AppTable({
   bordered,
@@ -9,20 +10,36 @@ export default function AppTable({
   rowKey,
   columns,
   dataSource,
-  totalCount = 10,
+  totalCount = 50, // Note: not in use yet
   expandable,
   className,
-  pagination = paginationOptions,
   paginationHandler,
   rowClassName,
   footer,
   components,
 }) {
-  const handleChange = (pagination) => {
-    const offset = pagination.current * pagination.pageSize - pagination.pageSize;
-    const limit = pagination.pageSize;
-    paginationHandler(limit, offset);
-  };
+  const [currentPageSize, setCurrentPageSize] = useState(DEFAULT_PAGE_LIMIT);
+
+  const handleChange = useCallback(
+    (pagination) => {
+      const { current, pageSize } = pagination;
+      const offset = current * pageSize - pageSize;
+      const limit = pageSize;
+      setCurrentPageSize(pageSize);
+      paginationHandler(limit, offset);
+    },
+    [paginationHandler]
+  );
+
+  const paginationConfig = useMemo(
+    () => ({
+      pageSize: currentPageSize,
+      showSizeChanger: true,
+      pageSizeOptions: pageOptions,
+      total: totalCount,
+    }),
+    [currentPageSize, totalCount]
+  );
 
   return (
     <Table
@@ -36,7 +53,7 @@ export default function AppTable({
       className={className}
       rowClassName={rowClassName}
       components={components}
-      pagination={paginationHandler ? { ...pagination, total: totalCount } : false}
+      pagination={paginationHandler ? paginationConfig : false}
       onChange={handleChange}
       footer={footer}
     />

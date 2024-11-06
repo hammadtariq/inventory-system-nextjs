@@ -23,8 +23,8 @@ export const useSales = () => {
   };
 };
 
-export const useSale = (id) => {
-  const { data, error } = useSWR(`/api/sales/${id}`, get);
+export const useSale = (id, type) => {
+  const { data, error } = useSWR(`/api/sales/${id}?type=${type}`, get);
 
   return {
     sale: data,
@@ -35,9 +35,20 @@ export const useSale = (id) => {
 
 export const searchSales = (value) => get(`/api/sales/search?value=${value}`);
 
-export const getSales = (id) => get(`/api/sales/${id}`);
+export const getSales = (id) => get(`/api/sales/${id}?type=${type}`);
 
 export const getAllSalesbyCustomer = (id) => get(`/api/sales/byCustomerId/${id}`);
+
+export const getAllSalesForReport = async ({ customer, company, item, dateRangeStart, dateRangeEnd }) => {
+  const params = new URLSearchParams({
+    ...(customer && { customerId: customer }),
+    ...(company && { companyId: company }),
+    ...(item && { itemName: item }),
+    ...(dateRangeStart && { dateRangeStart }),
+    ...(dateRangeEnd && { dateRangeEnd }),
+  });
+  return await get(`/api/sales/report/search?${params.toString()}`);
+};
 
 export const createSale = async (data) => post("/api/sales", data);
 

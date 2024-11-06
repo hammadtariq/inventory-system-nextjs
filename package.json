@@ -8,7 +8,8 @@
     "lint": "next lint",
     "lint-staged": "lint-staged",
     "prettier": "prettier --write .",
-    "prettier:check": "prettier --check ."
+    "prettier:check": "prettier --check .",
+    "prepare": "husky"
   },
   "pre-commit": [
     "lint-staged"
@@ -22,7 +23,11 @@
     "bcrypt": "^5.0.1",
     "cookie": "^0.4.1",
     "dotenv": "^10.0.0",
+    "file-saver": "^2.0.5",
     "joi": "^17.5.0",
+    "json-2-csv": "^5.5.5",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.3",
     "lodash": "^4.17.21",
     "next": "12.0.4",
     "next-connect": "^0.11.0",
@@ -42,6 +47,7 @@
     "eslint": "7",
     "eslint-config-next": "12.0.4",
     "eslint-config-prettier": "^8.3.0",
+    "husky": "^9.1.6",
     "lint-staged": "^12.1.2",
     "pre-commit": "^1.2.2",
     "prettier": "^2.5.1"

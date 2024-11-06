@@ -1,19 +1,21 @@
 import { useRef, useState, useEffect } from "react";
 
-import { Alert, Button, Popconfirm, Row, Col } from "antd";
+import { Alert, Button, Popconfirm, Row, Col, message } from "antd";
 import dayjs from "dayjs";
 import { useRouter } from "next/router";
+import EditableInventoryCell from "@/components/editableInventoryCell";
 
 import AppCreateButton from "@/components/createButton";
 import AppTable from "@/components/table";
 import AppTitle from "@/components/title";
-import { deleteItem, useItems, searchItems, getAllItemListbyCompany } from "@/hooks/items";
+import { deleteItem, useItems, searchItems, updateItem, getAllItemListbyCompany } from "@/hooks/items";
 import styles from "@/styles/Item.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import permissionsUtil from "@/utils/permission.util";
 import { DATE_TIME_FORMAT } from "@/utils/ui.util";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import SearchInput from "@/components/SearchInput";
+import { searchCompany } from "@/hooks/company";
 
 const Items = () => {
   const { items, error, isLoading, paginationHandler, mutate } = useItems();
@@ -23,6 +25,7 @@ const Items = () => {
 
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setUpdatedItemList(items);
@@ -65,10 +68,16 @@ const Items = () => {
     </>
   );
 
-  const columns = [
+  const canEditItemName = permissionsUtil.checkAuth({
+    category: "item",
+    action: "edit",
+  });
+
+  const defaultColumns = [
     {
       title: "Item Name",
       dataIndex: "itemName",
+      editable: canEditItemName,
       ...getColumnSearchProps({
         dataIndex: "itemName",
         searchInput,
@@ -136,13 +145,41 @@ const Items = () => {
       render: renderActions,
     },
   ];
+  const columns = canEditItemName
+    ? defaultColumns.map((col) => {
+        if (!col.editable) {
+          return col;
+        }
+        return {
+          ...col,
+          onCell: (record) => ({
+            record,
+            editable: col.editable,
+            dataIndex: col.dataIndex,
+            title: col.title,
+            handleSave,
+          }),
+        };
+      })
+    : defaultColumns;
 
+  const handleSave = async (row) => {
+    setLoading(true);
+    try {
+      await updateItem(row.id, { itemName: row.itemName });
+      mutate();
+      message.success("item modified successfully");
+    } catch (error) {
+      console.log("update itemList item name error", error);
+    }
+    setLoading(false);
+  };
   const handleSearch = async (value) => {
     if (!value) {
-      setUpdatedItemList(updatedItemList);
-      return updatedItemList;
+      setUpdatedItemList(items);
+      return items;
     } else {
-      const searchResults = await searchItems(value);
+      const searchResults = await searchCompany(value);
       return searchResults;
     }
   };
@@ -176,9 +213,18 @@ const Items = () => {
         isLoading={isLoading}
         rowKey="id"
         columns={columns}
+        components={
+          canEditItemName
+            ? {
+                body: {
+                  cell: EditableInventoryCell,
+                },
+              }
+            : {}
+        }
+        rowClassName={styles.editableRow}
         dataSource={updatedItemList ? updatedItemList.rows : []}
         totalCount={updatedItemList ? updatedItemList.count : 0}
-        pagination={true}
         paginationHandler={paginationHandler}
       />
     </>

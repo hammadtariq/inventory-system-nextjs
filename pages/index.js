@@ -1,80 +1,106 @@
 import { Card, Col, Row } from "antd";
-
 import styles from "@/styles/Dashboard.module.css";
 import { DollarCircleOutlined, ShopOutlined, TeamOutlined, UserOutlined } from "@ant-design/icons";
 import { Column, Line } from "@ant-design/plots";
-
-const items = [
-  {
-    id: 1,
-    title: "Customers",
-    count: 5,
-    icon: <UserOutlined />,
-  },
-  {
-    id: 2,
-    title: "Companies",
-    count: 50,
-    icon: <TeamOutlined />,
-  },
-  {
-    id: 3,
-    title: "Inventory",
-    count: 20,
-    icon: <ShopOutlined />,
-  },
-  {
-    id: 4,
-    title: "Cheques",
-    count: 8,
-    icon: <DollarCircleOutlined />,
-  },
-];
-
-const data = [
-  {
-    year: "1991",
-    value: 3,
-  },
-  {
-    year: "1992",
-    value: 4,
-  },
-  {
-    year: "1993",
-    value: 3.5,
-  },
-  {
-    year: "1994",
-    value: 5,
-  },
-  {
-    year: "1995",
-    value: 4.9,
-  },
-  {
-    year: "1996",
-    value: 6,
-  },
-  {
-    year: "1997",
-    value: 7,
-  },
-  {
-    year: "1998",
-    value: 9,
-  },
-  {
-    year: "1999",
-    value: 13,
-  },
-];
+import { useEffect, useState } from "react";
+import { graphPurchaseTable, graphSaleTable, graphTablesCount } from "@/hooks/overview";
 
 export default function Home() {
-  const config = {
-    data,
+  const [tableCount, setTableCount] = useState();
+  const [purchaseGraph, setPurchaseGraph] = useState([]);
+  const [saleGraph, setSaleGraph] = useState([]);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const [tableData, purchaseData, saleData] = await Promise.all([
+        graphTablesCount(),
+        graphPurchaseTable(),
+        graphSaleTable(),
+      ]);
+
+      const parsedTableData = {
+        customers: tableData.customers,
+        companies: tableData.companies,
+        inventory: tableData.inventory,
+        cheques: tableData.cheques,
+      };
+
+      setTableCount(parsedTableData);
+      setPurchaseGraph(purchaseData);
+      setSaleGraph(saleData);
+    } catch (error) {
+      console.error("Error retrieving data:", error);
+    }
+  };
+
+  const items = [
+    {
+      id: 1,
+      title: "Customers",
+      count: tableCount ? tableCount.customers : 0,
+      icon: <UserOutlined />,
+    },
+    {
+      id: 2,
+      title: "Companies",
+      count: tableCount ? tableCount.companies : 0,
+      icon: <TeamOutlined />,
+    },
+    {
+      id: 3,
+      title: "Inventory",
+      count: tableCount ? tableCount.inventory : 0,
+      icon: <ShopOutlined />,
+    },
+    {
+      id: 4,
+      title: "Cheques",
+      count: tableCount ? tableCount.cheques : 0,
+      icon: <DollarCircleOutlined />,
+    },
+  ];
+
+  const purchase = {
+    data: purchaseGraph,
     xField: "year",
-    yField: "value",
+    yField: "count",
+    label: {},
+    point: {
+      size: 5,
+      shape: "diamond",
+      style: {
+        fill: "white",
+        stroke: "#5B8FF9",
+        lineWidth: 2,
+      },
+    },
+    tooltip: {
+      showMarkers: false,
+    },
+    state: {
+      active: {
+        style: {
+          shadowBlur: 4,
+          stroke: "#000",
+          fill: "red",
+        },
+      },
+    },
+    interactions: [
+      {
+        type: "marker-active",
+      },
+    ],
+  };
+
+  const sale = {
+    data: saleGraph,
+    xField: "year",
+    yField: "count",
     label: {},
     point: {
       size: 5,
@@ -124,13 +150,13 @@ export default function Home() {
         <Col xs={24} md={12}>
           <Card bordered={false}>
             <h3>Purchase</h3>
-            <Line {...config} />
+            <Line {...purchase} />
           </Card>
         </Col>
         <Col xs={24} md={12}>
           <Card bordered={false}>
             <h3>Sales</h3>
-            <Column {...config} />
+            <Column {...sale} />
           </Card>
         </Col>
       </Row>
