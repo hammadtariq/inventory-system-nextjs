@@ -14,7 +14,7 @@ export function addTitleAndDetails(doc, headData) {
   // Set font for the title
   doc.setFont("helvetica", "bold");
   doc.setFontSize(21);
-  doc.text("COMPANY NAME", 105, 15, { align: "center" });
+  doc.text("VAST APPAREL", 105, 15, { align: "center" });
   doc.setFontSize(16);
   // Add the 'INVOICE' text at the center
   doc.text("INVOICE", 105, 55, { align: "center" });

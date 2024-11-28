@@ -80,8 +80,15 @@ const PurchaseOrders = () => {
           onClick={() => router.push(`/purchase/${text.id}`)}
         />
       );
+    } else {
+      return (
+        <EditOutlined
+          style={{ color: STATUS_COLORS.EDIT }}
+          className="editBtn"
+          onClick={() => router.push(`/purchase/${text.id}`)}
+        />
+      );
     }
-    // else if (EDITABLE_STATUS.includes(record.status) && canEdit)
   };
   const columns = [
     {

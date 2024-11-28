@@ -9,8 +9,7 @@ function Update({ id, type }) {
   const isView = type === "view";
   const { purchase, error, isLoading } = usePurchaseOrder(id);
   if (error) return <Alert message={error} type="error" />;
-  if (!isLoading && purchase.status === STATUS.APPROVED && !isView)
-    return <Alert message={"Operation not allowed"} type="error" />;
+  if (!isLoading && purchase.status === !isView) return <Alert message={"Operation not allowed"} type="error" />;
 
   return (
     <div>
