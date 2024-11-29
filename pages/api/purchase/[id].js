@@ -85,64 +85,66 @@ const updatePurchaseOrder = async (req, res) => {
     // Log minimal purchase details for tracking
     console.log(`Purchase Order ${id} found with status: ${purchaseObj.status}`);
 
-    // Check status for editability
+    // Check status for editing
     if (!EDITABLE_STATUS.includes(purchaseObj.status)) {
-      console.warn(`Purchase order is: ${purchaseObj.status}).`);
-
-      // Calculate differences
-      const differences = calculateDifferences(value, purchaseObj);
-
-      // Log only if there are differences
-      if (Object.keys(differences).length) {
-        console.log("Differences Detected:", JSON.stringify(differences, null, 2));
-      }
-
-      // Update the purchase order with the new data and increment the revision number
-      console.log("Updating Purchase Order with new values...");
-      await purchase.update({
-        ...value,
-        status: STATUS.PENDING,
-        revisionDetails: differences,
-        revisionNo: (purchaseObj?.revisionNo ?? 0) + 1,
-      });
-
+      console.warn(`Purchase order is: ${purchaseObj.status}`);
+      const updatedPurchase = await updatePurchaseOrderAfterApproval(value, purchase, purchaseObj);
       console.log("===== Update Purchase Order Request End =====");
-      return res.send(purchase);
+      return res.send(updatedPurchase);
     } else {
       console.log("Purchase Order is editable, proceeding with the update...");
-
       /**
         @returns {number} The previous revision number Track the update for revisions
         If the purchase is not approved yet, so the revision number will be 0.
         If the purchase was approved before, use the existing revision number.
       */
-
       const previousRevisionNo = purchaseObj?.revisionNo ?? 0;
       if (!previousRevisionNo) {
         console.log("===== Update Purchase Order Request End =====");
         await purchase.update({ ...value, status: STATUS.PENDING });
         return res.send(purchase);
       }
-
-      // Calculate differences if revision exists
-      const newDifferences = calculateDifferences(value, purchaseObj);
-
-      // Update the purchase order with new values and increment revision
-      await purchase.update({
-        ...value,
-        status: STATUS.PENDING,
-        revisionDetails: newDifferences,
-        revisionNo: previousRevisionNo + 1,
-      });
-
+      const updatedPurchase = await updateNewDiffBeforeApproval(value, purchase, purchaseObj);
       console.log("===== Update Purchase Order Request End =====");
-      return res.send(purchase);
+      return res.send(updatedPurchase);
     }
   } catch (error) {
-    console.error("Update Purchase Order Request Error:");
-    console.error(error.stack || error.toString());
+    console.error("Update Purchase Order Request Error:", error.stack || error.toString());
     return res.status(500).send({ message: error.toString() });
   }
+};
+
+const updatePurchaseOrderAfterApproval = async (value, purchase, purchaseObj) => {
+  // Calculate differences
+  const differences = calculateDifferences(value, purchaseObj);
+
+  if (Object.keys(differences).length) {
+    console.log("Differences Detected:", JSON.stringify(differences, null, 2));
+  }
+
+  // Update the purchase order
+  console.log("Updating Purchase Order with revision after approval...");
+  await purchase.update({
+    ...value,
+    status: STATUS.PENDING,
+    revisionDetails: differences,
+    revisionNo: (purchaseObj.revisionNo || 0) + 1,
+  });
+  return purchase;
+};
+
+const updateNewDiffBeforeApproval = async (value, purchase, purchaseObj) => {
+  // Calculate differences if revision exists
+  const newDifferences = calculateDifferences(value, purchaseObj);
+
+  console.log("Updating Purchase Order with new differences before approval...");
+  await purchase.update({
+    ...value,
+    status: STATUS.PENDING,
+    revisionDetails: newDifferences,
+    revisionNo: previousRevisionNo + 1,
+  });
+  return purchase;
 };
 
 export default nextConnect().use(auth).get(getPurchaseOrder).put(updatePurchaseOrder);
