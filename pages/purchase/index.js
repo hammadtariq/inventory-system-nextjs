@@ -21,6 +21,7 @@ import permissionsUtil from "@/utils/permission.util";
 import { DATE_FORMAT, STATUS_COLORS } from "@/utils/ui.util";
 import { CheckOutlined, CloseOutlined, EditOutlined } from "@ant-design/icons";
 import SearchInput from "@/components/SearchInput";
+import { comaSeparatedValues } from "@/utils/comaSeparatedValues";
 
 const PurchaseOrders = () => {
   const { purchaseOrders, error, isLoading, paginationHandler, mutate } = usePurchaseOrders();
@@ -117,7 +118,12 @@ const PurchaseOrders = () => {
         setSearchedColumn,
       }),
     },
-    { title: "Invoice Total Amount (Rs)", dataIndex: "totalAmount", key: "totalAmount" },
+    {
+      title: "Invoice Total Amount (Rs)",
+      dataIndex: "totalAmount",
+      key: "totalAmount",
+      render: (text) => comaSeparatedValues(text),
+    },
     { title: "Bale Type", dataIndex: "baleType", key: "baleType" },
     { title: "Invoice Number", dataIndex: "invoiceNumber", key: "invoiceNumber", render: (text) => text ?? "N/A" },
     { title: "Sur Charge (Rs)", dataIndex: "surCharge", key: "surCharge", render: (text) => text ?? "N/A" },

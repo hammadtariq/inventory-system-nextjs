@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Col, Row } from "antd";
 import EditableInventoryCell from "@/components/editableInventoryCell";
 import ExportButton from "@/components/exportButton";
@@ -11,11 +11,18 @@ import { getInventory, searchInventory, updateInventory, useInventory } from "@/
 import styles from "@/styles/EditableCell.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import permissionsUtil from "@/utils/permission.util";
+import { useCompanies } from "@/hooks/company";
 
 const Inventory = () => {
   const { inventory, error, isLoading, mutate, paginationHandler, filtersHandler } = useInventory();
+  const {
+    companies,
+    error: companyError,
+    isLoading: isCompanyLoading,
+    paginationHandler: companyPaginationHandler,
+    mutate: mutateCompanies,
+  } = useCompanies();
   const [updatedInventory, setUpdatedInventory] = useState([]);
-  const [companyOptions, setCompanyOptions] = useState([]);
   const [searchedColumn, setSearchedColumn] = useState("");
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -29,21 +36,16 @@ const Inventory = () => {
 
   useEffect(() => {
     setUpdatedInventory(inventory);
-    if (inventory && companyOptions.length === 0) {
-      extractCompanyOptions(inventory);
-    }
-  }, [companyOptions, inventory]);
+  }, [inventory]);
 
-  const extractCompanyOptions = (inventory) => {
-    const companyOptions = Array.from(new Set(inventory.rows.map((item) => item.company.id))).map((id) => {
-      const company = inventory.rows.find((item) => item.company.id === id).company;
-      return {
+  const companyOptions = useMemo(
+    () =>
+      companies?.rows?.map((company) => ({
         label: company.companyName,
         value: company.id,
-      };
-    });
-    setCompanyOptions(companyOptions);
-  };
+      })) || [],
+    [companies?.rows]
+  );
 
   const defaultColumns = [
     {
@@ -66,15 +68,39 @@ const Inventory = () => {
         searchedColumn,
         setSearchText,
         setSearchedColumn,
-        selectOptions: companyOptions, // Pass the select options here
+        selectOptions: companyOptions,
       }),
     },
     { title: "On Hand", dataIndex: "onHand", key: "onHand" },
-    { title: "Bale Weight (LBS)", dataIndex: "baleWeightLbs", key: "baleWeightLbs", render: (text) => text ?? "N/A" },
-    { title: "Bale Weight (KGS)", dataIndex: "baleWeightKgs", key: "baleWeightKgs", render: (text) => text ?? "N/A" },
-    { title: "Rate per LBS (Rs)", dataIndex: "ratePerLbs", key: "ratePerLbs", render: (text) => text ?? "N/A" },
-    { title: "Rate per KGS (Rs)", dataIndex: "ratePerKgs", key: "ratePerKgs", render: (text) => text ?? "N/A" },
-    { title: "Rate per Bale (Rs)", dataIndex: "ratePerBale", key: "ratePerBale" },
+    {
+      title: "Bale Weight (LBS)",
+      dataIndex: "baleWeightLbs",
+      key: "baleWeightLbs",
+      render: (text) => (text != null ? Number(text).toFixed(2) : "N/A"),
+    },
+    {
+      title: "Bale Weight (KGS)",
+      dataIndex: "baleWeightKgs",
+      key: "baleWeightKgs",
+      render: (text) => (text != null ? Number(text).toFixed(2) : "N/A"),
+    },
+    {
+      title: "Rate per LBS (Rs)",
+      dataIndex: "ratePerLbs",
+      key: "ratePerLbs",
+      render: (text) => (text != null ? Number(text).toFixed(2) : "N/A"),
+    },
+    {
+      title: "Rate per KGS (Rs)",
+      dataIndex: "ratePerKgs",
+      key: "ratePerKgs",
+      render: (text) => (text != null ? Number(text).toFixed(2) : "N/A"),
+    },
+    {
+      title: "Rate per Bale (Rs)",
+      dataIndex: "ratePerBale",
+      key: "ratePerBale",
+    },
   ];
 
   const columns = canEditItemName

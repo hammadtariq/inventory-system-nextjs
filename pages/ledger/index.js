@@ -6,6 +6,7 @@ import { useLedger } from "@/hooks/ledger";
 import styles from "@/styles/Ledger.module.css";
 import AppTitle from "@/components/title";
 import AppCreateButton from "@/components/createButton";
+import { comaSeparatedValues } from "@/utils/comaSeparatedValues";
 
 const Ledger = () => {
   const router = useRouter();
@@ -69,7 +70,7 @@ const Ledger = () => {
                       <div>
                         <div className={styles.rowDirectionContainer}>
                           <div className={styles.headingStyle}>Total Balance:</div>
-                          <div className={styles.contentStyle}>{`${item.total.toFixed(2)}`}</div>
+                          <div className={styles.contentStyle}>{`${comaSeparatedValues(item.total.toFixed(2))}`}</div>
                         </div>
                       </div>
                     </Card>
