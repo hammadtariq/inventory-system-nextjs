@@ -60,7 +60,7 @@ const AddEditPurchase = ({ purchase, type = null }) => {
       setCompanyId(id);
       setSelectedListType(baleType);
     }
-  }, [purchase]);
+  }, [form, purchase]);
 
   // update total amount value using form field
   useEffect(() => {
@@ -92,10 +92,10 @@ const AddEditPurchase = ({ purchase, type = null }) => {
         id,
         noOfBales,
         ratePerBale,
-        ...(baleWeightLbs && { baleWeightLbs }),
-        ...(baleWeightKgs && { baleWeightKgs }),
-        ...(ratePerLbs && { ratePerLbs }),
-        ...(ratePerKgs && { ratePerKgs }),
+        baleWeightLbs: baleWeightLbs ?? 0,
+        baleWeightKgs: baleWeightKgs ?? 0,
+        ratePerLbs: ratePerLbs ?? 0,
+        ratePerKgs: ratePerKgs ?? 0,
       };
     });
     delete orderData.totalBundle;
@@ -161,7 +161,7 @@ const AddEditPurchase = ({ purchase, type = null }) => {
           </Col>
           <Col span={8}>
             <Form.Item name="invoiceNumber" label="Invoice No">
-              <Input type="text" disabled={isView} />
+              <Input type="text" disabled={isView || purchase?.status === "APPROVED"} />
             </Form.Item>
           </Col>
           <Col span={8}>
@@ -185,7 +185,7 @@ const AddEditPurchase = ({ purchase, type = null }) => {
                 disabledDate={(current) => current && current.valueOf() > Date.now()}
                 format={DATE_FORMAT}
                 // defaultValue={dayjs()}
-                disabled={isView}
+                disabled={isView || purchase?.status === "APPROVED"}
               />
             </Form.Item>
           </Col>

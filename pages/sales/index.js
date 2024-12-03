@@ -13,6 +13,7 @@ import { getColumnSearchProps } from "@/utils/filter.util";
 import permissionsUtil from "@/utils/permission.util";
 import { DATE_FORMAT, STATUS_COLORS } from "@/utils/ui.util";
 import { CheckOutlined, CloseOutlined, EditOutlined } from "@ant-design/icons";
+import { comaSeparatedValues } from "@/utils/comaSeparatedValues";
 
 const Sales = () => {
   const { sales, error, isLoading, paginationHandler, mutate } = useSales();
@@ -136,7 +137,12 @@ const Sales = () => {
       dataIndex: ["customer", "lastName"],
       key: "customerName",
     },
-    { title: "Invoice Total Amount (Rs)", dataIndex: "totalAmount", key: "totalAmount" },
+    {
+      title: "Invoice Total Amount (Rs)",
+      dataIndex: "totalAmount",
+      key: "totalAmount",
+      render: (text) => comaSeparatedValues(text.toFixed(2)),
+    },
     {
       title: "Sold Date",
       dataIndex: "soldDate",

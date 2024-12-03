@@ -48,12 +48,12 @@ export default function AddItemsInPo({
   const edit = (record) => {
     form.setFieldsValue({
       itemName: "",
-      noOfBales: "",
-      baleWeightLbs: "",
-      baleWeightKgs: "",
-      ratePerLbs: "",
-      ratePerKgs: "",
-      ...(type === "SMALL_BALES" && { ratePerBale: "" }),
+      noOfBales: 0,
+      baleWeightLbs: 0,
+      baleWeightKgs: 0,
+      ratePerLbs: 0,
+      ratePerKgs: 0,
+      ...(type === "SMALL_BALES" && { ratePerBale: 0 }),
       ...record,
     });
   };

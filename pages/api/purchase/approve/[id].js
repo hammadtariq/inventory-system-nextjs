@@ -35,60 +35,28 @@ const approvePurchaseOrder = async (req, res) => {
     if (purchase.status === STATUS.APPROVED) {
       return res.status(400).send({ message: "purchase order already approved" });
     }
-    const { purchasedProducts, purchaseDate, companyId, totalAmount, invoiceNumber } = purchase;
+    const { purchasedProducts, purchaseDate, companyId, totalAmount, invoiceNumber, revisionDetails, revisionNo } =
+      purchase;
 
-    for await (const product of purchasedProducts) {
-      const { id, itemName, noOfBales, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs, ratePerBale } = product;
-      // TODO: testing id for this query is itemName was causing issues
-      // const inventory = await db.Inventory.findOne({ where: { itemName, companyId }, transaction: t });
-      const inventory = await db.Inventory.findOne({ where: { id, companyId }, transaction: t });
-      if (inventory) {
-        await inventory.increment(["onHand", "noOfBales"], { by: noOfBales, transaction: t });
-        await inventory.increment({ baleWeightKgs: baleWeightKgs, baleWeightLbs: baleWeightLbs }, { transaction: t });
-        await inventory.update(
-          {
-            ratePerLbs,
-            ratePerKgs,
-            ratePerBale,
-          },
-          { transaction: t }
-        );
-      } else {
-        await db.Inventory.create(
-          {
-            ...product,
-            companyId,
-            onHand: noOfBales,
-            baleWeightKgs,
-            baleWeightLbs,
-          },
-          { transaction: t }
-        );
-      }
+    if (!revisionNo) {
+      updateInventory(purchasedProducts, companyId, t);
+    } else {
+      updateInventory(revisionDetails.purchasedProducts, companyId, t);
     }
+
+    // Approve purchase order
     await purchase.update({ status: STATUS.APPROVED }, { transaction: t });
 
-    const balance = await balanceQuery(companyId, "company");
+    // Update Ledger
 
-    let totalBalance;
-
-    if (!balance.length) {
-      totalBalance = totalAmount;
-    } else {
-      totalBalance = balance[0].amount + totalAmount;
-    }
-    await db.Ledger.create(
-      {
-        companyId,
-        amount: totalAmount,
-        transactionId: id,
-        spendType: SPEND_TYPE.DEBIT,
-        invoiceNumber,
-        paymentDate: purchaseDate,
-        totalBalance: totalBalance,
-      },
-      { transaction: t }
-    );
+    await updateLedger(revisionNo, {
+      companyId,
+      transactionId: id,
+      totalAmount,
+      purchaseDate,
+      invoiceNumber,
+      t,
+    });
     await t.commit();
     console.log("Approve Purchase order Request End");
     return res.send();
@@ -96,6 +64,83 @@ const approvePurchaseOrder = async (req, res) => {
     await t.rollback();
     console.log("Approve Purchase order Request Error:", error);
     return res.status(500).send({ message: error.toString() });
+  }
+};
+
+// Consolidated Inventory Update
+const updateInventory = async (products, companyId, transaction) => {
+  for await (const product of products) {
+    const { id, noOfBales, baleWeightKgs, baleWeightLbs, ratePerLbs, ratePerKgs, ratePerBale } = product;
+
+    const inventory = await db.Inventory.findOne({ where: { id, companyId }, transaction });
+    if (inventory) {
+      await inventory.increment({ onHand: noOfBales || 0, noOfBales: noOfBales || 0 }, { transaction });
+
+      if (baleWeightKgs !== undefined) {
+        if (inventory.baleWeightKgs === null) {
+          await inventory.update({ baleWeightKgs: baleWeightKgs >= 0 ? baleWeightKgs : 0 }, { transaction });
+        } else {
+          await inventory.increment({ baleWeightKgs }, { transaction });
+        }
+      }
+
+      if (baleWeightLbs !== undefined) {
+        if (inventory.baleWeightLbs === null) {
+          await inventory.update({ baleWeightLbs: baleWeightLbs >= 0 ? baleWeightLbs : 0 }, { transaction });
+        } else {
+          await inventory.increment({ baleWeightLbs }, { transaction });
+        }
+      }
+
+      await inventory.update(
+        {
+          ratePerLbs: ratePerLbs || inventory.ratePerLbs,
+          ratePerKgs: ratePerKgs || inventory.ratePerKgs,
+          ratePerBale: ratePerBale || inventory.ratePerBale,
+        },
+        { transaction }
+      );
+    } else {
+      await db.Inventory.create(
+        { ...product, companyId, onHand: noOfBales || 0, baleWeightKgs, baleWeightLbs },
+        { transaction }
+      );
+    }
+  }
+};
+
+// Ledger Update Logic
+const updateLedger = async (revisionNo, { companyId, transactionId, totalAmount, purchaseDate, invoiceNumber, t }) => {
+  if (revisionNo !== 0) {
+    const ledger = await db.Ledger.findOne({ where: { companyId, transactionId }, transaction: t });
+    if (ledger) {
+      await ledger.update(
+        {
+          amount: totalAmount,
+          spendType: SPEND_TYPE.DEBIT,
+          invoiceNumber,
+          paymentDate: purchaseDate,
+          totalBalance: totalAmount,
+        },
+        { transaction: t }
+      );
+    }
+  } else {
+    const balance = await balanceQuery(companyId, "company");
+    const totalBalance = balance[0].amount + totalAmount;
+
+    await db.Ledger.create(
+      {
+        companyId,
+        amount: totalAmount,
+        transactionId,
+        spendType: SPEND_TYPE.DEBIT,
+        invoiceNumber,
+        paymentDate: purchaseDate,
+        totalBalance,
+      },
+      { transaction: t }
+    );
   }
 };
 

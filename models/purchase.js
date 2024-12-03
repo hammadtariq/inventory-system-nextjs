@@ -32,6 +32,15 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.JSONB,
         allowNull: false,
       },
+      revisionDetails: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+      },
+      revisionNo: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
+      },
       status: DataTypes.ENUM(["PENDING", "APPROVED", "CANCEL"]),
       baleType: DataTypes.ENUM(["SMALL_BALES", "BIG_BALES"]),
       purchaseDate: {

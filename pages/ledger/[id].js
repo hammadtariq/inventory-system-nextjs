@@ -9,6 +9,7 @@ import { DATE_FORMAT } from "@/utils/ui.util";
 import { useRouter } from "next/router";
 import ExportButton from "@/components/exportButton";
 import { EyeOutlined } from "@ant-design/icons";
+import { comaSeparatedValues } from "@/utils/comaSeparatedValues";
 
 const LedgerDetails = ({ id, type }) => {
   const router = useRouter();
@@ -83,9 +84,9 @@ const LedgerDetails = ({ id, type }) => {
       key: "amount",
       render: (text, _data) => {
         if (_data.paymentType && type === "customer") {
-          return text.toFixed(2);
+          return comaSeparatedValues(text.toFixed(2));
         } else if (!_data.paymentType) {
-          return _data.spendType === SPEND_TYPE.DEBIT ? text.toFixed(2) : "";
+          return _data.spendType === SPEND_TYPE.DEBIT ? comaSeparatedValues(text.toFixed(2)) : "";
         }
         return "";
       },
@@ -96,9 +97,9 @@ const LedgerDetails = ({ id, type }) => {
       key: "amount",
       render: (text, _data) => {
         if (_data.paymentType && type === "company") {
-          return text.toFixed(2);
+          return comaSeparatedValues(text.toFixed(2));
         } else if (!_data.paymentType) {
-          return _data.spendType === SPEND_TYPE.CREDIT ? text.toFixed(2) : "";
+          return _data.spendType === SPEND_TYPE.CREDIT ? comaSeparatedValues(text.toFixed(2)) : "";
         }
       },
     },
@@ -108,9 +109,10 @@ const LedgerDetails = ({ id, type }) => {
       key: "totalBalance",
       render: (text, _data) => {
         if (type === "company") {
-          return _data.companyTotal ? _data.companyTotal.toFixed(2) : text;
+          debugger;
+          return _data.companyTotal ? comaSeparatedValues(_data.companyTotal.toFixed(2)) : comaSeparatedValues(text);
         } else {
-          return _data.customerTotal ? _data.customerTotal.toFixed(2) : text;
+          return _data.customerTotal ? comaSeparatedValues(_data.customerTotal.toFixed(2)) : comaSeparatedValues(text);
         }
       },
     },
@@ -124,7 +126,7 @@ const LedgerDetails = ({ id, type }) => {
   const renderTotalBalance = () => (
     <div className={styles.rowDirectionTableContainer}>
       <div className={styles.headingStyle}>Total Balance (RS):</div>
-      <div className={styles.contentStyle}>{`${totalBalance ? totalBalance.toFixed(2) : 0}`}</div>
+      <div className={styles.contentStyle}>{`${totalBalance ? comaSeparatedValues(totalBalance.toFixed(2)) : 0}`}</div>
     </div>
   );
   console.log("transactions", transactions);
