@@ -3,9 +3,12 @@ import useSWR from "swr";
 import { get, post, put } from "@/lib/http-client";
 import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 
-export const usePurchaseOrders = () => {
+export const usePurchaseOrders = (search) => {
   const [pagination, setPagination] = useState({ limit: DEFAULT_PAGE_LIMIT, offset: 0 });
-  const { data, error, mutate } = useSWR(`/api/purchase?limit=${pagination.limit}&offset=${pagination.offset}`, get);
+  const { data, error, mutate } = useSWR(
+    `/api/purchase?limit=${pagination.limit}&offset=${pagination.offset}&search=${search}`,
+    get
+  );
 
   const paginationHandler = useCallback(
     (limit, offset) => {

@@ -46,19 +46,31 @@ const createPurchaseOrder = async (req, res) => {
 const getAllPurchase = async (req, res) => {
   console.log("Get all Purchase order Request Start");
 
-  const { limit, offset } = req.query;
-  const pagination = {};
-  pagination.limit = limit ? limit : DEFAULT_ROWS_LIMIT;
-  pagination.offset = offset ? offset : 0;
+  const { limit, offset, search } = req.query;
+  const pagination = {
+    limit: limit ? parseInt(limit) : DEFAULT_ROWS_LIMIT,
+    offset: offset ? parseInt(offset) : 0,
+  };
+
+  if (search && offset) {
+    pagination.offset = 0;
+  }
+
   try {
     await db.dbConnect();
+    const whereClause = search
+      ? {
+          [db.Sequelize.Op.or]: [{ companyId: { [db.Sequelize.Op.eq]: Number(search) } }],
+        }
+      : {};
     const data = await db.Purchase.findAndCountAll({
-      ...pagination,
+      where: whereClause,
       include: [db.Company],
       order: [["updatedAt", "DESC"]],
+      ...pagination,
     });
-    console.log("Get all Purchase order Request End");
 
+    console.log("Get all Purchase order Request End");
     return res.send(data);
   } catch (error) {
     console.log("Get all Purchase order Request Error:", error);
