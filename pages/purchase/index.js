@@ -22,7 +22,6 @@ const PurchaseOrders = () => {
   const { purchaseOrders, error, isLoading, paginationHandler, mutate } = usePurchaseOrders(search);
 
   useEffect(() => {
-    debugger;
     setUpdatedPurchase(purchaseOrders);
   }, [purchaseOrders]);
 
