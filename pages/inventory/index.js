@@ -9,25 +9,15 @@ import AppTable from "@/components/table";
 import AppTitle from "@/components/title";
 import { getInventory, searchInventory, updateInventory, useInventory } from "@/hooks/inventory";
 import styles from "@/styles/EditableCell.module.css";
-import { getColumnSearchProps } from "@/utils/filter.util";
 import permissionsUtil from "@/utils/permission.util";
 import { useCompanies } from "@/hooks/company";
 
 const Inventory = () => {
-  const { inventory, error, isLoading, mutate, paginationHandler, filtersHandler } = useInventory();
-  const {
-    companies,
-    error: companyError,
-    isLoading: isCompanyLoading,
-    paginationHandler: companyPaginationHandler,
-    mutate: mutateCompanies,
-  } = useCompanies();
+  const [filters, setFilters] = useState({ itemId: null, companyIds: [] });
+  const { inventory, error, isLoading, mutate, paginationHandler } = useInventory(filters);
+  const { companies, error: companyError } = useCompanies();
   const [updatedInventory, setUpdatedInventory] = useState([]);
-  const [searchedColumn, setSearchedColumn] = useState("");
-  const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(false);
-  const [filters, setFilters] = useState([]);
-  const searchInput = useRef(null);
 
   const canEditItemName = permissionsUtil.checkAuth({
     category: "inventory",
@@ -47,6 +37,22 @@ const Inventory = () => {
     [companies?.rows]
   );
 
+  const buildColumns = (defaultColumns) =>
+    defaultColumns.map((col) =>
+      col.editable
+        ? {
+            ...col,
+            onCell: (record) => ({
+              record,
+              editable: col.editable,
+              dataIndex: col.dataIndex,
+              title: col.title,
+              handleSave,
+            }),
+          }
+        : col
+    );
+
   const defaultColumns = [
     {
       title: "Item Name",
@@ -58,18 +64,6 @@ const Inventory = () => {
       title: "Company Name",
       dataIndex: ["company", "companyName"],
       key: "companyName",
-      ...getColumnSearchProps({
-        dataIndex: "companyName",
-        dataIndexName: "company name",
-        parentDataIndex: "company",
-        nested: true,
-        searchInput,
-        searchText,
-        searchedColumn,
-        setSearchText,
-        setSearchedColumn,
-        selectOptions: companyOptions,
-      }),
     },
     { title: "On Hand", dataIndex: "onHand", key: "onHand" },
     {
@@ -103,24 +97,7 @@ const Inventory = () => {
     },
   ];
 
-  const columns = canEditItemName
-    ? defaultColumns.map((col) => {
-        if (!col.editable) {
-          return col;
-        }
-
-        return {
-          ...col,
-          onCell: (record) => ({
-            record,
-            editable: col.editable,
-            dataIndex: col.dataIndex,
-            title: col.title,
-            handleSave,
-          }),
-        };
-      })
-    : defaultColumns;
+  const columns = canEditItemName ? buildColumns(defaultColumns) : defaultColumns;
 
   const handleSave = async (row) => {
     setLoading(true);
@@ -129,14 +106,14 @@ const Inventory = () => {
       mutate();
     } catch (error) {
       console.log("update inventory item name error", error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleSearch = async (value) => {
     if (!value) {
-      setUpdatedInventory(inventory);
-      return inventory;
+      setFilters({ itemId: null });
     } else {
       const searchResults = await searchInventory(value);
       return searchResults;
@@ -150,12 +127,12 @@ const Inventory = () => {
     return newInventory;
   };
 
-  const handleChange = async (filters) => {
-    filtersHandler(filters);
-    setFilters(filters);
+  const handleChange = async (selectedOptions) => {
+    const companyIds = selectedOptions.map((option) => option.value);
+    setFilters({ companyIds });
   };
 
-  if (error) return <Alert message={error} type="error" />;
+  if (error || companyError) return <Alert message={error || companyError} type="error" />;
   return (
     <>
       <AppTitle level={2}>Inventory List</AppTitle>

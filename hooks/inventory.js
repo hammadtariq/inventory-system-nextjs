@@ -5,9 +5,8 @@ import useSWR from "swr";
 import { get, put } from "@/lib/http-client";
 import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 
-export const useInventory = () => {
+export const useInventory = (filters) => {
   const [pagination, setPagination] = useState({ limit: DEFAULT_PAGE_LIMIT, offset: 0 });
-  const [filters, setFilters] = useState([]);
 
   const { data, error, mutate } = useSWR(
     `/api/inventory?limit=${pagination.limit}&offset=${pagination.offset}&filters=${JSON.stringify(filters)}`,
@@ -21,20 +20,12 @@ export const useInventory = () => {
     [setPagination]
   );
 
-  const filtersHandler = useCallback(
-    (filter) => {
-      setFilters(filter);
-    },
-    [setFilters]
-  );
-
   return {
     inventory: data,
     isLoading: !error && !data,
     error,
     mutate,
     paginationHandler,
-    filtersHandler,
   };
 };
 
