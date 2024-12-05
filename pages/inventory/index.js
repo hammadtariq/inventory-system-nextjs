@@ -114,8 +114,8 @@ const Inventory = () => {
 
   const handleSearch = async (value) => {
     if (!value) {
-      setFilters({ itemId: null });
-      paginationHandler(DEFAULT_PAGE_LIMIT, 0, 1);
+      setUpdatedInventory(inventory);
+      return inventory;
     } else {
       const searchResults = await searchInventory(value);
       return searchResults;
