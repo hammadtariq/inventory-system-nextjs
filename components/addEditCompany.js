@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 
 import { createCompany, updateCompany } from "@/hooks/company";
 import permissionsUtil from "@/utils/permission.util";
-import { VALIDATE_MESSAGE } from "@/utils/ui.util";
+import { toLowerCaseObjVal, VALIDATE_MESSAGE } from "@/utils/ui.util";
 
 import AppBackButton from "./backButton";
 
@@ -33,7 +33,7 @@ const AddEditCompany = ({ company }) => {
 
   const onFinish = async (values) => {
     setLoading(true);
-
+    values = toLowerCaseObjVal(values);
     try {
       if (company) {
         await updateCompany(company.id, values);
@@ -42,6 +42,8 @@ const AddEditCompany = ({ company }) => {
       }
       router.push("/company");
     } catch (error) {
+      console.error("Error: ", error);
+    } finally {
       setLoading(false);
     }
   };

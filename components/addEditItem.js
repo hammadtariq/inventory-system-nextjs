@@ -7,7 +7,7 @@ import SelectCompany from "@/components/selectCompany";
 import SelectItemList from "@/components/selectItemList";
 import { createItem, updateItem } from "@/hooks/items";
 import permissionsUtil from "@/utils/permission.util";
-import { VALIDATE_MESSAGE } from "@/utils/ui.util";
+import { toLowerCaseObjVal, VALIDATE_MESSAGE } from "@/utils/ui.util";
 
 import AppBackButton from "./backButton";
 
@@ -38,6 +38,7 @@ const AddEditItem = ({ item }) => {
 
   const onFinish = async (values) => {
     setLoading(true);
+    values = toLowerCaseObjVal(values);
     const itemValues = { ...values };
     itemValues.type = selectedListType;
     itemValues.companyId = companyId;
@@ -49,6 +50,8 @@ const AddEditItem = ({ item }) => {
       }
       router.push("/items");
     } catch (error) {
+      console.error("Error: ", error);
+    } finally {
       setLoading(false);
     }
   };
