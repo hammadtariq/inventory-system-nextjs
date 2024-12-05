@@ -11,6 +11,7 @@ import { getInventory, searchInventory, updateInventory, useInventory } from "@/
 import styles from "@/styles/EditableCell.module.css";
 import permissionsUtil from "@/utils/permission.util";
 import { useCompanies } from "@/hooks/company";
+import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 
 const Inventory = () => {
   const [filters, setFilters] = useState({ itemId: null, companyIds: [] });
@@ -114,6 +115,7 @@ const Inventory = () => {
   const handleSearch = async (value) => {
     if (!value) {
       setFilters({ itemId: null });
+      paginationHandler(DEFAULT_PAGE_LIMIT, 0, 1);
     } else {
       const searchResults = await searchInventory(value);
       return searchResults;
@@ -130,6 +132,7 @@ const Inventory = () => {
   const handleChange = async (selectedOptions) => {
     const companyIds = selectedOptions.map((option) => option.value);
     setFilters({ companyIds });
+    paginationHandler(DEFAULT_PAGE_LIMIT, 0, 1);
   };
 
   if (error || companyError) return <Alert message={error || companyError} type="error" />;

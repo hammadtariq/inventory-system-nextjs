@@ -52,10 +52,6 @@ const getAllPurchase = async (req, res) => {
     offset: offset ? parseInt(offset) : 0,
   };
 
-  if (search && offset) {
-    pagination.offset = 0;
-  }
-
   try {
     await db.dbConnect();
     const whereClause = search

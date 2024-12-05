@@ -1,26 +1,24 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import useSWR from "swr";
 import { get, post, put } from "@/lib/http-client";
 import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 
 export const usePurchaseOrders = (search) => {
-  const [pagination, setPagination] = useState({ limit: DEFAULT_PAGE_LIMIT, offset: 0 });
+  const [pagination, setPagination] = useState({ limit: DEFAULT_PAGE_LIMIT, offset: 0, pageNumber: 1 });
   const { data, error, mutate } = useSWR(
     `/api/purchase?limit=${pagination.limit}&offset=${pagination.offset}&search=${search}`,
     get
   );
 
-  const paginationHandler = useCallback(
-    (limit, offset) => {
-      setPagination({ limit, offset });
-    },
-    [setPagination]
-  );
+  const paginationHandler = (limit, offset, pageNumber) => {
+    setPagination({ limit, offset, pageNumber });
+  };
 
   return {
     purchaseOrders: data,
     isLoading: !error && !data,
     error,
+    pagination,
     paginationHandler,
     mutate,
   };

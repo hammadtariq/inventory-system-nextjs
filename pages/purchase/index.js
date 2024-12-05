@@ -9,7 +9,7 @@ import AppTable from "@/components/table";
 import AppTitle from "@/components/title";
 import { approvePurchase, cancelPurchase, searchPurchase, usePurchaseOrders } from "@/hooks/purchase";
 import permissionsUtil from "@/utils/permission.util";
-import { DATE_FORMAT, STATUS_COLORS } from "@/utils/ui.util";
+import { DATE_FORMAT, DEFAULT_PAGE_LIMIT, STATUS_COLORS } from "@/utils/ui.util";
 import SearchInput from "@/components/SearchInput";
 import { comaSeparatedValues } from "@/utils/comaSeparatedValues";
 import { CheckOutlined, CloseOutlined, EditOutlined } from "@ant-design/icons";
@@ -19,7 +19,7 @@ const PurchaseOrders = () => {
   const [updatedPurchase, setUpdatedPurchase] = useState();
   const [search, setSearch] = useState("");
   const router = useRouter();
-  const { purchaseOrders, error, isLoading, paginationHandler, mutate } = usePurchaseOrders(search);
+  const { purchaseOrders, error, isLoading, pagination, paginationHandler, mutate } = usePurchaseOrders(search);
 
   useEffect(() => {
     setUpdatedPurchase(purchaseOrders);
@@ -28,6 +28,7 @@ const PurchaseOrders = () => {
   const handleSearch = async (value) => {
     if (!value) {
       setSearch("");
+      paginationHandler(DEFAULT_PAGE_LIMIT, 0, 1);
     } else {
       const searchResults = await searchPurchase(value);
       return searchResults;
@@ -35,6 +36,7 @@ const PurchaseOrders = () => {
   };
 
   const handleSelect = async (companyId) => {
+    paginationHandler(DEFAULT_PAGE_LIMIT, 0, 1);
     setSearch(companyId);
   };
 
@@ -183,6 +185,7 @@ const PurchaseOrders = () => {
         dataSource={updatedPurchase ? updatedPurchase.rows : []}
         totalCount={updatedPurchase ? updatedPurchase.count : 0}
         paginationHandler={paginationHandler}
+        pagination={pagination}
       />
     </>
   );

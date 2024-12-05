@@ -17,10 +17,6 @@ const getAllInventory = async (req, res) => {
 
   const filterObj = filters ? JSON.parse(filters) : {};
   const { companyIds = [], itemId } = filterObj;
-  const filterExists = companyIds.length > 0 || itemId;
-  if (filterExists && options.offset) {
-    options.offset = 0;
-  }
 
   try {
     await db.dbConnect();
