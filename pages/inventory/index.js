@@ -15,7 +15,7 @@ import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 
 const Inventory = () => {
   const [filters, setFilters] = useState({ itemId: null, companyIds: [] });
-  const { inventory, error, isLoading, mutate, paginationHandler } = useInventory(filters);
+  const { inventory, error, isLoading, mutate, pagination, paginationHandler } = useInventory(filters);
   const { companies, error: companyError } = useCompanies();
   const [updatedInventory, setUpdatedInventory] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -187,6 +187,7 @@ const Inventory = () => {
         dataSource={updatedInventory ? updatedInventory.rows : []}
         totalCount={updatedInventory ? updatedInventory.count : 0}
         paginationHandler={paginationHandler}
+        pagination={pagination}
       />
     </>
   );
