@@ -20,7 +20,7 @@ const LedgerDetails = ({ id, type }) => {
   const renderActions = (_, record) => {
     return (
       <>
-        {record.transactionId ? (
+        {record.transactionId && type === "customer" ? (
           <>
             <EyeOutlined
               style={{ marginRight: "10px" }}

@@ -167,13 +167,19 @@ const AddEditPurchase = ({ purchase, type = null }) => {
           <Col span={8}>
             <Form.Item name="surCharge" label="Sur Charge (RS)">
               <Input
-                type="number"
+                type="text"
                 defaultValue={_surCharge}
                 value={_surCharge}
                 onChange={(e) => {
                   const value = parseFloat(e.target.value);
                   !isNaN(value) ? setSurCharge(value) : setSurCharge(0);
                 }}
+                // onWheel={(e) => e.preventDefault()}
+                // onKeyDown={(e) => {
+                //   if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                //     e.preventDefault();
+                //   }
+                // }}
                 disabled={isView}
               />
             </Form.Item>
