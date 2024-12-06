@@ -109,7 +109,6 @@ const LedgerDetails = ({ id, type }) => {
       key: "totalBalance",
       render: (text, _data) => {
         if (type === "company") {
-          debugger;
           return _data.companyTotal ? comaSeparatedValues(_data.companyTotal.toFixed(2)) : comaSeparatedValues(text);
         } else {
           return _data.customerTotal ? comaSeparatedValues(_data.customerTotal.toFixed(2)) : comaSeparatedValues(text);

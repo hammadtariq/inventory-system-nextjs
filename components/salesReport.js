@@ -88,7 +88,7 @@ const SalesReport = () => {
     salesData.flatMap(({ id: invoiceNo, customer, laborCharge, soldDate, totalAmount, soldProducts }) =>
       soldProducts.map(
         ({ itemName, noOfBales, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs, ratePerBale, company }) => ({
-          customer: `${customer.firstName} ${customer.lastName}`,
+          customer: `${customer?.firstName} ${customer?.lastName}`,
           invoiceNo,
           laborCharge,
           soldDate: new Date(soldDate).toLocaleDateString("en-US", {
@@ -98,7 +98,7 @@ const SalesReport = () => {
           }),
           totalAmount,
           itemName,
-          company: company.companyName,
+          company: company?.companyName,
           noOfBales: noOfBales || "-",
           baleWeightLbs: baleWeightLbs || "-",
           baleWeightKgs: baleWeightKgs || "-",

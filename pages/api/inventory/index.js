@@ -3,7 +3,6 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { DEFAULT_ROWS_LIMIT } from "@/utils/api.util";
-import { parseableJson } from "@/utils/parseStringify.util";
 
 const getAllInventory = async (req, res) => {
   console.log("Get all inventory Request Start");
@@ -16,8 +15,8 @@ const getAllInventory = async (req, res) => {
     options.attributes = JSON.parse(attributes);
   }
 
-  let companyIds = [];
-  companyIds = filters ? parseableJson(filters) : [];
+  const filterObj = filters ? JSON.parse(filters) : {};
+  const { companyIds = [], itemId } = filterObj;
 
   try {
     await db.dbConnect();
@@ -28,6 +27,7 @@ const getAllInventory = async (req, res) => {
         ...(companyIds.length > 0 && {
           companyId: { [db.Sequelize.Op.in]: companyIds },
         }),
+        ...(itemId && { id: { [db.Sequelize.Op.eq]: `${itemId}` } }),
       },
       include: [db.Company],
       order: [["itemName", "ASC"]],
