@@ -149,7 +149,7 @@ const AddEditSale = ({ sale, type = null }) => {
           <Col span={8}>
             <Form.Item name="laborCharge" label="Labor Charge (RS)">
               <Input
-                type="number"
+                type="text"
                 min="0"
                 defaultValue={_laborCharge}
                 value={_laborCharge}

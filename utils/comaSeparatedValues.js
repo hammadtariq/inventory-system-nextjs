@@ -2,7 +2,7 @@ export const comaSeparatedValues = (value) => {
   const numberValue = typeof value === "number" ? value : parseFloat(value);
 
   if (isNaN(numberValue)) {
-    throw new Error("Input must be a valid number");
+    return value;
   }
 
   const fixedValue = numberValue.toFixed(2);
