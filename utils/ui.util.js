@@ -87,6 +87,12 @@ export const isBase64 = (str) => {
   }
 };
 
+export const toLowerCaseObjVal = (values) => {
+  return Object.fromEntries(
+    Object.entries(values).map(([key, value]) => [key, typeof value === "string" ? value.toLowerCase() : value])
+  );
+};
+
 export const downloadFile = (file, filename) => {
   const link = document.createElement("a");
   const date = new Date();
