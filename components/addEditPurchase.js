@@ -174,12 +174,6 @@ const AddEditPurchase = ({ purchase, type = null }) => {
                   const value = parseFloat(e.target.value);
                   !isNaN(value) ? setSurCharge(value) : setSurCharge(0);
                 }}
-                // onWheel={(e) => e.preventDefault()}
-                // onKeyDown={(e) => {
-                //   if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-                //     e.preventDefault();
-                //   }
-                // }}
                 disabled={isView}
               />
             </Form.Item>
