@@ -111,37 +111,38 @@ const updateInventory = async (products, companyId, transaction) => {
 
 // Ledger Update Logic
 const updateLedger = async (revisionNo, { companyId, transactionId, totalAmount, purchaseDate, invoiceNumber, t }) => {
+  // If revision number is not zero, update the existing ledger
   if (revisionNo !== 0) {
     const ledger = await db.Ledger.findOne({ where: { companyId, transactionId }, transaction: t });
-    if (ledger) {
-      await ledger.update(
-        {
-          amount: totalAmount,
-          spendType: SPEND_TYPE.DEBIT,
-          invoiceNumber,
-          paymentDate: purchaseDate,
-          totalBalance: totalAmount,
-        },
-        { transaction: t }
-      );
-    }
-  } else {
-    const balance = await balanceQuery(companyId, "company");
-    const totalBalance = balance[0].amount + totalAmount;
-
-    await db.Ledger.create(
+    await ledger.update(
       {
-        companyId,
         amount: totalAmount,
-        transactionId,
         spendType: SPEND_TYPE.DEBIT,
         invoiceNumber,
         paymentDate: purchaseDate,
-        totalBalance,
+        totalBalance: totalAmount,
       },
       { transaction: t }
     );
+    return;
   }
+
+  // Handle case where revision number is zero (create a new ledger entry)
+  const balance = await balanceQuery(companyId, "company");
+  const totalBalance = balance.length ? balance[0].amount + totalAmount : totalAmount;
+
+  await db.Ledger.create(
+    {
+      companyId,
+      amount: totalAmount,
+      transactionId,
+      spendType: SPEND_TYPE.DEBIT,
+      invoiceNumber,
+      paymentDate: purchaseDate,
+      totalBalance,
+    },
+    { transaction: t }
+  );
 };
 
 export default nextConnect().use(auth).put(approvePurchaseOrder);
