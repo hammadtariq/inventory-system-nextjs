@@ -113,12 +113,10 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 
 sequelize model:generate --name Sale --attributes customerId:integer,totalAmount:float,soldProducts:string
 
-
 ## alter Purchase Order Table
-1) ALTER TABLE public.purchases
-ADD COLUMN "revisionDetails" JSONB;
 
-2) ALTER TABLE public.purchases
-ADD COLUMN "revisionNo" INTEGER NOT NULL DEFAULT 0;
+1. ALTER TABLE public.purchases
+   ADD COLUMN "revisionDetails" JSONB;
 
-
+2. ALTER TABLE public.purchases
+   ADD COLUMN "revisionNo" INTEGER NOT NULL DEFAULT 0;
