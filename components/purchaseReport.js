@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { InputNumber, Row, Col, Typography, Divider, DatePicker } from "antd";
-import styles from "@/styles/SalesReport.module.css";
+import styles from "@/styles/Report.module.css";
 import SearchInput from "./SearchInput";
 import { searchCompany } from "@/hooks/company";
 import { searchItems } from "@/hooks/items";
@@ -75,10 +75,11 @@ const columns = [
 ];
 
 const PurchaseReport = () => {
+  // TODO: Most Boughten Items Filter
   const [searchCriteria, setSearchCriteria] = useState({ mostBoughten: false, company: "", item: "" });
   const [dateRange, setDateRange] = useState(startToTodayDate);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_LIMIT);
-  const [updatedSales, setUpdatedSales] = useState([]);
+  const [updatedPurchase, setUpdatedPurchase] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
 
   const [total, setTotal] = useState({});
@@ -118,12 +119,7 @@ const PurchaseReport = () => {
       setSearchCriteria((prev) => ({ ...prev, [type]: "" }));
       return;
     }
-    const result =
-      type === "company"
-        ? await searchCompany(value)
-        : type === "item"
-        ? await searchItems(value)
-        : await searchSales(value);
+    const result = type === "company" ? await searchCompany(value) : await searchItems(value);
     return result;
   };
 
@@ -131,7 +127,7 @@ const PurchaseReport = () => {
     setSearchCriteria((prev) => ({ ...prev, [type]: id }));
   };
 
-  const fetchSalesData = useCallback(async () => {
+  const fetchPurchaseData = useCallback(async () => {
     const [start, end] = dateRange ? dateRange.map((d) => d.format("YYYY-MM-DD")) : startToTodayDate;
     const salesResults = await getAllPurchaseForReport({
       ...searchCriteria,
@@ -140,7 +136,6 @@ const PurchaseReport = () => {
       page: currentPage,
       limit: pageSize,
     });
-    debugger;
     const transformedData = transformData(salesResults.rows);
     const totals = transformedData.reduce((acc, sale) => {
       Object.keys(sale).forEach((key) => {
@@ -148,13 +143,13 @@ const PurchaseReport = () => {
       });
       return acc;
     }, {});
-    setUpdatedSales(transformedData);
+    setUpdatedPurchase(transformedData);
     setTotal(totals);
   }, [dateRange, searchCriteria, currentPage, pageSize]);
 
   useEffect(() => {
-    fetchSalesData();
-  }, [fetchSalesData]);
+    fetchPurchaseData();
+  }, [fetchPurchaseData]);
 
   return (
     <div className={styles.container}>
@@ -195,13 +190,13 @@ const PurchaseReport = () => {
       <Divider />
       <AppTable
         columns={columns}
-        dataSource={updatedSales}
+        dataSource={updatedPurchase}
         paginationHandler={handlePagination}
         current={currentPage}
         pageSize={pageSize}
         rowKey="id"
         rowClassName={styles.editableRow}
-        totalCount={updatedSales ? updatedSales.length : 0}
+        totalCount={updatedPurchase ? updatedPurchase.length : 0}
         footer={() => (
           <div>
             <Row gutter={16}>

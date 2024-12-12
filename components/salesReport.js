@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { InputNumber, Row, Col, Typography, Divider, DatePicker } from "antd";
-import styles from "@/styles/SalesReport.module.css";
+import styles from "@/styles/Report.module.css";
 import SearchInput from "./SearchInput";
 import { getAllSalesForReport, searchSales } from "@/hooks/sales";
 import { searchCompany } from "@/hooks/company";
