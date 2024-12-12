@@ -39,3 +39,6 @@ export const calculateAmount = (totalAmount, a) => {
   }
   return totalAmount;
 };
+
+// Helper function to clean item names
+export const cleanItemName = (name) => name?.replace(/\s*\(.*?\)/, "").trim() || null;

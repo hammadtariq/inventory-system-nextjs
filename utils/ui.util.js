@@ -89,7 +89,10 @@ export const isBase64 = (str) => {
 
 export const toLowerCaseObjVal = (values) => {
   return Object.fromEntries(
-    Object.entries(values).map(([key, value]) => [key, typeof value === "string" ? value.toLowerCase() : value])
+    Object.entries(values).map(([key, value]) => [
+      key,
+      value && typeof value === "string" ? value.toLowerCase() : value,
+    ])
   );
 };
 

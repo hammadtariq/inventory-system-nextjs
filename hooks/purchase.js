@@ -33,6 +33,18 @@ export const usePurchaseOrder = (id) => {
     error,
   };
 };
+
+export const getAllPurchaseForReport = async ({ company, item, mostBoughten, dateRangeStart, dateRangeEnd }) => {
+  const params = new URLSearchParams({
+    ...(mostBoughten && { mostBoughten }),
+    ...(company && { companyId: company }),
+    ...(item && { itemName: item }),
+    ...(dateRangeStart && { dateRangeStart }),
+    ...(dateRangeEnd && { dateRangeEnd }),
+  });
+  return await get(`/api/purchase/report/search?${params.toString()}`);
+};
+
 export const searchPurchase = (value) => get(`/api/purchase/search?value=${value}`);
 
 export const getPurchase = (id) => get(`/api/purchase/${id}`);

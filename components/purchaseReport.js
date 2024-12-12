@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback } from "react";
 import { InputNumber, Row, Col, Typography, Divider, DatePicker } from "antd";
 import styles from "@/styles/Report.module.css";
 import SearchInput from "./SearchInput";
-import { getAllSalesForReport, searchSales } from "@/hooks/sales";
 import { searchCompany } from "@/hooks/company";
 import { searchItems } from "@/hooks/items";
 import dayjs from "dayjs";
@@ -11,6 +10,7 @@ import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 import { comaSeparatedValues } from "@/utils/comaSeparatedValues";
 import weekday from "dayjs/plugin/weekday";
 import localeData from "dayjs/plugin/localeData";
+import { getAllPurchaseForReport } from "@/hooks/purchase";
 
 dayjs.extend(weekday);
 dayjs.extend(localeData);
@@ -23,7 +23,6 @@ const columns = [
   { title: "Invoice NO", dataIndex: "invoiceNo", key: "invoiceNo" },
   { title: "ITEM NAME", dataIndex: "itemName", key: "itemName" },
   { title: "COMPANY", dataIndex: "company", key: "company" },
-  { title: "CUSTOMER", dataIndex: "customer", key: "customer" },
   {
     title: "Bale Weight (LBS)",
     dataIndex: "baleWeightLbs",
@@ -67,31 +66,31 @@ const columns = [
     render: (value) => comaSeparatedValues(value),
   },
   {
-    title: "Labour Charge",
-    dataIndex: "laborCharge",
-    key: "laborCharge",
+    title: "Sur Charge",
+    dataIndex: "surCharge",
+    key: "surCharge",
     render: (value) => comaSeparatedValues(value),
   },
-  { title: "Sold Date", dataIndex: "soldDate", key: "soldDate" },
+  { title: "Purchase Date", dataIndex: "purchaseDate", key: "purchaseDate" },
 ];
 
-const SalesReport = () => {
-  const [searchCriteria, setSearchCriteria] = useState({ customer: "", company: "", item: "" });
+const PurchaseReport = () => {
+  // TODO: Most Boughten Items Filter
+  const [searchCriteria, setSearchCriteria] = useState({ mostBoughten: false, company: "", item: "" });
   const [dateRange, setDateRange] = useState(startToTodayDate);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_LIMIT);
-  const [updatedSales, setUpdatedSales] = useState([]);
+  const [updatedPurchase, setUpdatedPurchase] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
 
   const [total, setTotal] = useState({});
 
-  const transformData = (salesData) =>
-    salesData.flatMap(({ id: invoiceNo, customer, laborCharge, soldDate, totalAmount, soldProducts }) =>
-      soldProducts.map(
-        ({ itemName, noOfBales, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs, ratePerBale, company }) => ({
-          customer: `${customer?.firstName} ${customer?.lastName}`,
+  const transformData = (purchaseData) =>
+    purchaseData.flatMap(({ id: invoiceNo, surCharge, purchaseDate, totalAmount, purchasedProducts, company }) =>
+      purchasedProducts.map(
+        ({ itemName, noOfBales, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs, ratePerBale }) => ({
           invoiceNo,
-          laborCharge,
-          soldDate: new Date(soldDate).toLocaleDateString("en-US", {
+          surCharge: surCharge ?? 0,
+          purchaseDate: new Date(purchaseDate).toLocaleDateString("en-US", {
             year: "numeric",
             month: "2-digit",
             day: "2-digit",
@@ -112,7 +111,7 @@ const SalesReport = () => {
   const handlePagination = (newPageSize, offset) => {
     setPageSize(newPageSize);
     setCurrentPage(offset / newPageSize + 1);
-    fetchSalesData();
+    fetchPurchaseData();
   };
 
   const handleSearch = async (value, type) => {
@@ -120,12 +119,7 @@ const SalesReport = () => {
       setSearchCriteria((prev) => ({ ...prev, [type]: "" }));
       return;
     }
-    const result =
-      type === "company"
-        ? await searchCompany(value)
-        : type === "item"
-        ? await searchItems(value)
-        : await searchSales(value);
+    const result = type === "company" ? await searchCompany(value) : await searchItems(value);
     return result;
   };
 
@@ -133,29 +127,29 @@ const SalesReport = () => {
     setSearchCriteria((prev) => ({ ...prev, [type]: id }));
   };
 
-  const fetchSalesData = useCallback(async () => {
+  const fetchPurchaseData = useCallback(async () => {
     const [start, end] = dateRange ? dateRange.map((d) => d.format("YYYY-MM-DD")) : startToTodayDate;
-    const salesResults = await getAllSalesForReport({
+    const purchaseResults = await getAllPurchaseForReport({
       ...searchCriteria,
       dateRangeStart: start,
       dateRangeEnd: end,
       page: currentPage,
       limit: pageSize,
     });
-    const transformedData = transformData(salesResults.rows);
-    const totals = transformedData.reduce((acc, sale) => {
-      Object.keys(sale).forEach((key) => {
-        if (typeof sale[key] === "number") acc[key] = (acc[key] || 0) + sale[key];
+    const transformedData = transformData(purchaseResults.rows);
+    const totals = transformedData.reduce((acc, purchase) => {
+      Object.keys(purchase).forEach((key) => {
+        if (typeof purchase[key] === "number") acc[key] = (acc[key] || 0) + purchase[key];
       });
       return acc;
     }, {});
-    setUpdatedSales(transformedData);
+    setUpdatedPurchase(transformedData);
     setTotal(totals);
   }, [dateRange, searchCriteria, currentPage, pageSize]);
 
   useEffect(() => {
-    fetchSalesData();
-  }, [fetchSalesData]);
+    fetchPurchaseData();
+  }, [fetchPurchaseData]);
 
   return (
     <div className={styles.container}>
@@ -170,11 +164,10 @@ const SalesReport = () => {
       <Row gutter={16}>
         <Col span={18}>
           <SearchInput
-            valueKey="firstName"
-            valueKey2="lastName"
-            placeholder="Customer"
-            handleSearch={(value) => handleSearch(value, "customer")}
-            handleSelect={(id) => handleSelect(id, "customer")}
+            valueKey="companyName"
+            placeholder="Company"
+            handleSearch={(value) => handleSearch(value, "company")}
+            handleSelect={(id) => handleSelect(id, "company")}
           />
         </Col>
         <Col span={6}>
@@ -183,14 +176,6 @@ const SalesReport = () => {
       </Row>
       <Row gutter={16}>
         <Col span={18}>
-          <SearchInput
-            valueKey="companyName"
-            placeholder="Company"
-            handleSearch={(value) => handleSearch(value, "company")}
-            handleSelect={(id) => handleSelect(id, "company")}
-          />
-        </Col>
-        <Col span={6}>
           <SearchInput
             valueKey="itemName"
             valueKey2="company.companyName"
@@ -205,13 +190,13 @@ const SalesReport = () => {
       <Divider />
       <AppTable
         columns={columns}
-        dataSource={updatedSales}
+        dataSource={updatedPurchase}
         paginationHandler={handlePagination}
         current={currentPage}
         pageSize={pageSize}
         rowKey="id"
         rowClassName={styles.editableRow}
-        totalCount={updatedSales ? updatedSales.length : 0}
+        totalCount={updatedPurchase ? updatedPurchase.length : 0}
         footer={() => (
           <div>
             <Row gutter={16}>
@@ -240,4 +225,4 @@ const SalesReport = () => {
   );
 };
 
-export default SalesReport;
+export default PurchaseReport;
