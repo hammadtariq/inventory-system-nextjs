@@ -111,7 +111,7 @@ const PurchaseReport = () => {
   const handlePagination = (newPageSize, offset) => {
     setPageSize(newPageSize);
     setCurrentPage(offset / newPageSize + 1);
-    fetchSalesData();
+    fetchPurchaseData();
   };
 
   const handleSearch = async (value, type) => {
@@ -129,17 +129,17 @@ const PurchaseReport = () => {
 
   const fetchPurchaseData = useCallback(async () => {
     const [start, end] = dateRange ? dateRange.map((d) => d.format("YYYY-MM-DD")) : startToTodayDate;
-    const salesResults = await getAllPurchaseForReport({
+    const purchaseResults = await getAllPurchaseForReport({
       ...searchCriteria,
       dateRangeStart: start,
       dateRangeEnd: end,
       page: currentPage,
       limit: pageSize,
     });
-    const transformedData = transformData(salesResults.rows);
-    const totals = transformedData.reduce((acc, sale) => {
-      Object.keys(sale).forEach((key) => {
-        if (typeof sale[key] === "number") acc[key] = (acc[key] || 0) + sale[key];
+    const transformedData = transformData(purchaseResults.rows);
+    const totals = transformedData.reduce((acc, purchase) => {
+      Object.keys(purchase).forEach((key) => {
+        if (typeof purchase[key] === "number") acc[key] = (acc[key] || 0) + purchase[key];
       });
       return acc;
     }, {});
