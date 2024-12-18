@@ -10,18 +10,19 @@ export default function AppMenuItems({ mode, items, onClickHandler, selected }) 
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  const onLogout = () => {
-    setLoading(true);
-    logoutUser()
-      .then((data) => {
-        setLoading(false);
-        message.success(data.message);
-        router.push("/login");
-      })
-      .catch((err) => {
-        setLoading(false);
-        message.error(err.message);
-      });
+  const onLogout = async () => {
+    debugger;
+    try {
+      setLoading(true);
+      const data = await logoutUser();
+      setLoading(false);
+      debugger;
+      message.success(data.message);
+      router.push("/login");
+    } catch (err) {
+      setLoading(false);
+      message.error(err?.message || "An error occurred during logout");
+    }
   };
 
   return (

@@ -37,7 +37,7 @@ const Login = ({ router }) => {
   useEffect(() => {
     // Prefetch the dashboard page
     router.prefetch("/");
-  }, []);
+  }, [router]);
 
   return (
     <>

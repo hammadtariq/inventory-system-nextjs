@@ -8,7 +8,7 @@ import EditableInventoryCell from "@/components/editableInventoryCell";
 import AppCreateButton from "@/components/createButton";
 import AppTable from "@/components/table";
 import AppTitle from "@/components/title";
-import { deleteItem, useItems, searchItems, updateItem, getAllItemListbyCompany } from "@/hooks/items";
+import { deleteItem, useItems, updateItem } from "@/hooks/items";
 import styles from "@/styles/Item.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import permissionsUtil from "@/utils/permission.util";
@@ -25,7 +25,7 @@ const Items = () => {
   const [updatedItemList, setUpdatedItemList] = useState();
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
-  const [loading, setLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     setUpdatedItemList(items);
@@ -153,7 +153,7 @@ const Items = () => {
     : defaultColumns;
 
   const handleSave = async (row) => {
-    setLoading(true);
+    setIsSaving(true);
     try {
       await updateItem(row.id, { itemName: row.itemName });
       mutate();
@@ -161,7 +161,7 @@ const Items = () => {
     } catch (error) {
       console.log("update itemList item name error", error);
     } finally {
-      setLoading(false);
+      setIsSaving(false);
     }
   };
   const handleSearch = async (value) => {
@@ -199,7 +199,7 @@ const Items = () => {
         </Row>
       </AppTitle>
       <AppTable
-        isLoading={isLoading}
+        isLoading={isLoading || isSaving}
         rowKey="id"
         columns={columns}
         components={

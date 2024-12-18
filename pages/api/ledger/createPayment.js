@@ -3,7 +3,6 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { balanceQuery } from "@/utils/query.utils";
 import { auth } from "@/middlewares/auth";
-import { SPEND_TYPE } from "@/utils/api.util";
 
 const apiSchema = Joi.object({
   companyId: Joi.number(),

@@ -26,9 +26,9 @@ const AddEditPurchase = ({ purchase, type = null }) => {
   const [form] = Form.useForm();
   const isView = type === "view";
 
-  const selectCompanyOnChange = useCallback((id) => setCompanyId(id), [companyId]);
-  const setDataHandler = useCallback((data) => setData(data), [data]);
-  const selectItemListOnChange = useCallback((type) => setSelectedListType(type), [selectedListType]);
+  const selectCompanyOnChange = useCallback((id) => setCompanyId(id), []);
+  const setDataHandler = useCallback((data) => setData(data), []);
+  const selectItemListOnChange = useCallback((type) => setSelectedListType(type), []);
 
   const totalAmount = useMemo(() => sumItemsPrice(data), [data]);
   const totalBundle = useMemo(() => sumBundles(data), [data]);
@@ -69,14 +69,14 @@ const AddEditPurchase = ({ purchase, type = null }) => {
       totalAmount: total,
       totalBundle,
     });
-  }, [totalAmount, _surCharge]);
+  }, [totalAmount, _surCharge, form, totalBundle]);
 
   // to set default and previous date in form
   useEffect(() => {
     form.setFieldsValue({
       purchaseDate: purchase?.purchaseDate ? dayjs(purchase?.purchaseDate) : dayjs(),
     });
-  }, []);
+  }, [form, purchase?.purchaseDate]);
 
   const onFinish = async (value) => {
     setLoading(true);

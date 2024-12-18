@@ -17,7 +17,7 @@ const approvePurchaseOrder = async (req, res) => {
     id: req.query.id,
   });
 
-  if (error && error && Object.keys(error).length) {
+  if (error) {
     return res.status(400).send({ message: error.toString() });
   }
   if (req.user.role !== "ADMIN") {
@@ -30,7 +30,7 @@ const approvePurchaseOrder = async (req, res) => {
     const purchase = await db.Purchase.findByPk(id, { include: [db.Company], transaction: t });
 
     if (!purchase) {
-      return res.status(404).send({ message: "purchase order not exist" });
+      return res.status(404).send({ message: "purchase order does not exist" });
     }
     if (purchase.status === STATUS.APPROVED) {
       return res.status(400).send({ message: "purchase order already approved" });
@@ -38,17 +38,17 @@ const approvePurchaseOrder = async (req, res) => {
     const { purchasedProducts, purchaseDate, companyId, totalAmount, invoiceNumber, revisionDetails, revisionNo } =
       purchase;
 
+    // Ensure we await the inventory update before proceeding
     if (!revisionNo) {
-      updateInventory(purchasedProducts, companyId, t);
+      await updateInventory(purchasedProducts, companyId, t);
     } else {
-      updateInventory(revisionDetails.purchasedProducts, companyId, t);
+      await updateInventory(revisionDetails.purchasedProducts, companyId, t);
     }
 
-    // Approve purchase order
+    // Approve the purchase order
     await purchase.update({ status: STATUS.APPROVED }, { transaction: t });
 
-    // Update Ledger
-
+    // Update the ledger
     await updateLedger(revisionNo, {
       companyId,
       transactionId: id,
@@ -57,6 +57,7 @@ const approvePurchaseOrder = async (req, res) => {
       invoiceNumber,
       t,
     });
+    // Commit transaction after all operations are completed
     await t.commit();
     console.log("Approve Purchase order Request End");
     return res.send();
@@ -69,7 +70,7 @@ const approvePurchaseOrder = async (req, res) => {
 
 // Consolidated Inventory Update
 const updateInventory = async (products, companyId, transaction) => {
-  for await (const product of products) {
+  for (const product of products) {
     const { id, noOfBales, baleWeightKgs, baleWeightLbs, ratePerLbs, ratePerKgs, ratePerBale } = product;
 
     const inventory = await db.Inventory.findOne({ where: { id, companyId }, transaction });

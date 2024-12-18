@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { verifyToken } from "@/hooks/login";
 import Spinner from "./spinner";
 import { to } from "@/utils/to.util";
@@ -6,7 +6,8 @@ import { to } from "@/utils/to.util";
 const ProtectedRoutes = ({ children, router }) => {
   let [canViewPage, setCanViewPage] = useState(false);
 
-  useEffect(async () => {
+  const verification = useCallback(async () => {
+    // You can await here
     if (router.pathname !== "/login") {
       const [err] = await to(verifyToken());
       if (err) {
@@ -17,7 +18,11 @@ const ProtectedRoutes = ({ children, router }) => {
     setCanViewPage(true);
 
     return () => null;
-  }, [canViewPage, router.pathname]);
+  }, [router]);
+
+  useEffect(() => {
+    verification();
+  }, [verification]);
 
   return canViewPage ? children : <Spinner />;
 };

@@ -23,8 +23,8 @@ const AddEditItem = ({ item }) => {
     action: "create",
   });
 
-  const selectCompanyOnChange = useCallback((id) => setCompanyId(id), [companyId]);
-  const selectItemListOnChange = useCallback((type) => setSelectedListType(type), [selectedListType]);
+  const selectCompanyOnChange = useCallback((id) => setCompanyId(id), []);
+  const selectItemListOnChange = useCallback((type) => setSelectedListType(type), []);
 
   useEffect(() => {
     if (item) {
@@ -34,7 +34,7 @@ const AddEditItem = ({ item }) => {
       setCompanyId(id);
       setSelectedListType(type);
     }
-  }, [item]);
+  }, [form, item]);
 
   const onFinish = async (values) => {
     setLoading(true);

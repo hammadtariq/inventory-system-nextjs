@@ -142,7 +142,7 @@ const updateNewDiffBeforeApproval = async (value, purchase, purchaseObj) => {
     ...value,
     status: STATUS.PENDING,
     revisionDetails: newDifferences,
-    revisionNo: previousRevisionNo + 1,
+    revisionNo: (purchaseObj.revisionNo || 0) + 1,
   });
   return purchase;
 };

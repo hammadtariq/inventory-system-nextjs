@@ -106,7 +106,7 @@ export default function AppNavbar() {
     });
     const activeId = activeItem ? activeItem.id : items[0].id;
     setIsSelected(activeId);
-  }, []);
+  }, [router.pathname]);
 
   return (
     <>
