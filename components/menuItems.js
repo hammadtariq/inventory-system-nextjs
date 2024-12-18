@@ -11,12 +11,10 @@ export default function AppMenuItems({ mode, items, onClickHandler, selected }) 
   const [loading, setLoading] = useState(false);
 
   const onLogout = async () => {
-    debugger;
     try {
       setLoading(true);
       const data = await logoutUser();
       setLoading(false);
-      debugger;
       message.success(data.message);
       router.push("/login");
     } catch (err) {
