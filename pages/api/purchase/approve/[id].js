@@ -17,7 +17,7 @@ const approvePurchaseOrder = async (req, res) => {
     id: req.query.id,
   });
 
-  if (error) {
+  if (error && Object.keys(error).length) {
     return res.status(400).send({ message: error.toString() });
   }
   if (req.user.role !== "ADMIN") {
