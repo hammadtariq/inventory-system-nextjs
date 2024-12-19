@@ -23,7 +23,7 @@ const Ledger = () => {
       undefined,
       { shallow: true }
     );
-  }, [router, type]);
+  }, []);
 
   const onChange = (e) => {
     setType(e.target.value);
@@ -42,7 +42,7 @@ const Ledger = () => {
           {transactions && transactions.length > 0 ? (
             <div>
               <strong className={styles.headingStyle}>Total Balance (RS):</strong>
-              <span className={styles.contentStyle}>{totalBalance}</span>
+              <span className={styles.contentStyle}>{comaSeparatedValues(totalBalance)}</span>
             </div>
           ) : null}
         </Col>
