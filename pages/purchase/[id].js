@@ -3,7 +3,6 @@ import { usePurchaseOrder } from "@/hooks/purchase";
 
 import AddEditPurchase from "@/components/addEditPurchase";
 import AppTitle from "@/components/title";
-import { STATUS } from "@/utils/api.util";
 
 function Update({ id, type }) {
   const isView = type === "view";

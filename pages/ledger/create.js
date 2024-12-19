@@ -24,8 +24,6 @@ const { Option } = Select;
 
 const CreateTransaction = () => {
   const router = useRouter();
-  const { query } = router;
-  const type = query.type;
   const [loading, setLoading] = useState(false);
   const [companyId, setCompanyId] = useState();
   const [customerId, setCustomerId] = useState();

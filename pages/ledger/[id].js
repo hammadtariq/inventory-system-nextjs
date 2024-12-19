@@ -3,7 +3,7 @@ import NextLink from "next/link";
 import AppTable from "@/components/table";
 import styles from "@/styles/Ledger.module.css";
 import { useLedgerDetails } from "@/hooks/ledger";
-import { Alert, Button } from "antd";
+import { Alert } from "antd";
 import { SPEND_TYPE } from "@/utils/api.util";
 import { DATE_FORMAT } from "@/utils/ui.util";
 import { useRouter } from "next/router";
@@ -13,7 +13,7 @@ import { comaSeparatedValues } from "@/utils/comaSeparatedValues";
 
 const LedgerDetails = ({ id, type }) => {
   const router = useRouter();
-  const { transactionId, transactions, totalBalance, error, isLoading } = useLedgerDetails(id, type);
+  const { transactions, totalBalance, error, isLoading } = useLedgerDetails(id, type);
 
   if (error) return <Alert message={error} type="error" />;
 

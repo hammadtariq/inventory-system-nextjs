@@ -23,7 +23,7 @@ const Ledger = () => {
       undefined,
       { shallow: true }
     );
-  }, [type]);
+  }, [router, type]);
 
   const onChange = (e) => {
     setType(e.target.value);
