@@ -1,28 +1,30 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { verifyToken } from "@/hooks/login";
 import Spinner from "./spinner";
 import { to } from "@/utils/to.util";
 
 const ProtectedRoutes = ({ children, router }) => {
-  let [canViewPage, setCanViewPage] = useState(false);
+  const [canViewPage, setCanViewPage] = useState(false);
 
-  const verification = useCallback(async () => {
-    // You can await here
-    if (router.pathname !== "/login") {
+  useEffect(() => {
+    const checkAccess = async () => {
+      if (router.pathname === "/login") {
+        setCanViewPage(true);
+        return;
+      }
+
       const [err] = await to(verifyToken());
       if (err) {
+        console.error("Token expired or invalid:", err);
         router.push("/login");
         return;
       }
-    }
-    setCanViewPage(true);
 
-    return () => null;
-  }, [router]);
+      setCanViewPage(true);
+    };
 
-  useEffect(() => {
-    verification();
-  }, [verification]);
+    checkAccess();
+  }, [router, router.pathname]);
 
   return canViewPage ? children : <Spinner />;
 };

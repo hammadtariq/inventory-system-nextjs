@@ -8,13 +8,13 @@ const TOKEN_SECRET = process.env.TOKEN_SECRET;
 const verifyToken = async (req, res) => {
   console.log("Verify token Request Start");
 
-  const token = getTokenCookie(req);
-
-  if (!token) {
-    return res.status(401).send({ isValid: false, message: "Token expired" });
-  }
-
   try {
+    const token = getTokenCookie(req);
+
+    if (!token) {
+      return res.status(401).send({ isValid: false, message: "Token expired" });
+    }
+
     const unsealedToken = await Iron.unseal(token, TOKEN_SECRET, Iron.defaults);
 
     if (unsealedToken && Date.now() > new Date(unsealedToken?.token?.maxAge)) {
