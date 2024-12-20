@@ -60,12 +60,6 @@ const columns = [
     render: (value) => (value === "-" ? value : comaSeparatedValues(value)),
   },
   {
-    title: "Total Amount",
-    dataIndex: "totalAmount",
-    key: "totalAmount",
-    render: (value) => comaSeparatedValues(value),
-  },
-  {
     title: "Sur Charge",
     dataIndex: "surCharge",
     key: "surCharge",
@@ -138,11 +132,28 @@ const PurchaseReport = () => {
     });
     const transformedData = transformData(purchaseResults.rows);
     const totals = transformedData.reduce((acc, purchase) => {
+      // Check if the invoiceNo is already processed
+      if (!acc.processedInvoiceNos) acc.processedInvoiceNos = new Set();
+
+      if (!acc.processedInvoiceNos.has(purchase.invoiceNo)) {
+        acc.processedInvoiceNos.add(purchase.invoiceNo);
+
+        // Aggregate totals based on invoiceNo (only totalAmount for each unique invoiceNo)
+        if (typeof purchase.totalAmount === "number") {
+          acc.totalAmount = (acc.totalAmount || 0) + purchase.totalAmount;
+        }
+      }
+
+      // Aggregate other fields globally (don't change their behavior)
       Object.keys(purchase).forEach((key) => {
-        if (typeof purchase[key] === "number") acc[key] = (acc[key] || 0) + purchase[key];
+        if (key !== "totalAmount" && typeof purchase[key] === "number") {
+          acc[key] = (acc[key] || 0) + purchase[key];
+        }
       });
+
       return acc;
     }, {});
+
     setUpdatedPurchase(transformedData);
     setTotal(totals);
   }, [dateRange, searchCriteria, currentPage, pageSize]);
