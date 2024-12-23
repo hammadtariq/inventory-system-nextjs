@@ -46,14 +46,16 @@ const AddEditSale = ({ sale, type = null }) => {
       setCustomerId(sale.customer.id);
     } else if (isEdit && inventory) {
       const soldProductIds = sale.soldProducts.map((product) => product.id);
-      const selectedItems = inventory.map((item) => {
-        const soldProduct = sale.soldProducts.find((product) => product.id === item.id);
-        return soldProduct ? { ...item, ...soldProduct } : item;
-      });
-      setSelectedProducts(selectedItems.filter((item) => soldProductIds.includes(item.id)));
+      const selectedItems = inventory
+        .filter((item) => soldProductIds.includes(item.id))
+        .map((item) => {
+          const soldProduct = sale.soldProducts.find((product) => product.id === item.id);
+          return soldProduct ? { ...item, ...soldProduct } : item;
+        });
+      setSelectedProducts(selectedItems);
       setUpdatedProducts(inventory);
       form.setFieldsValue({
-        selectedProduct: soldProductIds,
+        selectedProduct: selectedItems,
         soldDate: dayjs(sale.soldDate),
         totalAmount: sale.totalAmount,
         laborCharge: sale.laborCharge,
@@ -79,16 +81,7 @@ const AddEditSale = ({ sale, type = null }) => {
   const totalAmount = useMemo(() => sumItemsPrice(selectedProducts), [selectedProducts]);
 
   const onRemove = (id) => {
-    const index = updatedProducts.findIndex((item) => id === item.id);
-    const item = updatedProducts[index];
-    delete item.noOfBales;
-    delete item.ratePerKgs;
-    delete item.baleWeightKgs;
-    delete item.baleWeightLbs;
-    delete item.ratePerLbs;
-    delete item.ratePerBale;
-    const newData = [...updatedProducts];
-    newData.splice(index, 1, { ...item });
+    const newData = updatedProducts.filter((item) => item.id !== id);
     setUpdatedProducts(newData);
   };
 
