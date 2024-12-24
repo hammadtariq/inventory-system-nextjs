@@ -45,6 +45,7 @@ const AddEditSale = ({ sale, type = null }) => {
       setLaborCharge(sale.laborCharge);
       setCustomerId(sale.customer.id);
     } else if (isEdit && inventory) {
+      setEditAll(true);
       const soldProductIds = sale.soldProducts.map((product) => product.id);
       const selectedItems = inventory
         .filter((item) => soldProductIds.includes(item.id))
@@ -55,7 +56,7 @@ const AddEditSale = ({ sale, type = null }) => {
       setSelectedProducts(selectedItems);
       setUpdatedProducts(inventory);
       form.setFieldsValue({
-        selectedProduct: selectedItems,
+        selectedProduct: selectedItems.length ? soldProductIds : undefined,
         soldDate: dayjs(sale.soldDate),
         totalAmount: sale.totalAmount,
         laborCharge: sale.laborCharge,
