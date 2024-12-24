@@ -2,7 +2,7 @@
   "name": "inventory-system-nextjs",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node --max-old-space-size=8192 node_modules/.bin/next",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

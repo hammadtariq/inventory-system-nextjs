@@ -56,7 +56,7 @@ const AddEditSale = ({ sale, type = null }) => {
       setSelectedProducts(selectedItems);
       setUpdatedProducts(inventory);
       form.setFieldsValue({
-        selectedProduct: selectedItems.length ? soldProductIds : undefined,
+        selectedProduct: selectedItems.length ? selectedItems.map((item) => item.id) : undefined,
         soldDate: dayjs(sale.soldDate),
         totalAmount: sale.totalAmount,
         laborCharge: sale.laborCharge,
