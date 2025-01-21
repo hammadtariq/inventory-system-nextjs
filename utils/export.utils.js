@@ -32,23 +32,27 @@ export function addTitleAndDetails(doc, headData) {
   doc.setFont("helvetica", "normal");
 
   // Add other details
-  doc.text(`Customer : ${headData?.customer?.firstName + " " + headData?.customer?.lastName}`, 10, 30);
+  // doc.text(`Customer : ${headData?.customer?.firstName + " " + headData?.customer?.lastName}`, 10, 30);
+  if (headData?.customer) {
+    const customerName = `${headData.customer.firstName || ""} ${headData.customer.lastName || ""}`.trim();
+    doc.text(`Customer : ${customerName}`, 10, 30);
+  }
   doc.text("Ticket : MIXING", 10, 38);
   doc.text(`Date : ${formattedDate}`, 165, 30);
-  doc.text(`Invoice No : ${headData?.id}`, 165, 38);
+  doc.text(`Invoice No : ${headData?.id ?? headData?.rows[0].id}`, 165, 38);
 }
 
 // Function to map data to table format with truncated text fields
 export function mapDataToTable(data) {
   return data.map((item, index) => ({
     sno: index + 1,
-    item: truncateText(item.itemDetail, 23).toUpperCase(), // Truncate text to 30 characters
-    kgs: item.kgs,
-    lbs: item.lbs,
-    bales: item.bales,
-    kgRate: item.kgRate,
-    lbsRate: item.lbsRate,
-    baleRate: item.baleRate,
+    item: truncateText(item.itemDetail ?? item.itemName, 23).toUpperCase(), // Truncate text to 30 characters
+    kgs: item.kgs ?? "-",
+    lbs: item.lbs ?? "-",
+    bales: item.bales ?? "-",
+    kgRate: item.kgRate ?? item.ratePerKgs === "N/A" ? "-" : item.ratePerKgs,
+    lbsRate: item.lbsRate ?? item.ratePerLbs === "N/A" ? "-" : item.ratePerLbs,
+    baleRate: item.baleRate ?? item.ratePerBale === "N/A" ? "-" : item.ratePerBale,
     totalAmount: item.totalAmount,
   }));
 }
