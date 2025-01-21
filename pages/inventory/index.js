@@ -123,6 +123,7 @@ const Inventory = () => {
   };
 
   const handleSelect = async (id) => {
+    setFilters({ itemId: [id] });
     const data = await getInventory(id);
     const newInventory = { ...inventory, rows: [data], count: 1 };
     setUpdatedInventory(newInventory);
