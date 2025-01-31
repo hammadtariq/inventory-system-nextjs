@@ -9,7 +9,6 @@ const ExportButton = ({ filename, invoiceNumber, id = null, onlyIcon = false, fi
   const [exportParams, setExportParams] = useState(null);
   const { fileBlob, isLoading: exportLoading, isError } = useExportFile(exportParams);
   const router = useRouter();
-  debugger;
   const isLedgerRoute = router.pathname.includes("/ledger");
 
   const exportFile = useCallback(() => {
