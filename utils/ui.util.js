@@ -96,6 +96,11 @@ export const toLowerCaseObjVal = (values) => {
   );
 };
 
+export const PRINT_TYPE = {
+  WITH_RATES: "WITH_RATES",
+  WITHOUT_RATES: "WITHOUT_RATES",
+};
+
 export const downloadFile = (file, filename) => {
   const link = document.createElement("a");
   const date = new Date();

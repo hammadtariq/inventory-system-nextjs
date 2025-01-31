@@ -2,10 +2,15 @@ import { Button, Dropdown, Menu, message, Spin } from "antd";
 import { DownloadOutlined, LoadingOutlined } from "@ant-design/icons";
 import { useExportFile } from "@/hooks/export";
 import { useState, useCallback, useEffect } from "react";
+import { PRINT_TYPE } from "@/utils/ui.util";
+import { useRouter } from "next/router";
 
 const ExportButton = ({ filename, invoiceNumber, id = null, onlyIcon = false, filters }) => {
   const [exportParams, setExportParams] = useState(null);
   const { fileBlob, isLoading: exportLoading, isError } = useExportFile(exportParams);
+  const router = useRouter();
+  debugger;
+  const isLedgerRoute = router.pathname.includes("/ledger");
 
   const exportFile = useCallback(() => {
     if (!exportLoading && fileBlob && exportParams) {
@@ -40,20 +45,60 @@ const ExportButton = ({ filename, invoiceNumber, id = null, onlyIcon = false, fi
     }, 1500);
   }, []);
 
-  const handleExport = (fileExtension) => {
+  const handleExport = (fileExtension, typeOf) => {
     if (!exportLoading) {
-      setExportParams({ fileName: filename, fileExtension, invoiceNumber, id, filters });
+      setExportParams({ fileName: filename, fileExtension, invoiceNumber, id, filters, typeOf });
     }
   };
 
   const menu = (
     <Menu>
-      <Menu.Item key="1" onClick={() => handleExport("pdf")} disabled={exportLoading}>
-        Export as PDF
-      </Menu.Item>
-      <Menu.Item key="2" onClick={() => handleExport("csv")} disabled={exportLoading}>
-        Export as CSV
-      </Menu.Item>
+      {isLedgerRoute ? (
+        <>
+          <Menu.Item key="1" onClick={() => handleExport("pdf")} disabled={exportLoading}>
+            Export as PDF
+          </Menu.Item>
+          <Menu.Item key="2" onClick={() => handleExport("csv")} disabled={exportLoading}>
+            Export as CSV
+          </Menu.Item>
+        </>
+      ) : (
+        <>
+          <Menu.SubMenu key="with_rates" title={PRINT_TYPE.WITH_RATES}>
+            <Menu.Item
+              key="pdf_with_rates"
+              onClick={() => handleExport("pdf", PRINT_TYPE.WITH_RATES)}
+              disabled={exportLoading}
+            >
+              Export as PDF
+            </Menu.Item>
+            <Menu.Item
+              key="csv_with_rates"
+              onClick={() => handleExport("csv", PRINT_TYPE.WITH_RATES)}
+              disabled={exportLoading}
+            >
+              Export as CSV
+            </Menu.Item>
+          </Menu.SubMenu>
+
+          <Menu.SubMenu key="without_rates" title={PRINT_TYPE.WITHOUT_RATES}>
+            <Menu.Item
+              key="pdf_without_rates"
+              onClick={() => handleExport("pdf", PRINT_TYPE.WITHOUT_RATES)}
+              disabled={exportLoading}
+            >
+              Export as PDF
+            </Menu.Item>
+            <Menu.Item
+              key="csv_without_rates"
+              onClick={() => handleExport("csv", PRINT_TYPE.WITHOUT_RATES)}
+              disabled={exportLoading}
+            >
+              Export as CSV
+            </Menu.Item>
+          </Menu.SubMenu>
+        </>
+      )}
     </Menu>
   );
 

@@ -1,14 +1,14 @@
 import { exportToPDF, exportToCSV } from "@/lib/export-utils";
 
 export const exportHandler = async (fileInfo) => {
-  const { fileName, type, data, headData } = fileInfo;
+  const { fileName, type, data, headData, typeOf } = fileInfo;
   try {
     let buffer;
     let contentType;
 
     switch (type) {
       case "pdf":
-        buffer = exportToPDF(data, headData);
+        buffer = exportToPDF(data, headData, typeOf);
         contentType = "application/pdf";
         break;
       case "csv":

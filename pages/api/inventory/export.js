@@ -1,11 +1,12 @@
 import { exportHandler } from "pages/api/export/export-file";
 import { companyTotalBalesQuery } from "@/query/index";
-import { calculateAmount } from "@/utils/api.util";
+import { calculateAmount, formatNumber } from "@/utils/api.util";
 import { auth } from "@/middlewares/auth";
 import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import path from "path";
 import fs from "fs";
+import { PRINT_TYPE } from "@/utils/ui.util";
 
 const exportInventory = async (req, res) => {
   console.log("Export inventory starts");
@@ -26,14 +27,16 @@ const exportInventory = async (req, res) => {
       return res.status(400).send({ message: "Unsupported file extension." });
     }
 
+    const typeOf = req.query.typeOf;
     const [inventoryData] = await fetchInventoryData(filters);
-    const formattedInventoryData = formatInventoryData(inventoryData.rows);
+    const formattedInventoryData = formatInventoryData(inventoryData.rows, typeOf);
 
     const fileInfo = {
       headData: inventoryData,
       data: formattedInventoryData,
       fileName: "inventory",
       type: fileExtension,
+      typeOf,
     };
 
     const { headers, fileBlob } = await exportHandler(fileInfo);
@@ -101,17 +104,46 @@ const fetchInventoryData = async (filters) => {
   }
 };
 
-const formatInventoryData = (rows) => {
-  return rows.map((item) => ({
-    itemName: item.itemName || "N/A",
-    companyName: item.company?.companyName || "N/A",
-    onHand: item.onHand || "0",
-    ratePerKgs: item.ratePerKgs || "N/A",
-    ratePerLbs: item.ratePerLbs || "N/A",
-    ratePerBale: item.ratePerBale || "N/A",
-    totalBales: item.total || "0",
-    totalAmount: calculateAmount(0, item),
-  }));
+// const formatInventoryData = (rows) => {
+//   return rows.map((item) => ({
+//     itemName: item.itemName || "N/A",
+//     companyName: item.company?.companyName || "N/A",
+//     onHand: formatNumber(item.onHand || "0"),
+//     ratePerKgs: formatNumber(item.ratePerKgs || "N/A"),
+//     ratePerLbs: formatNumber(item.ratePerLbs || "N/A"),
+//     ratePerBale: formatNumber(item.ratePerBale || "N/A"),
+//     totalBales: formatNumber(item.total || "0"),
+//     ...(item.baleWeightKgs !== undefined && { kgs: formatNumber(item.baleWeightKgs) }),
+//     ...(item.baleWeightLbs !== undefined && { lbs: formatNumber(item.baleWeightLbs) }),
+//     ...(item.noOfBales !== undefined && { bales: formatNumber(item.noOfBales) }),
+//     totalAmount: formatNumber(calculateAmount(0, item)),
+//   }));
+// };
+
+const formatInventoryData = (rows, typeOf) => {
+  return rows.map((item) => {
+    let formattedItem = {
+      itemName: item.itemName || "-",
+      companyName: item.company?.companyName || "-",
+      onHand: item.onHand || 0,
+      totalBales: item.total || 0,
+      ...(item.baleWeightKgs !== undefined && { kgs: formatNumber(item.baleWeightKgs) }),
+      ...(item.baleWeightLbs !== undefined && { lbs: formatNumber(item.baleWeightLbs) }),
+      ...(item.noOfBales !== undefined && { bales: item.noOfBales }),
+    };
+
+    if (typeOf === PRINT_TYPE.WITH_RATES) {
+      formattedItem = {
+        ...formattedItem,
+        ratePerKgs: formatNumber(item.ratePerKgs || "-"),
+        ratePerLbs: formatNumber(item.ratePerLbs || "-"),
+        ratePerBale: formatNumber(item.ratePerBale || "-"),
+        totalAmount: formatNumber(calculateAmount(0, item)),
+      };
+    }
+
+    return formattedItem;
+  });
 };
 
 const createExportDirectory = () => {
