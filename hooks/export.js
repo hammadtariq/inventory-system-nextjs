@@ -10,6 +10,7 @@ export const useExportFile = (fileDetails) => {
       companyId: fileDetails.companyId,
       type: fileDetails.type,
       id: fileDetails.id,
+      typeOf: fileDetails.typeOf, // Type of invoice e.g. (WITH_RATES or WITHOUT_RATES)
       filters: fileDetails.filters ? JSON.stringify(fileDetails.filters) : undefined,
     });
     return `/api/${fileDetails.fileName}/export?fileExtension=${fileDetails.fileExtension}&${queryParams}`;

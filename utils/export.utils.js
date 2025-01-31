@@ -39,21 +39,22 @@ export function addTitleAndDetails(doc, headData) {
   }
   doc.text("Ticket : MIXING", 10, 38);
   doc.text(`Date : ${formattedDate}`, 165, 30);
-  doc.text(`Invoice No : ${headData?.id ?? headData?.rows[0].id}`, 165, 38);
+  doc.text(`Invoice No : ${headData?.id ?? headData?.count}`, 165, 38);
 }
 
 // Function to map data to table format with truncated text fields
 export function mapDataToTable(data) {
   return data.map((item, index) => ({
     sno: index + 1,
-    item: truncateText(item.itemDetail ?? item.itemName, 23).toUpperCase(), // Truncate text to 30 characters
+    item: truncateText(item.itemDetail ?? item.itemName, 23).toUpperCase(), // Truncate text
+    ...(item.company?.companyName && { company: item.company.companyName || "-" }),
     kgs: item.kgs ?? "-",
     lbs: item.lbs ?? "-",
     bales: item.bales ?? "-",
-    kgRate: item.kgRate ?? item.ratePerKgs === "N/A" ? "-" : item.ratePerKgs,
-    lbsRate: item.lbsRate ?? item.ratePerLbs === "N/A" ? "-" : item.ratePerLbs,
-    baleRate: item.baleRate ?? item.ratePerBale === "N/A" ? "-" : item.ratePerBale,
-    totalAmount: item.totalAmount,
+    ...(item.ratePerKgs && { kgRate: item.kgRate ?? item.ratePerKgs }),
+    ...(item.ratePerLbs && { lbsRate: item.lbsRate ?? item.ratePerLbs }),
+    ...(item.ratePerBale && { baleRate: item.baleRate ?? item.ratePerBale }),
+    ...(item.totalAmount && { totalAmount: item.totalAmount }),
   }));
 }
 
@@ -67,16 +68,22 @@ function truncateText(text, maxLength) {
 
 // Function to generate the table using autoTable with responsive column widths
 export function generateTable(doc, tableData) {
+  // Determine which rate fields are present in tableData
+  const hasKgRate = tableData.some((row) => row.kgRate !== undefined);
+  const hasLbsRate = tableData.some((row) => row.lbsRate !== undefined);
+  const hasBaleRate = tableData.some((row) => row.baleRate !== undefined);
+  const hasTotalAmount = tableData.some((row) => row.totalAmount !== undefined);
+
   const columns = [
     { header: "S.No", dataKey: "sno" },
     { header: "Item Detail", dataKey: "item" },
     { header: "KGS", dataKey: "kgs" },
     { header: "LBS", dataKey: "lbs" },
     { header: "Bales", dataKey: "bales" },
-    { header: "KG Rate", dataKey: "kgRate" },
-    { header: "LBS Rate", dataKey: "lbsRate" },
-    { header: "Bale Rate", dataKey: "baleRate" },
-    { header: "Total Amount", dataKey: "totalAmount" },
+    ...(hasKgRate ? [{ header: "KG Rate", dataKey: "kgRate" }] : []),
+    ...(hasLbsRate ? [{ header: "LBS Rate", dataKey: "lbsRate" }] : []),
+    ...(hasBaleRate ? [{ header: "Bale Rate", dataKey: "baleRate" }] : []),
+    ...(hasTotalAmount ? [{ header: "Total Amount", dataKey: "totalAmount" }] : []),
   ];
 
   // Generate a temporary table to calculate its width
@@ -104,10 +111,10 @@ export function generateTable(doc, tableData) {
       kgs: { halign: "center", cellWidth: "auto" },
       lbs: { halign: "center", cellWidth: "auto" },
       bales: { halign: "right", cellWidth: "auto" },
-      kgRate: { halign: "right", cellWidth: "auto" },
-      lbsRate: { halign: "right", cellWidth: "auto" },
-      baleRate: { halign: "right", cellWidth: "auto" },
-      totalAmount: { halign: "right", cellWidth: "auto" },
+      ...(hasKgRate ? { kgRate: { halign: "right", cellWidth: "auto" } } : {}),
+      ...(hasLbsRate ? { lbsRate: { halign: "right", cellWidth: "auto" } } : {}),
+      ...(hasBaleRate ? { baleRate: { halign: "right", cellWidth: "auto" } } : {}),
+      ...(hasTotalAmount ? { totalAmount: { halign: "right", cellWidth: "auto" } } : {}),
     },
     theme: "grid",
     tableWidth: "auto",
@@ -142,10 +149,10 @@ export function generateTable(doc, tableData) {
       kgs: { halign: "center", cellWidth: "auto" },
       lbs: { halign: "center", cellWidth: "auto" },
       bales: { halign: "right", cellWidth: "auto" },
-      kgRate: { halign: "right", cellWidth: "auto" },
-      lbsRate: { halign: "right", cellWidth: "auto" },
-      baleRate: { halign: "right", cellWidth: "auto" },
-      totalAmount: { halign: "right", cellWidth: "auto" },
+      ...(hasKgRate && { kgRate: { halign: "right", cellWidth: "auto" } }),
+      ...(hasLbsRate && { lbsRate: { halign: "right", cellWidth: "auto" } }),
+      ...(hasBaleRate && { baleRate: { halign: "right", cellWidth: "auto" } }),
+      ...(hasTotalAmount && { totalAmount: { halign: "right", cellWidth: "auto" } }),
     },
     theme: "grid",
     tableWidth: "auto",
@@ -179,17 +186,33 @@ export function calculateTotals(tableData) {
 }
 
 // Function to append totals row to table data
+// export function appendTotalsRow(tableData, totals) {
+//   tableData.push({
+//     sno: "Total",
+//     item: "-",
+//     kgs: totals.kgs ? totals.kgs.toFixed(2) : "-",
+//     lbs: totals.lbs ? totals.lbs.toFixed(2) : "-",
+//     bales: totals.bales ? totals.bales : "-",
+//     kgRate: totals.kgRate ? totals.kgRate.toFixed(2) : "-",
+//     lbsRate: totals.lbsRate ? totals.lbsRate.toFixed(2) : "-",
+//     baleRate: totals.baleRate ? totals.baleRate.toFixed(2) : "-",
+//     totalAmount: `RS: ${totals.totalAmount.toFixed(2)}`,
+//   });
+
+//   return tableData;
+// }
+
 export function appendTotalsRow(tableData, totals) {
   tableData.push({
     sno: "Total",
     item: "-",
     kgs: totals.kgs ? totals.kgs.toFixed(2) : "-",
     lbs: totals.lbs ? totals.lbs.toFixed(2) : "-",
-    bales: totals.bales ? totals.bales : "-",
-    kgRate: totals.kgRate ? totals.kgRate.toFixed(2) : "-",
-    lbsRate: totals.lbsRate ? totals.lbsRate.toFixed(2) : "-",
-    baleRate: totals.baleRate ? totals.baleRate.toFixed(2) : "-",
-    totalAmount: `RS: ${totals.totalAmount.toFixed(2)}`,
+    bales: totals.bales ?? "-",
+    ...(totals.kgRate && { kgRate: totals.kgRate ? totals.kgRate.toFixed(2) : "-" }),
+    ...(totals.lbsRate && { lbsRate: totals.lbsRate ? totals.lbsRate.toFixed(2) : "-" }),
+    ...(totals.baleRate && { baleRate: totals.baleRate ? totals.baleRate.toFixed(2) : "-" }),
+    ...(totals.totalAmount && { totalAmount: `RS: ${totals.totalAmount.toFixed(2)}` }),
   });
 
   return tableData;
