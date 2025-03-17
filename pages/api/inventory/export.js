@@ -126,6 +126,7 @@ const formatInventoryData = (rows, typeOf) => {
       itemName: item.itemName || "-",
       companyName: item.company?.companyName || "-",
       onHand: item.onHand || 0,
+      company: item.company.companyName,
       totalBales: item.total || 0,
       ...(item.baleWeightKgs !== undefined && { kgs: formatNumber(item.baleWeightKgs) }),
       ...(item.baleWeightLbs !== undefined && { lbs: formatNumber(item.baleWeightLbs) }),

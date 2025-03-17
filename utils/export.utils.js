@@ -11,35 +11,35 @@ export function addTitleAndDetails(doc, headData) {
   const currentDate = new Date();
   const formattedDate = currentDate.toLocaleDateString("en-GB");
 
-  // Set font for the title
+  // Title (Company Name)
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(21);
-  doc.text("VAST APPAREL", 105, 15, { align: "center" });
-  doc.setFontSize(16);
-  // Add the 'INVOICE' text at the center
-  doc.text("INVOICE", 105, 55, { align: "center" });
+  doc.setFontSize(8);
+  doc.text("VAST APPAREL", 105, 10, { align: "center" });
+
+  // INVOICE text (reduced gap)
+  doc.setFontSize(9);
+  doc.text("INVOICE", 105, 20, { align: "center" });
 
   // Underline the 'INVOICE' text
-  const invoiceText = "INVOICE";
-  const invoiceTextWidth = doc.getTextWidth(invoiceText);
-  const startX = 105 - invoiceTextWidth / 2; // Center the underline with the text
-  const lineY = 56; // Adjust Y position slightly below the text for the underline
-  doc.setLineWidth(0.5); // Set line thickness (similar to the "Authorized Signatory" line)
-  doc.line(startX, lineY, startX + invoiceTextWidth, lineY);
+  const invoiceTextWidth = doc.getTextWidth("INVOICE");
+  doc.setLineWidth(0.3);
+  doc.line(105 - invoiceTextWidth / 2, 21, 105 + invoiceTextWidth / 2, 21);
 
   // Set font for the details
-  doc.setFontSize(12);
+  doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
 
-  // Add other details
-  // doc.text(`Customer : ${headData?.customer?.firstName + " " + headData?.customer?.lastName}`, 10, 30);
+  // Customer Details (reduced vertical space)
   if (headData?.customer) {
     const customerName = `${headData.customer.firstName || ""} ${headData.customer.lastName || ""}`.trim();
-    doc.text(`Customer : ${customerName}`, 10, 30);
+    doc.text(`Customer: ${customerName}`, 10, 24);
   }
-  doc.text("Ticket : MIXING", 10, 38);
-  doc.text(`Date : ${formattedDate}`, 165, 30);
-  doc.text(`Invoice No : ${headData?.id ?? headData?.count}`, 165, 38);
+
+  doc.text("Ticket: MIXING", 10, 28);
+  const tableStartX = doc.internal.pageSize.width - 15; // Approximate right margin
+
+  doc.text(`Date: ${formattedDate}`, tableStartX, 26, { align: "right" });
+  doc.text(`Invoice No: ${headData?.id ?? headData?.count}`, tableStartX, 31, { align: "right" });
 }
 
 // Function to map data to table format with truncated text fields
@@ -50,7 +50,8 @@ export function mapDataToTable(data) {
     ...(item.company?.companyName && { company: item.company.companyName || "-" }),
     kgs: item.kgs ?? "-",
     lbs: item.lbs ?? "-",
-    bales: item.bales ?? "-",
+    bales: item.onHand ?? "-",
+    company: item.company ?? "-",
     ...(item.ratePerKgs && { kgRate: item.kgRate ?? item.ratePerKgs }),
     ...(item.ratePerLbs && { lbsRate: item.lbsRate ?? item.ratePerLbs }),
     ...(item.ratePerBale && { baleRate: item.baleRate ?? item.ratePerBale }),
@@ -68,7 +69,6 @@ function truncateText(text, maxLength) {
 
 // Function to generate the table using autoTable with responsive column widths
 export function generateTable(doc, tableData) {
-  // Determine which rate fields are present in tableData
   const hasKgRate = tableData.some((row) => row.kgRate !== undefined);
   const hasLbsRate = tableData.some((row) => row.lbsRate !== undefined);
   const hasBaleRate = tableData.some((row) => row.baleRate !== undefined);
@@ -80,26 +80,26 @@ export function generateTable(doc, tableData) {
     { header: "KGS", dataKey: "kgs" },
     { header: "LBS", dataKey: "lbs" },
     { header: "Bales", dataKey: "bales" },
+    { header: "Company", dataKey: "company" },
     ...(hasKgRate ? [{ header: "KG Rate", dataKey: "kgRate" }] : []),
     ...(hasLbsRate ? [{ header: "LBS Rate", dataKey: "lbsRate" }] : []),
     ...(hasBaleRate ? [{ header: "Bale Rate", dataKey: "baleRate" }] : []),
     ...(hasTotalAmount ? [{ header: "Total Amount", dataKey: "totalAmount" }] : []),
   ];
 
-  // Generate a temporary table to calculate its width
   const tempDoc = new jsPDF();
   autoTable(tempDoc, {
     head: [columns.map((col) => col.header)],
     body: tableData.map((row) => columns.map((col) => row[col.dataKey])),
     styles: {
-      fontSize: 10,
+      fontSize: 7, // Compact but readable
       halign: "center",
-      cellPadding: [3, 2],
+      cellPadding: [0.5, 0.5], // Smaller padding for tight layout
       lineColor: [0, 0, 0],
-      lineWidth: 0.5,
+      lineWidth: 0.5, // Thinner lines to save space
     },
     headStyles: {
-      fillColor: [192, 192, 192],
+      fillColor: [200, 200, 200],
       textColor: [0, 0, 0],
       fontStyle: "bold",
       lineColor: [0, 0, 0],
@@ -118,26 +118,26 @@ export function generateTable(doc, tableData) {
     },
     theme: "grid",
     tableWidth: "auto",
-    margin: { left: 10 },
+    margin: { left: 11 },
   });
 
-  const tableWidth = tempDoc.internal.pageSize.width - 20; // Adjust for margins
+  const tableWidth = tempDoc.internal.pageSize.width - 20;
   const pageWidth = doc.internal.pageSize.width;
   const startX = (pageWidth - tableWidth) / 2;
 
   autoTable(doc, {
-    startY: 60,
+    startY: doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 40,
     head: [columns.map((col) => col.header)],
     body: tableData.map((row) => columns.map((col) => row[col.dataKey])),
     styles: {
-      fontSize: 10,
+      fontSize: 7,
       halign: "center",
-      cellPadding: [3, 2],
+      cellPadding: [0.5, 0.5],
       lineColor: [0, 0, 0],
       lineWidth: 0.5,
     },
     headStyles: {
-      fillColor: [192, 192, 192],
+      fillColor: [200, 200, 200],
       textColor: [0, 0, 0],
       fontStyle: "bold",
       lineColor: [0, 0, 0],
@@ -224,28 +224,35 @@ export function addNetAmountSection(doc, totalAmount) {
   const pageWidth = doc.internal.pageSize.width;
   const pageHeight = doc.internal.pageSize.height;
 
+  // Convert amount to words
   const netAmountInWords = numberToWords(totalAmount);
   const pkText = `PKR: ${netAmountInWords.toUpperCase()} ONLY`;
-  const netAmountText = "Net Amount: ";
 
+  // Define Net Amount text and positioning
+  const netAmountText = "Net Amount: ";
   const netAmountTextWidth = doc.getTextWidth(netAmountText);
-  const amountWidth = doc.getTextWidth(`Rs. ${totalAmount.toFixed(2)}`);
+  const amountWidth = doc.getTextWidth(`${totalAmount.toFixed(2)}`);
   const totalWidth = netAmountTextWidth + amountWidth + 20;
 
   const maxTextWidth = pageWidth * 0.5 - 20;
   const splitPkText = doc.splitTextToSize(pkText, maxTextWidth);
 
-  const yPos = yPosAfterTable + 10;
+  const yPos = yPosAfterTable + 5;
   const gap = 15;
 
+  // Print amount in words
   doc.setFont("helvetica", "normal");
   doc.text(splitPkText, 10, yPos);
 
-  doc.setFont("helvetica", "bold");
-  doc.text(netAmountText, pageWidth - totalWidth - gap, yPos);
+  // Right-align the Net Amount section
+  const netAmountX = pageWidth - totalWidth - gap;
+  const rsX = netAmountX + netAmountTextWidth + 10;
+  const amountX = rsX + 10;
 
-  const rsX = pageWidth - totalWidth - gap + netAmountTextWidth + 10;
-  const amountX = rsX + 15;
+  doc.setFont("helvetica", "bold");
+  doc.text(netAmountText, netAmountX, yPos);
+
+  // Draw border lines above and below the amount
   const borderYTop = yPos - 6;
   const borderYBottom = yPos + 2;
 
@@ -256,25 +263,21 @@ export function addNetAmountSection(doc, totalAmount) {
 
   doc.setFont("helvetica", "normal");
   doc.text("Rs.", rsX, yPos);
-  doc.text(`Rs. ${totalAmount.toFixed(2)}`, amountX, yPos);
+  doc.text(`${totalAmount.toFixed(2)}`, amountX, yPos);
 
   // Position "Authorized Signatory" at the bottom of the page
-  const bottomMargin = 20; // Adjust this value if you want more space from the bottom
-  const signatoryYPos = pageHeight - bottomMargin; // Calculate Y position based on page height
+  const bottomMargin = 20;
+  const signatoryYPos = pageHeight - bottomMargin;
 
-  // Add "Authorized Signatory" and line
   const signatoryText = "Authorized Signatory";
   const signatoryTextWidth = doc.getTextWidth(signatoryText);
 
-  // Define X position for the text and line
-  const signatoryX = 145; // X position for the "Authorized Signatory" text
-  const lineStartX = signatoryX - 10; // Line starts at the same X position as the text
-  const lineEndX = signatoryX + signatoryTextWidth + 10; // Line ends slightly beyond the text width
+  const signatoryX = 159;
+  const lineStartX = signatoryX - 10;
+  const lineEndX = signatoryX + signatoryTextWidth + 10;
 
-  // Draw the signature line
-  doc.line(lineStartX, signatoryYPos - 10, lineEndX, signatoryYPos - 10); // Line 10 units above the text
-
-  // Add the "Authorized Signatory" text
+  // Draw the signature line and text
+  doc.line(lineStartX, signatoryYPos - 10, lineEndX, signatoryYPos - 10);
   doc.text(signatoryText, signatoryX, signatoryYPos);
 }
 
