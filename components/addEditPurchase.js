@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { Button, Col, Form, Input, Row } from "antd";
+import { Button, Col, Form, Input, InputNumber, Row } from "antd";
 import dayjs from "dayjs";
 import _isEmpty from "lodash/isEmpty";
 import { useRouter } from "next/router";
@@ -143,7 +143,7 @@ const AddEditPurchase = ({ purchase, type = null }) => {
                 },
               ]}
             >
-              <Input type="number" disabled={isView} readOnly />
+              <InputNumber min={0} disabled={isView} readOnly style={{ width: "100%" }} />
             </Form.Item>
           </Col>
           <Col span={8}>
@@ -156,7 +156,7 @@ const AddEditPurchase = ({ purchase, type = null }) => {
                 },
               ]}
             >
-              <Input type="number" disabled={isView} readOnly />
+              <InputNumber min={0} disabled={isView} readOnly style={{ width: "100%" }} />
             </Form.Item>
           </Col>
           <Col span={8}>
@@ -166,15 +166,15 @@ const AddEditPurchase = ({ purchase, type = null }) => {
           </Col>
           <Col span={8}>
             <Form.Item name="surCharge" label="Sur Charge (RS)">
-              <Input
-                type="text"
+              <InputNumber
+                min={0}
                 defaultValue={_surCharge}
                 value={_surCharge}
-                onChange={(e) => {
-                  const value = parseFloat(e.target.value);
+                onChange={(value) => {
                   !isNaN(value) ? setSurCharge(value) : setSurCharge(0);
                 }}
                 disabled={isView}
+                style={{ width: "100%" }}
               />
             </Form.Item>
           </Col>
