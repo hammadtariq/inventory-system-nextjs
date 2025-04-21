@@ -120,3 +120,25 @@ sequelize model:generate --name Sale --attributes customerId:integer,totalAmount
 
 2. ALTER TABLE public.purchases
    ADD COLUMN "revisionNo" INTEGER NOT NULL DEFAULT 0;
+
+## Create PurchaseHistory Table
+
+CREATE TYPE "status_enum" AS ENUM ('PENDING', 'APPROVED', 'CANCEL');
+CREATE TYPE "bale_type_enum" AS ENUM ('SMALL_BALES', 'BIG_BALES');
+
+CREATE TABLE "purchase_histories" (
+"id" SERIAL PRIMARY KEY,
+"purchaseId" INTEGER NOT NULL REFERENCES "purchases"("id") ON DELETE CASCADE,
+"companyId" INTEGER NOT NULL REFERENCES "companies"("id") ON DELETE CASCADE,
+"totalAmount" FLOAT NOT NULL,
+"surCharge" FLOAT,
+"invoiceNumber" VARCHAR,
+"purchasedProducts" JSONB NOT NULL,
+"revisionDetails" JSONB,
+"revisionNo" INTEGER NOT NULL DEFAULT 0,
+"status" "status_enum",
+"baleType" "bale_type_enum",
+"purchaseDate" TIMESTAMP NOT NULL,
+"createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+"updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

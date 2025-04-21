@@ -85,10 +85,20 @@ const updatePurchaseOrder = async (req, res) => {
     // Log minimal purchase details for tracking
     console.log(`Purchase Order ${id} found with status: ${purchaseObj.status}`);
 
+    const clonePurchase = value;
+    delete clonePurchase.id;
+    const newRevisionNo = (purchaseObj.revisionNo || 0) + 1;
+
     // Check status for editing
     if (!EDITABLE_STATUS.includes(purchaseObj.status)) {
       console.warn(`Purchase order is: ${purchaseObj.status}`);
-      const updatedPurchase = await updatePurchaseOrderAfterApproval(value, purchase, purchaseObj);
+      const updatedPurchase = await updatePurchaseOrderAfterApproval(
+        value,
+        purchase,
+        purchaseObj,
+        clonePurchase,
+        newRevisionNo
+      );
       console.log("===== Update Purchase Order Request End =====");
       return res.send(updatedPurchase);
     } else {
@@ -104,7 +114,7 @@ const updatePurchaseOrder = async (req, res) => {
         await purchase.update({ ...value, status: STATUS.PENDING });
         return res.send(purchase);
       }
-      const updatedPurchase = await updateNewDiffBeforeApproval(value, purchase, purchaseObj);
+      const updatedPurchase = await updateNewDiffBeforeApproval(value, purchase, purchaseObj, newRevisionNo);
       console.log("===== Update Purchase Order Request End =====");
       return res.send(updatedPurchase);
     }
@@ -114,7 +124,7 @@ const updatePurchaseOrder = async (req, res) => {
   }
 };
 
-const updatePurchaseOrderAfterApproval = async (value, purchase, purchaseObj) => {
+const updatePurchaseOrderAfterApproval = async (value, purchase, purchaseObj, clonePurchase, newRevisionNo) => {
   // Calculate differences
   const differences = calculateDifferences(value, purchaseObj);
 
@@ -122,29 +132,55 @@ const updatePurchaseOrderAfterApproval = async (value, purchase, purchaseObj) =>
     console.log("Differences Detected:", JSON.stringify(differences, null, 2));
   }
 
+  await createPurchaseHistory({
+    purchaseId: purchase.id,
+    clonePurchase,
+    revisionDetails: differences,
+    revisionNo: newRevisionNo,
+    previousPurchasedProducts: purchaseObj.purchasedProducts,
+  });
+
   // Update the purchase order
   console.log("Updating Purchase Order with revision after approval...");
   await purchase.update({
     ...value,
     status: STATUS.PENDING,
     revisionDetails: differences,
-    revisionNo: (purchaseObj.revisionNo || 0) + 1,
+    revisionNo: newRevisionNo,
   });
   return purchase;
 };
 
-const updateNewDiffBeforeApproval = async (value, purchase, purchaseObj) => {
+const updateNewDiffBeforeApproval = async (value, purchase, purchaseObj, newRevisionNo) => {
   // Calculate differences if revision exists
   const newDifferences = calculateDifferences(value, purchaseObj);
 
   console.log("Updating Purchase Order with new differences before approval...");
+
   await purchase.update({
     ...value,
     status: STATUS.PENDING,
     revisionDetails: newDifferences,
-    revisionNo: (purchaseObj.revisionNo || 0) + 1,
+    revisionNo: newRevisionNo,
   });
   return purchase;
+};
+
+const createPurchaseHistory = async ({
+  purchaseId,
+  clonePurchase,
+  revisionDetails,
+  revisionNo,
+  previousPurchasedProducts,
+}) => {
+  revisionDetails.previousPurchasedProducts = previousPurchasedProducts;
+  return await db.PurchaseHistory.create({
+    ...clonePurchase,
+    purchaseId,
+    revisionNo,
+    revisionDetails,
+    createdAt: new Date(),
+  });
 };
 
 export default nextConnect().use(auth).get(getPurchaseOrder).put(updatePurchaseOrder);
