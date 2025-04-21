@@ -13,6 +13,7 @@ const EditableCell = ({ dataIndex, title, inputType, editing, form, children, re
   const inputNode =
     inputType === "number" ? (
       <InputNumber
+        min={0}
         name={dataIndex}
         className={styles.editableCellInput}
         onChange={(e) => handleChange(e, dataIndex, record.id)}
