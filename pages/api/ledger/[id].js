@@ -2,7 +2,7 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
-import { companySumQuery, customerSumQuery } from "../../../query";
+import { companySumQuery, customerSumQuery } from "@/query/index";
 
 const getTransactions = async (req, res) => {
   console.log("get transaction Request Start");

@@ -146,4 +146,5 @@ const updateLedger = async (revisionNo, { companyId, transactionId, totalAmount,
   );
 };
 
+export { approvePurchaseOrder }; // 👈 add this export
 export default nextConnect().use(auth).put(approvePurchaseOrder);
