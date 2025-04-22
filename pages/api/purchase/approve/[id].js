@@ -146,5 +146,5 @@ const updateLedger = async (revisionNo, { companyId, transactionId, totalAmount,
   );
 };
 
-export { approvePurchaseOrder }; // 👈 add this export
+export { approvePurchaseOrder }; // 👈 add this export so it can be available to import in test file
 export default nextConnect().use(auth).put(approvePurchaseOrder);
