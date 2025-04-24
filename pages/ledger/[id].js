@@ -39,6 +39,11 @@ const LedgerDetails = ({ id, type }) => {
 
   const columns = [
     {
+      title: "Serial No #",
+      dataIndex: "id",
+      key: "id",
+    },
+    {
       title: "Date",
       dataIndex: "paymentDate",
       key: "paymentDate",
@@ -115,12 +120,15 @@ const LedgerDetails = ({ id, type }) => {
         }
       },
     },
-    {
+  ];
+
+  if (type !== "company") {
+    columns.push({
       title: "Action",
       key: "action",
       render: renderActions,
-    },
-  ];
+    });
+  }
 
   const renderTotalBalance = () => (
     <div className={styles.rowDirectionTableContainer}>
@@ -130,7 +138,7 @@ const LedgerDetails = ({ id, type }) => {
   );
   console.log("transactions", transactions);
   return (
-    <div>
+    <div style={{ overflowX: "auto" }}>
       {renderTotalBalance()}
       <AppTable
         loading={isLoading}

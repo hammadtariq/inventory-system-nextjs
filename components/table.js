@@ -62,7 +62,7 @@ export default function AppTable({
   return (
     <Table
       bordered={bordered}
-      scroll={{ x: 1000 }}
+      scroll={{ x: "max-content" }}
       loading={isLoading}
       rowKey={rowKey || "id"}
       columns={columns}
