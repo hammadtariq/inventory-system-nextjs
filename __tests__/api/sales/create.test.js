@@ -52,8 +52,20 @@ describe("createSale API", () => {
       customerId: 123,
       totalAmount: 1000,
       laborCharge: null,
-      soldDate: "2025-04-24T00:00:00Z",
-      soldProducts: expect.any(Array),
+      soldDate: new Date("2025-04-24T00:00:00.000Z"),
+      soldProducts: [
+        {
+          baleWeightKgs: 9,
+          baleWeightLbs: 20,
+          companyId: 1,
+          id: 101,
+          itemName: "shirt",
+          noOfBales: 10,
+          ratePerBale: 200,
+          ratePerKgs: 20,
+          ratePerLbs: 10,
+        },
+      ],
       status: STATUS.PENDING,
     });
   });
@@ -83,7 +95,7 @@ describe("createSale API", () => {
 
     // Assert that validation fails and the response status code is 400
     expect(res.statusCode).toBe(400);
-    expect(res._getData()).toContain("Invalid date");
+    expect(res._getData()).toEqual({ message: 'ValidationError: "soldDate" must be a valid date' });
   });
 
   it("should return 500 if there is a database error", async () => {
@@ -114,6 +126,6 @@ describe("createSale API", () => {
 
     // Assert that a 500 status code is returned for database error
     expect(res.statusCode).toBe(500);
-    expect(res._getData()).toContain({ message: "Error: Database error" });
+    expect(res._getData()).toEqual({ message: "Error: Database error" });
   });
 });
