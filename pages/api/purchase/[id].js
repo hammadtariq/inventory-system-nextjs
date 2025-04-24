@@ -101,23 +101,20 @@ const updatePurchaseOrder = async (req, res) => {
       );
       console.log("===== Update Purchase Order Request End =====");
       return res.send(updatedPurchase);
-    } else {
-      console.log("Purchase Order is editable, proceeding with the update...");
-      /**
+    }
+
+    console.log("Purchase Order is editable, proceeding with the update...");
+    /**
         @returns {number} The previous revision number Track the update for revisions
         If the purchase is not approved yet, so the revision number will be 0.
         If the purchase was approved before, use the existing revision number.
       */
-      const previousRevisionNo = purchaseObj?.revisionNo ?? 0;
-      if (!previousRevisionNo) {
-        console.log("===== Update Purchase Order Request End =====");
-        await purchase.update({ ...value, status: STATUS.PENDING });
-        return res.send(purchase);
-      }
-      const updatedPurchase = await updateNewDiffBeforeApproval(value, purchase, purchaseObj, newRevisionNo);
+    const previousRevisionNo = purchaseObj?.revisionNo ?? 0;
+    if (!previousRevisionNo) {
       console.log("===== Update Purchase Order Request End =====");
-      return res.send(updatedPurchase);
+      await purchase.update({ ...value, status: STATUS.PENDING });
     }
+    return res.send(purchase);
   } catch (error) {
     console.error("Update Purchase Order Request Error:", error.stack || error.toString());
     return res.status(500).send({ message: error.toString() });
@@ -151,21 +148,6 @@ const updatePurchaseOrderAfterApproval = async (value, purchase, purchaseObj, cl
   return purchase;
 };
 
-const updateNewDiffBeforeApproval = async (value, purchase, purchaseObj, newRevisionNo) => {
-  // Calculate differences if revision exists
-  const newDifferences = calculateDifferences(value, purchaseObj);
-
-  console.log("Updating Purchase Order with new differences before approval...");
-
-  await purchase.update({
-    ...value,
-    status: STATUS.PENDING,
-    revisionDetails: newDifferences,
-    revisionNo: newRevisionNo,
-  });
-  return purchase;
-};
-
 const createPurchaseHistory = async ({
   purchaseId,
   clonePurchase,
@@ -183,4 +165,5 @@ const createPurchaseHistory = async ({
   });
 };
 
+export { updatePurchaseOrder, updatePurchaseOrderAfterApproval };
 export default nextConnect().use(auth).get(getPurchaseOrder).put(updatePurchaseOrder);
