@@ -3,6 +3,7 @@
     "baseUrl": ".",
     "paths": {
       "@/query/*": ["query/*"],
+      "@/pages/*": ["pages/*"],
       "@/lib/*": ["lib/*"],
       "@/middlewares/*": ["middlewares/*"],
       "@/models/*": ["models/*"],

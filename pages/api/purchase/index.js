@@ -25,11 +25,12 @@ const apiSchema = Joi.object({
   purchasedProducts: Joi.array().items(inventorySchema).required(),
 });
 
-const createPurchaseOrder = async (req, res) => {
+export const createPurchaseOrder = async (req, res) => {
   console.log("Create Purchase order Request Start");
 
   const { error, value } = apiSchema.validate(req.body);
   if (error && Object.keys(error).length) {
+    console.log("Validation failed:", error);
     return res.status(400).send({ message: error.toString() });
   }
   try {

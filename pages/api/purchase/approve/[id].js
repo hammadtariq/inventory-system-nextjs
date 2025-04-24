@@ -10,46 +10,58 @@ const apiSchema = Joi.object({
   id: Joi.number().required(),
 });
 
-const approvePurchaseOrder = async (req, res) => {
+const handler = async (req, res) => {
   console.log("Approve Purchase order Request Start");
 
-  const { error, value } = apiSchema.validate({
-    id: req.query.id,
-  });
+  try {
+    const { error, value } = apiSchema.validate({ id: req.query.id });
 
-  if (error && Object.keys(error).length) {
-    return res.status(400).send({ message: error.toString() });
+    if (error && Object.keys(error).length) {
+      return res.status(400).send({ message: error.toString() });
+    }
+
+    const { id } = value;
+    if (!id) return res.status(400).json({ message: "ID is required" });
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid ID format" });
+
+    const result = await approvePurchaseOrder(id, req.user);
+
+    return res.status(result.status).send(result.body);
+  } catch (error) {
+    console.error("Error in approvePurchaseOrder:", error);
+    return res.status(500).send({ message: error.message });
   }
-  if (req.user.role !== "ADMIN") {
-    return res.status(400).send({ message: "Operation not permitted." });
+};
+
+const approvePurchaseOrder = async (id, user) => {
+  if (user.role !== "ADMIN") {
+    return { status: 403, body: { message: "Operation not permitted." } };
   }
+
   const t = await db.sequelize.transaction();
   try {
     await db.dbConnect();
-    const { id } = value;
-    const purchase = await db.Purchase.findByPk(id, { include: [db.Company], transaction: t });
+
+    const purchase = await db.Purchase.findByPk(id, {
+      include: [db.Company],
+      transaction: t,
+    });
 
     if (!purchase) {
-      return res.status(404).send({ message: "purchase order does not exist" });
+      return { status: 404, body: { message: "Purchase order does not exist" } };
     }
+
     if (purchase.status === STATUS.APPROVED) {
-      return res.status(400).send({ message: "purchase order already approved" });
+      return { status: 400, body: { message: "Purchase order already approved" } };
     }
+
     const { purchasedProducts, purchaseDate, companyId, totalAmount, invoiceNumber, revisionDetails, revisionNo } =
       purchase;
 
-    // Ensure we await the inventory update before proceeding
-    if (!revisionNo) {
-      await updateInventory(purchasedProducts, companyId, t);
-    } else {
-      await updateInventory(revisionDetails.purchasedProducts, companyId, t);
-    }
-
-    // Approve the purchase order
-    await purchase.update({ status: STATUS.APPROVED }, { transaction: t });
-
-    // Update the ledger
-    await updateLedger(revisionNo, {
+    const productsToUse = revisionNo ? revisionDetails.purchasedProducts : purchasedProducts;
+    const updatedInventory = await updateInventory(productsToUse, companyId, t);
+    const updatedPurchaseOrder = await purchase.update({ status: STATUS.APPROVED }, { transaction: t });
+    const updatedLedger = await updateLedger(revisionNo, {
       companyId,
       transactionId: id,
       totalAmount,
@@ -57,23 +69,30 @@ const approvePurchaseOrder = async (req, res) => {
       invoiceNumber,
       t,
     });
-    // Commit transaction after all operations are completed
+
     await t.commit();
-    console.log("Approve Purchase order Request End");
-    return res.send();
+
+    return {
+      status: 200,
+      body: {
+        purchaseOrder: updatedPurchaseOrder,
+        inventory: updatedInventory,
+        ledger: updatedLedger,
+      },
+    };
   } catch (error) {
     await t.rollback();
-    console.log("Approve Purchase order Request Error:", error);
-    return res.status(500).send({ message: error.toString() });
+    return { status: 500, body: { message: error.message } };
   }
 };
 
 // Consolidated Inventory Update
 const updateInventory = async (products, companyId, transaction) => {
+  const results = [];
   for (const product of products) {
     const { id, noOfBales, baleWeightKgs, baleWeightLbs, ratePerLbs, ratePerKgs, ratePerBale } = product;
 
-    const inventory = await db.Inventory.findOne({ where: { id, companyId }, transaction });
+    let inventory = await db.Inventory.findOne({ where: { id, companyId }, transaction });
     if (inventory) {
       await inventory.increment({ onHand: noOfBales || 0, noOfBales: noOfBales || 0 }, { transaction });
 
@@ -102,12 +121,14 @@ const updateInventory = async (products, companyId, transaction) => {
         { transaction }
       );
     } else {
-      await db.Inventory.create(
+      inventory = await db.Inventory.create(
         { ...product, companyId, onHand: noOfBales || 0, baleWeightKgs, baleWeightLbs },
         { transaction }
       );
     }
+    results.push(inventory); // ✅ collect updated inventory
   }
+  return results;
 };
 
 // Ledger Update Logic
@@ -125,14 +146,13 @@ const updateLedger = async (revisionNo, { companyId, transactionId, totalAmount,
       },
       { transaction: t }
     );
-    return;
+    return ledger; // ✅ return updated ledger
   }
 
   // Handle case where revision number is zero (create a new ledger entry)
   const balance = await balanceQuery(companyId, "company");
   const totalBalance = balance.length ? balance[0].amount + totalAmount : totalAmount;
-
-  await db.Ledger.create(
+  const ledger = await db.Ledger.create(
     {
       companyId,
       amount: totalAmount,
@@ -144,7 +164,8 @@ const updateLedger = async (revisionNo, { companyId, transactionId, totalAmount,
     },
     { transaction: t }
   );
+  return ledger;
 };
 
-export { approvePurchaseOrder }; // 👈 add this export so it can be available to import in test file
-export default nextConnect().use(auth).put(approvePurchaseOrder);
+export { handler, approvePurchaseOrder, updateInventory, updateLedger }; // 👈 add this export so it can be available to import in test file
+export default nextConnect().use(auth).put(handler);

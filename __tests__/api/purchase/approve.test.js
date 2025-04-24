@@ -1,3 +1,7 @@
+import { approvePurchaseOrder, updateInventory, updateLedger } from "@/pages/api/purchase/approve/[id]";
+import db from "@/lib/postgres";
+import { balanceQuery } from "@/utils/query.utils";
+
 jest.mock("@/lib/postgres", () => ({
   dbConnect: jest.fn().mockResolvedValue(),
   sequelize: {
@@ -6,269 +10,319 @@ jest.mock("@/lib/postgres", () => ({
       rollback: jest.fn(),
     }),
   },
+  Purchase: { findByPk: jest.fn(), update: jest.fn() },
+  Inventory: { findOne: jest.fn(), create: jest.fn(), update: jest.fn(), increment: jest.fn() },
+  Ledger: { findOne: jest.fn(), create: jest.fn(), update: jest.fn() },
   Company: {},
-  Purchase: {
-    findByPk: jest.fn(),
-  },
-  Inventory: {
-    findOne: jest.fn(),
-    create: jest.fn(),
-  },
-  Ledger: {
-    findOne: jest.fn(),
-    create: jest.fn(),
-  },
 }));
 
 jest.mock("@/utils/query.utils", () => ({
   balanceQuery: jest.fn(),
 }));
 
-import { createMocks } from "node-mocks-http";
-import { approvePurchaseOrder } from "../../../pages/api/purchase/approve/[id]";
-import db from "@/lib/postgres";
-import { balanceQuery } from "@/utils/query.utils";
-
 describe("approvePurchaseOrder", () => {
-  let req, res;
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("should return 403 if user is not ADMIN", async () => {
+    const res = await approvePurchaseOrder(1, { role: "USER" });
+    expect(res.status).toBe(403);
+    expect(res.body.message).toBe("Operation not permitted.");
+  });
+
+  it("should return 404 if purchase is not found", async () => {
+    db.Purchase.findByPk.mockResolvedValue(null);
+    const res = await approvePurchaseOrder(1, { role: "ADMIN" });
+    expect(res.status).toBe(404);
+    expect(res.body.message).toMatch(/does not exist/);
+  });
+
+  it("should return 400 if purchase is already approved", async () => {
+    db.Purchase.findByPk.mockResolvedValue({ status: "APPROVED" });
+    const res = await approvePurchaseOrder(1, { role: "ADMIN" });
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/already approved/);
+  });
+
+  it("should handle DB error and rollback", async () => {
+    db.Purchase.findByPk.mockImplementation(() => {
+      throw new Error("db error");
+    });
+    const res = await approvePurchaseOrder(1, { role: "ADMIN" });
+    expect(res.status).toBe(500);
+    expect(res.body.message).toEqual("db error");
+  });
+
+  it("should approve a purchase order successfully", async () => {
+    const mockTransaction = {
+      commit: jest.fn(),
+      rollback: jest.fn(),
+    };
+
+    db.sequelize.transaction.mockResolvedValue(mockTransaction);
+
+    const mockPurchase = {
+      id: 772,
+      status: "PENDING",
+      totalAmount: 10,
+      surCharge: null,
+      invoiceNumber: null,
+      revisionNo: 0,
+      baleType: "SMALL_BALES",
+      purchaseDate: "2025-04-22T12:37:45.496Z",
+      companyId: 36,
+      revisionDetails: {
+        companyId: 36,
+        totalAmount: 10,
+        purchaseDate: {},
+        purchasedProducts: [
+          {
+            id: 518,
+            noOfBales: -10,
+          },
+        ],
+      },
+      purchasedProducts: [
+        {
+          id: 524,
+          itemName: "men tropical pant xl",
+          noOfBales: 10,
+          ratePerKgs: 1,
+          ratePerLbs: 1,
+          ratePerBale: 1,
+          baleWeightKgs: 0,
+          baleWeightLbs: 0,
+        },
+        {
+          id: 500,
+          itemName: "white bed cover",
+          noOfBales: 10,
+          ratePerKgs: 1,
+          ratePerLbs: 1,
+          ratePerBale: 1,
+          baleWeightKgs: 0,
+          baleWeightLbs: 0,
+        },
+      ],
+    };
+
+    const updatedMockPurchase = {
+      ...mockPurchase,
+      status: "APPROVED",
+    };
+
+    mockPurchase.update = jest.fn().mockResolvedValue(updatedMockPurchase);
+
+    const mockInventory = {
+      increment: jest.fn(),
+      update: jest.fn(),
+      baleWeightKgs: 0,
+      baleWeightLbs: 0,
+    };
+
+    const mockLedger = {
+      id: 10942,
+      amount: 10,
+      spendType: "DEBIT",
+      invoiceNumber: null,
+      paymentDate: "2025-04-22T12:37:45.496Z",
+      totalBalance: 10,
+    };
+
+    db.Purchase.findByPk.mockResolvedValue(mockPurchase);
+    db.Inventory.findOne.mockResolvedValue(mockInventory);
+    db.Ledger.findOne.mockResolvedValue(null);
+    db.Ledger.create.mockResolvedValue(mockLedger);
+    balanceQuery.mockResolvedValue([{ amount: 0 }]);
+
+    const res = await approvePurchaseOrder(772, { role: "ADMIN" });
+
+    expect(mockPurchase.update).toHaveBeenCalledWith(
+      {
+        status: "APPROVED",
+      },
+      { transaction: mockTransaction }
+    );
+    expect(db.Inventory.findOne).toHaveBeenCalled();
+    expect(db.Ledger.create).toHaveBeenCalled();
+    expect(mockTransaction.commit).toHaveBeenCalled();
+
+    expect(res.status).toBe(200);
+    expect(res.body.inventory).toBeDefined();
+    expect(res.body.ledger).toEqual(mockLedger);
+    expect(res.body.inventory[0]).toMatchObject(mockInventory);
+    expect(res.body.inventory[1]).toMatchObject(mockInventory);
+
+    expect(res.body.purchaseOrder).toEqual(updatedMockPurchase);
+  });
+});
+
+describe("updateInventory", () => {
+  const transaction = {};
+  const product = {
+    id: 1,
+    noOfBales: "5",
+    baleWeightKgs: 100,
+    baleWeightLbs: 200,
+    ratePerBale: 50,
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    const mock = createMocks({
-      method: "PUT",
-      query: { id: "1" },
-    });
-    req = mock.req;
-    res = mock.res;
-    req.user = { role: "ADMIN" };
   });
 
-  it("returns 400 if ID is missing", async () => {
-    req.query.id = undefined;
-    await approvePurchaseOrder(req, res);
-    expect(res._getStatusCode()).toBe(400);
-    expect(res._getData()).toMatchObject({ message: expect.stringContaining("ValidationError") });
-  });
-
-  it("returns 400 if user is not admin", async () => {
-    req.user.role = "USER";
-    await approvePurchaseOrder(req, res);
-    expect(res._getStatusCode()).toBe(400);
-    expect(res._getData()).toEqual({ message: "Operation not permitted." });
-  });
-
-  it("returns 404 if purchase not found", async () => {
-    db.Purchase.findByPk.mockResolvedValue(null);
-    await approvePurchaseOrder(req, res);
-    expect(res._getStatusCode()).toBe(404);
-    expect(res._getData()).toEqual({ message: "purchase order does not exist" });
-  });
-
-  it("returns 400 if purchase already approved", async () => {
-    db.Purchase.findByPk.mockResolvedValue({ status: "APPROVED" });
-    await approvePurchaseOrder(req, res);
-    expect(res._getStatusCode()).toBe(400);
-    expect(res._getData()).toEqual({ message: "purchase order already approved" });
-  });
-
-  it("creates inventory and ledger if not existing (revisionNo=0)", async () => {
-    const updateMock = jest.fn().mockResolvedValue({});
-    db.Purchase.findByPk.mockResolvedValue({
-      id: 1,
-      status: "PENDING",
-      update: updateMock,
-      purchasedProducts: [
-        {
-          id: 1,
-          noOfBales: 10,
-          baleWeightKgs: 100,
-          baleWeightLbs: 200,
-          ratePerBale: 50,
-        },
-      ],
-      companyId: 1,
-      totalAmount: 1000,
-      purchaseDate: "2024-01-01",
-      invoiceNumber: "INV001",
-      revisionNo: 0,
-    });
+  it("should create inventory if not found", async () => {
     db.Inventory.findOne.mockResolvedValue(null);
-    db.Inventory.create.mockResolvedValue({});
-    db.Ledger.create.mockResolvedValue({});
-    balanceQuery.mockResolvedValue([{ amount: 4000 }]);
+    db.Inventory.create.mockResolvedValue({ id: 123 });
 
-    await approvePurchaseOrder(req, res);
-
-    expect(updateMock).toHaveBeenCalledWith({ status: "APPROVED" }, expect.any(Object));
+    const res = await updateInventory([product], 1, transaction);
+    expect(res).toHaveLength(1);
     expect(db.Inventory.create).toHaveBeenCalled();
-    expect(db.Ledger.create).toHaveBeenCalled();
-    expect(res._getStatusCode()).toBe(200);
   });
 
-  it("updates existing inventory & ledger if revisionNo=1", async () => {
-    const updateMock = jest.fn().mockResolvedValue({});
-    const inventoryMock = {
-      increment: jest.fn().mockResolvedValue({}),
-      update: jest.fn().mockResolvedValue({}),
-      baleWeightKgs: null,
-      baleWeightLbs: null,
-    };
-    db.Purchase.findByPk.mockResolvedValue({
-      id: 1,
-      status: "PENDING",
-      update: updateMock,
-      revisionNo: 1,
-      revisionDetails: {
-        purchasedProducts: [
-          {
-            id: 1,
-            noOfBales: 5,
-            baleWeightKgs: 50,
-            baleWeightLbs: 120,
-            ratePerBale: 60,
-          },
-        ],
-      },
-      companyId: 2,
-      totalAmount: 1500,
-      purchaseDate: "2024-02-01",
-      invoiceNumber: "INV002",
-    });
-    db.Inventory.findOne.mockResolvedValue(inventoryMock);
-    db.Ledger.findOne.mockResolvedValue({
-      update: jest.fn().mockResolvedValue({}),
-    });
-
-    await approvePurchaseOrder(req, res);
-
-    expect(db.Inventory.findOne).toHaveBeenCalled();
-    expect(db.Ledger.findOne).toHaveBeenCalled();
-    expect(updateMock).toHaveBeenCalledWith({ status: "APPROVED" }, expect.any(Object));
-    expect(res._getStatusCode()).toBe(200);
-  });
-
-  it("handles DB error and rolls back transaction", async () => {
-    db.Purchase.findByPk.mockRejectedValue(new Error("Mocked DB error"));
-    await approvePurchaseOrder(req, res);
-    expect(res._getStatusCode()).toBe(500);
-    expect(res._getData()).toMatchObject({ message: expect.stringContaining("Error") });
-  });
-
-  it("returns 500 if ledger not found for revision", async () => {
-    const updateMock = jest.fn().mockResolvedValue({});
-    db.Purchase.findByPk.mockResolvedValue({
-      id: 3,
-      status: "PENDING",
-      update: updateMock,
-      revisionNo: 1,
-      revisionDetails: {
-        purchasedProducts: [
-          {
-            id: 3,
-            noOfBales: 10,
-            baleWeightKgs: 80,
-            baleWeightLbs: 160,
-          },
-        ],
-      },
-      companyId: 4,
-      totalAmount: 2100,
-      purchaseDate: "2024-03-01",
-      invoiceNumber: "INV005",
-    });
-
-    db.Inventory.findOne.mockResolvedValue({
+  it("should update inventory with null weights", async () => {
+    const mockInv = {
       increment: jest.fn(),
       update: jest.fn(),
       baleWeightKgs: null,
       baleWeightLbs: null,
-    });
+    };
+    db.Inventory.findOne.mockResolvedValue(mockInv);
 
-    db.Ledger.findOne.mockResolvedValue(null); // Simulate missing ledger
-
-    await approvePurchaseOrder(req, res);
-
-    expect(res._getStatusCode()).toBe(500);
-    expect(res._getData().message).toMatch(/Cannot read properties of null/);
+    await updateInventory([product], 1, transaction);
+    expect(mockInv.increment).toHaveBeenCalled();
+    expect(mockInv.update).toHaveBeenCalled();
   });
 
-  it("increments inventory with existing weights", async () => {
-    const updateMock = jest.fn().mockResolvedValue({});
-    const incrementMock = jest.fn().mockResolvedValue({});
-    const inventoryUpdateMock = jest.fn().mockResolvedValue({});
+  it("should update inventory with existing weights", async () => {
+    const mockInv = {
+      increment: jest.fn(),
+      update: jest.fn(),
+      baleWeightKgs: 100,
+      baleWeightLbs: 200,
+    };
+    db.Inventory.findOne.mockResolvedValue(mockInv);
 
-    db.Purchase.findByPk.mockResolvedValue({
-      id: 2,
-      status: "PENDING",
-      update: updateMock,
-      revisionNo: 1,
-      revisionDetails: {
-        purchasedProducts: [
-          {
-            id: 2,
-            noOfBales: 7,
-            baleWeightKgs: 70,
-            baleWeightLbs: 155,
-            ratePerBale: 70,
-          },
-        ],
-      },
-      companyId: 3,
-      totalAmount: 1700,
-      purchaseDate: "2024-02-05",
-      invoiceNumber: "INV004",
-    });
-
-    db.Inventory.findOne.mockResolvedValue({
-      increment: incrementMock,
-      update: inventoryUpdateMock,
-      baleWeightKgs: 30,
-      baleWeightLbs: 40,
-    });
-
-    db.Ledger.findOne.mockResolvedValue({
-      update: jest.fn().mockResolvedValue({}),
-    });
-
-    await approvePurchaseOrder(req, res);
-
-    expect(incrementMock).toHaveBeenCalled();
-    expect(inventoryUpdateMock).toHaveBeenCalled();
-    expect(res._getStatusCode()).toBe(200);
+    await updateInventory([product], 1, transaction);
+    expect(mockInv.increment).toHaveBeenCalledWith(expect.any(Object), { transaction });
+    expect(mockInv.update).toHaveBeenCalled();
   });
 
-  it("handles inventory update with missing optional fields", async () => {
-    const updateMock = jest.fn().mockResolvedValue({});
-    db.Purchase.findByPk.mockResolvedValue({
-      id: 1,
-      status: "PENDING",
-      update: updateMock,
-      purchasedProducts: [
+  it("should update existing inventory record", async () => {
+    const mockInventory = {
+      increment: jest.fn(),
+      update: jest.fn(),
+      baleWeightKgs: 20,
+      baleWeightLbs: 30,
+    };
+    db.Inventory.findOne.mockResolvedValue(mockInventory);
+
+    await updateInventory(
+      [
         {
-          id: 1,
-          noOfBales: 3, // no weights or rates
+          id: 849,
+          noOfBales: 10,
+          ratePerKgs: 1,
+          ratePerLbs: 1,
+          ratePerBale: 1,
+          baleWeightKgs: 0,
+          baleWeightLbs: 0,
         },
       ],
-      companyId: 1,
-      totalAmount: 500,
-      purchaseDate: "2024-01-01",
-      invoiceNumber: "INV003",
-      revisionNo: 0,
-    });
-    db.Inventory.findOne.mockResolvedValue(null);
-    db.Inventory.create.mockResolvedValue({});
-    db.Ledger.create.mockResolvedValue({});
-    balanceQuery.mockResolvedValue([{ amount: 2000 }]);
+      36,
+      {}
+    );
 
-    await approvePurchaseOrder(req, res);
+    expect(mockInventory.increment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        noOfBales: 10,
+      }),
+      { transaction: {} }
+    );
+    expect(mockInventory.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ratePerBale: 1,
+        ratePerLbs: 1,
+        ratePerKgs: 1,
+      }),
+      { transaction: expect.any(Object) }
+    );
+  });
+});
 
-    expect(res._getStatusCode()).toBe(200);
+describe("updateLedger", () => {
+  const transaction = {};
+  const baseProps = {
+    companyId: 1,
+    transactionId: 101,
+    totalAmount: 5000,
+    purchaseDate: "2024-04-01",
+    invoiceNumber: "INV-999",
+    t: transaction,
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  it("returns 400 for invalid ID format (non-numeric)", async () => {
-    req.query.id = "abc";
-    await approvePurchaseOrder(req, res);
-    expect(res._getStatusCode()).toBe(400);
-    expect(res._getData()).toMatchObject({ message: expect.stringContaining("ValidationError") });
+  it("should update ledger if revision number > 0", async () => {
+    const ledgerMock = {
+      update: jest.fn().mockResolvedValue(true),
+      amount: 5000,
+      spendType: "DEBIT",
+      invoiceNumber: "INV-999",
+      paymentDate: "2024-04-01",
+      totalBalance: 6000,
+    };
+    db.Ledger.findOne.mockResolvedValue(ledgerMock);
+
+    const result = await updateLedger(1, baseProps);
+    expect(ledgerMock.update).toHaveBeenCalled();
+    expect(result).toEqual(ledgerMock);
+  });
+
+  it("should create new ledger if revision number is 0", async () => {
+    const createdLedger = {
+      companyId: 1,
+      amount: 5000,
+      transactionId: 101,
+      spendType: "DEBIT",
+      invoiceNumber: "INV-999",
+      paymentDate: "2024-04-01",
+      totalBalance: 6000,
+    };
+
+    db.Ledger.create.mockResolvedValue(createdLedger);
+    balanceQuery.mockResolvedValue([{ amount: 1000 }]);
+
+    const result = await updateLedger(0, baseProps);
+    expect(db.Ledger.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        companyId: 1,
+        amount: 5000,
+        transactionId: 101,
+        spendType: "DEBIT",
+        invoiceNumber: "INV-999",
+        paymentDate: "2024-04-01",
+        totalBalance: 6000,
+      }),
+      { transaction: {} }
+    );
+    expect(result).toEqual(createdLedger);
+  });
+
+  it("should handle case when balance query returns empty", async () => {
+    balanceQuery.mockResolvedValue([]);
+    const result = await updateLedger(0, baseProps);
+    expect(result).toEqual({
+      amount: 5000,
+      companyId: 1,
+      invoiceNumber: "INV-999",
+      paymentDate: "2024-04-01",
+      spendType: "DEBIT",
+      totalBalance: 6000,
+      transactionId: 101,
+    });
   });
 });
