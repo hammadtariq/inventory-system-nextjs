@@ -148,5 +148,22 @@ const updatePurchaseOrderAfterApproval = async (value, purchase, purchaseObj, cl
   return purchase;
 };
 
+const createPurchaseHistory = async ({
+  purchaseId,
+  clonePurchase,
+  revisionDetails,
+  revisionNo,
+  previousPurchasedProducts,
+}) => {
+  revisionDetails.previousPurchasedProducts = previousPurchasedProducts;
+  return await db.PurchaseHistory.create({
+    ...clonePurchase,
+    purchaseId,
+    revisionNo,
+    revisionDetails,
+    createdAt: new Date(),
+  });
+};
+
 export { updatePurchaseOrder, updatePurchaseOrderAfterApproval };
 export default nextConnect().use(auth).get(getPurchaseOrder).put(updatePurchaseOrder);
