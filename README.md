@@ -142,3 +142,17 @@ CREATE TABLE "purchase_histories" (
 "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
+
+## Restore Backup
+psql -U postgres -d postgres     
+
+# Inside psql
+```
+DROP DATABASE IF EXISTS "inventory-management-local";
+create database "inventory-management-local";
+grant all privileges on database "inventory-management-local" to postgres;
+\q
+```
+pg_restore -U postgres -d inventory-management-local -v ~/Documents/inventory\ backups/inventory_backup_25_06_25
