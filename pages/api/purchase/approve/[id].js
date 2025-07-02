@@ -133,23 +133,47 @@ const updateInventory = async (products, companyId, transaction) => {
 
 // Ledger Update Logic
 const updateLedger = async (revisionNo, { companyId, transactionId, totalAmount, purchaseDate, invoiceNumber, t }) => {
-  // If revision number is not zero, update the existing ledger
   if (revisionNo !== 0) {
-    const ledger = await db.Ledger.findOne({ where: { companyId, transactionId }, transaction: t });
+    // === Ledger Revision ===
+    const ledger = await db.Ledger.findOne({
+      where: { companyId, transactionId },
+      transaction: t,
+    });
+
+    if (!ledger) throw new Error("Ledger entry not found for revision.");
+
+    const oldAmount = ledger.amount;
+    const amountDiff = totalAmount - oldAmount;
+
+    // Update the current ledger entry with the new amount and adjusted totalBalance
     await ledger.update(
       {
         amount: totalAmount,
-        spendType: SPEND_TYPE.DEBIT,
         invoiceNumber,
         paymentDate: purchaseDate,
-        totalBalance: totalAmount,
+        totalBalance: ledger.totalBalance + amountDiff,
       },
       { transaction: t }
     );
-    return ledger; // ✅ return updated ledger
+
+    // Update all subsequent ledger entries to reflect the difference
+    await db.Ledger.update(
+      {
+        totalBalance: db.sequelize.literal(`"totalBalance" + ${amountDiff}`),
+      },
+      {
+        where: {
+          companyId,
+          paymentDate: { [db.Sequelize.Op.gt]: purchaseDate },
+        },
+        transaction: t,
+      }
+    );
+
+    return ledger;
   }
 
-  // Handle case where revision number is zero (create a new ledger entry)
+  // === New Purchase Ledger Entry ===
   const balance = await balanceQuery(companyId, "company");
   const totalBalance = balance.length ? balance[0].amount + totalAmount : totalAmount;
   const ledger = await db.Ledger.create(
