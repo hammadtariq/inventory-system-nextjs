@@ -6,7 +6,7 @@ module.exports = {
     password: process.env.POSTGRES_PASSWORD || "postgres",
     database: process.env.POSTGRES_DB || "inventory-management-local",
     host: process.env.POSTGRES_HOST,
-    port: process.env.POSTGRES_PORT || 5433,
+    port: process.env.POSTGRES_PORT || 5432,
 
     dialect: "postgres",
   },
