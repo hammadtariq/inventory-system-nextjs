@@ -123,3 +123,7 @@ export const downloadFile = (file, filename) => {
   link.click();
 };
 export const PAGE_TYPE_VIEW = "view";
+
+export function capitalizeName(name = "") {
+  return name.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}

@@ -28,7 +28,27 @@ const exportLedger = async (req, res) => {
       order: [["updatedAt", "DESC"]],
     });
 
-    const dataForExcel = data.soldProducts.map((element) => ({
+    if (!data) throw new Error("Sale not found");
+
+    const soldProducts = data.soldProducts || [];
+
+    // ✅ Step 1: Extract unique companyIds
+    const companyIds = [...new Set(soldProducts.map((item) => item.companyId).filter(Boolean))];
+
+    // ✅ Step 2: Fetch all related companies in one go
+    const companies = await db.Company.findAll({
+      where: { id: companyIds },
+      attributes: ["id", "companyName"],
+    });
+
+    // ✅ Step 3: Create a map of companies by ID
+    const companyMap = {};
+    companies.forEach((company) => {
+      companyMap[company.id] = company.companyName;
+    });
+
+    // ✅ Step 4: Map the sale data
+    const dataForExcel = soldProducts.map((element) => ({
       itemDetail: element.itemName,
       kgs: element.baleWeightKgs ?? "-",
       lbs: element.baleWeightLbs ?? "-",
@@ -37,6 +57,7 @@ const exportLedger = async (req, res) => {
       lbsRate: element.ratePerLbs ?? "-",
       baleRate: element.ratePerBale ?? "-",
       totalAmount: calculateAmount(0, element),
+      company: { companyName: companyMap[element.companyId] || "-" }, // ✅ Final addition
     }));
 
     // Update req.body with the prepared data
@@ -68,6 +89,7 @@ const exportLedger = async (req, res) => {
     res.status(200).send(fileBlob);
     console.log("ledger export file handler ended");
   } catch (error) {
+    console.error(error);
     res.status(500).send({ message: error.message });
   }
 };

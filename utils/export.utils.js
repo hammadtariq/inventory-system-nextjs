@@ -1,5 +1,6 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import { capitalizeName } from "./ui.util";
 
 // Function to create and configure a new jsPDF instance
 export function createPDF() {
@@ -32,7 +33,7 @@ export function addTitleAndDetails(doc, headData) {
   // Customer Details (reduced vertical space)
   if (headData?.customer) {
     const customerName = `${headData.customer.firstName || ""} ${headData.customer.lastName || ""}`.trim();
-    doc.text(`Customer: ${customerName}`, 10, 24);
+    doc.text(`Customer: ${capitalizeName(customerName)}`, 10, 24);
   }
 
   doc.text("Ticket: MIXING", 10, 28);
@@ -50,11 +51,11 @@ export function mapDataToTable(data) {
     ...(item.company?.companyName && { company: item.company.companyName || "-" }),
     kgs: item.kgs ?? "-",
     lbs: item.lbs ?? "-",
-    bales: item.onHand ?? "-",
-    company: item.company ?? "-",
+    bales: item.onHand ? item.onHand : item.bales ? item.bales : "-",
+    ...(item.onHand && { company: item.company }),
     ...(item.ratePerKgs && { kgRate: item.kgRate ?? item.ratePerKgs }),
     ...(item.ratePerLbs && { lbsRate: item.lbsRate ?? item.ratePerLbs }),
-    ...(item.ratePerBale && { baleRate: item.baleRate ?? item.ratePerBale }),
+    ...(item.ratePerBales && { baleRate: item.baleRate ?? item.ratePerBales }),
     ...(item.totalAmount && { totalAmount: item.totalAmount }),
   }));
 }
