@@ -1,6 +1,7 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { capitalizeName } from "./ui.util";
+import { ImageBase64URL } from "public/pdfImage/PDFImage";
 
 // Function to create and configure a new jsPDF instance
 export function createPDF() {
@@ -13,36 +14,36 @@ export function addTitleAndDetails(doc, headData) {
   const formattedDate = currentDate.toLocaleDateString("en-GB");
 
   // Title (Company Name)
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
-  doc.text("VAST APPAREL", 105, 10, { align: "center" });
+  doc.addImage(ImageBase64URL, "PNG", 2, 5, 30, 30);
+
+  const topMargin = 20;
 
   // INVOICE text (reduced gap)
   doc.setFontSize(9);
-  doc.text("INVOICE", 105, 20, { align: "center" });
+  doc.text("INVOICE", 105, 20 + topMargin, { align: "center" });
 
   // Underline the 'INVOICE' text
   const invoiceTextWidth = doc.getTextWidth("INVOICE");
   doc.setLineWidth(0.3);
-  doc.line(105 - invoiceTextWidth / 2, 21, 105 + invoiceTextWidth / 2, 21);
+  doc.line(105 - invoiceTextWidth / 2, 21 + topMargin, 105 + invoiceTextWidth / 2, 21 + topMargin);
 
   // Set font for the details
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
 
-  // Customer Details (reduced vertical space)
+  // Customer Details (moved down by topMargin)
   if (headData?.customer) {
     const customerName = `${headData.customer.firstName || ""} ${headData.customer.lastName || ""}`.trim();
-    doc.text(`Customer: ${capitalizeName(customerName)}`, 10, 24);
+    doc.text(`Customer: ${capitalizeName(customerName)}`, 10, 24 + topMargin);
   }
 
-  doc.text("Ticket: MIXING", 10, 28);
-  const tableStartX = doc.internal.pageSize.width - 15; // Approximate right margin
+  doc.text("Ticket: MIXING", 10, 28 + topMargin);
 
-  doc.text(`Date: ${formattedDate}`, tableStartX, 26, { align: "right" });
-  doc.text(`Invoice No: ${headData?.id ?? headData?.count}`, tableStartX, 31, { align: "right" });
+  const tableStartX = doc.internal.pageSize.width - 15;
+
+  doc.text(`Date: ${formattedDate}`, tableStartX, 26 + topMargin, { align: "right" });
+  doc.text(`Invoice No: ${headData?.id ?? headData?.count}`, tableStartX, 31 + topMargin, { align: "right" });
 }
-
 // Function to map data to table format with truncated text fields
 export function mapDataToTable(data) {
   return data.map((item, index) => ({
@@ -127,7 +128,7 @@ export function generateTable(doc, tableData) {
   const startX = (pageWidth - tableWidth) / 2;
 
   autoTable(doc, {
-    startY: doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 40,
+    startY: doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 60,
     head: [columns.map((col) => col.header)],
     body: tableData.map((row) => columns.map((col) => row[col.dataKey])),
     styles: {
