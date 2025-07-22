@@ -7,10 +7,11 @@ export default function AppMenuItems({ mode, items, onClickHandler, selected, co
       mode={mode}
       selectedKeys={[selected]}
       style={{
-        height: "74vh",
+        height: "76vh",
         borderRight: 0,
         overflowY: "auto",
         scrollbarWidth: "none",
+        paddingTop: collapsed ? "5px" : "10px",
       }}
     >
       {items.map((item) => (

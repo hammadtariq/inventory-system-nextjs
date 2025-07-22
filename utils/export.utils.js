@@ -13,36 +13,55 @@ export function addTitleAndDetails(doc, headData) {
   const currentDate = new Date();
   const formattedDate = currentDate.toLocaleDateString("en-GB");
 
-  // Title (Company Name)
+  // Company logo/image on the left
   doc.addImage(ImageBase64URL, "PNG", 2, 5, 30, 30);
 
-  const topMargin = 20;
+  // INVOICE title on the right
+  doc.setFontSize(24);
+  doc.setFont("helvetica", "bold");
+  doc.text("INVOICE", 195, 20, { align: "right" });
 
-  // INVOICE text (reduced gap)
-  doc.setFontSize(9);
-  doc.text("INVOICE", 105, 20 + topMargin, { align: "center" });
-
-  // Underline the 'INVOICE' text
-  const invoiceTextWidth = doc.getTextWidth("INVOICE");
-  doc.setLineWidth(0.3);
-  doc.line(105 - invoiceTextWidth / 2, 21 + topMargin, 105 + invoiceTextWidth / 2, 21 + topMargin);
-
-  // Set font for the details
-  doc.setFontSize(7);
+  // Reset font for other text
+  doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
 
-  // Customer Details (moved down by topMargin)
+  // BILLED TO section
+  doc.setFont("helvetica", "bold");
+  doc.text("BILLED TO:", 10, 45);
+
+  doc.setFont("helvetica", "normal");
+
+  // Customer Details
+  let yPosition = 50;
   if (headData?.customer) {
     const customerName = `${headData.customer.firstName || ""} ${headData.customer.lastName || ""}`.trim();
-    doc.text(`Customer: ${capitalizeName(customerName)}`, 10, 24 + topMargin);
+    doc.text(capitalizeName(customerName), 10, yPosition);
+    yPosition += 6;
   }
 
-  doc.text("Ticket: MIXING", 10, 28 + topMargin);
+  // Add phone number if available (you can modify this based on your data structure)
+  if (headData?.customer?.phone) {
+    doc.text(headData.customer.phone, 10, yPosition);
+    yPosition += 6;
+  }
 
-  const tableStartX = doc.internal.pageSize.width - 15;
+  // Add address if available (you can modify this based on your data structure)
+  if (headData?.customer?.address) {
+    doc.text(headData.customer.address, 10, yPosition);
+    yPosition += 6;
+  }
 
-  doc.text(`Date: ${formattedDate}`, tableStartX, 26 + topMargin, { align: "right" });
-  doc.text(`Invoice No: ${headData?.id ?? headData?.count}`, tableStartX, 31 + topMargin, { align: "right" });
+  // Ticket info
+  doc.text("Ticket: MIXING", 10, yPosition);
+
+  // Invoice details on the right
+  doc.setFont("helvetica", "normal");
+  doc.text(`Invoice No. ${headData?.id ?? headData?.count}`, 195, 45, { align: "right" });
+  doc.text(formattedDate, 195, 50, { align: "right" });
+
+  doc.setLineWidth(0.5);
+  doc.setDrawColor(170, 170, 170);
+  doc.line(10, 84, 195, 84);
 }
 // Function to map data to table format with truncated text fields
 export function mapDataToTable(data) {
@@ -69,12 +88,30 @@ function truncateText(text, maxLength) {
   return text;
 }
 
+export function addSummarySection(doc, summaryData) {
+  // Get the Y position after the table
+  const startY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 20 : 150;
+
+  // Right-aligned X positions
+  const labelX = 155; // X position for labels
+  const amountX = 195; // X position for amounts
+
+  // Total Amount (bold and larger)
+  doc.text("Total", labelX, startY, { align: "right" });
+  doc.text(`RS: ${summaryData.total || "0"}`, amountX, startY, { align: "right" });
+
+  // Draw line below the total amount (dynamic height based on total position)
+  doc.setLineWidth(0.5);
+  doc.setDrawColor(170, 170, 170);
+  doc.line(145, startY + 5, 197, startY + 5);
+}
+
 // Function to generate the table using autoTable with responsive column widths
 export function generateTable(doc, tableData) {
   const hasKgRate = tableData.some((row) => row.kgRate !== undefined);
   const hasLbsRate = tableData.some((row) => row.lbsRate !== undefined);
   const hasBaleRate = tableData.some((row) => row.baleRate !== undefined);
-  const hasTotalAmount = tableData.some((row) => row.totalAmount !== undefined);
+  const totalAmount = tableData.reduce((sum, row) => sum + (parseFloat(row.totalAmount) || 0), 0);
 
   const columns = [
     { header: "S.No", dataKey: "sno" },
@@ -86,7 +123,6 @@ export function generateTable(doc, tableData) {
     ...(hasKgRate ? [{ header: "KG Rate", dataKey: "kgRate" }] : []),
     ...(hasLbsRate ? [{ header: "LBS Rate", dataKey: "lbsRate" }] : []),
     ...(hasBaleRate ? [{ header: "Bale Rate", dataKey: "baleRate" }] : []),
-    ...(hasTotalAmount ? [{ header: "Total Amount", dataKey: "totalAmount" }] : []),
   ];
 
   const tempDoc = new jsPDF();
@@ -116,7 +152,6 @@ export function generateTable(doc, tableData) {
       ...(hasKgRate ? { kgRate: { halign: "right", cellWidth: "auto" } } : {}),
       ...(hasLbsRate ? { lbsRate: { halign: "right", cellWidth: "auto" } } : {}),
       ...(hasBaleRate ? { baleRate: { halign: "right", cellWidth: "auto" } } : {}),
-      ...(hasTotalAmount ? { totalAmount: { halign: "right", cellWidth: "auto" } } : {}),
     },
     theme: "grid",
     tableWidth: "auto",
@@ -128,22 +163,22 @@ export function generateTable(doc, tableData) {
   const startX = (pageWidth - tableWidth) / 2;
 
   autoTable(doc, {
-    startY: doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 60,
+    startY: doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 85,
     head: [columns.map((col) => col.header)],
     body: tableData.map((row) => columns.map((col) => row[col.dataKey])),
     styles: {
-      fontSize: 7,
+      fontSize: 9,
       halign: "center",
-      cellPadding: [0.5, 0.5],
-      lineColor: [0, 0, 0],
-      lineWidth: 0.5,
+      cellPadding: [3, 1],
+      lineColor: [170, 170, 170],
+      lineWidth: 0,
     },
     headStyles: {
-      fillColor: [200, 200, 200],
+      fillColor: [255, 255, 255],
       textColor: [0, 0, 0],
       fontStyle: "bold",
-      lineColor: [0, 0, 0],
-      lineWidth: 0.5,
+      lineColor: [170, 170, 170],
+      lineWidth: 0,
     },
     columnStyles: {
       sno: { halign: "center", cellWidth: "auto" },
@@ -154,11 +189,27 @@ export function generateTable(doc, tableData) {
       ...(hasKgRate && { kgRate: { halign: "right", cellWidth: "auto" } }),
       ...(hasLbsRate && { lbsRate: { halign: "right", cellWidth: "auto" } }),
       ...(hasBaleRate && { baleRate: { halign: "right", cellWidth: "auto" } }),
-      ...(hasTotalAmount && { totalAmount: { halign: "right", cellWidth: "auto" } }),
     },
-    theme: "grid",
+    theme: "plain",
     tableWidth: "auto",
     margin: { left: startX },
+    didDrawCell: function (data) {
+      // Only draw horizontal lines
+      if (data.row.section === "head" || data.row.index === tableData.length - 1 || data.row.index >= 0) {
+        doc.setLineWidth(0.5);
+        doc.setDrawColor(170, 170, 170);
+        doc.line(
+          data.cell.x,
+          data.cell.y + data.cell.height,
+          data.cell.x + data.cell.width,
+          data.cell.y + data.cell.height
+        );
+      }
+    },
+  });
+  // After generating your table, call:
+  addSummarySection(doc, {
+    total: totalAmount,
   });
 }
 

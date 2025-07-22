@@ -113,7 +113,11 @@ export default function AppNavbar({ collapsed, onCollapseChange }) {
           flexDirection: collapsed ? "column" : "row",
           alignItems: "center",
           justifyContent: collapsed ? "center" : "space-between",
-          paddingTop: collapsed ? "22px" : "0px",
+          paddingTop: collapsed ? "15px" : "0px",
+          minHeight: "60px",
+          paddingLeft: "10px",
+          paddingRight: "10px",
+          paddingTop: collapsed ? "10px" : "10px",
         }}
       >
         <Link href="/" passHref>
@@ -126,32 +130,40 @@ export default function AppNavbar({ collapsed, onCollapseChange }) {
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
-              padding: collapsed ? "0" : "0px 0px 0px",
+              padding: collapsed ? "10px 0 0 0" : "0px 10px 0px",
             }}
           >
-            <Image src={Logo} width={50} height={50} alt="" />
+            <Image src={Logo} width={25} height={25} alt="Logo" />
             <h2
               style={{
                 fontWeight: "bold",
-                fontSize: "30px",
+                fontSize: "20px",
                 color: "#fff",
-                paddingTop: "15px",
+                margin: 0,
+                paddingLeft: "8px",
+                lineHeight: "25px",
               }}
             >
-              {!collapsed && "INVENTORY"}
+              {!collapsed && "VAST APPAREL"}
             </h2>
           </div>
         </Link>
+
         <button
-          type="text"
+          type="button"
           onClick={() => onCollapseChange(!collapsed)}
           style={{
             color: "#fff",
             backgroundColor: "#001529",
-            padding: "0px",
             border: "none",
             cursor: "pointer",
-            paddingRight: collapsed ? "0px" : "5px",
+            padding: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "100%",
+            marginTop: collapsed ? "20px" : "0px",
+            marginRight: collapsed ? "5px" : "0px",
           }}
         >
           {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
@@ -188,7 +200,7 @@ export default function AppNavbar({ collapsed, onCollapseChange }) {
           >
             <Avatar
               style={{
-                backgroundColor: "#fff",
+                backgroundColor: "#6395ff",
                 color: "#001527",
                 fontWeight: "bold",
                 marginRight: "10px",
