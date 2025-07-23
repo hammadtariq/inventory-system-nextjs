@@ -1,41 +1,35 @@
-import { useState } from "react";
-import { useRouter } from "next/router";
-import { Menu, message } from "antd";
-import { LogoutOutlined } from "@ant-design/icons";
+import { Menu, Tooltip } from "antd";
 
-import { logoutUser } from "@/hooks/login";
-import Spinner from "@/components/spinner";
-
-export default function AppMenuItems({ mode, items, onClickHandler, selected }) {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-
-  const onLogout = async () => {
-    try {
-      setLoading(true);
-      const data = await logoutUser();
-      setLoading(false);
-      message.success(data.message);
-      router.push("/login");
-    } catch (err) {
-      setLoading(false);
-      message.error(err?.message || "An error occurred during logout");
-    }
-  };
-
+export default function AppMenuItems({ mode, items, onClickHandler, selected, collapsed = false }) {
   return (
-    <>
-      {loading && <Spinner />}
-      <Menu style={{ justifyContent: "end" }} theme="dark" selectedKeys={[selected]} mode={mode}>
-        {items.map((item) => (
-          <Menu.Item onClick={() => onClickHandler(item.url, item.id)} key={item.id} icon={item.icon}>
-            {item.title}
-          </Menu.Item>
-        ))}
-        <Menu.Item key="100" icon={<LogoutOutlined />} onClick={onLogout}>
-          Logout
+    <Menu
+      theme="dark"
+      mode={mode}
+      selectedKeys={[selected]}
+      style={{
+        height: "76vh",
+        borderRight: 0,
+        overflowY: "auto",
+        scrollbarWidth: "none",
+        paddingTop: collapsed ? "5px" : "10px",
+      }}
+    >
+      {items.map((item) => (
+        <Menu.Item
+          key={item.id}
+          icon={item.icon}
+          onClick={() => onClickHandler(item.url, item.id)}
+          style={{ paddingRight: "5px" }}
+        >
+          {collapsed ? (
+            <Tooltip title={item.title} placement="right">
+              <span style={{ display: "inline-block", width: "100%" }}>{item.title}</span>
+            </Tooltip>
+          ) : (
+            item.title
+          )}
         </Menu.Item>
-      </Menu>
-    </>
+      ))}
+    </Menu>
   );
 }
