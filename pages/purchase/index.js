@@ -103,10 +103,8 @@ const PurchaseOrders = () => {
       dataIndex: "id",
       key: "id",
       render: (_, record) => (
-        <NextLink href={`/purchase/${record.id}?type=view`} passHref>
-          <a target="_blank" rel="noopener noreferrer">
-            {record.id}
-          </a>
+        <NextLink href={`/purchase/${record.id}?type=view`} passHref target="_blank" rel="noopener noreferrer">
+          {record.id}
         </NextLink>
       ),
     },

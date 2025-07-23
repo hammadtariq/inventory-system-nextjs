@@ -24,7 +24,7 @@ export default function Layout({ children }) {
           }}
         >
           <AppContent>{children}</AppContent>
-          <AppFooter />
+          {/* <AppFooter /> */}
         </AntLayout>
       </AntLayout>
     </>
