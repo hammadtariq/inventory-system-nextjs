@@ -11,8 +11,9 @@ import ExportButton from "@/components/exportButton";
 import { EyeOutlined } from "@ant-design/icons";
 import { comaSeparatedValues } from "@/utils/comaSeparatedValues";
 
-const LedgerDetails = ({ id, type }) => {
+const LedgerDetails = () => {
   const router = useRouter();
+  const { id, type } = router.query;
   const { transactions, totalBalance, error, isLoading } = useLedgerDetails(id, type);
 
   if (error) return <Alert message={error} type="error" />;
@@ -152,9 +153,3 @@ const LedgerDetails = ({ id, type }) => {
 };
 
 export default LedgerDetails;
-
-export async function getServerSideProps({ query }) {
-  return {
-    props: query,
-  };
-}
