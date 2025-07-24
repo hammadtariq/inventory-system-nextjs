@@ -1,9 +1,10 @@
+"use client";
 import Head from "next/head";
 import { useState } from "react";
 import { Layout as AntLayout } from "antd";
 
 import AppContent from "@/components/content";
-import AppFooter from "@/components/footer";
+// import AppFooter from "@/components/footer";
 import AppSider from "@/components/appSider";
 
 export default function Layout({ children }) {
