@@ -1,0 +1,8 @@
+.inputNumberField {
+  width: 100%;
+}
+.gap {
+  margin-top: 0.2rem;
+  margin-bottom: 0.4rem;
+  padding: 7px 10px 7px !important;
+}

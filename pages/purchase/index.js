@@ -1,6 +1,5 @@
-import { useRef, useState, useEffect } from "react";
-
-import { Alert, Popconfirm, Row, Col } from "antd";
+import { useState, useEffect } from "react";
+import { Alert, Row, Col, Popconfirm } from "antd";
 import dayjs from "dayjs";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
@@ -8,31 +7,38 @@ import { useRouter } from "next/router";
 import AppCreateButton from "@/components/createButton";
 import AppTable from "@/components/table";
 import AppTitle from "@/components/title";
-import {
-  approvePurchase,
-  cancelPurchase,
-  getAllPurchasesbyCompany,
-  searchPurchase,
-  usePurchaseOrders,
-} from "@/hooks/purchase";
-import { EDITABLE_STATUS } from "@/utils/api.util";
-import { getColumnSearchProps } from "@/utils/filter.util";
+import { approvePurchase, cancelPurchase, searchPurchase, usePurchaseOrders } from "@/hooks/purchase";
 import permissionsUtil from "@/utils/permission.util";
-import { DATE_FORMAT, STATUS_COLORS } from "@/utils/ui.util";
-import { CheckOutlined, CloseOutlined, EditOutlined } from "@ant-design/icons";
+import { DATE_FORMAT, DEFAULT_PAGE_LIMIT, STATUS_COLORS } from "@/utils/ui.util";
 import SearchInput from "@/components/SearchInput";
+import { comaSeparatedValues } from "@/utils/comaSeparatedValues";
+import { CheckOutlined, CloseOutlined, EditOutlined } from "@ant-design/icons";
+import { EDITABLE_STATUS } from "@/utils/api.util";
 
 const PurchaseOrders = () => {
-  const { purchaseOrders, error, isLoading, paginationHandler, mutate } = usePurchaseOrders();
-  const [searchText, setSearchText] = useState("");
-  const [searchedColumn, setSearchedColumn] = useState("");
   const [updatedPurchase, setUpdatedPurchase] = useState();
-  const searchInput = useRef(null);
+  const [search, setSearch] = useState("");
   const router = useRouter();
+  const { purchaseOrders, error, isLoading, pagination, paginationHandler, mutate } = usePurchaseOrders(search);
 
   useEffect(() => {
     setUpdatedPurchase(purchaseOrders);
   }, [purchaseOrders]);
+
+  const handleSearch = async (value) => {
+    if (!value) {
+      setSearch("");
+      paginationHandler(DEFAULT_PAGE_LIMIT, 0, 1);
+    } else {
+      const searchResults = await searchPurchase(value);
+      return searchResults;
+    }
+  };
+
+  const handleSelect = async (companyId) => {
+    paginationHandler(DEFAULT_PAGE_LIMIT, 0, 1);
+    setSearch(companyId);
+  };
 
   const canApprove = permissionsUtil.checkAuth({
     category: "purchase",
@@ -80,9 +86,17 @@ const PurchaseOrders = () => {
           onClick={() => router.push(`/purchase/${text.id}`)}
         />
       );
+    } else {
+      return (
+        <EditOutlined
+          style={{ color: STATUS_COLORS.EDIT }}
+          className="editBtn"
+          onClick={() => router.push(`/purchase/${text.id}`)}
+        />
+      );
     }
-    // else if (EDITABLE_STATUS.includes(record.status) && canEdit)
   };
+
   const columns = [
     {
       title: "Id",
@@ -90,7 +104,9 @@ const PurchaseOrders = () => {
       key: "id",
       render: (_, record) => (
         <NextLink href={`/purchase/${record.id}?type=view`} passHref>
-          <a>{record.id}</a>
+          <a target="_blank" rel="noopener noreferrer">
+            {record.id}
+          </a>
         </NextLink>
       ),
     },
@@ -98,19 +114,13 @@ const PurchaseOrders = () => {
       title: "Company Name",
       dataIndex: ["company", "companyName"],
       key: "companyName",
-      ...getColumnSearchProps({
-        dataIndex: "companyName",
-        dataIndexName: "company name",
-        parentDataIndex: "company",
-        nested: true,
-        searchInput,
-        searchText,
-        searchedColumn,
-        setSearchText,
-        setSearchedColumn,
-      }),
     },
-    { title: "Invoice Total Amount (Rs)", dataIndex: "totalAmount", key: "totalAmount" },
+    {
+      title: "Invoice Total Amount (Rs)",
+      dataIndex: "totalAmount",
+      key: "totalAmount",
+      render: (text) => comaSeparatedValues(text),
+    },
     { title: "Bale Type", dataIndex: "baleType", key: "baleType" },
     { title: "Invoice Number", dataIndex: "invoiceNumber", key: "invoiceNumber", render: (text) => text ?? "N/A" },
     { title: "Sur Charge (Rs)", dataIndex: "surCharge", key: "surCharge", render: (text) => text ?? "N/A" },
@@ -130,15 +140,6 @@ const PurchaseOrders = () => {
       title: "Status",
       dataIndex: "status",
       key: "status",
-      ...getColumnSearchProps({
-        dataIndex: "status",
-        dataIndexName: "status",
-        searchInput,
-        searchText,
-        searchedColumn,
-        setSearchText,
-        setSearchedColumn,
-      }),
       render(text) {
         return {
           props: {
@@ -154,22 +155,6 @@ const PurchaseOrders = () => {
       render: renderActions,
     },
   ];
-
-  const handleSearch = async (value) => {
-    if (!value) {
-      setUpdatedPurchase(purchaseOrders);
-      return purchaseOrders;
-    } else {
-      const searchResults = await searchPurchase(value);
-      return searchResults;
-    }
-  };
-
-  const handleSelect = async (companyId) => {
-    const newItems = await getAllPurchasesbyCompany(companyId);
-    setUpdatedPurchase(newItems);
-    return newItems;
-  };
 
   if (error) return <Alert message={error} type="error" />;
   return (
@@ -200,6 +185,7 @@ const PurchaseOrders = () => {
         dataSource={updatedPurchase ? updatedPurchase.rows : []}
         totalCount={updatedPurchase ? updatedPurchase.count : 0}
         paginationHandler={paginationHandler}
+        pagination={pagination}
       />
     </>
   );

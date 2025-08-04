@@ -1,23 +1,24 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import useSWR from "swr";
 import { get, post, put } from "@/lib/http-client";
 import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 
-export const usePurchaseOrders = () => {
-  const [pagination, setPagination] = useState({ limit: DEFAULT_PAGE_LIMIT, offset: 0 });
-  const { data, error, mutate } = useSWR(`/api/purchase?limit=${pagination.limit}&offset=${pagination.offset}`, get);
-
-  const paginationHandler = useCallback(
-    (limit, offset) => {
-      setPagination({ limit, offset });
-    },
-    [setPagination]
+export const usePurchaseOrders = (search) => {
+  const [pagination, setPagination] = useState({ limit: DEFAULT_PAGE_LIMIT, offset: 0, pageNumber: 1 });
+  const { data, error, mutate } = useSWR(
+    `/api/purchase?limit=${pagination.limit}&offset=${pagination.offset}&search=${search}`,
+    get
   );
+
+  const paginationHandler = (limit, offset, pageNumber) => {
+    setPagination({ limit, offset, pageNumber });
+  };
 
   return {
     purchaseOrders: data,
     isLoading: !error && !data,
     error,
+    pagination,
     paginationHandler,
     mutate,
   };
@@ -32,6 +33,18 @@ export const usePurchaseOrder = (id) => {
     error,
   };
 };
+
+export const getAllPurchaseForReport = async ({ company, item, mostBoughten, dateRangeStart, dateRangeEnd }) => {
+  const params = new URLSearchParams({
+    ...(mostBoughten && { mostBoughten }),
+    ...(company && { companyId: company }),
+    ...(item && { itemName: item }),
+    ...(dateRangeStart && { dateRangeStart }),
+    ...(dateRangeEnd && { dateRangeEnd }),
+  });
+  return await get(`/api/purchase/report/search?${params.toString()}`);
+};
+
 export const searchPurchase = (value) => get(`/api/purchase/search?value=${value}`);
 
 export const getPurchase = (id) => get(`/api/purchase/${id}`);

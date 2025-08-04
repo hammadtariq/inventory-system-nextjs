@@ -1,0 +1,62 @@
+.container {
+  background: url("/bg1.jpg") no-repeat center center fixed;
+  background-size: cover;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.shape1,
+.shape2,
+.shape3 {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.3;
+  z-index: 1;
+}
+.shape1 {
+  width: 120px;
+  height: 120px;
+  background: #6395ff;
+  top: 10%;
+  left: 10%;
+  filter: blur(40px);
+}
+.shape2 {
+  width: 160px;
+  height: 160px;
+  background: #6395ff;
+  top: 50%;
+  right: 10%;
+  filter: blur(30px);
+}
+.shape3 {
+  width: 100px;
+  height: 100px;
+  background: #6395ff;
+  bottom: 10%;
+  left: 30%;
+  filter: blur(30px);
+}
+
+/* Login Box */
+.loginBox {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  padding: 30px 30px;
+  border-radius: 20px;
+  width: 380px;
+  z-index: 10;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.3);
+  color: white;
+}
+
+.loginTitle {
+  text-align: center;
+  font-size: 30px;
+  margin-bottom: 14px;
+  color: #2974ff;
+  font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+}

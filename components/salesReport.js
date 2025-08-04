@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { InputNumber, Row, Col, Typography, Divider, DatePicker } from "antd";
-import styles from "@/styles/SalesReport.module.css";
+import styles from "@/styles/Report.module.css";
 import SearchInput from "./SearchInput";
 import { getAllSalesForReport, searchSales } from "@/hooks/sales";
 import { searchCompany } from "@/hooks/company";
@@ -61,12 +61,6 @@ const columns = [
     render: (value) => (value === "-" ? value : comaSeparatedValues(value)),
   },
   {
-    title: "Total Amount",
-    dataIndex: "totalAmount",
-    key: "totalAmount",
-    render: (value) => comaSeparatedValues(value),
-  },
-  {
     title: "Labour Charge",
     dataIndex: "laborCharge",
     key: "laborCharge",
@@ -88,7 +82,7 @@ const SalesReport = () => {
     salesData.flatMap(({ id: invoiceNo, customer, laborCharge, soldDate, totalAmount, soldProducts }) =>
       soldProducts.map(
         ({ itemName, noOfBales, baleWeightLbs, baleWeightKgs, ratePerLbs, ratePerKgs, ratePerBale, company }) => ({
-          customer: `${customer.firstName} ${customer.lastName}`,
+          customer: `${customer?.firstName} ${customer?.lastName}`,
           invoiceNo,
           laborCharge,
           soldDate: new Date(soldDate).toLocaleDateString("en-US", {
@@ -98,7 +92,7 @@ const SalesReport = () => {
           }),
           totalAmount,
           itemName,
-          company: company.companyName,
+          company: company?.companyName,
           noOfBales: noOfBales || "-",
           baleWeightLbs: baleWeightLbs || "-",
           baleWeightKgs: baleWeightKgs || "-",
@@ -144,11 +138,28 @@ const SalesReport = () => {
     });
     const transformedData = transformData(salesResults.rows);
     const totals = transformedData.reduce((acc, sale) => {
+      // Check if the invoiceNo is already processed
+      if (!acc.processedInvoiceNos) acc.processedInvoiceNos = new Set();
+
+      if (!acc.processedInvoiceNos.has(sale.invoiceNo)) {
+        acc.processedInvoiceNos.add(sale.invoiceNo);
+
+        // Aggregate totals based on invoiceNo (only totalAmount for each unique invoiceNo)
+        if (typeof sale.totalAmount === "number") {
+          acc.totalAmount = (acc.totalAmount || 0) + sale.totalAmount;
+        }
+      }
+
+      // Aggregate other fields globally (don't change their behavior)
       Object.keys(sale).forEach((key) => {
-        if (typeof sale[key] === "number") acc[key] = (acc[key] || 0) + sale[key];
+        if (key !== "totalAmount" && typeof sale[key] === "number") {
+          acc[key] = (acc[key] || 0) + sale[key];
+        }
       });
+
       return acc;
     }, {});
+
     setUpdatedSales(transformedData);
     setTotal(totals);
   }, [dateRange, searchCriteria, currentPage, pageSize]);

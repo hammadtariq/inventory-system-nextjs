@@ -1,6 +1,6 @@
 import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 import { Table } from "antd";
-import { useCallback, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 const pageOptions = ["30", "50", "100", "150", "200"];
 
@@ -14,37 +14,55 @@ export default function AppTable({
   expandable,
   className,
   paginationHandler,
+  pagination,
   rowClassName,
   footer,
   components,
 }) {
-  const [currentPageSize, setCurrentPageSize] = useState(DEFAULT_PAGE_LIMIT);
-
-  const handleChange = useCallback(
-    (pagination) => {
-      const { current, pageSize } = pagination;
-      const offset = current * pageSize - pageSize;
-      const limit = pageSize;
-      setCurrentPageSize(pageSize);
-      paginationHandler(limit, offset);
+  const [tableParams, setTableParams] = useState({
+    pagination: {
+      currentPageNumber: 1,
+      pageSize: DEFAULT_PAGE_LIMIT,
     },
-    [paginationHandler]
-  );
+  });
 
-  const paginationConfig = useMemo(
-    () => ({
-      pageSize: currentPageSize,
-      showSizeChanger: true,
-      pageSizeOptions: pageOptions,
-      total: totalCount,
-    }),
-    [currentPageSize, totalCount]
-  );
+  useEffect(() => {
+    if (pagination) {
+      setTableParams({
+        pagination: {
+          currentPageNumber: pagination.pageNumber || 1,
+          pageSize: pagination.limit || DEFAULT_PAGE_LIMIT,
+        },
+      });
+    }
+  }, [pagination]);
+
+  const handleChange = ({ current, pageSize }) => {
+    const offset = (current - 1) * pageSize;
+    const limit = pageSize;
+
+    setTableParams({
+      pagination: {
+        currentPageNumber: current,
+        pageSize,
+      },
+    });
+
+    paginationHandler(limit, offset, current);
+  };
+
+  const paginationConfig = {
+    pageSize: tableParams.pagination.pageSize,
+    showSizeChanger: true,
+    pageSizeOptions: pageOptions,
+    total: totalCount,
+    current: tableParams.pagination.currentPageNumber,
+  };
 
   return (
     <Table
       bordered={bordered}
-      scroll={{ x: 1000 }}
+      scroll={{ x: "max-content" }}
       loading={isLoading}
       rowKey={rowKey || "id"}
       columns={columns}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import { Alert, Button, Checkbox, Form, Popconfirm, Typography } from "antd";
 
@@ -6,7 +6,6 @@ import EditableCell from "@/components/editableCell";
 import AppTable from "@/components/table";
 import { useItemsByCompanyIdAndType } from "@/hooks/items";
 import styles from "@/styles/EditableCell.module.css";
-import { kgLbConversion } from "@/utils/conversion.utils";
 
 export default function AddItemsInPo({
   companyId,
@@ -28,7 +27,7 @@ export default function AddItemsInPo({
     if (!isEdit) {
       setData(items);
     }
-  }, [items]);
+  }, [isEdit, items, setData]);
 
   useEffect(() => {
     if (editAll) {
@@ -39,24 +38,27 @@ export default function AddItemsInPo({
         });
       });
     }
-  }, [editAll]);
+  }, [data, edit, editAll]);
 
   const isEditing = (record) => {
     return editingKey.includes(record.key);
   };
 
-  const edit = (record) => {
-    form.setFieldsValue({
-      itemName: "",
-      noOfBales: "",
-      baleWeightLbs: "",
-      baleWeightKgs: "",
-      ratePerLbs: "",
-      ratePerKgs: "",
-      ...(type === "SMALL_BALES" && { ratePerBale: "" }),
-      ...record,
-    });
-  };
+  const edit = useCallback(
+    (record) => {
+      form.setFieldsValue({
+        itemName: "",
+        noOfBales: 0,
+        baleWeightLbs: 0,
+        baleWeightKgs: 0,
+        ratePerLbs: 0,
+        ratePerKgs: 0,
+        ...(type === "SMALL_BALES" && { ratePerBale: 0 }),
+        ...record,
+      });
+    },
+    [form, type]
+  );
 
   const cancel = () => {
     setEditingKey([]);
@@ -140,7 +142,7 @@ export default function AddItemsInPo({
       dataIndex: "operation",
       width: "20%",
       render: (_, record) => {
-        const editable = isEditing(record);
+        isEditing(record);
         return <Typography.Link onClick={() => remove(record)}>Remove</Typography.Link>;
       },
     };

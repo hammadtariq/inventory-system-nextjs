@@ -1,5 +1,4 @@
 import { getReport } from "@/hooks/reports";
-import AppTitle from "@/components/title";
 import { useState, useEffect } from "react";
 import { Empty } from "antd";
 import AppTable from "@/components/table";

@@ -7,7 +7,7 @@ import SelectCompany from "@/components/selectCompany";
 import SelectItemList from "@/components/selectItemList";
 import { createItem, updateItem } from "@/hooks/items";
 import permissionsUtil from "@/utils/permission.util";
-import { VALIDATE_MESSAGE } from "@/utils/ui.util";
+import { toLowerCaseObjVal, VALIDATE_MESSAGE } from "@/utils/ui.util";
 
 import AppBackButton from "./backButton";
 
@@ -23,8 +23,8 @@ const AddEditItem = ({ item }) => {
     action: "create",
   });
 
-  const selectCompanyOnChange = useCallback((id) => setCompanyId(id), [companyId]);
-  const selectItemListOnChange = useCallback((type) => setSelectedListType(type), [selectedListType]);
+  const selectCompanyOnChange = useCallback((id) => setCompanyId(id), []);
+  const selectItemListOnChange = useCallback((type) => setSelectedListType(type), []);
 
   useEffect(() => {
     if (item) {
@@ -34,10 +34,11 @@ const AddEditItem = ({ item }) => {
       setCompanyId(id);
       setSelectedListType(type);
     }
-  }, [item]);
+  }, [form, item]);
 
   const onFinish = async (values) => {
     setLoading(true);
+    values = toLowerCaseObjVal(values);
     const itemValues = { ...values };
     itemValues.type = selectedListType;
     itemValues.companyId = companyId;
@@ -49,6 +50,8 @@ const AddEditItem = ({ item }) => {
       }
       router.push("/items");
     } catch (error) {
+      console.error("Error: ", error);
+    } finally {
       setLoading(false);
     }
   };

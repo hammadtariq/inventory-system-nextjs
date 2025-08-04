@@ -1,129 +1,231 @@
-import { Button, Drawer } from "antd";
+import { Layout, Avatar, Dropdown, Menu, message } from "antd";
+import {
+  MenuUnfoldOutlined,
+  MenuFoldOutlined,
+  DashboardOutlined,
+  UserOutlined,
+  TeamOutlined,
+  UnorderedListOutlined,
+  FileOutlined,
+  ShopOutlined,
+  DatabaseOutlined,
+  FilePptOutlined,
+  DollarCircleOutlined,
+  SettingOutlined,
+  LogoutOutlined,
+} from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import {
-  DatabaseOutlined,
-  FileOutlined,
-  FilePptOutlined,
-  ShopOutlined,
-  TeamOutlined,
-  UserOutlined,
-  UnorderedListOutlined,
-  DollarCircleOutlined,
-  DashboardOutlined,
-} from "@ant-design/icons";
-import NextLink from "next/link";
 import AppMenuItems from "./menuItems";
-import styles from "@/styles/Navbar.module.css";
+import Link from "next/link";
+import Image from "next/image";
+import Logo from "../public/vast-apparel.png";
+import { logoutUser } from "@/hooks/login";
+import StorageUtils from "@/utils/storage.util";
+
+const { Sider } = Layout;
 
 const items = [
-  {
-    id: "1",
-    title: "Overview",
-    url: "/",
-    icon: <DashboardOutlined />,
-  },
-  {
-    id: "2",
-    title: "Customers",
-    url: "/customers",
-    icon: <UserOutlined />,
-  },
-  {
-    id: "3",
-    title: "Company",
-    url: "/company",
-    icon: <TeamOutlined />,
-  },
-  {
-    id: "4",
-    title: "Items List",
-    url: "/items",
-    icon: <UnorderedListOutlined />,
-  },
-  {
-    id: "5",
-    title: "Purchase",
-    url: "/purchase",
-    icon: <FileOutlined />,
-  },
-  {
-    id: "6",
-    title: "Inventory",
-    url: "/inventory",
-    icon: <ShopOutlined />,
-  },
-  {
-    id: "7",
-    title: "Sales",
-    url: "/sales",
-    icon: <FileOutlined />,
-  },
-  {
-    id: "8",
-    title: "Ledger",
-    url: "/ledger",
-    icon: <DatabaseOutlined />,
-  },
-  {
-    id: "9",
-    title: "Reports",
-    url: "/reports",
-    icon: <FilePptOutlined />,
-  },
-  {
-    id: "10",
-    title: "Cheques",
-    url: "/cheques",
-    icon: <DollarCircleOutlined />,
-  },
+  { id: "1", title: "Overview", url: "/", icon: <DashboardOutlined /> },
+  { id: "2", title: "Customers", url: "/customers", icon: <UserOutlined /> },
+  { id: "3", title: "Company", url: "/company", icon: <TeamOutlined /> },
+  { id: "4", title: "Items List", url: "/items", icon: <UnorderedListOutlined /> },
+  { id: "5", title: "Purchase", url: "/purchase", icon: <FileOutlined /> },
+  { id: "6", title: "Inventory", url: "/inventory", icon: <ShopOutlined /> },
+  { id: "7", title: "Sales", url: "/sales", icon: <FileOutlined /> },
+  { id: "8", title: "Ledger", url: "/ledger", icon: <DatabaseOutlined /> },
+  { id: "9", title: "Reports", url: "/reports", icon: <FilePptOutlined /> },
+  { id: "10", title: "Cheques", url: "/cheques", icon: <DollarCircleOutlined /> },
 ];
 
-export default function AppNavbar() {
+export default function AppNavbar({ collapsed, onCollapseChange }) {
   const router = useRouter();
-  const [visible, setVisible] = useState(false);
   const [isSelected, setIsSelected] = useState();
-
+  const user = StorageUtils.getItem("user");
   const onClickHandler = (url, id) => {
     setIsSelected(id);
     router.push(url);
   };
-
-  const showDrawer = () => {
-    setVisible(true);
-  };
-
-  const onClose = () => {
-    setVisible(false);
-  };
+  const initials = `${user?.fisrtName?.charAt(0).toUpperCase() || ""}${user?.lastName?.charAt(0).toUpperCase() || ""}`;
 
   useEffect(() => {
-    const splitUrl = router.pathname.split("/").slice(1, router.pathname.length);
-    const activeItem = items.find((item) => {
-      if (splitUrl.length > 0 && item.url === `/${splitUrl[0]}`) {
-        return item;
-      }
-    });
-    const activeId = activeItem ? activeItem.id : items[0].id;
-    setIsSelected(activeId);
-  }, []);
+    const baseRoute = `/${router.pathname.split("/")[1] || ""}`;
+    const activeItem = items.find((item) => item.url === baseRoute);
+    setIsSelected(activeItem?.id || items[0].id);
+  }, [router.pathname]);
+
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+
+  const onLogout = async () => {
+    try {
+      const data = await logoutUser();
+      message.success(data.message);
+      router.push("/login");
+    } catch (err) {
+      message.error(err?.message || "An error occurred during logout");
+    }
+  };
+
+  const handleMenuClick = ({ key }) => {
+    if (key === "logout") {
+      onLogout();
+    } else if (key === "settings") {
+      console.log("Settings clicked");
+    }
+  };
+
+  const menu = (
+    <Menu
+      onClick={handleMenuClick}
+      style={{
+        backgroundColor: "#5f82a36c",
+        width: "120px",
+      }}
+    >
+      <Menu.Item key="settings" icon={<SettingOutlined />}>
+        Settings
+      </Menu.Item>
+      <Menu.Item key="logout" icon={<LogoutOutlined />}>
+        Logout
+      </Menu.Item>
+    </Menu>
+  );
 
   return (
-    <>
-      <NextLink href="/" passHref>
-        <div className="logo" onClick={() => onClickHandler(items[0].url, items[0].id)}>
-          Inventory
-        </div>
-      </NextLink>
-      <div className={styles.navigationBar}>
-        <AppMenuItems mode="horizontal" items={items} onClickHandler={onClickHandler} selected={isSelected} />
+    <Sider
+      collapsed={collapsed}
+      onCollapse={onCollapseChange}
+      collapsedWidth={60}
+      width={250}
+      style={{
+        height: "100vh",
+        position: "fixed",
+        left: 0,
+        top: 0,
+        bottom: 0,
+        background: "#001529",
+        zIndex: 1000,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          flexDirection: collapsed ? "column" : "row",
+          alignItems: "center",
+          justifyContent: collapsed ? "center" : "space-between",
+          paddingTop: collapsed ? "15px" : "0px",
+          minHeight: "60px",
+          paddingLeft: "10px",
+          paddingRight: "10px",
+          paddingTop: collapsed ? "10px" : "10px",
+        }}
+      >
+        <Link href="/" passHref>
+          <div
+            onClick={() => onClickHandler(items[0].url, items[0].id)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              padding: collapsed ? "10px 0 0 0" : "0px 10px 0px",
+            }}
+          >
+            <Image src={Logo} width={25} height={25} alt="Logo" />
+            <h2
+              style={{
+                fontWeight: "bold",
+                fontSize: "20px",
+                color: "#fff",
+                margin: 0,
+                paddingLeft: "8px",
+                lineHeight: "25px",
+              }}
+            >
+              {!collapsed && "VAST APPAREL"}
+            </h2>
+          </div>
+        </Link>
+
+        <button
+          type="button"
+          onClick={() => onCollapseChange(!collapsed)}
+          style={{
+            color: "#fff",
+            backgroundColor: "#001529",
+            border: "none",
+            cursor: "pointer",
+            padding: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "100%",
+            marginTop: collapsed ? "20px" : "0px",
+            marginRight: collapsed ? "5px" : "0px",
+          }}
+        >
+          {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+        </button>
       </div>
-      <Button className={styles.barsMenu} type="primary" onClick={showDrawer}>
-        <span className={styles.barsBtn}></span>
-      </Button>
-      <Drawer className="drawer" title="" placement="right" onClose={onClose} visible={visible}>
-        <AppMenuItems mode="vertical" items={items} onClickHandler={onClickHandler} selected={isSelected} />
-      </Drawer>
-    </>
+
+      <div>
+        <AppMenuItems
+          mode="inline"
+          items={items}
+          onClickHandler={onClickHandler}
+          selected={isSelected}
+          collapsed={collapsed}
+        />
+      </div>
+
+      <div style={{ bottom: 0, position: "absolute", width: "100%" }}>
+        <Dropdown
+          overlay={menu}
+          trigger={["click"]}
+          placement="left"
+          onVisibleChange={(visible) => setDropdownVisible(visible)}
+          visible={dropdownVisible}
+        >
+          <div
+            onClick={() => setDropdownVisible(!dropdownVisible)}
+            style={{
+              padding: collapsed ? "10px 1px 12px 12px" : "20px 20px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              borderTop: "1px solid rgba(255, 255, 255, 0.1)",
+            }}
+          >
+            <Avatar
+              style={{
+                backgroundColor: "#6395ff",
+                color: "#001527",
+                fontWeight: "bold",
+                marginRight: "10px",
+              }}
+            >
+              {initials}
+            </Avatar>
+
+            {!collapsed && (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  lineHeight: "1.2",
+                }}
+              >
+                <span style={{ fontWeight: "500", color: "#fff" }}>
+                  {user.fisrtName} {user.lastName}
+                </span>
+                <span style={{ fontSize: "12px", color: "#b9b9b9ff" }}>{user.email}</span>
+              </div>
+            )}
+          </div>
+        </Dropdown>
+      </div>
+    </Sider>
   );
 }

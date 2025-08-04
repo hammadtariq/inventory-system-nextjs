@@ -24,7 +24,7 @@ const apiSchema = Joi.object({
   soldProducts: Joi.array().items(inventorySchema).required(),
 });
 
-const createSale = async (req, res) => {
+export const createSale = async (req, res) => {
   console.log("Create sale order Request Start");
   const { error, value } = apiSchema.validate(req.body);
   if (error && Object.keys(error).length) {

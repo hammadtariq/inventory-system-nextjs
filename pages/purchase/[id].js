@@ -3,14 +3,12 @@ import { usePurchaseOrder } from "@/hooks/purchase";
 
 import AddEditPurchase from "@/components/addEditPurchase";
 import AppTitle from "@/components/title";
-import { STATUS } from "@/utils/api.util";
 
 function Update({ id, type }) {
   const isView = type === "view";
   const { purchase, error, isLoading } = usePurchaseOrder(id);
   if (error) return <Alert message={error} type="error" />;
-  if (!isLoading && purchase.status === STATUS.APPROVED && !isView)
-    return <Alert message={"Operation not allowed"} type="error" />;
+  if (!isLoading && purchase.status === !isView) return <Alert message={"Operation not allowed"} type="error" />;
 
   return (
     <div>

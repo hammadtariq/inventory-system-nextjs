@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Alert, Col, Row } from "antd";
 import EditableInventoryCell from "@/components/editableInventoryCell";
 import ExportButton from "@/components/exportButton";
@@ -9,18 +9,16 @@ import AppTable from "@/components/table";
 import AppTitle from "@/components/title";
 import { getInventory, searchInventory, updateInventory, useInventory } from "@/hooks/inventory";
 import styles from "@/styles/EditableCell.module.css";
-import { getColumnSearchProps } from "@/utils/filter.util";
 import permissionsUtil from "@/utils/permission.util";
+import { useCompanies } from "@/hooks/company";
+import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 
 const Inventory = () => {
-  const { inventory, error, isLoading, mutate, paginationHandler, filtersHandler } = useInventory();
+  const [filters, setFilters] = useState({ itemId: null, companyIds: [] });
+  const { inventory, error, isLoading, mutate, pagination, paginationHandler } = useInventory(filters);
+  const { companies, error: companyError } = useCompanies();
   const [updatedInventory, setUpdatedInventory] = useState([]);
-  const [companyOptions, setCompanyOptions] = useState([]);
-  const [searchedColumn, setSearchedColumn] = useState("");
-  const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(false);
-  const [filters, setFilters] = useState([]);
-  const searchInput = useRef(null);
 
   const canEditItemName = permissionsUtil.checkAuth({
     category: "inventory",
@@ -29,21 +27,32 @@ const Inventory = () => {
 
   useEffect(() => {
     setUpdatedInventory(inventory);
-    if (inventory && companyOptions.length === 0) {
-      extractCompanyOptions(inventory);
-    }
-  }, [companyOptions, inventory]);
+  }, [inventory]);
 
-  const extractCompanyOptions = (inventory) => {
-    const companyOptions = Array.from(new Set(inventory.rows.map((item) => item.company.id))).map((id) => {
-      const company = inventory.rows.find((item) => item.company.id === id).company;
-      return {
+  const companyOptions = useMemo(
+    () =>
+      companies?.rows?.map((company) => ({
         label: company.companyName,
         value: company.id,
-      };
-    });
-    setCompanyOptions(companyOptions);
-  };
+      })) || [],
+    [companies?.rows]
+  );
+
+  const buildColumns = (defaultColumns) =>
+    defaultColumns.map((col) =>
+      col.editable
+        ? {
+            ...col,
+            onCell: (record) => ({
+              record,
+              editable: col.editable,
+              dataIndex: col.dataIndex,
+              title: col.title,
+              handleSave,
+            }),
+          }
+        : col
+    );
 
   const defaultColumns = [
     {
@@ -56,45 +65,40 @@ const Inventory = () => {
       title: "Company Name",
       dataIndex: ["company", "companyName"],
       key: "companyName",
-      ...getColumnSearchProps({
-        dataIndex: "companyName",
-        dataIndexName: "company name",
-        parentDataIndex: "company",
-        nested: true,
-        searchInput,
-        searchText,
-        searchedColumn,
-        setSearchText,
-        setSearchedColumn,
-        selectOptions: companyOptions, // Pass the select options here
-      }),
     },
     { title: "On Hand", dataIndex: "onHand", key: "onHand" },
-    { title: "Bale Weight (LBS)", dataIndex: "baleWeightLbs", key: "baleWeightLbs", render: (text) => text ?? "N/A" },
-    { title: "Bale Weight (KGS)", dataIndex: "baleWeightKgs", key: "baleWeightKgs", render: (text) => text ?? "N/A" },
-    { title: "Rate per LBS (Rs)", dataIndex: "ratePerLbs", key: "ratePerLbs", render: (text) => text ?? "N/A" },
-    { title: "Rate per KGS (Rs)", dataIndex: "ratePerKgs", key: "ratePerKgs", render: (text) => text ?? "N/A" },
-    { title: "Rate per Bale (Rs)", dataIndex: "ratePerBale", key: "ratePerBale" },
+    {
+      title: "Bale Weight (LBS)",
+      dataIndex: "baleWeightLbs",
+      key: "baleWeightLbs",
+      render: (text) => (text != null ? Number(text).toFixed(2) : "N/A"),
+    },
+    {
+      title: "Bale Weight (KGS)",
+      dataIndex: "baleWeightKgs",
+      key: "baleWeightKgs",
+      render: (text) => (text != null ? Number(text).toFixed(2) : "N/A"),
+    },
+    {
+      title: "Rate per LBS (Rs)",
+      dataIndex: "ratePerLbs",
+      key: "ratePerLbs",
+      render: (text) => (text != null ? Number(text).toFixed(2) : "N/A"),
+    },
+    {
+      title: "Rate per KGS (Rs)",
+      dataIndex: "ratePerKgs",
+      key: "ratePerKgs",
+      render: (text) => (text != null ? Number(text).toFixed(2) : "N/A"),
+    },
+    {
+      title: "Rate per Bale (Rs)",
+      dataIndex: "ratePerBale",
+      key: "ratePerBale",
+    },
   ];
 
-  const columns = canEditItemName
-    ? defaultColumns.map((col) => {
-        if (!col.editable) {
-          return col;
-        }
-
-        return {
-          ...col,
-          onCell: (record) => ({
-            record,
-            editable: col.editable,
-            dataIndex: col.dataIndex,
-            title: col.title,
-            handleSave,
-          }),
-        };
-      })
-    : defaultColumns;
+  const columns = canEditItemName ? buildColumns(defaultColumns) : defaultColumns;
 
   const handleSave = async (row) => {
     setLoading(true);
@@ -103,8 +107,9 @@ const Inventory = () => {
       mutate();
     } catch (error) {
       console.log("update inventory item name error", error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleSearch = async (value) => {
@@ -118,18 +123,20 @@ const Inventory = () => {
   };
 
   const handleSelect = async (id) => {
+    setFilters({ itemId: [id] });
     const data = await getInventory(id);
     const newInventory = { ...inventory, rows: [data], count: 1 };
     setUpdatedInventory(newInventory);
     return newInventory;
   };
 
-  const handleChange = async (filters) => {
-    filtersHandler(filters);
-    setFilters(filters);
+  const handleChange = async (selectedOptions) => {
+    const companyIds = selectedOptions.map((option) => option.value);
+    setFilters({ companyIds });
+    paginationHandler(DEFAULT_PAGE_LIMIT, 0, 1);
   };
 
-  if (error) return <Alert message={error} type="error" />;
+  if (error || companyError) return <Alert message={error || companyError} type="error" />;
   return (
     <>
       <AppTitle level={2}>Inventory List</AppTitle>
@@ -181,6 +188,7 @@ const Inventory = () => {
         dataSource={updatedInventory ? updatedInventory.rows : []}
         totalCount={updatedInventory ? updatedInventory.count : 0}
         paginationHandler={paginationHandler}
+        pagination={pagination}
       />
     </>
   );

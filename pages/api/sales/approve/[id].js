@@ -10,7 +10,7 @@ const apiSchema = Joi.object({
   id: Joi.number().required(),
 });
 
-const approveSaleOrder = async (req, res) => {
+const handler = async (req, res) => {
   console.log("Approve sale order Request Start");
   const { error, value } = apiSchema.validate({
     id: req.query.id,
@@ -22,27 +22,35 @@ const approveSaleOrder = async (req, res) => {
   if (req.user.role !== "ADMIN") {
     return res.status(400).send({ message: "Operation not permitted." });
   }
-  const t = await db.sequelize.transaction();
+  try {
+    const t = await db.sequelize.transaction();
+    const { id } = value;
+    const { sale, ledger, inventory } = await approveSaleOrder(id, t);
+
+    console.log("Approve sale order Request End");
+    return res.status(200).json({ success: true, sale, ledger, inventory });
+  } catch (error) {
+    console.log("Approve sale order Request Error:", error);
+    const [code, message] = error.message.split(":");
+    const status = code === "NOT_FOUND" ? 404 : code === "BAD_REQUEST" ? 400 : 500;
+    return res.status(status).send({ message });
+  }
+};
+
+export const approveSaleOrder = async (id, t) => {
+  let updatedInventories = [];
   try {
     await db.dbConnect();
-    const { id } = value;
+
     const sale = await db.Sale.findByPk(id, { include: [db.Customer] });
 
-    if (!sale) {
-      return res.status(404).send({ message: "Sale order does not exist" });
-    }
-
-    if (sale.status === STATUS.APPROVED) {
-      return res.status(400).send({ message: "Sale order already approved" });
-    }
+    if (!sale) throw new Error("NOT_FOUND:Sale order does not exist");
+    if (sale.status === STATUS.APPROVED) throw new Error("BAD_REQUEST:Sale order already approved");
+    if (sale.totalAmount === 0) throw new Error("BAD_REQUEST:Sale order cannot be approved with total amount 0.");
 
     const { soldProducts, soldDate, customerId, totalAmount } = sale;
-    // I added this check for totalAmount because if it is 0 then it means that sale order cannot be approved with total amount 0
-    if (totalAmount === 0) {
-      return res.status(400).send({ message: "Sale order cannot be approved with total amount 0." });
-    }
 
-    for await (const product of soldProducts) {
+    for (const product of soldProducts) {
       const { id, itemName, noOfBales, companyId, baleWeightKgs, baleWeightLbs } = product;
       const inventory = await db.Inventory.findOne({
         where: {
@@ -56,13 +64,18 @@ const approveSaleOrder = async (req, res) => {
         },
         transaction: t,
       });
-      if (!inventory) {
-        return res.status(404).send({ message: `"${itemName}" is out of stock` });
-      }
-      let decrementQuery = { baleWeightKgs, baleWeightLbs };
+      if (!inventory) throw new Error(`NOT_FOUND:"${itemName}" is out of stock`);
 
-      await inventory.decrement(["onHand"], { by: noOfBales, transaction: t });
-      await inventory.decrement(decrementQuery, { transaction: t });
+      await inventory.decrement(
+        {
+          onHand: noOfBales,
+          baleWeightKgs,
+          baleWeightLbs,
+        },
+        { transaction: t }
+      );
+      await inventory.reload({ transaction: t });
+      updatedInventories.push(inventory);
     }
     await sale.update({ status: STATUS.APPROVED }, { transaction: t });
 
@@ -75,7 +88,7 @@ const approveSaleOrder = async (req, res) => {
       totalBalance = balance[0].amount - totalAmount;
     }
 
-    await db.Ledger.create(
+    const ledger = await db.Ledger.create(
       {
         customerId,
         transactionId: id,
@@ -88,14 +101,12 @@ const approveSaleOrder = async (req, res) => {
       { transaction: t }
     );
     await t.commit();
-    console.log("Approve sale order Request End");
-    return res.send();
+    return { sale, ledger, inventory: updatedInventories };
   } catch (error) {
     await t.rollback();
-    console.log("Approve sale order Request Error:", error);
-
-    return res.status(500).send({ message: error.toString() });
+    console.log("Approve sale order Error:", error);
+    throw error;
   }
 };
 
-export default nextConnect().use(auth).put(approveSaleOrder);
+export default nextConnect().use(auth).put(handler);

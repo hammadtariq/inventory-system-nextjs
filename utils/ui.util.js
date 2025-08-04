@@ -87,6 +87,20 @@ export const isBase64 = (str) => {
   }
 };
 
+export const toLowerCaseObjVal = (values) => {
+  return Object.fromEntries(
+    Object.entries(values).map(([key, value]) => [
+      key,
+      value && typeof value === "string" ? value.toLowerCase() : value,
+    ])
+  );
+};
+
+export const PRINT_TYPE = {
+  WITH_RATES: "WITH_RATES",
+  WITHOUT_RATES: "WITHOUT_RATES",
+};
+
 export const downloadFile = (file, filename) => {
   const link = document.createElement("a");
   const date = new Date();
@@ -109,3 +123,7 @@ export const downloadFile = (file, filename) => {
   link.click();
 };
 export const PAGE_TYPE_VIEW = "view";
+
+export function capitalizeName(name = "") {
+  return name.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}

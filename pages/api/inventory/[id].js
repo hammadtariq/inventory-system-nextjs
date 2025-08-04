@@ -9,7 +9,7 @@ const apiSchema = Joi.object({
   itemName: Joi.string().min(3).trim(),
 });
 
-const updateInventory = async (req, res) => {
+export const updateInventory = async (req, res) => {
   console.log("update inventory Request Start");
 
   const { error, value } = apiSchema.validate({
@@ -28,14 +28,23 @@ const updateInventory = async (req, res) => {
     if (!inventoryItem) {
       return res.status(404).send({ message: "inventory item not found" });
     }
-    if (!Object.keys(req.body).length) {
-      res.status(400).send({
-        message: "Item name cannot be empty",
-        allowedFields: ["itemName"],
+    const allowedFields = ["itemName"];
+    const updateData = {};
+
+    for (const key of allowedFields) {
+      if (req.body[key]) {
+        updateData[key] = req.body[key];
+      }
+    }
+
+    if (!Object.keys(updateData).length) {
+      return res.status(400).send({
+        message: "No valid fields provided to update.",
+        allowedFields,
       });
     }
 
-    await inventoryItem.update({ ...value });
+    await inventoryItem.update(updateData);
     console.log("update inventory Request End");
 
     return res.send();

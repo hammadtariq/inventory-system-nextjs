@@ -39,3 +39,11 @@ export const calculateAmount = (totalAmount, a) => {
   }
   return totalAmount;
 };
+
+// Helper function to clean item names
+export const cleanItemName = (name) => name?.replace(/\s*\(.*?\)/, "").trim() || null;
+
+export const formatNumber = (value) => {
+  const num = Number(value); // Convert to number if possible
+  return isNaN(num) ? value : num.toFixed(2); // Return original value if not a valid number
+};

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { Button, Col, Form, Input, Row } from "antd";
+import { Button, Col, Form, Input, InputNumber, Row } from "antd";
 import dayjs from "dayjs";
 import _isEmpty from "lodash/isEmpty";
 import { useRouter } from "next/router";
@@ -26,9 +26,9 @@ const AddEditPurchase = ({ purchase, type = null }) => {
   const [form] = Form.useForm();
   const isView = type === "view";
 
-  const selectCompanyOnChange = useCallback((id) => setCompanyId(id), [companyId]);
-  const setDataHandler = useCallback((data) => setData(data), [data]);
-  const selectItemListOnChange = useCallback((type) => setSelectedListType(type), [selectedListType]);
+  const selectCompanyOnChange = useCallback((id) => setCompanyId(id), []);
+  const setDataHandler = useCallback((data) => setData(data), []);
+  const selectItemListOnChange = useCallback((type) => setSelectedListType(type), []);
 
   const totalAmount = useMemo(() => sumItemsPrice(data), [data]);
   const totalBundle = useMemo(() => sumBundles(data), [data]);
@@ -60,7 +60,7 @@ const AddEditPurchase = ({ purchase, type = null }) => {
       setCompanyId(id);
       setSelectedListType(baleType);
     }
-  }, [purchase]);
+  }, [form, purchase]);
 
   // update total amount value using form field
   useEffect(() => {
@@ -69,14 +69,14 @@ const AddEditPurchase = ({ purchase, type = null }) => {
       totalAmount: total,
       totalBundle,
     });
-  }, [totalAmount, _surCharge]);
+  }, [totalAmount, _surCharge, form, totalBundle]);
 
   // to set default and previous date in form
   useEffect(() => {
     form.setFieldsValue({
       purchaseDate: purchase?.purchaseDate ? dayjs(purchase?.purchaseDate) : dayjs(),
     });
-  }, []);
+  }, [form, purchase?.purchaseDate]);
 
   const onFinish = async (value) => {
     setLoading(true);
@@ -92,10 +92,10 @@ const AddEditPurchase = ({ purchase, type = null }) => {
         id,
         noOfBales,
         ratePerBale,
-        ...(baleWeightLbs && { baleWeightLbs }),
-        ...(baleWeightKgs && { baleWeightKgs }),
-        ...(ratePerLbs && { ratePerLbs }),
-        ...(ratePerKgs && { ratePerKgs }),
+        baleWeightLbs: baleWeightLbs ?? 0,
+        baleWeightKgs: baleWeightKgs ?? 0,
+        ratePerLbs: ratePerLbs ?? 0,
+        ratePerKgs: ratePerKgs ?? 0,
       };
     });
     delete orderData.totalBundle;
@@ -143,7 +143,7 @@ const AddEditPurchase = ({ purchase, type = null }) => {
                 },
               ]}
             >
-              <Input type="number" disabled={isView} readOnly />
+              <InputNumber min={0} disabled={isView} readOnly style={{ width: "100%" }} />
             </Form.Item>
           </Col>
           <Col span={8}>
@@ -156,25 +156,25 @@ const AddEditPurchase = ({ purchase, type = null }) => {
                 },
               ]}
             >
-              <Input type="number" disabled={isView} readOnly />
+              <InputNumber min={0} disabled={isView} readOnly style={{ width: "100%" }} />
             </Form.Item>
           </Col>
           <Col span={8}>
             <Form.Item name="invoiceNumber" label="Invoice No">
-              <Input type="text" disabled={isView} />
+              <Input type="text" disabled={isView || purchase?.status === "APPROVED"} />
             </Form.Item>
           </Col>
           <Col span={8}>
             <Form.Item name="surCharge" label="Sur Charge (RS)">
-              <Input
-                type="number"
+              <InputNumber
+                min={0}
                 defaultValue={_surCharge}
                 value={_surCharge}
-                onChange={(e) => {
-                  const value = parseFloat(e.target.value);
+                onChange={(value) => {
                   !isNaN(value) ? setSurCharge(value) : setSurCharge(0);
                 }}
                 disabled={isView}
+                style={{ width: "100%" }}
               />
             </Form.Item>
           </Col>
@@ -185,7 +185,7 @@ const AddEditPurchase = ({ purchase, type = null }) => {
                 disabledDate={(current) => current && current.valueOf() > Date.now()}
                 format={DATE_FORMAT}
                 // defaultValue={dayjs()}
-                disabled={isView}
+                disabled={isView || purchase?.status === "APPROVED"}
               />
             </Form.Item>
           </Col>

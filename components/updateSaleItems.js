@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
-import { Button, Form, Popconfirm, Typography } from "antd";
+import { Button, Form, Popconfirm } from "antd";
 
 import EditableCell from "@/components/editableCell";
 import styles from "@/styles/EditableCell.module.css";
@@ -33,24 +33,27 @@ export default function UpdateSalesItems({
         });
       });
     }
-  }, [editAll, data]);
+  }, [editAll, data, editingKey, edit]);
 
   const isEditing = (record) => {
     return editingKey.includes(record.id);
   };
 
-  const edit = (record) => {
-    form.setFieldsValue({
-      itemName: "",
-      noOfBales: "",
-      baleWeightLbs: "",
-      baleWeightKgs: "",
-      ratePerLbs: "",
-      ratePerKgs: "",
-      ratePerBale: "",
-      ...record,
-    });
-  };
+  const edit = useCallback(
+    (record) => {
+      form.setFieldsValue({
+        itemName: "",
+        noOfBales: "",
+        baleWeightLbs: "",
+        baleWeightKgs: "",
+        ratePerLbs: "",
+        ratePerKgs: "",
+        ratePerBale: "",
+        ...record,
+      });
+    },
+    [form]
+  );
 
   const cancel = () => {
     setEditingKey([]);
@@ -94,15 +97,15 @@ export default function UpdateSalesItems({
     }
   };
 
-  const getOperationColumn = () => {
-    return {
-      title: "operation",
-      dataIndex: "operation",
-      render: (_, record) => {
-        const editable = isEditing(record);
-      },
-    };
-  };
+  // const getOperationColumn = () => {
+  //   return {
+  //     title: "operation",
+  //     dataIndex: "operation",
+  //     render: (_, record) => {
+  //       const editable = isEditing(record);
+  //     },
+  //   };
+  // };
 
   const columns = [
     {

@@ -4,7 +4,7 @@ import { Button, Form, Input } from "antd";
 import { useRouter } from "next/router";
 
 import permissionsUtil from "@/utils/permission.util";
-import { VALIDATE_MESSAGE } from "@/utils/ui.util";
+import { toLowerCaseObjVal, VALIDATE_MESSAGE } from "@/utils/ui.util";
 
 import { createCustomer, updateCustomer } from "../hooks/customers";
 import AppBackButton from "./backButton";
@@ -40,6 +40,7 @@ const AddEditCustomer = ({ customer }) => {
 
   const onFinish = async (values) => {
     setLoading(true);
+    values = toLowerCaseObjVal(values);
     try {
       if (customer) {
         await updateCustomer(customer.id, values);
@@ -48,6 +49,8 @@ const AddEditCustomer = ({ customer }) => {
       }
       router.push("/customers");
     } catch (error) {
+      console.error("Error: ", error);
+    } finally {
       setLoading(false);
     }
   };

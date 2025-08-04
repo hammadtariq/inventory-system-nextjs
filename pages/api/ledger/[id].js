@@ -2,7 +2,7 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
-import { companySumQuery, customerSumQuery } from "../../../query";
+import { companySumQuery, customerSumQuery } from "@/query/index";
 
 const getTransactions = async (req, res) => {
   console.log("get transaction Request Start");
@@ -13,7 +13,7 @@ const getTransactions = async (req, res) => {
     const condition = type === "company" ? { companyId: id } : { customerId: id };
     const transactions = await db.Ledger.findAll({
       where: condition,
-      order: [["paymentDate", "DESC"]],
+      order: [["id", "DESC"]],
       include: [
         {
           model: db.Company,

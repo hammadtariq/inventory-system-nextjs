@@ -8,24 +8,24 @@ import EditableInventoryCell from "@/components/editableInventoryCell";
 import AppCreateButton from "@/components/createButton";
 import AppTable from "@/components/table";
 import AppTitle from "@/components/title";
-import { deleteItem, useItems, searchItems, updateItem, getAllItemListbyCompany } from "@/hooks/items";
+import { deleteItem, useItems, updateItem } from "@/hooks/items";
 import styles from "@/styles/Item.module.css";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import permissionsUtil from "@/utils/permission.util";
-import { DATE_TIME_FORMAT } from "@/utils/ui.util";
+import { DATE_TIME_FORMAT, DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import SearchInput from "@/components/SearchInput";
 import { searchCompany } from "@/hooks/company";
 
 const Items = () => {
-  const { items, error, isLoading, paginationHandler, mutate } = useItems();
+  const [search, setSearch] = useState("");
+  const { items, error, isLoading, pagination, paginationHandler, mutate } = useItems(search);
   const router = useRouter();
   const [searchText, setSearchText] = useState("");
   const [updatedItemList, setUpdatedItemList] = useState();
-
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
-  const [loading, setLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     setUpdatedItemList(items);
@@ -92,17 +92,6 @@ const Items = () => {
       title: "Company Name",
       dataIndex: ["company", "companyName"],
       key: "companyName",
-      ...getColumnSearchProps({
-        dataIndex: "companyName",
-        dataIndexName: "company name",
-        parentDataIndex: "company",
-        nested: true,
-        searchInput,
-        searchText,
-        searchedColumn,
-        setSearchText,
-        setSearchedColumn,
-      }),
     },
     {
       title: "Type",
@@ -164,20 +153,21 @@ const Items = () => {
     : defaultColumns;
 
   const handleSave = async (row) => {
-    setLoading(true);
+    setIsSaving(true);
     try {
       await updateItem(row.id, { itemName: row.itemName });
       mutate();
       message.success("item modified successfully");
     } catch (error) {
       console.log("update itemList item name error", error);
+    } finally {
+      setIsSaving(false);
     }
-    setLoading(false);
   };
   const handleSearch = async (value) => {
     if (!value) {
-      setUpdatedItemList(items);
-      return items;
+      setSearch("");
+      paginationHandler(DEFAULT_PAGE_LIMIT, 0, 1);
     } else {
       const searchResults = await searchCompany(value);
       return searchResults;
@@ -185,9 +175,8 @@ const Items = () => {
   };
 
   const handleSelect = async (companyId) => {
-    const newItems = await getAllItemListbyCompany(companyId);
-    setUpdatedItemList(newItems);
-    return newItems;
+    setSearch(companyId);
+    paginationHandler(DEFAULT_PAGE_LIMIT, 0, 1);
   };
 
   if (error) return <Alert message={error} type="error" />;
@@ -210,7 +199,7 @@ const Items = () => {
         </Row>
       </AppTitle>
       <AppTable
-        isLoading={isLoading}
+        isLoading={isLoading || isSaving}
         rowKey="id"
         columns={columns}
         components={
@@ -226,6 +215,7 @@ const Items = () => {
         dataSource={updatedItemList ? updatedItemList.rows : []}
         totalCount={updatedItemList ? updatedItemList.count : 0}
         paginationHandler={paginationHandler}
+        pagination={pagination}
       />
     </>
   );
