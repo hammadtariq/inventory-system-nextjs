@@ -1,3 +1,4 @@
+"use client";
 import { Layout, Avatar, Dropdown, Menu, message } from "antd";
 import {
   MenuUnfoldOutlined,
@@ -38,7 +39,9 @@ const items = [
   { id: "10", title: "Cheques", url: "/cheques", icon: <DollarCircleOutlined /> },
 ];
 
-export default function AppNavbar({ collapsed, onCollapseChange }) {
+export default function AppNavbar(props = {}) {
+  const { collapsed = false, onCollapseChange = () => {} } = props;
+
   const router = useRouter();
   const [isSelected, setIsSelected] = useState();
   const user = StorageUtils.getItem("user");
@@ -218,9 +221,9 @@ export default function AppNavbar({ collapsed, onCollapseChange }) {
                 }}
               >
                 <span style={{ fontWeight: "500", color: "#fff" }}>
-                  {user.fisrtName} {user.lastName}
+                  {user?.fisrtName} {user?.lastName}
                 </span>
-                <span style={{ fontSize: "12px", color: "#b9b9b9ff" }}>{user.email}</span>
+                <span style={{ fontSize: "12px", color: "#b9b9b9ff" }}>{user?.email}</span>
               </div>
             )}
           </div>

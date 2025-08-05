@@ -10,17 +10,33 @@ import { useRouter } from "next/router";
 import ExportButton from "@/components/exportButton";
 import { EyeOutlined } from "@ant-design/icons";
 import { comaSeparatedValues } from "@/utils/comaSeparatedValues";
+import Spinner from "@/components/spinner";
 
-const LedgerDetails = ({ id, type }) => {
+const LedgerDetails = () => {
   const router = useRouter();
+  const { id, type } = router.query;
+
+  const shouldFetch = id && type;
+
+  if (!shouldFetch) {
+    return <Spinner />;
+  }
+
+  return <LedgerDetailsContent id={id} type={type} />;
+};
+
+const LedgerDetailsContent = ({ id, type }) => {
+  const router = useRouter();
+
   const { transactions, totalBalance, error, isLoading } = useLedgerDetails(id, type);
 
+  if (isLoading) return <Spinner />;
   if (error) return <Alert message={error} type="error" />;
 
   const renderActions = (_, record) => {
     return (
       <>
-        {record.transactionId && type === "customer" ? (
+        {record.transactionId && type === "customer" && (
           <>
             <EyeOutlined
               style={{ marginRight: "10px" }}
@@ -32,7 +48,7 @@ const LedgerDetails = ({ id, type }) => {
             />
             <ExportButton filename="ledger" invoiceNumber={record.invoiceNumber} onlyIcon={true} />
           </>
-        ) : null}
+        )}
       </>
     );
   };
@@ -152,9 +168,3 @@ const LedgerDetails = ({ id, type }) => {
 };
 
 export default LedgerDetails;
-
-export async function getServerSideProps({ query }) {
-  return {
-    props: query,
-  };
-}
