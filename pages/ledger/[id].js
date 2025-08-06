@@ -13,7 +13,7 @@ import { comaSeparatedValues } from "@/utils/comaSeparatedValues";
 import Spinner from "@/components/spinner";
 import { useState } from "react";
 
-const LedgerDetails = ({ id, type }) => {
+const LedgerDetails = () => {
   const router = useRouter();
   const { id, type } = router.query;
 
@@ -53,7 +53,7 @@ const LedgerDetailsContent = ({ id, type }) => {
   const renderActions = (_, record) => {
     return (
       <>
-        {record.transactionId && type === "customer" ? (
+        {record.transactionId && type === "customer" && (
           <>
             <EyeOutlined
               style={{ marginRight: "10px" }}
@@ -65,7 +65,7 @@ const LedgerDetailsContent = ({ id, type }) => {
             />
             <ExportButton filename="ledger" invoiceNumber={record.invoiceNumber} onlyIcon={true} />
           </>
-        ) : null}
+        )}
       </>
     );
   };
@@ -199,9 +199,3 @@ const LedgerDetailsContent = ({ id, type }) => {
 };
 
 export default LedgerDetails;
-
-export async function getServerSideProps({ query }) {
-  return {
-    props: query,
-  };
-}

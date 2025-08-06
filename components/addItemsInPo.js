@@ -31,7 +31,7 @@ export default function AddItemsInPo({
 
   useEffect(() => {
     if (editAll) {
-      data.forEach((record) => {
+      data?.forEach((record) => {
         edit(record);
         setEditingKey((prev) => {
           return [...prev, record.key];
