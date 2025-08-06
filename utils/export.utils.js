@@ -39,21 +39,6 @@ export function addTitleAndDetails(doc, headData) {
     yPosition += 6;
   }
 
-  // Add phone number if available (you can modify this based on your data structure)
-  if (headData?.customer?.phone) {
-    doc.text(headData.customer.phone, 10, yPosition);
-    yPosition += 6;
-  }
-
-  // Add address if available (you can modify this based on your data structure)
-  if (headData?.customer?.address) {
-    doc.text(headData.customer.address, 10, yPosition);
-    yPosition += 6;
-  }
-
-  // Ticket info
-  doc.text("Ticket: MIXING", 10, yPosition);
-
   // Invoice details on the right
   doc.setFont("helvetica", "normal");
   doc.text(`Invoice No. ${headData?.id ?? headData?.count}`, 195, 45, { align: "right" });
@@ -61,7 +46,7 @@ export function addTitleAndDetails(doc, headData) {
 
   doc.setLineWidth(0.5);
   doc.setDrawColor(170, 170, 170);
-  doc.line(10, 84, 195, 84);
+  doc.line(10, 64, 195, 64);
 }
 // Function to map data to table format with truncated text fields
 export function mapDataToTable(data) {
@@ -75,7 +60,7 @@ export function mapDataToTable(data) {
     ...(item.onHand && { company: item.company }),
     ...(item.ratePerKgs && { kgRate: item.kgRate ?? item.ratePerKgs }),
     ...(item.ratePerLbs && { lbsRate: item.lbsRate ?? item.ratePerLbs }),
-    ...(item.ratePerBales && { baleRate: item.baleRate ?? item.ratePerBales }),
+    ...(item.ratePerBales || (item.baleRate && { baleRate: item.baleRate ?? item.ratePerBales })),
     ...(item.totalAmount && { totalAmount: item.totalAmount }),
   }));
 }
@@ -111,15 +96,14 @@ export function generateTable(doc, tableData) {
   const hasKgRate = tableData.some((row) => row.kgRate !== undefined);
   const hasLbsRate = tableData.some((row) => row.lbsRate !== undefined);
   const hasBaleRate = tableData.some((row) => row.baleRate !== undefined);
-  const totalAmount = tableData.reduce((sum, row) => sum + (parseFloat(row.totalAmount) || 0), 0);
 
   const columns = [
     { header: "S.No", dataKey: "sno" },
     { header: "Item Detail", dataKey: "item" },
+    { header: "Company", dataKey: "company" },
     { header: "KGS", dataKey: "kgs" },
     { header: "LBS", dataKey: "lbs" },
     { header: "Bales", dataKey: "bales" },
-    { header: "Company", dataKey: "company" },
     ...(hasKgRate ? [{ header: "KG Rate", dataKey: "kgRate" }] : []),
     ...(hasLbsRate ? [{ header: "LBS Rate", dataKey: "lbsRate" }] : []),
     ...(hasBaleRate ? [{ header: "Bale Rate", dataKey: "baleRate" }] : []),
@@ -163,7 +147,7 @@ export function generateTable(doc, tableData) {
   const startX = (pageWidth - tableWidth) / 2;
 
   autoTable(doc, {
-    startY: doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 85,
+    startY: doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 65,
     head: [columns.map((col) => col.header)],
     body: tableData.map((row) => columns.map((col) => row[col.dataKey])),
     styles: {
@@ -206,10 +190,6 @@ export function generateTable(doc, tableData) {
         );
       }
     },
-  });
-  // After generating your table, call:
-  addSummarySection(doc, {
-    total: totalAmount,
   });
 }
 
@@ -255,19 +235,7 @@ export function calculateTotals(tableData) {
 //   return tableData;
 // }
 
-export function appendTotalsRow(tableData, totals) {
-  tableData.push({
-    sno: "Total",
-    item: "-",
-    kgs: totals.kgs ? totals.kgs.toFixed(2) : "-",
-    lbs: totals.lbs ? totals.lbs.toFixed(2) : "-",
-    bales: totals.bales ?? "-",
-    ...(totals.kgRate && { kgRate: totals.kgRate ? totals.kgRate.toFixed(2) : "-" }),
-    ...(totals.lbsRate && { lbsRate: totals.lbsRate ? totals.lbsRate.toFixed(2) : "-" }),
-    ...(totals.baleRate && { baleRate: totals.baleRate ? totals.baleRate.toFixed(2) : "-" }),
-    ...(totals.totalAmount && { totalAmount: `RS: ${totals.totalAmount.toFixed(2)}` }),
-  });
-
+export function appendTotalsRow(tableData) {
   return tableData;
 }
 

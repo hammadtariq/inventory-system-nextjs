@@ -78,6 +78,13 @@ sequelize db:migrate
 sequelize db:seed:all
 ```
 
+Create migration file
+
+```sh
+sequelize migration:generate --name <migration-name>
+# Example: sequelize migration:generate --name add-is-active-to-users
+```
+
 Finally, start the development server:
 
 ```sh

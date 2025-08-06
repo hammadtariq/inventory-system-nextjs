@@ -39,10 +39,11 @@ const CreateTransaction = () => {
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      const { totalAmount, otherName, paymentDate } = values;
+      const { totalAmount, otherName, paymentDate, reference } = values;
 
       let params = {
         totalAmount,
+        reference,
         spendType: SPEND_TYPE.DEBIT, // todo
         paymentDate: dayjs(paymentDate),
         paymentType,
@@ -225,6 +226,19 @@ const CreateTransaction = () => {
           ]}
         >
           <DatePicker style={{ width: "100%" }} disabledDate={(current) => current && current.valueOf() > Date.now()} />
+        </Form.Item>
+
+        <Form.Item
+          name="reference"
+          label="Reference"
+          rules={[
+            {
+              required: false,
+              type: "string",
+            },
+          ]}
+        >
+          <Input placeholder="Enter Reference" />
         </Form.Item>
 
         <Form.Item className="action-btn">
