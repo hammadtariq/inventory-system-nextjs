@@ -11,7 +11,6 @@ import ExportButton from "@/components/exportButton";
 import { DownloadOutlined, EyeOutlined } from "@ant-design/icons";
 import { comaSeparatedValues } from "@/utils/comaSeparatedValues";
 import Spinner from "@/components/spinner";
-import { useState } from "react";
 
 const LedgerDetails = () => {
   const router = useRouter();
@@ -28,15 +27,13 @@ const LedgerDetails = () => {
 
 const LedgerDetailsContent = ({ id, type }) => {
   const router = useRouter();
-  const [fileType, setFileType] = useState("");
 
   const { transactions, totalBalance, error, isLoading } = useLedgerDetails(id, type);
 
-  const { download, exportLoading, totalAmount } = useLedgerCustomerDetails();
+  const { download, exportLoading } = useLedgerCustomerDetails();
 
   const handleMenuClick = async (e) => {
     const selectedType = e.key === "1" ? "pdf" : "csv";
-    setFileType(selectedType);
     await download(id, type, selectedType);
   };
 
