@@ -3,7 +3,7 @@ import NextLink from "next/link";
 import AppTable from "@/components/table";
 import styles from "@/styles/Ledger.module.css";
 import { useLedgerCustomerDetails, useLedgerDetails } from "@/hooks/ledger";
-import { Alert, Button, DatePicker, Dropdown, Menu, Space, Spin } from "antd";
+import { Alert, Button, DatePicker, Dropdown, Menu, Row, Space, Spin } from "antd";
 import { SPEND_TYPE } from "@/utils/api.util";
 import { DATE_FORMAT } from "@/utils/ui.util";
 import { useRouter } from "next/router";
@@ -184,15 +184,14 @@ const LedgerDetailsContent = ({ id, type }) => {
           }}
         />
       </Space>
-      <div className={styles.rowDirectionTotalContainer}>
+      <Row>
         <div className={styles.headingStyle}>Total Balance (RS):</div>
         <div className={styles.contentStyle}>{`${
           totalBalance ? comaSeparatedValues(totalBalance.toFixed(2)) : 0
         }`}</div>
-      </div>
+      </Row>
     </div>
   );
-  console.log("transactions", transactions);
   return (
     <div style={{ overflowX: "auto" }}>
       {renderTotalBalance()}
