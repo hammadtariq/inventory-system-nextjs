@@ -36,7 +36,8 @@ const Ledger = () => {
       undefined,
       { shallow: true }
     );
-  }, [type, debouncedSearch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // hit the API with type + search
   const { transactions = [], totalBalance = 0, error, isLoading } = useLedger(type, debouncedSearch);

@@ -30,14 +30,17 @@ export const useLedgerCustomerDetails = () => {
   const [errors, setErrors] = useState(null);
   const [totalAmount, setTotalAmount] = useState(null);
 
-  const download = async (id, type, fileType) => {
+  const download = async (id, type, fileType, monthKey) => {
     setExportLoading(true);
     setErrors(null);
 
     try {
-      const response = await fetch(`/api/ledger/exportCustomer?id=${id}&type=${type}&fileType=${fileType}`, {
-        method: "GET",
-      });
+      const response = await fetch(
+        `/api/ledger/exportCustomer?id=${id}&type=${type}&fileType=${fileType}&startDate=${monthKey.startDate}&endDate=${monthKey.endDate}`,
+        {
+          method: "GET",
+        }
+      );
 
       if (!response.ok) throw new Error(await response.text());
 

@@ -5,17 +5,34 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Parser } from "json2csv";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import { Op } from "sequelize";
 import { companySumQuery, customerSumQuery } from "@/query/index";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // Utility for comma formatting
 const comaSeparatedValues = (val) => val?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
+// Helper: parse optional dates
+const parseDateRange = (startDate, endDate) => {
+  const formats = ["YYYY-MM-DD", "YYYY/MM/DD"];
+  const start = startDate ? dayjs(startDate, formats, true).startOf("day") : null;
+  const end = endDate ? dayjs(endDate, formats, true).endOf("day") : null;
+  if (startDate && (!start || !start.isValid())) return { error: "Invalid startDate format." };
+  if (endDate && (!end || !end.isValid())) return { error: "Invalid endDate format." };
+  if (start && end && start.isAfter(end)) return { error: "startDate cannot be after endDate." };
+  return { start, end };
+};
+
 // Generate PDF
-const generateCustomerLedgerPdf = (transactions, totalBalance) => {
+const generateCustomerLedgerPdf = (transactions, totalBalance, headerFrom, headerTo) => {
   const doc = new jsPDF("landscape", "pt", "a4");
   const pageWidth = doc.internal.pageSize.getWidth();
 
-  // 1. Company + Site Header
+  // 1. Header title (customer/company)
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
   doc.text(
@@ -29,16 +46,21 @@ const generateCustomerLedgerPdf = (transactions, totalBalance) => {
   doc.setFontSize(12);
   doc.text("Ledger", pageWidth / 2, 48, { align: "center" });
 
-  // 2. Ledger Header with Dates
-  const fromDate = transactions[0]?.paymentDate ? dayjs(transactions[0].paymentDate).format("DD-MMM-YYYY") : "";
-  const toDate = transactions[transactions.length - 1]?.paymentDate
-    ? dayjs(transactions[transactions.length - 1].paymentDate).format("DD-MMM-YYYY")
-    : "";
+  // 2. Ledger Header with Dates (use provided range if any; else derive from rows)
+  const fromDate =
+    headerFrom ?? (transactions[0]?.paymentDate ? dayjs(transactions[0].paymentDate).format("DD-MMM-YYYY") : "");
+  const toDate =
+    headerTo ??
+    (transactions[transactions.length - 1]?.paymentDate
+      ? dayjs(transactions[transactions.length - 1].paymentDate).format("DD-MMM-YYYY")
+      : "");
 
   doc.setFontSize(11);
-  doc.text(`(From ${fromDate} To ${toDate})`, pageWidth / 2, 70, { align: "center" });
+  if (fromDate || toDate) {
+    doc.text(`(From ${fromDate} To ${toDate})`, pageWidth / 2, 70, { align: "center" });
+  }
 
-  // 3. Date & Time on right
+  // 3. Date & Time
   const now = dayjs();
   doc.setFontSize(9);
   doc.text(`Date: ${now.format("DD-MMM-YYYY")}`, 40, 105);
@@ -47,17 +69,17 @@ const generateCustomerLedgerPdf = (transactions, totalBalance) => {
   // 4. Table Headers
   const headers = [
     [
-      { content: "Date", rowSpan: 2 },
-      { content: "Paid To", rowSpan: 2 },
-      { content: "Reference", rowSpan: 2 },
-      { content: "Invoice Number", rowSpan: 2 },
-      { content: "Debit", rowSpan: 2 },
-      { content: "Credit", rowSpan: 2 },
-      { content: "Closing Balance", rowSpan: 2 },
+      { content: "Date" },
+      { content: "Paid To" },
+      { content: "Reference" },
+      { content: "Invoice Number" },
+      { content: "Debit" },
+      { content: "Credit" },
+      { content: "Closing Balance" },
     ],
   ];
 
-  // 5. Table Rows
+  // 5. Rows
   const rows = transactions.map((row) => [
     row.paymentDate ? dayjs(row.paymentDate).format("DD-MM-YYYY") : "",
     row.company ? row.company.companyName : row.otherName || "",
@@ -72,13 +94,12 @@ const generateCustomerLedgerPdf = (transactions, totalBalance) => {
     comaSeparatedValues((row.customerTotal || row.totalBalance || 0).toFixed(2)),
   ]);
 
-  const totalDebit = transactions.reduce((acc, row) => {
-    return row.spendType === "DEBIT" ? acc + (row.amount || 0) : acc;
-  }, 0);
+  const totalDebit = transactions.reduce((acc, row) => (row.spendType === "DEBIT" ? acc + (row.amount || 0) : acc), 0);
 
-  const totalCredit = transactions.reduce((acc, row) => {
-    return row.spendType === "CREDIT" ? acc + (row.amount || 0) : acc;
-  }, 0);
+  const totalCredit = transactions.reduce(
+    (acc, row) => (row.spendType === "CREDIT" ? acc + (row.amount || 0) : acc),
+    0
+  );
 
   const closingBalance = totalBalance || 0;
 
@@ -111,31 +132,24 @@ const generateCustomerLedgerPdf = (transactions, totalBalance) => {
       5: { halign: "right" },
       6: { halign: "right" },
     },
-
-    didDrawCell: (data) => {
-      const { row, cell } = data;
-
-      if (data.section === "head") {
-        const isFirstHeaderRow = row.index === 0;
-        const isLastHeaderRow = row.index === 0;
-        const { x, width, y, height } = cell;
-
-        if (isFirstHeaderRow) {
-          doc.setDrawColor(0);
-          doc.setLineWidth(0.5);
-          doc.line(x, y, x + width, y); // top border
-        }
-
-        if (isLastHeaderRow) {
-          doc.setDrawColor(0);
-          doc.setLineWidth(0.5);
-          doc.line(x, y + height, x + width, y + height); // bottom border
-        }
+    didDrawCell: ({ section, row, cell }) => {
+      if (section !== "head") return;
+      const isFirstHeaderRow = row.index === 0;
+      const isLastHeaderRow = row.index === 0;
+      const { x, width, y, height } = cell;
+      if (isFirstHeaderRow) {
+        doc.setDrawColor(0);
+        doc.setLineWidth(0.5);
+        doc.line(x, y, x + width, y);
+      }
+      if (isLastHeaderRow) {
+        doc.setDrawColor(0);
+        doc.setLineWidth(0.5);
+        doc.line(x, y + height, x + width, y + height);
       }
     },
-    didParseCell: function (data) {
+    didParseCell: (data) => {
       const colIndex = data.column.index;
-
       if (data.section === "head") {
         if (colIndex <= 2) data.cell.styles.halign = "left";
         if (colIndex === 3) data.cell.styles.halign = "center";
@@ -163,13 +177,11 @@ const generateCustomerLedgerPdf = (transactions, totalBalance) => {
   doc.setLineWidth(0.5);
   doc.setDrawColor(0);
 
-  // Top line
+  // Lines
   doc.line(leftMargin, finalY - 4, tableEndX, finalY - 4);
-
-  // Bottom line
   doc.line(leftMargin, finalY + 14, tableEndX, finalY + 14);
 
-  // Text
+  // Totals
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
   doc.text("Grand Total:", labelX, finalY + 10, { align: "right" });
@@ -177,7 +189,6 @@ const generateCustomerLedgerPdf = (transactions, totalBalance) => {
   doc.setFont("helvetica", "normal");
   doc.text(comaSeparatedValues(totalDebit.toFixed(2)), debitX - 15, finalY + 10, { align: "right" });
   doc.text(comaSeparatedValues(totalCredit.toFixed(2)), creditX - 15, finalY + 10, { align: "right" });
-
   doc.text(comaSeparatedValues(closingBalance.toFixed(2)), closingBalanceX, finalY + 10, { align: "right" });
 
   return doc.output("arraybuffer");
@@ -223,16 +234,38 @@ const generateCustomerLedgerCsv = (transactions) => {
 const exportCustomerLedger = async (req, res) => {
   try {
     await db.dbConnect();
-    const { id, type, fileType } = req.query;
+    const { id, type, fileType, startDate, endDate } = req.query;
 
     if (type !== "customer" && type !== "company") {
       return res.status(400).json({ message: 'Invalid type. Only "customer" or "company" is allowed.' });
     }
 
-    const condition = type === "company" ? { companyId: id } : { customerId: id };
+    // Parse and validate date range (optional)
+    const { start, end, error } = parseDateRange(startDate, endDate);
+    if (error) return res.status(400).json({ message: error });
+
+    // Build where clause
+    const baseCondition = type === "company" ? { companyId: id } : { customerId: id };
+    const where = { ...baseCondition };
+
+    // Apply inclusive date filter only if both dates are provided
+    if (start && end) {
+      where.paymentDate = { [Op.between]: [start.toDate(), end.toDate()] };
+    } else if (start && !end) {
+      // If only startDate provided, from startDate to future
+      where.paymentDate = { [Op.gte]: start.toDate() };
+    } else if (!start && end) {
+      // If only endDate provided, up to endDate
+      where.paymentDate = { [Op.lte]: end.toDate() };
+    }
+
     const transactions = await db.Ledger.findAll({
-      where: condition,
-      order: [["id", "DESC"]],
+      where,
+      // chronological for a statement; tie-breaker on id
+      order: [
+        ["paymentDate", "DESC"],
+        ["id", "DESC"],
+      ],
       include: [
         {
           model: db.Company,
@@ -250,16 +283,28 @@ const exportCustomerLedger = async (req, res) => {
     }
 
     const rawQuery = type === "company" ? companySumQuery(id) : customerSumQuery(id);
+    const totalBalanceRows = await db.sequelize.query(rawQuery, { type: db.Sequelize.QueryTypes.SELECT });
+    const totalBalanceFromQuery = Number(totalBalanceRows?.[0]?.amount ?? 0);
 
-    const totalBalance = await db.sequelize.query(rawQuery, {
-      type: db.Sequelize.QueryTypes.SELECT,
-    });
+    const closingFromRows =
+      transactions[transactions.length - 1]?.customerTotal ?? transactions[transactions.length - 1]?.totalBalance;
+
+    const dateFilterApplied = !!(startDate || endDate);
+    const effectiveClosingBalance = dateFilterApplied
+      ? typeof closingFromRows === "number"
+        ? closingFromRows
+        : totalBalanceFromQuery
+      : totalBalanceFromQuery;
+
+    // Prepare header dates for PDF (if filters provided)
+    const headerFrom = start ? start.format("DD-MMM-YYYY") : null;
+    const headerTo = end ? end.format("DD-MMM-YYYY") : null;
 
     if (fileType === "pdf") {
-      const pdfBuffer = generateCustomerLedgerPdf(transactions, totalBalance[0].amount);
+      const pdfBuffer = generateCustomerLedgerPdf(transactions, effectiveClosingBalance, headerFrom, headerTo);
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader("Content-Disposition", `attachment; filename=customer-ledger.pdf`);
-      res.setHeader("X-Total-Amount", totalBalance[0].amount || 0);
+      res.setHeader("X-Total-Amount", effectiveClosingBalance);
       return res.send(Buffer.from(pdfBuffer));
     }
 
@@ -267,7 +312,7 @@ const exportCustomerLedger = async (req, res) => {
       const csv = generateCustomerLedgerCsv(transactions);
       res.setHeader("Content-Type", "text/csv");
       res.setHeader("Content-Disposition", `attachment; filename=customer-ledger.csv`);
-      res.setHeader("X-Total-Amount", totalBalance[0].amount || 0);
+      res.setHeader("X-Total-Amount", effectiveClosingBalance);
       return res.send(csv);
     }
 

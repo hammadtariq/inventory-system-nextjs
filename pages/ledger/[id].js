@@ -3,7 +3,7 @@ import NextLink from "next/link";
 import AppTable from "@/components/table";
 import styles from "@/styles/Ledger.module.css";
 import { useLedgerCustomerDetails, useLedgerDetails } from "@/hooks/ledger";
-import { Alert, Button, Dropdown, Menu, Spin } from "antd";
+import { Alert, Button, DatePicker, Dropdown, Menu, Row, Space, Spin } from "antd";
 import { SPEND_TYPE } from "@/utils/api.util";
 import { DATE_FORMAT } from "@/utils/ui.util";
 import { useRouter } from "next/router";
@@ -11,6 +11,8 @@ import ExportButton from "@/components/exportButton";
 import { DownloadOutlined, EyeOutlined } from "@ant-design/icons";
 import { comaSeparatedValues } from "@/utils/comaSeparatedValues";
 import Spinner from "@/components/spinner";
+import { useState } from "react";
+const { RangePicker } = DatePicker;
 
 const LedgerDetails = () => {
   const router = useRouter();
@@ -27,6 +29,7 @@ const LedgerDetails = () => {
 
 const LedgerDetailsContent = ({ id, type }) => {
   const router = useRouter();
+  const [monthKey, setMonthKey] = useState({ startDate: "", endDate: "" });
 
   const { transactions, totalBalance, error, isLoading } = useLedgerDetails(id, type);
 
@@ -34,7 +37,7 @@ const LedgerDetailsContent = ({ id, type }) => {
 
   const handleMenuClick = async (e) => {
     const selectedType = e.key === "1" ? "pdf" : "csv";
-    await download(id, type, selectedType);
+    await download(id, type, selectedType, monthKey);
   };
 
   const menu = (
@@ -162,7 +165,7 @@ const LedgerDetailsContent = ({ id, type }) => {
 
   const renderTotalBalance = () => (
     <div className={styles.rowDirectionTableContainer}>
-      <div>
+      <Space>
         <Dropdown overlay={menu}>
           <Button
             type="primary"
@@ -172,13 +175,21 @@ const LedgerDetailsContent = ({ id, type }) => {
             {exportLoading ? "Exporting..." : "Export"}
           </Button>
         </Dropdown>
-      </div>
-      <div className={styles.rowDirectionTotalContainer}>
+        <RangePicker
+          onChange={(dates) => {
+            setMonthKey({
+              startDate: dates?.[0]?.format("YYYY-MM-DD") || "",
+              endDate: dates?.[1]?.format("YYYY-MM-DD") || "",
+            });
+          }}
+        />
+      </Space>
+      <Row>
         <div className={styles.headingStyle}>Total Balance (RS):</div>
         <div className={styles.contentStyle}>{`${
           totalBalance ? comaSeparatedValues(totalBalance.toFixed(2)) : 0
         }`}</div>
-      </div>
+      </Row>
     </div>
   );
   return (
