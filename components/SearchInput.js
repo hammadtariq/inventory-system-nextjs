@@ -55,7 +55,7 @@ const SearchInput = ({ handleSearch, handleSelect, valueKey, valueKey2, placehol
   return (
     <>
       <AutoComplete
-        dropdownMatchSelectWidth={252}
+        popupMatchSelectWidth={500}
         className={styles.inputWrap}
         options={options}
         onSelect={_handleSelect}
