@@ -14,6 +14,7 @@ const apiSchema = Joi.object({
   otherName: Joi.string().trim().optional().allow(""),
   chequeId: Joi.string().trim(),
   dueDate: Joi.string().trim(),
+  reference: Joi.string().trim(),
 });
 
 const createPayment = async (req, res) => {
@@ -28,6 +29,7 @@ const createPayment = async (req, res) => {
     await db.dbConnect();
     const {
       totalAmount,
+      reference,
       companyId,
       spendType,
       customerId,
@@ -70,6 +72,7 @@ const createPayment = async (req, res) => {
       companyTotal,
       customerTotal,
       otherName,
+      reference,
     });
     console.log("create transaction Request End");
 

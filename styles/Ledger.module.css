@@ -17,7 +17,11 @@
 }
 .rowDirectionTableContainer {
   display: flex;
-  flex-direction: row;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+.rowDirectionTotalContainer {
+  display: flex;
   justify-content: flex-end;
   margin-bottom: 15px;
 }
