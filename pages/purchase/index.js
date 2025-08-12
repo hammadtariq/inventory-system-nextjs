@@ -104,7 +104,7 @@ const PurchaseOrders = () => {
       key: "id",
       render: (_, record) => (
         <NextLink href={`/purchase/${record.id}?type=view`} passHref target="_blank" rel="noopener noreferrer">
-          {record.id}
+          <span>{record.id}</span>
         </NextLink>
       ),
     },

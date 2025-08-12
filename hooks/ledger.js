@@ -2,8 +2,9 @@ import useSWR from "swr";
 import { get, post } from "@/lib/http-client";
 import { useState } from "react";
 
-export const useLedger = (type) => {
-  const { data, error } = useSWR(`/api/ledger?type=${type}`, get);
+export const useLedger = (type, search = "") => {
+  const query = new URLSearchParams({ type, search }).toString();
+  const { data, error } = useSWR(`/api/ledger?${query}`, get);
 
   return {
     ...data,

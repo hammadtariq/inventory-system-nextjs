@@ -10,12 +10,28 @@ const getAllTransactions = async (req, res) => {
   try {
     await db.dbConnect();
 
-    const { type = "company" } = req.query;
+    const { type = "company", search = "" } = req.query;
+    const baseQuery = type === "company" ? companyQuery : customerQuery;
 
-    const rawQuery = type === "company" ? companyQuery : customerQuery;
+    let finalQuery = `
+      SELECT *
+      FROM (
+        ${baseQuery}
+      ) AS t
+    `;
 
-    const transactions = await db.sequelize.query(rawQuery, {
+    const replacements = {};
+
+    if (search) {
+      finalQuery += ` WHERE t.name ILIKE :search `;
+      replacements.search = `%${search}%`;
+    }
+
+    finalQuery += ` ORDER BY t.total DESC;`;
+
+    const transactions = await db.sequelize.query(finalQuery, {
       type: db.Sequelize.QueryTypes.SELECT,
+      replacements,
     });
 
     const totalBalance = transactions.reduce((acc, obj) => acc + obj.total, 0);
