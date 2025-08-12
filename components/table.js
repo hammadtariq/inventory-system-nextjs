@@ -1,8 +1,11 @@
 import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
-import { Table } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
+import { Spin, Table } from "antd";
 import { useEffect, useState } from "react";
 
 const pageOptions = ["30", "50", "100", "150", "200"];
+
+const loader = <Spin indicator={<LoadingOutlined spin />} size="large" />;
 
 export default function AppTable({
   bordered,
@@ -63,7 +66,6 @@ export default function AppTable({
     <Table
       bordered={bordered}
       scroll={{ x: "max-content" }}
-      loading={isLoading}
       rowKey={rowKey || "id"}
       columns={columns}
       dataSource={dataSource}
@@ -74,6 +76,10 @@ export default function AppTable({
       pagination={paginationHandler ? paginationConfig : false}
       onChange={handleChange}
       footer={footer}
+      loading={{
+        spinning: isLoading ?? false,
+        indicator: loader,
+      }}
     />
   );
 }
