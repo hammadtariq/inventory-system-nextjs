@@ -3,12 +3,13 @@ import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { Parser } from "json2csv";
+import { json2csv } from "json-2-csv";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { Op } from "sequelize";
 import { companySumQuery, customerSumQuery } from "@/query/index";
+import { capitalizeName } from "@/utils/ui.util";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -37,7 +38,7 @@ const generateCustomerLedgerPdf = (transactions, totalBalance, headerFrom, heade
   doc.setFont("helvetica", "bold");
   doc.text(
     transactions[0]?.customer
-      ? `${transactions[0].customer.firstName} ${transactions[0].customer.lastName}`
+      ? capitalizeName(`${transactions[0].customer.firstName} ${transactions[0].customer.lastName}`)
       : transactions[0]?.otherName || "",
     pageWidth / 2,
     30,
@@ -195,40 +196,30 @@ const generateCustomerLedgerPdf = (transactions, totalBalance, headerFrom, heade
 };
 
 // Generate CSV
-const generateCustomerLedgerCsv = (transactions) => {
-  const fields = [
-    {
-      label: "Date",
-      value: (row) => dayjs(row.paymentDate).format("DD-MM-YYYY"),
-    },
-    {
-      label: "Paid To",
-      value: (row) => (row.company ? row.company.companyName : row.otherName || ""),
-    },
-    {
-      label: "Reference",
-      value: (row) => row.reference || "",
-    },
-    {
-      label: "Invoice Number",
-      value: "invoiceNumber",
-    },
-    {
-      label: "Debit",
-      value: (row) => (row.paymentType || row.spendType === "DEBIT" ? row.amount.toFixed(2) : ""),
-    },
-    {
-      label: "Credit",
-      value: (row) => (!row.paymentType && row.spendType === "CREDIT" ? row.amount.toFixed(2) : ""),
-    },
-    {
-      label: "Closing Balance",
-      value: (row) => (row.customerTotal || row.totalBalance || 0).toFixed(2),
-    },
-  ];
+const sanitizeTransactions = (transactions) =>
+  transactions.map((t) => {
+    if (typeof t.get === "function") {
+      t = t.get({ plain: true });
+    }
+    return {
+      Date: dayjs(t.paymentDate).format("DD-MM-YYYY"),
+      PaidTo: t.company ? t.company.companyName : t.otherName || "",
+      reference: t.reference,
+      Debit: t.paymentType || t.spendType === "DEBIT" ? t.amount.toFixed(2) : "",
+      Credit: !t.paymentType && t.spendType === "CREDIT" ? t.amount.toFixed(2) : "",
+      ClosingBalance: (t.customerTotal || t.totalBalance || 0).toFixed(2),
+    };
+  });
 
-  const parser = new Parser({ fields });
-  return parser.parse(transactions);
+const generateCustomerLedgerCsv = (transactions) => {
+  try {
+    const cleanData = sanitizeTransactions(transactions);
+    const csv = json2csv(cleanData);
+    return Buffer.from(csv);
+  } catch (error) {
+    console.error("Error creating CSV:", error);
+    throw new Error(`Error creating CSV: ${error.message}`);
+  }
 };
 
 const exportCustomerLedger = async (req, res) => {
