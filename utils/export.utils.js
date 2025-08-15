@@ -79,16 +79,16 @@ export function addSummarySection(doc, summaryData) {
 
   // Right-aligned X positions
   const labelX = 155; // X position for labels
-  const amountX = 195; // X position for amounts
+  const amountX = 190; // X position for amounts
 
   // Total Amount (bold and larger)
-  doc.text("Total", labelX, startY, { align: "right" });
+  doc.text("Grand Total", labelX, startY, { align: "right" });
   doc.text(`RS: ${summaryData.total || "0"}`, amountX, startY, { align: "right" });
 
   // Draw line below the total amount (dynamic height based on total position)
   doc.setLineWidth(0.5);
   doc.setDrawColor(170, 170, 170);
-  doc.line(145, startY + 5, 197, startY + 5);
+  doc.line(130, startY + 5, 197, startY + 5);
 }
 
 // Function to generate the table using autoTable with responsive column widths
@@ -107,6 +107,7 @@ export function generateTable(doc, tableData) {
     ...(hasKgRate ? [{ header: "KG Rate", dataKey: "kgRate" }] : []),
     ...(hasLbsRate ? [{ header: "LBS Rate", dataKey: "lbsRate" }] : []),
     ...(hasBaleRate ? [{ header: "Bale Rate", dataKey: "baleRate" }] : []),
+    ...(hasBaleRate ? [{ header: "Total Amount", dataKey: "totalAmount" }] : []),
   ];
 
   const tempDoc = new jsPDF();
@@ -136,6 +137,7 @@ export function generateTable(doc, tableData) {
       ...(hasKgRate ? { kgRate: { halign: "right", cellWidth: "auto" } } : {}),
       ...(hasLbsRate ? { lbsRate: { halign: "right", cellWidth: "auto" } } : {}),
       ...(hasBaleRate ? { baleRate: { halign: "right", cellWidth: "auto" } } : {}),
+      ...(hasBaleRate ? { totalAmount: { halign: "right", cellWidth: "auto" } } : {}),
     },
     theme: "grid",
     tableWidth: "auto",
