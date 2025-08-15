@@ -281,6 +281,7 @@ export default function AddItemsInPo({
           columns={mergedColumns}
           rowClassName={styles.editableRow}
           rowKey="id"
+          className={"removeScroll"}
         />
       </Form>
     </>

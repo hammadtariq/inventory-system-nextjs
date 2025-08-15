@@ -65,7 +65,7 @@ export default function AppTable({
   return (
     <Table
       bordered={bordered}
-      scroll={{ x: "max-content" }}
+      scroll={className === "removeScroll" ? "" : { x: "max-content" }}
       rowKey={rowKey || "id"}
       columns={columns}
       dataSource={dataSource}

@@ -62,7 +62,7 @@ const AddEditSale = ({ sale, type = null }) => {
         laborCharge: sale.laborCharge,
       });
       setLaborCharge(sale.laborCharge);
-      setCustomerId(sale.customer.id);
+      setCustomerId(sale?.customer?.id);
     } else if (isCreate) {
       setUpdatedProducts(inventory);
       form.resetFields();
