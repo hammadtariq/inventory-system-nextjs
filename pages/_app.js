@@ -6,6 +6,7 @@ import ProtectedRoutes from "@/components/protectedRoutes";
 import StorageUtils from "@/utils/storage.util";
 import PermissionUtil from "@/utils/permission.util";
 import { useEffect } from "react";
+import { ConfigProvider } from "antd";
 
 const setPermission = () => {
   const user = StorageUtils.getItem("user");
@@ -18,8 +19,16 @@ export default function MyApp({ Component, pageProps, router }) {
   }, []);
   const getLayout = Component.getLayout || ((page) => <Layout>{page}</Layout>);
   return (
-    <ProtectedRoutes router={router}>
-      <>{getLayout(<Component {...pageProps} router={router} />)}</>
-    </ProtectedRoutes>
+    <ConfigProvider
+      theme={{
+        token: {
+          colorPrimary: '#6395ff',
+        },
+      }}
+    >
+      <ProtectedRoutes router={router}>
+        <>{getLayout(<Component {...pageProps} router={router} />)}</>
+      </ProtectedRoutes>
+    </ConfigProvider>
   );
 }
