@@ -2,10 +2,17 @@
 
 Need to install following for this repository:
 
-- Node.js version 14 or above
-- NPM or YARN
+- Node.js version 20 or above
+- PNPM or NPM
 - Docker and Docker-Compose
 - Sequelize cli
+
+## Steps to run in production mode
+```
+  pnpm install
+  pnpm build
+  pnpm start
+```
 
 ##### Instructions for development server
 
