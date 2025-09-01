@@ -1,6 +1,6 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import { capitalizeName } from "./ui.util";
+import { capitalizeName, formatDDMMYYYY } from "./ui.util";
 import { ImageBase64URL } from "public/pdfImage/PDFImage";
 
 // Function to create and configure a new jsPDF instance
@@ -10,8 +10,7 @@ export function createPDF() {
 
 // Function to add title and invoice details
 export function addTitleAndDetails(doc, headData) {
-  const currentDate = new Date();
-  const formattedDate = currentDate.toLocaleDateString("en-GB");
+  const formattedDate = formatDDMMYYYY(headData.soldDate);
 
   // Company logo/image on the left
   doc.addImage(ImageBase64URL, "PNG", 2, 5, 30, 30);

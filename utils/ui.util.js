@@ -127,3 +127,10 @@ export const PAGE_TYPE_VIEW = "view";
 export function capitalizeName(name = "") {
   return name.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
 }
+
+export function formatDDMMYYYY(dateLike, tz = "Asia/Karachi") {
+  const d = new Date(dateLike);
+  if (Number.isNaN(d.getTime())) return ""; // or throw if you prefer
+  // en-GB => dd/mm/yyyy
+  return d.toLocaleDateString("en-GB", { timeZone: tz });
+}
