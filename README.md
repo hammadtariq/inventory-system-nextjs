@@ -8,6 +8,7 @@ Need to install following for this repository:
 - Sequelize cli
 
 ## Steps to run in production mode
+
 ```
   pnpm install
   pnpm build
