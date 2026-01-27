@@ -5,6 +5,7 @@ import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { SPEND_TYPE, STATUS } from "@/utils/api.util";
 import { balanceQuery } from "@/utils/query.utils";
+import { recalculateLedgerForEntity } from "@/utils/ledgerRecalc.util";
 
 const apiSchema = Joi.object({
   id: Joi.number().required(),
@@ -142,33 +143,17 @@ const updateLedger = async (revisionNo, { companyId, transactionId, totalAmount,
 
     if (!ledger) throw new Error("Ledger entry not found for revision.");
 
-    const oldAmount = ledger.amount;
-    const amountDiff = totalAmount - oldAmount;
-
-    // Update the current ledger entry with the new amount and adjusted totalBalance
+    // Update the current ledger entry before recalculating all balances
     await ledger.update(
       {
         amount: totalAmount,
         invoiceNumber,
         paymentDate: purchaseDate,
-        totalBalance: ledger.totalBalance + amountDiff,
       },
       { transaction: t }
     );
 
-    // Update all subsequent ledger entries to reflect the difference
-    await db.Ledger.update(
-      {
-        totalBalance: db.sequelize.literal(`"totalBalance" + ${amountDiff}`),
-      },
-      {
-        where: {
-          companyId,
-          paymentDate: { [db.Sequelize.Op.gt]: purchaseDate },
-        },
-        transaction: t,
-      }
-    );
+    await recalculateLedgerForEntity({ entityType: "company", entityId: companyId, transaction: t });
 
     return ledger;
   }
@@ -188,6 +173,9 @@ const updateLedger = async (revisionNo, { companyId, transactionId, totalAmount,
     },
     { transaction: t }
   );
+
+  await recalculateLedgerForEntity({ entityType: "company", entityId: companyId, transaction: t });
+
   return ledger;
 };
 

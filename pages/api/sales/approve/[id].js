@@ -5,6 +5,7 @@ import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { STATUS, SPEND_TYPE } from "@/utils/api.util";
 import { balanceQuery } from "@/utils/query.utils";
+import { recalculateLedgerForEntity } from "@/utils/ledgerRecalc.util";
 
 const apiSchema = Joi.object({
   id: Joi.number().required(),
@@ -100,6 +101,9 @@ export const approveSaleOrder = async (id, t) => {
       },
       { transaction: t }
     );
+
+    await recalculateLedgerForEntity({ entityType: "customer", entityId: customerId, transaction: t });
+
     await t.commit();
     return { sale, ledger, inventory: updatedInventories };
   } catch (error) {
