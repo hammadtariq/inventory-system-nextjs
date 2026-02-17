@@ -110,7 +110,7 @@ const Sales = () => {
       render: (_, record) => {
         return (
           <NextLink href={`/sales/${record.id}?type=view`} passHref>
-            <a>{record.id}</a>
+            <span>{record.id}</span>
           </NextLink>
         );
         // <EyeOutlined onClick={() => router.push(`/sales/${record.id}?type=view`)} />;

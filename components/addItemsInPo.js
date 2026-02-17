@@ -31,7 +31,7 @@ export default function AddItemsInPo({
 
   useEffect(() => {
     if (editAll) {
-      data.forEach((record) => {
+      data?.forEach((record) => {
         edit(record);
         setEditingKey((prev) => {
           return [...prev, record.key];
@@ -149,13 +149,9 @@ export default function AddItemsInPo({
   };
 
   const getSelectAllColumn = () => ({
-    title: (
-      <Checkbox checked={selectAllChecked} onChange={handleSelectAll} disabled={data?.length === 0}>
-        Select All
-      </Checkbox>
-    ),
+    title: <Checkbox checked={selectAllChecked} onChange={handleSelectAll} disabled={data?.length === 0}></Checkbox>,
     dataIndex: "operation",
-    width: "10%",
+    width: "4%",
     render: (_, record) => (
       <div className={styles.centerAlign}>
         <Checkbox
@@ -176,7 +172,7 @@ export default function AddItemsInPo({
     {
       title: "No of Bales",
       dataIndex: "noOfBales",
-      width: "17%",
+      width: "10%",
       editable: true,
       required: true,
     },
@@ -214,7 +210,7 @@ export default function AddItemsInPo({
     columns.push({
       title: "Rate Per Bale",
       dataIndex: "ratePerBale",
-      width: "17%",
+      width: "12%",
       editable: true,
       required: true,
     });

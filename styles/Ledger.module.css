@@ -17,8 +17,7 @@
 }
 .rowDirectionTableContainer {
   display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
+  justify-content: space-between;
   margin-bottom: 15px;
 }
 .paymentTypeStyle {

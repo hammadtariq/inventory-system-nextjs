@@ -2,25 +2,58 @@ import dayjs from "dayjs";
 import NextLink from "next/link";
 import AppTable from "@/components/table";
 import styles from "@/styles/Ledger.module.css";
-import { useLedgerDetails } from "@/hooks/ledger";
-import { Alert } from "antd";
+import { useLedgerCustomerDetails, useLedgerDetails } from "@/hooks/ledger";
+import { Alert, Button, DatePicker, Dropdown, Menu, Row, Space, Spin } from "antd";
 import { SPEND_TYPE } from "@/utils/api.util";
 import { DATE_FORMAT } from "@/utils/ui.util";
 import { useRouter } from "next/router";
 import ExportButton from "@/components/exportButton";
-import { EyeOutlined } from "@ant-design/icons";
+import { DownloadOutlined, EyeOutlined } from "@ant-design/icons";
 import { comaSeparatedValues } from "@/utils/comaSeparatedValues";
+import Spinner from "@/components/spinner";
+import { useState } from "react";
+const { RangePicker } = DatePicker;
 
-const LedgerDetails = ({ id, type }) => {
+const LedgerDetails = () => {
   const router = useRouter();
+  const { id, type } = router.query;
+
+  const shouldFetch = id && type;
+
+  if (!shouldFetch) {
+    return <Spinner />;
+  }
+
+  return <LedgerDetailsContent id={id} type={type} />;
+};
+
+const LedgerDetailsContent = ({ id, type }) => {
+  const router = useRouter();
+  const [monthKey, setMonthKey] = useState({ startDate: "", endDate: "" });
+
   const { transactions, totalBalance, error, isLoading } = useLedgerDetails(id, type);
 
+  const { download, exportLoading } = useLedgerCustomerDetails();
+
+  const handleMenuClick = async (e) => {
+    const selectedType = e.key === "1" ? "pdf" : "csv";
+    await download(id, type, selectedType, monthKey);
+  };
+
+  const menu = (
+    <Menu onClick={handleMenuClick}>
+      <Menu.Item key="1">Export as PDF</Menu.Item>
+      <Menu.Item key="2">Export as CSV</Menu.Item>
+    </Menu>
+  );
+
+  if (isLoading) return <Spinner />;
   if (error) return <Alert message={error} type="error" />;
 
   const renderActions = (_, record) => {
     return (
       <>
-        {record.transactionId && type === "customer" ? (
+        {record.transactionId && type === "customer" && (
           <>
             <EyeOutlined
               style={{ marginRight: "10px" }}
@@ -32,7 +65,7 @@ const LedgerDetails = ({ id, type }) => {
             />
             <ExportButton filename="ledger" invoiceNumber={record.invoiceNumber} onlyIcon={true} />
           </>
-        ) : null}
+        )}
       </>
     );
   };
@@ -132,11 +165,33 @@ const LedgerDetails = ({ id, type }) => {
 
   const renderTotalBalance = () => (
     <div className={styles.rowDirectionTableContainer}>
-      <div className={styles.headingStyle}>Total Balance (RS):</div>
-      <div className={styles.contentStyle}>{`${totalBalance ? comaSeparatedValues(totalBalance.toFixed(2)) : 0}`}</div>
+      <Space>
+        <Dropdown overlay={menu}>
+          <Button
+            type="primary"
+            icon={exportLoading ? <Spin size="small" /> : <DownloadOutlined />}
+            disabled={exportLoading}
+          >
+            {exportLoading ? "Exporting..." : "Export"}
+          </Button>
+        </Dropdown>
+        <RangePicker
+          onChange={(dates) => {
+            setMonthKey({
+              startDate: dates?.[0]?.format("YYYY-MM-DD") || "",
+              endDate: dates?.[1]?.format("YYYY-MM-DD") || "",
+            });
+          }}
+        />
+      </Space>
+      <Row>
+        <div className={styles.headingStyle}>Total Balance (RS):</div>
+        <div className={styles.contentStyle}>{`${
+          totalBalance ? comaSeparatedValues(totalBalance.toFixed(2)) : 0
+        }`}</div>
+      </Row>
     </div>
   );
-  console.log("transactions", transactions);
   return (
     <div style={{ overflowX: "auto" }}>
       {renderTotalBalance()}
@@ -152,9 +207,3 @@ const LedgerDetails = ({ id, type }) => {
 };
 
 export default LedgerDetails;
-
-export async function getServerSideProps({ query }) {
-  return {
-    props: query,
-  };
-}

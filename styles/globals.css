@@ -70,8 +70,7 @@ a {
 .app_spinner > .ant-spin {
   position: fixed;
   top: 45vh;
-  left: 45vw;
-  background-color: white;
+  left: 50vw;
   padding: 8px 8px 4px 8px;
   border-radius: 4px;
 }

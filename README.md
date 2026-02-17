@@ -2,10 +2,18 @@
 
 Need to install following for this repository:
 
-- Node.js version 14 or above
-- NPM or YARN
+- Node.js version 20 or above
+- PNPM or NPM
 - Docker and Docker-Compose
 - Sequelize cli
+
+## Steps to run in production mode
+
+```
+  pnpm install
+  pnpm build
+  pnpm start
+```
 
 ##### Instructions for development server
 
@@ -76,6 +84,13 @@ npm install -g sequelize-cli
 sequelize db:migrate:undo:all
 sequelize db:migrate
 sequelize db:seed:all
+```
+
+Create migration file
+
+```sh
+sequelize migration:generate --name <migration-name>
+# Example: sequelize migration:generate --name add-is-active-to-users
 ```
 
 Finally, start the development server:

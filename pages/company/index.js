@@ -13,6 +13,7 @@ import { getColumnSearchProps } from "@/utils/filter.util";
 import permissionsUtil from "@/utils/permission.util";
 import { DATE_TIME_FORMAT } from "@/utils/ui.util";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import Spinner from "@/components/spinner";
 
 const Company = () => {
   const { companies, error, isLoading, paginationHandler, mutate } = useCompanies();
@@ -100,6 +101,7 @@ const Company = () => {
   ];
 
   if (error) return <Alert message={error} type="error" />;
+  if (isLoading) return <Spinner />;
   return (
     <>
       <AppTitle level={2}>
