@@ -1,0 +1,10 @@
+ignoredBuiltDependencies:
+  - core-js
+  - less
+  - pre-commit
+  - spawn-sync
+
+onlyBuiltDependencies:
+  - bcrypt
+  - sharp
+  - sqlite3
