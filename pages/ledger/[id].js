@@ -3,7 +3,7 @@ import NextLink from "next/link";
 import AppTable from "@/components/table";
 import styles from "@/styles/Ledger.module.css";
 import { useLedgerCustomerDetails, useLedgerDetails } from "@/hooks/ledger";
-import { Alert, Button, DatePicker, Dropdown, Menu, Row, Space, Spin } from "antd";
+import { Alert, Button, DatePicker, Dropdown, Menu, message, Row, Space, Spin } from "antd";
 import { SPEND_TYPE } from "@/utils/api.util";
 import { DATE_FORMAT } from "@/utils/ui.util";
 import { useRouter } from "next/router";
@@ -11,7 +11,7 @@ import ExportButton from "@/components/exportButton";
 import { DownloadOutlined, EyeOutlined } from "@ant-design/icons";
 import { comaSeparatedValues } from "@/utils/comaSeparatedValues";
 import Spinner from "@/components/spinner";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 const { RangePicker } = DatePicker;
 
 const LedgerDetails = () => {
@@ -33,12 +33,18 @@ const LedgerDetailsContent = ({ id, type }) => {
 
   const { transactions, totalBalance, error, isLoading } = useLedgerDetails(id, type);
 
-  const { download, exportLoading } = useLedgerCustomerDetails();
+  const { download, exportLoading, errors: exportError } = useLedgerCustomerDetails();
 
   const handleMenuClick = async (e) => {
     const selectedType = e.key === "1" ? "pdf" : "csv";
     await download(id, type, selectedType, monthKey);
   };
+
+  useEffect(() => {
+    if (exportError) {
+      message.error(exportError);
+    }
+  }, [exportError]);
 
   const menu = (
     <Menu onClick={handleMenuClick}>

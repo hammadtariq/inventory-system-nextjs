@@ -1,5 +1,3 @@
-import "antd/dist/antd.css";
-
 import "@/styles/globals.css";
 import Layout from "@/components/layout";
 import ProtectedRoutes from "@/components/protectedRoutes";

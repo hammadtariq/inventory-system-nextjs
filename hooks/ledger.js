@@ -42,7 +42,10 @@ export const useLedgerCustomerDetails = () => {
         }
       );
 
-      if (!response.ok) throw new Error(await response.text());
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || "Failed to export ledger");
+      }
 
       setTotalAmount(response.headers.get("X-Total-Amount"));
 

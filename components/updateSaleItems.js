@@ -20,21 +20,6 @@ export default function UpdateSalesItems({
 
   const [form] = Form.useForm();
 
-  useEffect(() => {
-    if (editAll) {
-      data.forEach((record) => {
-        if (editingKey.includes(record.id)) {
-          console.log("id exist");
-          return;
-        }
-        edit(record);
-        setEditingKey((prev) => {
-          return [...prev, record.id];
-        });
-      });
-    }
-  }, [editAll, data, editingKey, edit]);
-
   const isEditing = (record) => {
     return editingKey.includes(record.id);
   };
@@ -54,6 +39,21 @@ export default function UpdateSalesItems({
     },
     [form]
   );
+
+  useEffect(() => {
+    if (editAll) {
+      data.forEach((record) => {
+        if (editingKey.includes(record.id)) {
+          console.log("id exist");
+          return;
+        }
+        edit(record);
+        setEditingKey((prev) => {
+          return [...prev, record.id];
+        });
+      });
+    }
+  }, [editAll, data, editingKey, edit]);
 
   const cancel = () => {
     setEditingKey([]);

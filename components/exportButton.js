@@ -11,6 +11,19 @@ const ExportButton = ({ filename, invoiceNumber, id = null, onlyIcon = false, fi
   const router = useRouter();
   const isLedgerRoute = router.pathname.includes("/ledger");
 
+  const createLinkAndDownloadFile = useCallback((blob, fileName, fileExtension) => {
+    message.info(`Your download will start shortly. Please save the file when prompted.`);
+    setTimeout(() => {
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `${fileName}.${fileExtension}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    }, 1500);
+  }, []);
+
   const exportFile = useCallback(() => {
     if (!exportLoading && fileBlob && exportParams) {
       try {
@@ -30,19 +43,6 @@ const ExportButton = ({ filename, invoiceNumber, id = null, onlyIcon = false, fi
       exportFile();
     }
   }, [exportFile, exportLoading, isError]);
-
-  const createLinkAndDownloadFile = useCallback((blob, fileName, fileExtension) => {
-    message.info(`Your download will start shortly. Please save the file when prompted.`);
-    setTimeout(() => {
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = `${fileName}.${fileExtension}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
-    }, 1500);
-  }, []);
 
   const handleExport = (fileExtension, typeOf) => {
     if (!exportLoading) {
