@@ -13,16 +13,13 @@
     "prettier:check": "prettier --check .",
     "prepare": "husky"
   },
-  "pre-commit": [
-    "lint-staged"
-  ],
   "dependencies": {
     "@ant-design/charts": "^2.6.1",
     "@ant-design/cssinjs": "^2.1.0",
     "@ant-design/icons": "^4.7.0",
     "@ant-design/plots": "^2.6.8",
     "@hapi/iron": "^6.0.0",
-    "antd": "^5.27.0",
+    "antd": "^6.3.0",
     "axios": "^0.24.0",
     "bcrypt": "^6.0.0",
     "cookie": "^0.4.1",
