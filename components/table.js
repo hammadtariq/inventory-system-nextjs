@@ -21,6 +21,7 @@ export default function AppTable({
   rowClassName,
   footer,
   components,
+  scroll = { x: "max-content" },
 }) {
   const [tableParams, setTableParams] = useState({
     pagination: {
@@ -65,7 +66,7 @@ export default function AppTable({
   return (
     <Table
       bordered={bordered}
-      scroll={{ x: "max-content" }}
+      scroll={scroll}
       rowKey={rowKey || "id"}
       columns={columns}
       dataSource={dataSource}

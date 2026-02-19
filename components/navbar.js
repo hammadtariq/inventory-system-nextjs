@@ -77,22 +77,14 @@ export default function AppNavbar(props = {}) {
     }
   };
 
-  const menu = (
-    <Menu
-      onClick={handleMenuClick}
-      style={{
-        backgroundColor: "#5f82a36c",
-        width: "120px",
-      }}
-    >
-      <Menu.Item key="settings" icon={<SettingOutlined />}>
-        Settings
-      </Menu.Item>
-      <Menu.Item key="logout" icon={<LogoutOutlined />}>
-        Logout
-      </Menu.Item>
-    </Menu>
-  );
+  const menuProps = {
+    items: [
+      { key: "settings", icon: <SettingOutlined />, label: "Settings" },
+      { key: "logout", icon: <LogoutOutlined />, label: "Logout" },
+    ],
+    onClick: handleMenuClick,
+    style: { backgroundColor: "#5f82a36c", width: "120px" },
+  };
 
   return (
     <Sider
@@ -185,11 +177,11 @@ export default function AppNavbar(props = {}) {
 
       <div style={{ bottom: 0, position: "absolute", width: "100%" }}>
         <Dropdown
-          overlay={menu}
+          menu={menuProps}
           trigger={["click"]}
           placement="left"
-          onVisibleChange={(visible) => setDropdownVisible(visible)}
-          visible={dropdownVisible}
+          onOpenChange={(open) => setDropdownVisible(open)}
+          open={dropdownVisible}
         >
           <div
             onClick={() => setDropdownVisible(!dropdownVisible)}

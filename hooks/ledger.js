@@ -44,7 +44,8 @@ export const useLedgerCustomerDetails = () => {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.message || "Failed to export ledger");
+        setErrors(errorData?.message || "Failed to export ledger");
+        return;
       }
 
       setTotalAmount(response.headers.get("X-Total-Amount"));

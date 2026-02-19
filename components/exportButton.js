@@ -50,59 +50,56 @@ const ExportButton = ({ filename, invoiceNumber, id = null, onlyIcon = false, fi
     }
   };
 
-  const menu = (
-    <Menu>
-      {isLedgerRoute ? (
-        <>
-          <Menu.Item key="1" onClick={() => handleExport("pdf")} disabled={exportLoading}>
-            Export as PDF
-          </Menu.Item>
-          <Menu.Item key="2" onClick={() => handleExport("csv")} disabled={exportLoading}>
-            Export as CSV
-          </Menu.Item>
-        </>
-      ) : (
-        <>
-          <Menu.SubMenu key="with_rates" title={PRINT_TYPE.WITH_RATES}>
-            <Menu.Item
-              key="pdf_with_rates"
-              onClick={() => handleExport("pdf", PRINT_TYPE.WITH_RATES)}
-              disabled={exportLoading}
-            >
-              Export as PDF
-            </Menu.Item>
-            <Menu.Item
-              key="csv_with_rates"
-              onClick={() => handleExport("csv", PRINT_TYPE.WITH_RATES)}
-              disabled={exportLoading}
-            >
-              Export as CSV
-            </Menu.Item>
-          </Menu.SubMenu>
+  const ledgerMenuProps = {
+    items: [
+      { key: "1", label: "Export as PDF", disabled: exportLoading, onClick: () => handleExport("pdf") },
+      { key: "2", label: "Export as CSV", disabled: exportLoading, onClick: () => handleExport("csv") },
+    ],
+  };
 
-          <Menu.SubMenu key="without_rates" title={PRINT_TYPE.WITHOUT_RATES}>
-            <Menu.Item
-              key="pdf_without_rates"
-              onClick={() => handleExport("pdf", PRINT_TYPE.WITHOUT_RATES)}
-              disabled={exportLoading}
-            >
-              Export as PDF
-            </Menu.Item>
-            <Menu.Item
-              key="csv_without_rates"
-              onClick={() => handleExport("csv", PRINT_TYPE.WITHOUT_RATES)}
-              disabled={exportLoading}
-            >
-              Export as CSV
-            </Menu.Item>
-          </Menu.SubMenu>
-        </>
-      )}
-    </Menu>
-  );
+  const fullMenuProps = {
+    items: [
+      {
+        key: "with_rates",
+        label: PRINT_TYPE.WITH_RATES,
+        children: [
+          {
+            key: "pdf_with_rates",
+            label: "Export as PDF",
+            disabled: exportLoading,
+            onClick: () => handleExport("pdf", PRINT_TYPE.WITH_RATES),
+          },
+          {
+            key: "csv_with_rates",
+            label: "Export as CSV",
+            disabled: exportLoading,
+            onClick: () => handleExport("csv", PRINT_TYPE.WITH_RATES),
+          },
+        ],
+      },
+      {
+        key: "without_rates",
+        label: PRINT_TYPE.WITHOUT_RATES,
+        children: [
+          {
+            key: "pdf_without_rates",
+            label: "Export as PDF",
+            disabled: exportLoading,
+            onClick: () => handleExport("pdf", PRINT_TYPE.WITHOUT_RATES),
+          },
+          {
+            key: "csv_without_rates",
+            label: "Export as CSV",
+            disabled: exportLoading,
+            onClick: () => handleExport("csv", PRINT_TYPE.WITHOUT_RATES),
+          },
+        ],
+      },
+    ],
+  };
 
   return (
-    <Dropdown overlay={menu} trigger={["click"]}>
+    <Dropdown menu={isLedgerRoute ? ledgerMenuProps : fullMenuProps} trigger={["click"]}>
       {onlyIcon ? (
         exportLoading ? (
           <LoadingOutlined />
