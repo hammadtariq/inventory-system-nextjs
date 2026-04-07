@@ -1,11 +1,10 @@
 import { useState } from "react";
 
-import { AutoComplete, Input } from "antd";
+import { AutoComplete, Button, Space } from "antd";
+import { SearchOutlined } from "@ant-design/icons";
 import _debounce from "lodash/debounce";
 
 import styles from "@/styles/SearchInput.module.css";
-
-const { Search } = Input;
 
 const getValueFromPath = (obj, path) => {
   return path.split(".").reduce((acc, key) => (acc ? acc[key] : undefined), obj);
@@ -33,11 +32,10 @@ const searchResult = (results = [], valueKey = "", valueKey2 = "", type) =>
     };
   });
 
-const SearchInput = ({ handleSearch, handleSelect, valueKey, valueKey2, placeholder, type }) => {
+const SearchInput = ({ handleSearch, handleSelect, valueKey, valueKey2, placeholder, type, defaultValue }) => {
   const [options, setOptions] = useState([]);
 
   const _handleSearch = async (value) => {
-    console.log("_handleSearch", value);
     if (value) {
       const results = await handleSearch(value.toLowerCase());
       setOptions(searchResult(results, valueKey, valueKey2, type));
@@ -47,23 +45,25 @@ const SearchInput = ({ handleSearch, handleSelect, valueKey, valueKey2, placehol
     return value;
   };
 
-  const _handleSelect = (itemId, option) => {
+  const _handleSelect = (displayValue, option) => {
     const id = option.key;
-    handleSelect(id);
+    handleSelect(id, displayValue);
   };
 
   return (
-    <>
+    <Space.Compact size="large" className={styles.inputWrap}>
       <AutoComplete
         popupMatchSelectWidth={500}
-        className={styles.inputWrap}
+        style={{ width: "100%" }}
         options={options}
         onSelect={_handleSelect}
         onSearch={_debounce(_handleSearch, 500)}
-      >
-        <Search size="large" placeholder={placeholder} loading={false} allowClear enterButton />
-      </AutoComplete>
-    </>
+        placeholder={placeholder}
+        defaultValue={defaultValue}
+        allowClear
+      />
+      <Button type="primary" icon={<SearchOutlined />} />
+    </Space.Compact>
   );
 };
 
