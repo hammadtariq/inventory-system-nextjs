@@ -20,21 +20,6 @@ export default function UpdateSalesItems({
 
   const [form] = Form.useForm();
 
-  useEffect(() => {
-    if (editAll) {
-      data.forEach((record) => {
-        if (editingKey.includes(record.id)) {
-          console.log("id exist");
-          return;
-        }
-        edit(record);
-        setEditingKey((prev) => {
-          return [...prev, record.id];
-        });
-      });
-    }
-  }, [editAll, data, editingKey, edit]);
-
   const isEditing = (record) => {
     return editingKey.includes(record.id);
   };
@@ -54,6 +39,21 @@ export default function UpdateSalesItems({
     },
     [form]
   );
+
+  useEffect(() => {
+    if (editAll) {
+      data.forEach((record) => {
+        if (editingKey.includes(record.id)) {
+          console.log("id exist");
+          return;
+        }
+        edit(record);
+        setEditingKey((prev) => {
+          return [...prev, record.id];
+        });
+      });
+    }
+  }, [editAll, data, editingKey, edit]);
 
   const cancel = () => {
     setEditingKey([]);
@@ -111,48 +111,48 @@ export default function UpdateSalesItems({
     {
       title: "Item Name",
       dataIndex: "itemName",
-      width: "15%",
+      width: "20%",
       editable: false,
     },
     {
       title: "No of Bales",
       dataIndex: "noOfBales",
-      width: "17%",
+      width: "12%",
       editable: true,
       required: true,
     },
     {
       title: "Bale Weight (LBS)",
       dataIndex: "baleWeightLbs",
-      width: "10%",
+      width: "14%",
       editable: true,
       required: false,
     },
     {
       title: "Bale Weight (KGS)",
       dataIndex: "baleWeightKgs",
-      width: "10%",
+      width: "14%",
       editable: true,
       required: false,
     },
     {
       title: "Rate per (LBS)",
       dataIndex: "ratePerLbs",
-      width: "10%",
+      width: "13%",
       editable: true,
       required: false,
     },
     {
       title: "Rate Per (KGS)",
       dataIndex: "ratePerKgs",
-      width: "10%",
+      width: "13%",
       editable: true,
       required: false,
     },
     {
       title: "Rate Per Bale",
       dataIndex: "ratePerBale",
-      width: "10%",
+      width: "14%",
       editable: true,
       required: false,
     },
@@ -207,6 +207,7 @@ export default function UpdateSalesItems({
             },
           }}
           bordered
+          scroll={false}
           dataSource={data}
           columns={mergedColumns}
           rowClassName={styles.editableRow}

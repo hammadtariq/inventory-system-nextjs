@@ -3,7 +3,7 @@ import NextLink from "next/link";
 import AppTable from "@/components/table";
 import styles from "@/styles/Ledger.module.css";
 import { useLedgerCustomerDetails, useLedgerDetails } from "@/hooks/ledger";
-import { Alert, Button, DatePicker, Dropdown, Menu, Row, Space, Spin } from "antd";
+import { Alert, Button, DatePicker, Dropdown, message, Row, Space, Spin } from "antd";
 import { SPEND_TYPE } from "@/utils/api.util";
 import { DATE_FORMAT } from "@/utils/ui.util";
 import { useRouter } from "next/router";
@@ -11,7 +11,7 @@ import ExportButton from "@/components/exportButton";
 import { DownloadOutlined, EyeOutlined } from "@ant-design/icons";
 import { comaSeparatedValues } from "@/utils/comaSeparatedValues";
 import Spinner from "@/components/spinner";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 const { RangePicker } = DatePicker;
 
 const LedgerDetails = () => {
@@ -33,19 +33,26 @@ const LedgerDetailsContent = ({ id, type }) => {
 
   const { transactions, totalBalance, error, isLoading } = useLedgerDetails(id, type);
 
-  const { download, exportLoading } = useLedgerCustomerDetails();
+  const { download, exportLoading, errors: exportError } = useLedgerCustomerDetails();
 
   const handleMenuClick = async (e) => {
     const selectedType = e.key === "1" ? "pdf" : "csv";
     await download(id, type, selectedType, monthKey);
   };
 
-  const menu = (
-    <Menu onClick={handleMenuClick}>
-      <Menu.Item key="1">Export as PDF</Menu.Item>
-      <Menu.Item key="2">Export as CSV</Menu.Item>
-    </Menu>
-  );
+  useEffect(() => {
+    if (exportError) {
+      message.error(exportError);
+    }
+  }, [exportError]);
+
+  const menuProps = {
+    items: [
+      { key: "1", label: "Export as PDF" },
+      { key: "2", label: "Export as CSV" },
+    ],
+    onClick: handleMenuClick,
+  };
 
   if (isLoading) return <Spinner />;
   if (error) return <Alert message={error} type="error" />;
@@ -166,7 +173,7 @@ const LedgerDetailsContent = ({ id, type }) => {
   const renderTotalBalance = () => (
     <div className={styles.rowDirectionTableContainer}>
       <Space>
-        <Dropdown overlay={menu}>
+        <Dropdown menu={menuProps}>
           <Button
             type="primary"
             icon={exportLoading ? <Spin size="small" /> : <DownloadOutlined />}

@@ -29,17 +29,6 @@ export default function AddItemsInPo({
     }
   }, [isEdit, items, setData]);
 
-  useEffect(() => {
-    if (editAll) {
-      data?.forEach((record) => {
-        edit(record);
-        setEditingKey((prev) => {
-          return [...prev, record.key];
-        });
-      });
-    }
-  }, [data, edit, editAll]);
-
   const isEditing = (record) => {
     return editingKey.includes(record.key);
   };
@@ -59,6 +48,17 @@ export default function AddItemsInPo({
     },
     [form, type]
   );
+
+  useEffect(() => {
+    if (editAll) {
+      data?.forEach((record) => {
+        edit(record);
+        setEditingKey((prev) => {
+          return [...prev, record.key];
+        });
+      });
+    }
+  }, [data, edit, editAll]);
 
   const cancel = () => {
     setEditingKey([]);
