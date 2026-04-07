@@ -47,11 +47,11 @@ export function addTitleAndDetails(doc, headData) {
   doc.setDrawColor(170, 170, 170);
   doc.line(10, 64, 195, 64);
 }
-// Function to map data to table format with truncated text fields
+// Function to map data to table format
 export function mapDataToTable(data) {
   return data.map((item, index) => ({
     sno: index + 1,
-    item: truncateText(item.itemDetail ?? item.itemName, 23).toUpperCase(), // Truncate text
+    item: (item.itemDetail ?? item.itemName ?? "").toUpperCase(),
     ...(item.company?.companyName && { company: item.company.companyName || "-" }),
     kgs: item.kgs ?? "-",
     lbs: item.lbs ?? "-",
@@ -62,14 +62,6 @@ export function mapDataToTable(data) {
     ...(item.ratePerBales || (item.baleRate && { baleRate: item.baleRate ?? item.ratePerBales })),
     ...(item.totalAmount && { totalAmount: item.totalAmount }),
   }));
-}
-
-// Function to truncate text if it exceeds the specified length
-function truncateText(text, maxLength) {
-  if (text.length > maxLength) {
-    return text.slice(0, maxLength - 3) + "...";
-  }
-  return text;
 }
 
 export function addSummarySection(doc, summaryData) {
@@ -165,7 +157,7 @@ export function generateTable(doc, tableData) {
     },
     columnStyles: {
       sno: { halign: "center", cellWidth: "auto" },
-      item: { halign: "left", cellWidth: "auto" },
+      item: { halign: "left", cellWidth: "wrap" },
       kgs: { halign: "center", cellWidth: "auto" },
       lbs: { halign: "center", cellWidth: "auto" },
       bales: { halign: "right", cellWidth: "auto" },
