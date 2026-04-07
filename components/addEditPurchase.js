@@ -26,9 +26,17 @@ const AddEditPurchase = ({ purchase, type = null }) => {
   const [form] = Form.useForm();
   const isView = type === "view";
 
-  const selectCompanyOnChange = useCallback((id) => setCompanyId(id), []);
+  const [removedItems, setRemovedItems] = useState([]);
+
+  const selectCompanyOnChange = useCallback((id) => {
+    setCompanyId(id);
+    setRemovedItems([]);
+  }, []);
   const setDataHandler = useCallback((data) => setData(data), []);
-  const selectItemListOnChange = useCallback((type) => setSelectedListType(type), []);
+  const selectItemListOnChange = useCallback((type) => {
+    setSelectedListType(type);
+    setRemovedItems([]);
+  }, []);
 
   const totalAmount = useMemo(() => sumItemsPrice(data), [data]);
   const totalBundle = useMemo(() => sumBundles(data), [data]);
@@ -112,9 +120,9 @@ const AddEditPurchase = ({ purchase, type = null }) => {
     }
   };
   return (
-    <div>
+    <div style={{ overflow: "hidden" }}>
       <Form form={form} layout="vertical" name="nest-messages" onFinish={onFinish} validateMessages={VALIDATE_MESSAGE}>
-        <Row gutter={24}>
+        <Row gutter={[16, 0]}>
           <Col span={8}>
             <Form.Item label="Company">
               <SelectCompany
@@ -161,7 +169,7 @@ const AddEditPurchase = ({ purchase, type = null }) => {
           </Col>
           <Col span={8}>
             <Form.Item name="invoiceNumber" label="Invoice No">
-              <Input type="text" disabled={isView || purchase?.status === "APPROVED"} />
+              <Input type="text" disabled={isView || purchase?.status === "APPROVED"} style={{ width: "100%" }} />
             </Form.Item>
           </Col>
           <Col span={8}>
@@ -201,6 +209,8 @@ const AddEditPurchase = ({ purchase, type = null }) => {
             setData={setDataHandler}
             data={data}
             viewOnly={isView}
+            removedItems={removedItems}
+            setRemovedItems={setRemovedItems}
           />
         )}
         <Form.Item className="action-btn">

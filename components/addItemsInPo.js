@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 
-import { Alert, Button, Checkbox, Form, Popconfirm, Typography } from "antd";
+import { Alert, Button, Checkbox, Form, Popconfirm, Select, Typography } from "antd";
 
 import EditableCell from "@/components/editableCell";
 import AppTable from "@/components/table";
@@ -16,10 +16,13 @@ export default function AddItemsInPo({
   data,
   isEdit,
   viewOnly = false,
+  removedItems = [],
+  setRemovedItems = () => {},
 }) {
   const [editingKey, setEditingKey] = useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [selectAllChecked, setSelectAllChecked] = useState(false);
+  const [selectedToRestore, setSelectedToRestore] = useState([]);
   const [form] = Form.useForm();
   const { items, isLoading, error } = useItemsByCompanyIdAndType(companyId, type, isEdit);
 
@@ -71,13 +74,25 @@ export default function AddItemsInPo({
     newData.splice(index, 1);
     setData(newData);
     setSelectedRowKeys((prev) => prev.filter((key) => key !== record.id));
+    setRemovedItems((prev) => [...prev, record]);
   };
 
   const removeSelected = () => {
+    const removedRecords = data.filter((item) => selectedRowKeys.includes(item.id));
     const newData = data.filter((item) => !selectedRowKeys.includes(item.id));
     setData(newData);
     setSelectedRowKeys([]);
     setSelectAllChecked(false);
+    setRemovedItems((prev) => [...prev, ...removedRecords]);
+  };
+
+  const applyRestored = () => {
+    const itemsToRestore = removedItems.filter((item) => selectedToRestore.includes(item.id));
+    const merged = [...data, ...itemsToRestore];
+    merged.sort((a, b) => a.itemName.localeCompare(b.itemName));
+    setData(merged);
+    setRemovedItems((prev) => prev.filter((item) => !selectedToRestore.includes(item.id)));
+    setSelectedToRestore([]);
   };
 
   const saveAll = async () => {
@@ -140,7 +155,7 @@ export default function AddItemsInPo({
     return {
       title: "operation",
       dataIndex: "operation",
-      width: "20%",
+      width: "8%",
       render: (_, record) => {
         isEditing(record);
         return <Typography.Link onClick={() => remove(record)}>Remove</Typography.Link>;
@@ -166,41 +181,41 @@ export default function AddItemsInPo({
     {
       title: "Item Name",
       dataIndex: "itemName",
-      width: "15%",
+      width: "18%",
       editable: false,
     },
     {
       title: "No of Bales",
       dataIndex: "noOfBales",
-      width: "10%",
+      width: "12%",
       editable: true,
       required: true,
     },
     {
       title: "Bale Weight (LBS)",
       dataIndex: "baleWeightLbs",
-      width: "10%",
+      width: "12%",
       editable: true,
       required: false,
     },
     {
       title: "Bale Weight (KGS)",
       dataIndex: "baleWeightKgs",
-      width: "10%",
+      width: "12%",
       editable: true,
       required: false,
     },
     {
       title: "Rate per (LBS)",
       dataIndex: "ratePerLbs",
-      width: "10%",
+      width: "12%",
       editable: true,
       required: false,
     },
     {
       title: "Rate Per (KGS)",
       dataIndex: "ratePerKgs",
-      width: "10%",
+      width: "12%",
       editable: true,
       required: false,
     },
@@ -210,7 +225,7 @@ export default function AddItemsInPo({
     columns.push({
       title: "Rate Per Bale",
       dataIndex: "ratePerBale",
-      width: "12%",
+      width: "10%",
       editable: true,
       required: true,
     });
@@ -264,6 +279,20 @@ export default function AddItemsInPo({
             <Button onClick={removeSelected} type="danger" disabled={selectedRowKeys.length === 0}>
               Remove Selected
             </Button>
+            <Select
+              mode="multiple"
+              placeholder="Add Removed Items"
+              value={selectedToRestore}
+              onChange={setSelectedToRestore}
+              options={removedItems.map((item) => ({ label: item.itemName, value: item.id }))}
+              disabled={removedItems.length === 0}
+              style={{ width: 220, marginLeft: 10, marginRight: 10 }}
+              maxTagCount={0}
+              maxTagPlaceholder={(omitted) => `${omitted.length} item${omitted.length > 1 ? "s" : ""} selected`}
+            />
+            <Button onClick={applyRestored} disabled={selectedToRestore.length === 0}>
+              Apply
+            </Button>
           </>
         )}
       </div>
@@ -281,6 +310,7 @@ export default function AddItemsInPo({
           columns={mergedColumns}
           rowClassName={styles.editableRow}
           rowKey="id"
+          scroll={{ x: "100%" }}
         />
       </Form>
     </>
