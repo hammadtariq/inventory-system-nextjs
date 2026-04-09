@@ -3,296 +3,268 @@ import autoTable from "jspdf-autotable";
 import { capitalizeName, formatDDMMYYYY } from "./ui.util";
 import { ImageBase64URL } from "public/pdfImage/PDFImage";
 
-// Function to create and configure a new jsPDF instance
+// ─── Design tokens (matched to template) ────────────────────────────────────
+const HEADER_BLUE = [68, 114, 196]; // table header fill
+const BORDER_BLUE = [173, 198, 232]; // row / cell border
+const TOTAL_KEY = "__isTotal__"; // marker for bold footer rows
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function formatNum(value) {
+  if (value === undefined || value === null || value === "" || value === "-") return "";
+  const num = parseFloat(String(value).replace(/,/g, ""));
+  if (isNaN(num)) return String(value);
+  return num.toLocaleString("en-US");
+}
+
+// ─── Public API ──────────────────────────────────────────────────────────────
+
 export function createPDF() {
   return new jsPDF();
 }
 
-// Function to add title and invoice details
+/**
+ * Renders the header block:
+ *   – logo (top-right)
+ *   – "SALE INVOICE" centred title
+ *   – BILLED TO / customer name (left)
+ *   – date (right)
+ */
 export function addTitleAndDetails(doc, headData) {
-  const formattedDate = formatDDMMYYYY(headData.soldDate);
+  const pageWidth = doc.internal.pageSize.width;
+  const formattedDate = headData.soldDate ? formatDDMMYYYY(headData.soldDate) : formatDDMMYYYY(new Date());
+  const customerName = headData?.customer
+    ? `${headData.customer.firstName || ""} ${headData.customer.lastName || ""}`.trim()
+    : "";
+  const title = customerName ? "SALE INVOICE" : "INVENTORY DETAIL";
 
-  // Company logo/image on the left
-  doc.addImage(ImageBase64URL, "PNG", 2, 5, 30, 30);
-
-  // INVOICE title on the right
-  doc.setFontSize(24);
+  // Centered title
+  doc.setFontSize(22);
   doc.setFont("helvetica", "bold");
-  doc.text("INVOICE", 195, 20, { align: "right" });
+  doc.text(title, pageWidth / 2, 34, { align: "center" });
 
-  // Reset font for other text
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-
-  // BILLED TO section
-  doc.setFont("helvetica", "bold");
-  doc.text("BILLED TO:", 10, 45);
-
-  doc.setFont("helvetica", "normal");
-
-  // Customer Details
-  let yPosition = 50;
+  // Customer block on the left
   if (headData?.customer) {
-    const customerName = `${headData.customer.firstName || ""} ${headData.customer.lastName || ""}`.trim();
-    doc.text(capitalizeName(customerName), 10, yPosition);
-    yPosition += 6;
+    if (customerName) {
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "bold");
+      doc.text("BILLED TO:", 14, 46);
+
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "bold");
+      doc.text(capitalizeName(customerName).toUpperCase(), 14, 52);
+    }
   }
 
-  // Invoice details on the right
-  doc.setFont("helvetica", "normal");
-  doc.text(`Invoice No. ${headData?.id ?? headData?.count}`, 195, 45, { align: "right" });
-  doc.text(formattedDate, 195, 50, { align: "right" });
+  // Top-right logo with date directly below it
+  const rightColX = pageWidth - 45;
+  doc.addImage(ImageBase64URL, "PNG", rightColX, 4, 42, 34);
 
-  doc.setLineWidth(0.5);
-  doc.setDrawColor(170, 170, 170);
-  doc.line(10, 64, 195, 64);
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+  doc.text(formattedDate, pageWidth - 14, 43, { align: "right" });
 }
-// Function to map data to table format
+
+/**
+ * Maps raw API rows to the flat shape the table/totals functions expect.
+ * Produces a single `rate` field (lbs → kgs → bale precedence).
+ */
 export function mapDataToTable(data) {
-  return data.map((item, index) => ({
-    sno: index + 1,
-    item: (item.itemDetail ?? item.itemName ?? "").toUpperCase(),
-    ...(item.company?.companyName && { company: item.company.companyName || "-" }),
-    kgs: item.kgs ?? "-",
-    lbs: item.lbs ?? "-",
-    bales: item.onHand ? item.onHand : item.bales ? item.bales : "-",
-    ...(item.onHand && { company: item.company }),
-    ...(item.ratePerKgs && { kgRate: item.kgRate ?? item.ratePerKgs }),
-    ...(item.ratePerLbs && { lbsRate: item.lbsRate ?? item.ratePerLbs }),
-    ...(item.ratePerBales || (item.baleRate && { baleRate: item.baleRate ?? item.ratePerBales })),
-    ...(item.totalAmount && { totalAmount: item.totalAmount }),
-  }));
-}
+  return data.map((item, index) => {
+    const rate =
+      item.ratePerLbs ?? item.lbsRate ?? item.ratePerKgs ?? item.kgRate ?? item.ratePerBale ?? item.baleRate ?? null;
 
-export function addSummarySection(doc, summaryData) {
-  // Get the Y position after the table
-  const startY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 20 : 150;
-
-  // Right-aligned X positions
-  const labelX = 155; // X position for labels
-  const amountX = 195; // X position for amounts
-
-  // Total Amount (bold and larger)
-  doc.text("Total", labelX, startY, { align: "right" });
-  doc.text(`RS: ${summaryData.total || "0"}`, amountX, startY, { align: "right" });
-
-  // Draw line below the total amount (dynamic height based on total position)
-  doc.setLineWidth(0.5);
-  doc.setDrawColor(170, 170, 170);
-  doc.line(145, startY + 5, 197, startY + 5);
-}
-
-// Function to generate the table using autoTable with responsive column widths
-export function generateTable(doc, tableData) {
-  const hasKgRate = tableData.some((row) => row.kgRate !== undefined);
-  const hasLbsRate = tableData.some((row) => row.lbsRate !== undefined);
-  const hasBaleRate = tableData.some((row) => row.baleRate !== undefined);
-
-  const columns = [
-    { header: "S.No", dataKey: "sno" },
-    { header: "Item Detail", dataKey: "item" },
-    { header: "Company", dataKey: "company" },
-    { header: "KGS", dataKey: "kgs" },
-    { header: "LBS", dataKey: "lbs" },
-    { header: "Bales", dataKey: "bales" },
-    ...(hasKgRate ? [{ header: "KG Rate", dataKey: "kgRate" }] : []),
-    ...(hasLbsRate ? [{ header: "LBS Rate", dataKey: "lbsRate" }] : []),
-    ...(hasBaleRate ? [{ header: "Bale Rate", dataKey: "baleRate" }] : []),
-  ];
-
-  const tempDoc = new jsPDF();
-  autoTable(tempDoc, {
-    head: [columns.map((col) => col.header)],
-    body: tableData.map((row) => columns.map((col) => row[col.dataKey])),
-    styles: {
-      fontSize: 7, // Compact but readable
-      halign: "center",
-      cellPadding: [0.5, 0.5], // Smaller padding for tight layout
-      lineColor: [0, 0, 0],
-      lineWidth: 0.5, // Thinner lines to save space
-    },
-    headStyles: {
-      fillColor: [200, 200, 200],
-      textColor: [0, 0, 0],
-      fontStyle: "bold",
-      lineColor: [0, 0, 0],
-      lineWidth: 0.5,
-    },
-    columnStyles: {
-      sno: { halign: "center", cellWidth: "auto" },
-      item: { halign: "left", cellWidth: "auto" },
-      kgs: { halign: "center", cellWidth: "auto" },
-      lbs: { halign: "center", cellWidth: "auto" },
-      bales: { halign: "right", cellWidth: "auto" },
-      ...(hasKgRate ? { kgRate: { halign: "right", cellWidth: "auto" } } : {}),
-      ...(hasLbsRate ? { lbsRate: { halign: "right", cellWidth: "auto" } } : {}),
-      ...(hasBaleRate ? { baleRate: { halign: "right", cellWidth: "auto" } } : {}),
-    },
-    theme: "grid",
-    tableWidth: "auto",
-    margin: { left: 11 },
-  });
-
-  const tableWidth = tempDoc.internal.pageSize.width - 20;
-  const pageWidth = doc.internal.pageSize.width;
-  const startX = (pageWidth - tableWidth) / 2;
-
-  autoTable(doc, {
-    startY: doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 65,
-    head: [columns.map((col) => col.header)],
-    body: tableData.map((row) => columns.map((col) => row[col.dataKey])),
-    styles: {
-      fontSize: 9,
-      halign: "center",
-      cellPadding: [3, 1],
-      lineColor: [170, 170, 170],
-      lineWidth: 0,
-    },
-    headStyles: {
-      fillColor: [255, 255, 255],
-      textColor: [0, 0, 0],
-      fontStyle: "bold",
-      lineColor: [170, 170, 170],
-      lineWidth: 0,
-    },
-    columnStyles: {
-      sno: { halign: "center", cellWidth: "auto" },
-      item: { halign: "left", cellWidth: "wrap" },
-      kgs: { halign: "center", cellWidth: "auto" },
-      lbs: { halign: "center", cellWidth: "auto" },
-      bales: { halign: "right", cellWidth: "auto" },
-      ...(hasKgRate && { kgRate: { halign: "right", cellWidth: "auto" } }),
-      ...(hasLbsRate && { lbsRate: { halign: "right", cellWidth: "auto" } }),
-      ...(hasBaleRate && { baleRate: { halign: "right", cellWidth: "auto" } }),
-    },
-    theme: "plain",
-    tableWidth: "auto",
-    margin: { left: startX },
-    didDrawCell: function (data) {
-      // Only draw horizontal lines
-      if (data.row.section === "head" || data.row.index === tableData.length - 1 || data.row.index >= 0) {
-        doc.setLineWidth(0.5);
-        doc.setDrawColor(170, 170, 170);
-        doc.line(
-          data.cell.x,
-          data.cell.y + data.cell.height,
-          data.cell.x + data.cell.width,
-          data.cell.y + data.cell.height
-        );
-      }
-    },
+    return {
+      sno: index + 1,
+      item: (item.itemDetail ?? item.itemName ?? "").toUpperCase(),
+      company: (
+        item.company?.companyName ??
+        item.companyName ??
+        (typeof item.company === "string" ? item.company : null) ??
+        "-"
+      ).toUpperCase(),
+      bales: item.onHand ?? item.bales ?? "-",
+      lbs: item.lbs ?? "-",
+      kgs: item.kgs ?? "-",
+      ...(rate !== null && rate !== "-" ? { rate } : "-"),
+      ...(item.totalAmount != null ? { totalAmount: item.totalAmount } : {}),
+    };
   });
 }
 
-// Function to calculate totals
+/** Sums numeric columns across all data rows. */
 export function calculateTotals(tableData) {
-  const totals = {
-    kgs: 0,
-    lbs: 0,
-    bales: 0,
-    kgRate: 0,
-    lbsRate: 0,
-    baleRate: 0,
-    totalAmount: 0,
-  };
+  const parse = (v) => parseFloat(String(v ?? 0).replace(/,/g, "")) || 0;
+  const totals = { kgs: 0, lbs: 0, bales: 0, totalAmount: 0 };
 
   tableData.forEach((row) => {
-    totals.kgs += parseFloat(row.kgs || 0);
-    totals.lbs += parseFloat(row.lbs || 0);
-    totals.bales += parseFloat(row.bales || 0);
-    totals.kgRate += parseFloat(row.kgRate || 0);
-    totals.lbsRate += parseFloat(row.lbsRate || 0);
-    totals.baleRate += parseFloat(row.baleRate || 0);
-    totals.totalAmount += parseFloat(row.totalAmount || 0);
+    totals.kgs += parse(row.kgs);
+    totals.lbs += parse(row.lbs);
+    totals.bales += parse(row.bales);
+    totals.totalAmount += parse(row.totalAmount);
   });
 
   return totals;
 }
 
-// Function to append totals row to table data
-// export function appendTotalsRow(tableData, totals) {
-//   tableData.push({
-//     sno: "Total",
-//     item: "-",
-//     kgs: totals.kgs ? totals.kgs.toFixed(2) : "-",
-//     lbs: totals.lbs ? totals.lbs.toFixed(2) : "-",
-//     bales: totals.bales ? totals.bales : "-",
-//     kgRate: totals.kgRate ? totals.kgRate.toFixed(2) : "-",
-//     lbsRate: totals.lbsRate ? totals.lbsRate.toFixed(2) : "-",
-//     baleRate: totals.baleRate ? totals.baleRate.toFixed(2) : "-",
-//     totalAmount: `RS: ${totals.totalAmount.toFixed(2)}`,
-//   });
-
-//   return tableData;
-// }
-
-export function appendTotalsRow(tableData) {
+/**
+ * Appends a bold TOTAL footer row to the table data.
+ * The row is flagged with TOTAL_KEY so didParseCell can bold it.
+ */
+export function appendTotalsRow(tableData, totals) {
+  tableData.push({
+    sno: "",
+    item: "TOTAL",
+    company: "",
+    bales: totals.bales || "",
+    lbs: "",
+    kgs: "",
+    rate: "",
+    totalAmount: totals.totalAmount || "",
+    [TOTAL_KEY]: true,
+  });
   return tableData;
 }
 
-// Function to add net amount section
-export function addNetAmountSection(doc, totalAmount) {
-  const yPosAfterTable = doc.previousAutoTable.finalY + 10;
+/**
+ * Renders the main data table.
+ * – WITH_RATES  → 8 columns including Rate and Amount
+ * – WITHOUT_RATES → 6 columns (no Rate / Amount)
+ */
+export function generateTable(doc, tableData) {
   const pageWidth = doc.internal.pageSize.width;
-  const pageHeight = doc.internal.pageSize.height;
+  const marginLeft = 14;
+  const tableWidth = pageWidth - marginLeft * 2; // 182 mm on A4
 
-  // Convert amount to words
-  const netAmountInWords = numberToWords(totalAmount);
-  const pkText = `PKR: ${netAmountInWords.toUpperCase()} ONLY`;
+  const showRateColumns =
+    tableData.some((row) => row.rate && row.rate !== "-") ||
+    tableData.some((row) => row.totalAmount && row.totalAmount !== "-");
 
-  // Define Net Amount text and positioning
-  const netAmountText = "Net Amount: ";
-  const netAmountTextWidth = doc.getTextWidth(netAmountText);
-  const amountWidth = doc.getTextWidth(`${totalAmount.toFixed(2)}`);
-  const totalWidth = netAmountTextWidth + amountWidth + 20;
+  // ── Column definitions ──────────────────────────────────────────────────
+  // Widths must sum to tableWidth (182 mm).
+  const columns = showRateColumns
+    ? [
+        { header: "SR", dataKey: "sno", width: 12, halign: "left" }, // widened for 2-digit numbers (change 3)
+        { header: "Items", dataKey: "item", width: 40, halign: "left" }, // slightly reduced to free space for Amount
+        { header: "Company Name", dataKey: "company", width: 30, halign: "left" },
+        { header: "Quantity", dataKey: "bales", width: 19, halign: "center" },
+        { header: "Weight (LBS)", dataKey: "lbs", width: 21, halign: "center" },
+        { header: "Weight (KGS)", dataKey: "kgs", width: 21, halign: "center" },
+        { header: "Rate", dataKey: "rate", width: 16, halign: "center" },
+        { header: "Amount", dataKey: "totalAmount", width: 24, halign: "right" },
+      ]
+    : [
+        { header: "SR", dataKey: "sno", width: 12, halign: "left" }, // widened for 2-digit numbers (change 3)
+        { header: "Items", dataKey: "item", width: 54, halign: "left" }, // centre-aligned (change 4)
+        { header: "Company Name", dataKey: "company", width: 40, halign: "left" },
+        { header: "Quantity", dataKey: "bales", width: 22, halign: "center" },
+        { header: "Weight (LBS)", dataKey: "lbs", width: 26, halign: "center" },
+        { header: "Weight (KGS)", dataKey: "kgs", width: 28, halign: "center" },
+      ];
 
-  const maxTextWidth = pageWidth * 0.5 - 20;
-  const splitPkText = doc.splitTextToSize(pkText, maxTextWidth);
+  const columnStyles = Object.fromEntries(columns.map((col, i) => [i, { cellWidth: col.width, halign: col.halign }]));
 
-  const yPos = yPosAfterTable + 5;
-  const gap = 15;
+  // ── Body rows ───────────────────────────────────────────────────────────
+  const bodyRows = tableData.map((row) =>
+    columns.map((col) => {
+      const v = row[col.dataKey];
+      if (col.dataKey === "bales" && v !== "") return formatNum(v);
+      if (col.dataKey === "rate" && v !== "") return formatNum(v);
+      if (col.dataKey === "totalAmount" && v !== "") return formatNum(v);
+      return v ?? "";
+    })
+  );
 
-  // Print amount in words
-  doc.setFont("helvetica", "normal");
-  doc.text(splitPkText, 10, yPos);
+  autoTable(doc, {
+    startY: doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 56,
+    head: [columns.map((col) => col.header)],
+    body: bodyRows,
+    tableWidth,
+    margin: { left: marginLeft },
+    styles: {
+      fontSize: 9,
+      cellPadding: [4, 3],
+      textColor: [0, 0, 0],
+      lineColor: BORDER_BLUE,
+      lineWidth: 0.3,
+      font: "helvetica",
+    },
+    headStyles: {
+      fillColor: HEADER_BLUE,
+      textColor: [255, 255, 255],
+      fontStyle: "bold",
+      lineColor: HEADER_BLUE,
+      lineWidth: 0.3,
+    },
+    columnStyles,
+    theme: "grid",
+    // Bold the TOTAL footer row
+    didParseCell: (data) => {
+      if (data.section === "head" && columns[data.column.index]?.dataKey === "totalAmount") {
+        data.cell.styles.halign = "right";
+      }
 
-  // Right-align the Net Amount section
-  const netAmountX = pageWidth - totalWidth - gap;
-  const rsX = netAmountX + netAmountTextWidth + 10;
-  const amountX = rsX + 10;
+      if (data.section === "body" && tableData[data.row.index]?.[TOTAL_KEY]) {
+        data.cell.styles.fontStyle = "bold";
+      }
 
-  doc.setFont("helvetica", "bold");
-  doc.text(netAmountText, netAmountX, yPos);
-
-  // Draw border lines above and below the amount
-  const borderYTop = yPos - 6;
-  const borderYBottom = yPos + 2;
-
-  doc.setDrawColor(0, 0, 0);
-  doc.setLineWidth(0.5);
-  doc.line(rsX, borderYTop, amountX + amountWidth, borderYTop);
-  doc.line(rsX, borderYBottom, amountX + amountWidth, borderYBottom);
-
-  doc.setFont("helvetica", "normal");
-  doc.text("Rs.", rsX, yPos);
-  doc.text(`${totalAmount.toFixed(2)}`, amountX, yPos);
-
-  // Position "Authorized Signatory" at the bottom of the page
-  const bottomMargin = 20;
-  const signatoryYPos = pageHeight - bottomMargin;
-
-  const signatoryText = "Authorized Signatory";
-  const signatoryTextWidth = doc.getTextWidth(signatoryText);
-
-  const signatoryX = 159;
-  const lineStartX = signatoryX - 10;
-  const lineEndX = signatoryX + signatoryTextWidth + 10;
-
-  // Draw the signature line and text
-  doc.line(lineStartX, signatoryYPos - 10, lineEndX, signatoryYPos - 10);
-  doc.text(signatoryText, signatoryX, signatoryYPos);
+      if (data.section === "body" && ["item", "company"].includes(columns[data.column.index]?.dataKey)) {
+        data.cell.styles.fontSize = 8;
+      }
+    },
+  });
 }
 
+/**
+ * Called for WITHOUT_RATES exports.
+ * Totals are already inside the table via appendTotalsRow — nothing extra needed.
+ */
+export function addSummarySection() {}
+
+/**
+ * Called for WITH_RATES exports.
+ * Renders "PKR: … ONLY" (left) and an Authorized Signatory line (bottom-right).
+ */
+export function addNetAmountSection(doc, totalAmount, laborCharge = 0) {
+  const pageWidth = doc.internal.pageSize.width;
+  const pageHeight = doc.internal.pageSize.height;
+  const tableEnd = doc.lastAutoTable?.finalY - 10;
+  const y = tableEnd + 22;
+  const grandTotal = totalAmount + laborCharge;
+
+  // Amount in words
+  const words = numberToWords(Math.round(grandTotal));
+  const pkrText = `PKR: ${words.toUpperCase()} ONLY`;
+  const wrapped = doc.splitTextToSize(pkrText, pageWidth * 0.55);
+
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.text(wrapped, 14, y);
+
+  // Amount summary – lower-right under the table
+  const amountStr = `Rs. ${formatNum(totalAmount.toFixed(2))}`;
+  const laborChargeStr = `Rs. ${formatNum(laborCharge.toFixed(2))}`;
+  const grandTotalStr = `Rs. ${formatNum(grandTotal.toFixed(2))}`;
+  const summaryX = pageWidth - 14;
+  const summaryStartY = tableEnd + 22;
+
+  doc.setFont("helvetica", "bold");
+  doc.text(`Net Total = ${amountStr}`, summaryX, summaryStartY, { align: "right" });
+  doc.text(`Labour Charge = ${laborChargeStr}`, summaryX, summaryStartY + 6, { align: "right" });
+  doc.text(`Grand Total = ${grandTotalStr}`, summaryX, summaryStartY + 12, { align: "right" });
+
+  // Authorized Signatory – bottom right
+  const sigText = "Authorized Signatory";
+  const sigWidth = doc.getTextWidth(sigText);
+  const sigX = pageWidth - 14 - sigWidth;
+  const sigY = pageHeight - 18;
+
+  doc.setFont("helvetica", "normal");
+  doc.setDrawColor(0, 0, 0);
+  doc.line(sigX - 5, sigY - 8, sigX + sigWidth + 5, sigY - 8);
+  doc.text(sigText, sigX, sigY);
+}
+
+// ─── Number → words ──────────────────────────────────────────────────────────
 export function numberToWords(num) {
   const units = [
     "",
@@ -317,35 +289,25 @@ export function numberToWords(num) {
     "Nineteen",
   ];
   const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
-  const thousands = ["", "Thousand", "Million", "Billion"];
 
-  function convertToWords(n) {
+  function convert(n) {
     if (n === 0) return "Zero";
     let word = "";
-
-    if (Math.floor(n / 1000000) > 0) {
-      word += convertToWords(Math.floor(n / 1000000)) + " Million ";
-      n %= 1000000;
+    if (Math.floor(n / 1_000_000) > 0) {
+      word += convert(Math.floor(n / 1_000_000)) + " Million ";
+      n %= 1_000_000;
     }
-    if (Math.floor(n / 1000) > 0) {
-      word += convertToWords(Math.floor(n / 1000)) + " Thousand ";
-      n %= 1000;
+    if (Math.floor(n / 1_000) > 0) {
+      word += convert(Math.floor(n / 1_000)) + " Thousand ";
+      n %= 1_000;
     }
     if (Math.floor(n / 100) > 0) {
-      word += convertToWords(Math.floor(n / 100)) + " Hundred ";
+      word += convert(Math.floor(n / 100)) + " Hundred ";
       n %= 100;
     }
-
-    if (n > 0) {
-      if (n < 20) {
-        word += units[n];
-      } else {
-        word += tens[Math.floor(n / 10)] + " " + units[n % 10];
-      }
-    }
-
+    if (n > 0) word += n < 20 ? units[n] : tens[Math.floor(n / 10)] + (n % 10 ? " " + units[n % 10] : "");
     return word.trim();
   }
 
-  return convertToWords(num);
+  return convert(num);
 }
