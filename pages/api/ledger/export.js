@@ -12,7 +12,7 @@ const exportLedger = async (req, res) => {
     await db.dbConnect();
 
     // Extract query parameters
-    const { fileExtension, invoiceNumber } = req.query;
+    const { fileExtension, invoiceNumber, typeOf } = req.query;
 
     // Fetch data from the database
     const data = await db.Sale.findOne({
@@ -29,9 +29,11 @@ const exportLedger = async (req, res) => {
     });
 
     if (!data) throw new Error("Sale not found");
-
-    const soldProducts = data.soldProducts || [];
-
+    const labourCharge = data.laborCharge || 0;
+    const soldProducts = (data.soldProducts || []).map((item) => ({
+      ...item,
+      labourCharge,
+    }));
     // ✅ Step 1: Extract unique companyIds
     const companyIds = [...new Set(soldProducts.map((item) => item.companyId).filter(Boolean))];
 
@@ -50,12 +52,12 @@ const exportLedger = async (req, res) => {
     // ✅ Step 4: Map the sale data
     const dataForExcel = soldProducts.map((element) => ({
       itemDetail: element.itemName,
-      kgs: element.baleWeightKgs ?? "-",
-      lbs: element.baleWeightLbs ?? "-",
-      bales: element.noOfBales ?? "-",
-      kgRate: element.ratePerKgs ?? "-",
-      lbsRate: element.ratePerLbs ?? "-",
-      baleRate: element.ratePerBale ?? "-",
+      kgs: element.baleWeightKgs,
+      lbs: element.baleWeightLbs,
+      bales: element.noOfBales,
+      kgRate: element.ratePerKgs,
+      lbsRate: element.ratePerLbs,
+      baleRate: element.ratePerBale,
       totalAmount: calculateAmount(0, element),
       company: { companyName: companyMap[element.companyId] || "-" }, // ✅ Final addition
     }));
@@ -66,6 +68,7 @@ const exportLedger = async (req, res) => {
       data: dataForExcel,
       fileName: "ledger",
       type: fileExtension,
+      typeOf,
     };
     // Call export handler with the prepared data
     const response = await exportHandler(fileInfo);

@@ -136,9 +136,9 @@ const formatInventoryData = (rows, typeOf) => {
     if (typeOf === PRINT_TYPE.WITH_RATES) {
       formattedItem = {
         ...formattedItem,
-        ratePerKgs: formatNumber(item.ratePerKgs || "-"),
-        ratePerLbs: formatNumber(item.ratePerLbs || "-"),
-        ratePerBale: formatNumber(item.ratePerBale || "-"),
+        ratePerKgs: formatNumber(item.ratePerKgs),
+        ratePerLbs: formatNumber(item.ratePerLbs),
+        ratePerBale: formatNumber(item.ratePerBale),
         totalAmount: formatNumber(calculateAmount(0, item)),
       };
     }
