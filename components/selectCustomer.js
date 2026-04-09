@@ -11,6 +11,11 @@ export default memo(function SelectCustomer({ selectCustomerOnChange, type, ...p
   const { customers, isLoading, error } = useCustomerAttributes(["firstName", "lastName", "id"], type);
   if (error) return <Alert message={error} type="error" />;
 
+  const handleChange = (value, option) => {
+    props.onChange?.(value, option);
+    selectCustomerOnChange?.(value, option);
+  };
+
   return (
     <Select
       {...props}
@@ -20,7 +25,7 @@ export default memo(function SelectCustomer({ selectCustomerOnChange, type, ...p
       optionFilterProp="children"
       placeholder="Search to Select Customer"
       allowClear
-      onChange={selectCustomerOnChange}
+      onChange={handleChange}
     >
       {customers &&
         customers.map((obj) => (

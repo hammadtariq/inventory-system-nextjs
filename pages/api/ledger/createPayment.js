@@ -1,8 +1,8 @@
 import Joi from "joi";
 import nextConnect from "next-connect";
 import db from "@/lib/postgres";
-import { balanceQuery } from "@/utils/query.utils";
 import { auth } from "@/middlewares/auth";
+import { createLedgerPayment } from "@/lib/ledger";
 
 const apiSchema = Joi.object({
   companyId: Joi.number(),
@@ -48,29 +48,13 @@ const createPayment = async (req, res) => {
       });
     }
 
-    const companyBalance = await balanceQuery(companyId, "company");
-    const customerBalance = await balanceQuery(customerId, "customer");
-
-    let companyTotal = totalAmount,
-      customerTotal = totalAmount;
-
-    if (paymentType && companyBalance.length && customerBalance.length) {
-      // TODO: Need to handle for cash scenario
-      companyTotal = companyBalance[0].amount - totalAmount;
-      customerTotal = customerBalance[0].amount + totalAmount;
-    }
-
-    const data = await db.Ledger.create({
+    const data = await createLedgerPayment({
       companyId,
-      amount: totalAmount,
+      totalAmount,
       spendType,
       customerId,
-      transactionId: null,
       paymentType,
       paymentDate,
-      totalBalance: companyTotal, // not required keeping it just to avoid null error
-      companyTotal,
-      customerTotal,
       otherName,
       reference,
     });

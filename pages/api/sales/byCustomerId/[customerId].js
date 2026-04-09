@@ -2,13 +2,14 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import { DEFAULT_ROWS_LIMIT } from "@/utils/api.util";
 
 const getCustomerNamebyCustomerId = async (req, res) => {
   console.log("getCustomerNamebyCustomerId Request Start");
 
   const { limit, offset, customerId } = req.query;
   const pagination = {};
-  pagination.limit = limit ? limit : 10;
+  pagination.limit = limit ? Number(limit) : DEFAULT_ROWS_LIMIT;
   pagination.offset = offset ? offset : 0;
   try {
     await db.dbConnect();
@@ -16,6 +17,7 @@ const getCustomerNamebyCustomerId = async (req, res) => {
       ...pagination,
       include: [db.Customer],
       where: { customerId },
+      order: [["id", "DESC"]],
     });
     console.log("getCustomerNamebyCustomerId Request End");
     return res.send(data);

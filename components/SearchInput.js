@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { AutoComplete, Button, Space } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
@@ -20,13 +20,8 @@ const searchResult = (results = [], valueKey = "", valueKey2 = "", type) =>
       key: type === "item" ? value : id,
       label: (
         <div className={styles.listItem}>
-          {valueKey2 ? (
-            <>
-              {value1} <span className={styles.value2Color}>({value2})</span>
-            </>
-          ) : (
-            value1
-          )}
+          {value1}
+          {valueKey2 ? <span className={styles.value2Color}>({value2})</span> : null}
         </div>
       ),
     };
@@ -34,6 +29,7 @@ const searchResult = (results = [], valueKey = "", valueKey2 = "", type) =>
 
 const SearchInput = ({ handleSearch, handleSelect, valueKey, valueKey2, placeholder, type, defaultValue }) => {
   const [options, setOptions] = useState([]);
+  const [inputValue, setInputValue] = useState(defaultValue);
 
   const _handleSearch = async (value) => {
     if (value) {
