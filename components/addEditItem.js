@@ -48,7 +48,8 @@ const AddEditItem = ({ item }) => {
       } else {
         await createItem(itemValues);
       }
-      router.push("/items");
+      const { id: _id, ...filterQuery } = router.query;
+      router.push({ pathname: "/items", query: filterQuery });
     } catch (error) {
       console.error("Error: ", error);
     } finally {

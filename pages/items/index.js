@@ -18,14 +18,20 @@ import SearchInput from "@/components/SearchInput";
 import { searchCompany } from "@/hooks/company";
 
 const Items = () => {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const { items, error, isLoading, pagination, paginationHandler, mutate } = useItems(search);
-  const router = useRouter();
   const [searchText, setSearchText] = useState("");
   const [updatedItemList, setUpdatedItemList] = useState();
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (router.isReady && router.query.companyId) {
+      setSearch(router.query.companyId);
+    }
+  }, [router.isReady, router.query.companyId]);
 
   useEffect(() => {
     setUpdatedItemList(items);
@@ -58,7 +64,7 @@ const Items = () => {
         </Button>
       </Popconfirm>
       <Button
-        onClick={() => router.push(`/items/${text.id}`)}
+        onClick={() => router.push({ pathname: `/items/${text.id}`, query: router.query })}
         className={styles.editBtn}
         icon={<EditOutlined />}
         disabled={!canEdit}
@@ -168,36 +174,39 @@ const Items = () => {
     if (!value) {
       setSearch("");
       paginationHandler(DEFAULT_PAGE_LIMIT, 0, 1);
+      router.push({ pathname: router.pathname }, undefined, { shallow: true });
     } else {
       const searchResults = await searchCompany(value);
       return searchResults;
     }
   };
 
-  const handleSelect = async (companyId) => {
+  const handleSelect = async (companyId, companyName) => {
     setSearch(companyId);
     paginationHandler(DEFAULT_PAGE_LIMIT, 0, 1);
+    router.push({ pathname: router.pathname, query: { companyId, companyName } }, undefined, { shallow: true });
   };
 
   if (error) return <Alert message={error} type="error" />;
   return (
     <>
-      <AppTitle level={2}>
-        Items List
-        <Row justify="space-between">
-          <Col>
+      <AppTitle level={2}>Items List</AppTitle>
+      <Row justify="space-between">
+        <Col>
+          {router.isReady && (
             <SearchInput
               valueKey="companyName"
               handleSearch={handleSearch}
               handleSelect={handleSelect}
               placeholder="search company"
+              defaultValue={router.query.companyName || ""}
             />
-          </Col>
-          <Col>
-            <AppCreateButton url="/items/create" />
-          </Col>
-        </Row>
-      </AppTitle>
+          )}
+        </Col>
+        <Col>
+          <AppCreateButton url="/items/create" />
+        </Col>
+      </Row>
       <AppTable
         isLoading={isLoading || isSaving}
         rowKey="id"
