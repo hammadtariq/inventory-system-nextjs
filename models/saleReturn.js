@@ -2,37 +2,47 @@
 const { Model } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
-  class sale extends Model {
-    static associate({ Customer, SaleReturn }) {
+  class saleReturn extends Model {
+    static associate({ Sale, Customer }) {
+      this.belongsTo(Sale, { foreignKey: "saleId" });
       this.belongsTo(Customer, { foreignKey: "customerId" });
-      this.hasMany(SaleReturn, { foreignKey: "saleId" });
     }
+
     toJSON() {
-      return { ...this.get(), customerId: undefined };
+      return { ...this.get() };
     }
   }
-  sale.init(
+
+  saleReturn.init(
     {
+      saleId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
       customerId: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      laborCharge: {
-        type: DataTypes.FLOAT,
-        allowNull: true,
-      },
       totalAmount: {
         type: DataTypes.FLOAT,
         allowNull: false,
+        defaultValue: 0,
       },
-      soldProducts: {
+      returnedProducts: {
         type: DataTypes.JSONB,
         allowNull: false,
       },
-      status: DataTypes.ENUM(["PENDING", "APPROVED", "CANCEL"]),
-      soldDate: {
+      reference: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      returnDate: {
         type: DataTypes.DATE,
         allowNull: false,
+      },
+      ledgerId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
       },
       uuid: {
         type: DataTypes.UUID,
@@ -42,8 +52,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       sequelize,
-      modelName: "sale",
+      modelName: "saleReturn",
     }
   );
-  return sale;
+
+  return saleReturn;
 };

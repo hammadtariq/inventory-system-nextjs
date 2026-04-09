@@ -1,10 +1,10 @@
 .listItem {
-  display: "flex";
-  justify-content: "space-between";
-  text-decoration: "capitalize";
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 .inputWrap {
-  width: 300;
+  width: 300px;
 }
 .value2Color {
   color: #6e6e6e;

@@ -1,15 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-import { AutoComplete, Input } from "antd";
+import { AutoComplete } from "antd";
 import _debounce from "lodash/debounce";
 
 import styles from "@/styles/SearchInput.module.css";
 
-const { Search } = Input;
-
-const getValueFromPath = (obj, path) => {
-  return path.split(".").reduce((acc, key) => (acc ? acc[key] : undefined), obj);
-};
+const getValueFromPath = (obj, path) => path.split(".").reduce((acc, key) => (acc ? acc[key] : undefined), obj);
 
 const searchResult = (results = [], valueKey = "", valueKey2 = "", type) =>
   results.map(({ id, [valueKey]: value1, ...rest }) => {
@@ -21,49 +17,58 @@ const searchResult = (results = [], valueKey = "", valueKey2 = "", type) =>
       key: type === "item" ? value : id,
       label: (
         <div className={styles.listItem}>
-          {valueKey2 ? (
-            <>
-              {value1} <span className={styles.value2Color}>({value2})</span>
-            </>
-          ) : (
-            value1
-          )}
+          {value1}
+          {valueKey2 ? <span className={styles.value2Color}>({value2})</span> : null}
         </div>
       ),
     };
   });
 
-const SearchInput = ({ handleSearch, handleSelect, valueKey, valueKey2, placeholder, type }) => {
+const SearchInput = ({ handleSearch, handleSelect, valueKey, valueKey2, placeholder, type, defaultValue = "" }) => {
   const [options, setOptions] = useState([]);
+  const [inputValue, setInputValue] = useState(defaultValue);
 
-  const _handleSearch = async (value) => {
-    console.log("_handleSearch", value);
-    if (value) {
-      const results = await handleSearch(value.toLowerCase());
-      setOptions(searchResult(results, valueKey, valueKey2, type));
-    } else {
-      handleSearch();
-    }
-    return value;
+  const debouncedSearch = useMemo(
+    () =>
+      _debounce(async (value) => {
+        if (value) {
+          const results = await handleSearch(value.toLowerCase());
+          setOptions(searchResult(results, valueKey, valueKey2, type));
+        } else {
+          setOptions([]);
+          handleSearch();
+        }
+      }, 500),
+    [handleSearch, type, valueKey, valueKey2]
+  );
+
+  const onChange = (value) => {
+    setInputValue(value);
+    debouncedSearch(value);
   };
 
-  const _handleSelect = (itemId, option) => {
-    const id = option.key;
-    handleSelect(id);
+  const onSelect = (displayValue, option) => {
+    setInputValue(displayValue);
+    setOptions([]);
+    handleSelect(option.key, displayValue);
   };
 
   return (
-    <>
-      <AutoComplete
-        popupMatchSelectWidth={500}
-        className={styles.inputWrap}
-        options={options}
-        onSelect={_handleSelect}
-        onSearch={_debounce(_handleSearch, 500)}
-      >
-        <Search size="large" placeholder={placeholder} loading={false} allowClear enterButton />
-      </AutoComplete>
-    </>
+    <AutoComplete
+      popupMatchSelectWidth={true}
+      className={styles.inputWrap}
+      options={options}
+      value={inputValue}
+      onChange={onChange}
+      onSelect={onSelect}
+      placeholder={placeholder}
+      allowClear
+      onClear={() => {
+        setInputValue("");
+        setOptions([]);
+        handleSearch();
+      }}
+    />
   );
 };
 

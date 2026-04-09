@@ -7,7 +7,7 @@ import { kgLbConversion } from "@/utils/conversion.utils";
 
 const EditableCell = ({ dataIndex, title, inputType, editing, form, children, required, record, ...restProps }) => {
   const handleChange = (e, name, id) => {
-    const data = { e, name, id };
+    const data = { e, name, id, record };
     kgLbConversion(data, form);
   };
   const inputNode =

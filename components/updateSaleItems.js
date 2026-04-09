@@ -14,6 +14,7 @@ export default function UpdateSalesItems({
   setEditAll,
   updatedProducts,
   setUpdatedProducts,
+  liveUpdate = false,
   viewOnly = false,
 }) {
   const [editingKey, setEditingKey] = useState([]);
@@ -95,6 +96,18 @@ export default function UpdateSalesItems({
       arrData.push(row);
       return arrData;
     }
+  };
+
+  const buildMergedData = (rows, sourceData) => {
+    let nextData = [...sourceData];
+
+    for (const key in rows) {
+      if (Object.hasOwnProperty.call(rows, key)) {
+        nextData = saveIndividual(Number(key), nextData, rows[key]);
+      }
+    }
+
+    return nextData;
   };
 
   // const getOperationColumn = () => {
@@ -199,7 +212,14 @@ export default function UpdateSalesItems({
           </>
         )}
       </div>
-      <Form form={form} component={false}>
+      <Form
+        form={form}
+        component={false}
+        onValuesChange={(_, allValues) => {
+          if (!liveUpdate) return;
+          setSelectedProducts(buildMergedData(allValues, data));
+        }}
+      >
         <AppTable
           components={{
             body: {
