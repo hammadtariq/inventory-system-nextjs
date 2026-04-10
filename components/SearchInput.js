@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { AutoComplete, Button, Space } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
@@ -29,21 +29,39 @@ const searchResult = (results = [], valueKey = "", valueKey2 = "", type) =>
 
 const SearchInput = ({ handleSearch, handleSelect, valueKey, valueKey2, placeholder, type, defaultValue }) => {
   const [options, setOptions] = useState([]);
-  const [inputValue, setInputValue] = useState(defaultValue);
+  const [inputValue, setInputValue] = useState(defaultValue || "");
 
-  const _handleSearch = async (value) => {
-    if (value) {
-      const results = await handleSearch(value.toLowerCase());
-      setOptions(searchResult(results, valueKey, valueKey2, type));
-    } else {
-      handleSearch();
-    }
-    return value;
-  };
+  useEffect(() => {
+    setInputValue(defaultValue || "");
+  }, [defaultValue]);
+
+  const debouncedSearch = useMemo(
+    () =>
+      _debounce(async (value) => {
+        if (value) {
+          const results = await handleSearch(value.toLowerCase());
+          setOptions(searchResult(results, valueKey, valueKey2, type));
+        } else {
+          handleSearch();
+          setOptions([]);
+        }
+      }, 500),
+    [handleSearch, type, valueKey, valueKey2]
+  );
+
+  useEffect(() => {
+    return () => debouncedSearch.cancel();
+  }, [debouncedSearch]);
 
   const _handleSelect = (displayValue, option) => {
     const id = option.key;
+    setInputValue(displayValue);
+    setOptions([]);
     handleSelect(id, displayValue);
+  };
+
+  const handleChange = (value) => {
+    setInputValue(value || "");
   };
 
   return (
@@ -53,9 +71,10 @@ const SearchInput = ({ handleSearch, handleSelect, valueKey, valueKey2, placehol
         style={{ width: "100%" }}
         options={options}
         onSelect={_handleSelect}
-        onSearch={_debounce(_handleSearch, 500)}
+        onSearch={debouncedSearch}
+        onChange={handleChange}
+        value={inputValue}
         placeholder={placeholder}
-        defaultValue={defaultValue}
         allowClear
       />
       <Button type="primary" icon={<SearchOutlined />} />
