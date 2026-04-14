@@ -156,10 +156,15 @@ const updateLedger = async (revisionNo, { companyId, transactionId, totalAmount,
       { transaction: t }
     );
 
-    // Update all subsequent ledger entries to reflect the difference
+    // Update all subsequent ledger entries to reflect the difference.
+    // Also update companyTotal where it is set (payment entries), since the UI
+    // prefers companyTotal over totalBalance for those rows.
     await db.Ledger.update(
       {
         totalBalance: db.sequelize.literal(`"totalBalance" + ${amountDiff}`),
+        companyTotal: db.sequelize.literal(
+          `CASE WHEN "companyTotal" IS NOT NULL THEN "companyTotal" + ${amountDiff} ELSE NULL END`
+        ),
       },
       {
         where: {

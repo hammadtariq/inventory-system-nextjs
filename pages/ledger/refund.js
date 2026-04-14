@@ -238,7 +238,7 @@ const RefundToCustomer = () => {
     () =>
       updatedProducts.map((product) => (
         <Option key={product.id} value={product.id}>
-          {`${product.itemName} (${product?.company?.companyName || "N/A"}) - Remaining ${product.refundableQuantity}`}
+          {`${product.itemName} (${product?.company?.companyName || "N/A"})`}
         </Option>
       )),
     [updatedProducts]

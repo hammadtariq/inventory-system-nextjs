@@ -20,7 +20,7 @@ import { useRouter } from "next/router";
 import AppMenuItems from "./menuItems";
 import Link from "next/link";
 import Image from "next/image";
-import Logo from "../public/vast-apparel.png";
+import Logo from "../public/logo.png";
 import { logoutUser } from "@/hooks/login";
 import StorageUtils from "@/utils/storage.util";
 
@@ -128,7 +128,7 @@ export default function AppNavbar(props = {}) {
               padding: collapsed ? "10px 0 0 0" : "0px 10px 0px",
             }}
           >
-            <Image src={Logo} width={25} height={25} alt="Logo" />
+            <Image src={Logo} width={30} height={30} alt="Logo" />
             <h2
               style={{
                 fontWeight: "bold",
