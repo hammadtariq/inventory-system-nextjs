@@ -17,6 +17,36 @@ dayjs.extend(timezone);
 // Utility for comma formatting
 const comaSeparatedValues = (val) => val?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
+const getLedgerBalance = (transaction, type) => {
+  if (!transaction) return 0;
+
+  const balance = type === "company" ? transaction.companyTotal : transaction.customerTotal;
+  return Number(balance ?? transaction.totalBalance ?? 0);
+};
+
+// Net contribution of a single transaction to the running balance
+const computeNetAmount = (t, type) => {
+  const raw = typeof t.get === "function" ? t.get({ plain: true }) : t;
+  if (raw.paymentType) return type === "customer" ? raw.amount : -raw.amount;
+  return raw.spendType === "DEBIT" ? raw.amount : -raw.amount;
+};
+
+const getDebitAmount = (transaction, type) => {
+  if (transaction.paymentType) {
+    return type === "customer" ? transaction.amount || 0 : 0;
+  }
+
+  return transaction.spendType === "DEBIT" ? transaction.amount || 0 : 0;
+};
+
+const getCreditAmount = (transaction, type) => {
+  if (transaction.paymentType) {
+    return type === "company" ? transaction.amount || 0 : 0;
+  }
+
+  return transaction.spendType === "CREDIT" ? transaction.amount || 0 : 0;
+};
+
 // Helper: parse optional dates
 const parseDateRange = (startDate, endDate) => {
   const formats = ["YYYY-MM-DD", "YYYY/MM/DD"];
@@ -29,7 +59,7 @@ const parseDateRange = (startDate, endDate) => {
 };
 
 // Generate PDF
-const generateCustomerLedgerPdf = (transactions, totalBalance, headerFrom, headerTo) => {
+const generateCustomerLedgerPdf = (transactions, totalBalance, headerFrom, headerTo, type, balanceMap) => {
   const doc = new jsPDF("landscape", "pt", "a4");
   const pageWidth = doc.internal.pageSize.getWidth();
 
@@ -81,26 +111,21 @@ const generateCustomerLedgerPdf = (transactions, totalBalance, headerFrom, heade
   ];
 
   // 5. Rows
-  const rows = transactions.map((row) => [
-    row.paymentDate ? dayjs(row.paymentDate).format("DD-MM-YYYY") : "",
-    row.company ? row.company.companyName : row.otherName || "",
-    row.reference || "",
-    row.invoiceNumber || "",
-    row.paymentType
-      ? comaSeparatedValues(row.amount.toFixed(2))
-      : row.spendType === "DEBIT"
-      ? comaSeparatedValues(row.amount.toFixed(2))
-      : "",
-    row.paymentType ? "" : row.spendType === "CREDIT" ? comaSeparatedValues(row.amount.toFixed(2)) : "",
-    comaSeparatedValues((row.customerTotal || row.totalBalance || 0).toFixed(2)),
-  ]);
+  const rows = transactions.map((row) => {
+    const rowBalance = balanceMap ? balanceMap.get(row.id) : getLedgerBalance(row, type);
+    return [
+      row.paymentDate ? dayjs(row.paymentDate).format("DD-MM-YYYY") : "",
+      row.company ? row.company.companyName : row.otherName || "",
+      row.reference || "",
+      row.invoiceNumber || "",
+      getDebitAmount(row, type) ? comaSeparatedValues(getDebitAmount(row, type).toFixed(2)) : "",
+      getCreditAmount(row, type) ? comaSeparatedValues(getCreditAmount(row, type).toFixed(2)) : "",
+      comaSeparatedValues(Number(rowBalance ?? 0).toFixed(2)),
+    ];
+  });
 
-  const totalDebit = transactions.reduce((acc, row) => (row.spendType === "DEBIT" ? acc + (row.amount || 0) : acc), 0);
-
-  const totalCredit = transactions.reduce(
-    (acc, row) => (row.spendType === "CREDIT" ? acc + (row.amount || 0) : acc),
-    0
-  );
+  const totalDebit = transactions.reduce((acc, row) => acc + getDebitAmount(row, type), 0);
+  const totalCredit = transactions.reduce((acc, row) => acc + getCreditAmount(row, type), 0);
 
   const closingBalance = totalBalance || 0;
 
@@ -196,24 +221,26 @@ const generateCustomerLedgerPdf = (transactions, totalBalance, headerFrom, heade
 };
 
 // Generate CSV
-const sanitizeTransactions = (transactions) =>
+const sanitizeTransactions = (transactions, type, balanceMap) =>
   transactions.map((t) => {
+    const id = t.id;
     if (typeof t.get === "function") {
       t = t.get({ plain: true });
     }
+    const rowBalance = balanceMap ? balanceMap.get(id) : getLedgerBalance(t, type);
     return {
       Date: dayjs(t.paymentDate).format("DD-MM-YYYY"),
       PaidTo: t.company ? t.company.companyName : t.otherName || "",
       reference: t.reference,
-      Debit: t.paymentType || t.spendType === "DEBIT" ? t.amount.toFixed(2) : "",
-      Credit: !t.paymentType && t.spendType === "CREDIT" ? t.amount.toFixed(2) : "",
-      ClosingBalance: (t.customerTotal || t.totalBalance || 0).toFixed(2),
+      Debit: getDebitAmount(t, type) ? getDebitAmount(t, type).toFixed(2) : "",
+      Credit: getCreditAmount(t, type) ? getCreditAmount(t, type).toFixed(2) : "",
+      ClosingBalance: Number(rowBalance ?? 0).toFixed(2),
     };
   });
 
-const generateCustomerLedgerCsv = (transactions) => {
+const generateCustomerLedgerCsv = (transactions, type, balanceMap) => {
   try {
-    const cleanData = sanitizeTransactions(transactions);
+    const cleanData = sanitizeTransactions(transactions, type, balanceMap);
     const csv = json2csv(cleanData);
     return Buffer.from(csv);
   } catch (error) {
@@ -277,22 +304,43 @@ const exportCustomerLedger = async (req, res) => {
     const totalBalanceRows = await db.sequelize.query(rawQuery, { type: db.Sequelize.QueryTypes.SELECT });
     const totalBalanceFromQuery = Number(totalBalanceRows?.[0]?.amount ?? 0);
 
-    const closingFromRows =
-      transactions[transactions.length - 1]?.customerTotal ?? transactions[transactions.length - 1]?.totalBalance;
+    // Compute opening balance: sum of all transactions before the startDate
+    let openingBalance = 0;
+    if (start) {
+      const openingRows = await db.Ledger.findAll({
+        where: { ...baseCondition, paymentDate: { [Op.lt]: start.toDate() } },
+        attributes: ["paymentType", "spendType", "amount"],
+      });
+      openingBalance = openingRows.reduce((acc, t) => acc + computeNetAmount(t, type), 0);
+    }
 
+    // Compute per-row running balances (transactions are DESC; reverse to ASC for accumulation)
+    const balanceMap = new Map();
+    let runningBalance = openingBalance;
+    const transactionsAsc = [...transactions].reverse();
+    for (const t of transactionsAsc) {
+      runningBalance += computeNetAmount(t, type);
+      balanceMap.set(t.id, runningBalance);
+    }
+
+    // Closing balance for the grand total row
+    // With date filter: newest transaction's computed balance; without: authoritative sum query
     const dateFilterApplied = !!(startDate || endDate);
-    const effectiveClosingBalance = dateFilterApplied
-      ? typeof closingFromRows === "number"
-        ? closingFromRows
-        : totalBalanceFromQuery
-      : totalBalanceFromQuery;
+    const effectiveClosingBalance = dateFilterApplied ? balanceMap.get(transactions[0].id) ?? 0 : totalBalanceFromQuery;
 
     // Prepare header dates for PDF (if filters provided)
     const headerFrom = start ? start.format("DD-MMM-YYYY") : null;
     const headerTo = end ? end.format("DD-MMM-YYYY") : null;
 
     if (fileType === "pdf") {
-      const pdfBuffer = generateCustomerLedgerPdf(transactions, effectiveClosingBalance, headerFrom, headerTo);
+      const pdfBuffer = generateCustomerLedgerPdf(
+        transactions,
+        effectiveClosingBalance,
+        headerFrom,
+        headerTo,
+        type,
+        balanceMap
+      );
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader("Content-Disposition", `attachment; filename=customer-ledger.pdf`);
       res.setHeader("X-Total-Amount", effectiveClosingBalance);
@@ -300,7 +348,7 @@ const exportCustomerLedger = async (req, res) => {
     }
 
     if (fileType === "csv") {
-      const csv = generateCustomerLedgerCsv(transactions);
+      const csv = generateCustomerLedgerCsv(transactions, type, balanceMap);
       res.setHeader("Content-Type", "text/csv");
       res.setHeader("Content-Disposition", `attachment; filename=customer-ledger.csv`);
       res.setHeader("X-Total-Amount", effectiveClosingBalance);

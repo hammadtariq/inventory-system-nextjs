@@ -127,6 +127,7 @@ export default function AddItemsInPo({
       );
 
       if (!filledItemIds.size) {
+        setRemovedItems((prev) => [...prev, ...data]);
         setData([]);
         setEditAll(false);
         setEditingKey([]);
@@ -147,13 +148,15 @@ export default function AddItemsInPo({
       }
 
       const filledData = data.filter((item) => filledItemIds.has(String(item.id)));
+      const emptyData = data.filter((item) => !filledItemIds.has(String(item.id)));
+      setRemovedItems((prev) => [...prev, ...emptyData]);
       setData(filledData);
       setEditAll(false);
       setEditingKey([]);
     } catch (error) {
       console.log("Validate Failed:", error);
     }
-  }, [form, data, save, setData, setEditAll]);
+  }, [form, data, save, setData, setEditAll, setRemovedItems]);
 
   const handleSelectAll = useCallback(
     (e) => {
