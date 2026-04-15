@@ -6,6 +6,7 @@ import { Layout as AntLayout } from "antd";
 import AppContent from "@/components/content";
 // import AppFooter from "@/components/footer";
 import AppSider from "@/components/appSider";
+import ChatBot from "@/components/chatBot";
 
 export default function Layout({ children }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -27,6 +28,7 @@ export default function Layout({ children }) {
           <AppContent>{children}</AppContent>
           {/* <AppFooter /> */}
         </AntLayout>
+        <ChatBot />
       </AntLayout>
     </>
   );
