@@ -85,8 +85,8 @@ const LedgerDetailsContent = ({ id, type }) => {
     },
     {
       title: "Date",
-      dataIndex: "paymentDate",
-      key: "paymentDate",
+      dataIndex: "updatedAt",
+      key: "updatedAt",
       render: (text) => (text ? dayjs(text).format(DATE_FORMAT) : ""),
     },
     {
