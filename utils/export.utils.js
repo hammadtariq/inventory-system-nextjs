@@ -29,13 +29,13 @@ export function createPDF() {
  *   – BILLED TO / customer name (left)
  *   – date (right)
  */
-export function addTitleAndDetails(doc, headData) {
+export function addTitleAndDetails(doc, headData, titleOverride = null) {
   const pageWidth = doc.internal.pageSize.width;
   const formattedDate = headData.soldDate ? formatDDMMYYYY(headData.soldDate) : formatDDMMYYYY(new Date());
   const customerName = headData?.customer
     ? `${headData.customer.firstName || ""} ${headData.customer.lastName || ""}`.trim()
     : "";
-  const title = customerName ? "SALE INVOICE" : "INVENTORY DETAIL";
+  const title = titleOverride || (customerName ? "SALE INVOICE" : "INVENTORY DETAIL");
 
   // Centered title
   doc.setFontSize(22);
@@ -224,7 +224,7 @@ export function addSummarySection() {}
  * Called for WITH_RATES exports.
  * Renders "PKR: … ONLY" (left) and an Authorized Signatory line (bottom-right).
  */
-export function addNetAmountSection(doc, totalAmount, laborCharge = 0) {
+export function addNetAmountSection(doc, totalAmount, laborCharge = 0, isQuotation = false) {
   const pageWidth = doc.internal.pageSize.width;
   const pageHeight = doc.internal.pageSize.height;
   const tableEnd = doc.lastAutoTable?.finalY - 10;
@@ -241,16 +241,21 @@ export function addNetAmountSection(doc, totalAmount, laborCharge = 0) {
   doc.text(wrapped, 14, y);
 
   // Amount summary – lower-right under the table
-  const amountStr = `Rs. ${formatNum(totalAmount.toFixed(2))}`;
-  const laborChargeStr = `Rs. ${formatNum(laborCharge.toFixed(2))}`;
   const grandTotalStr = `Rs. ${formatNum(grandTotal.toFixed(2))}`;
   const summaryX = pageWidth - 14;
   const summaryStartY = tableEnd + 22;
 
   doc.setFont("helvetica", "bold");
-  doc.text(`Net Total = ${amountStr}`, summaryX, summaryStartY, { align: "right" });
-  doc.text(`Labour Charge = ${laborChargeStr}`, summaryX, summaryStartY + 6, { align: "right" });
-  doc.text(`Grand Total = ${grandTotalStr}`, summaryX, summaryStartY + 12, { align: "right" });
+
+  if (isQuotation) {
+    doc.text(`Grand Total = ${grandTotalStr}`, summaryX, summaryStartY, { align: "right" });
+  } else {
+    const amountStr = `Rs. ${formatNum(totalAmount.toFixed(2))}`;
+    const laborChargeStr = `Rs. ${formatNum(laborCharge.toFixed(2))}`;
+    doc.text(`Net Total = ${amountStr}`, summaryX, summaryStartY, { align: "right" });
+    doc.text(`Labour Charge = ${laborChargeStr}`, summaryX, summaryStartY + 6, { align: "right" });
+    doc.text(`Grand Total = ${grandTotalStr}`, summaryX, summaryStartY + 12, { align: "right" });
+  }
 
   // Authorized Signatory – bottom right
   const sigText = "Authorized Signatory";
@@ -262,6 +267,72 @@ export function addNetAmountSection(doc, totalAmount, laborCharge = 0) {
   doc.setDrawColor(0, 0, 0);
   doc.line(sigX - 5, sigY - 8, sigX + sigWidth + 5, sigY - 8);
   doc.text(sigText, sigX, sigY);
+}
+
+/**
+ * Renders the quotation table with columns:
+ * SR | Items | Company Name | Quantity | Unit Price | Amount
+ */
+export function generateQuotationTable(doc, tableData) {
+  const TOTAL_KEY = "__isTotal__";
+  const pageWidth = doc.internal.pageSize.width;
+  const marginLeft = 14;
+  const tableWidth = pageWidth - marginLeft * 2;
+
+  const columns = [
+    { header: "SR", dataKey: "sno", width: 12, halign: "left" },
+    { header: "Items", dataKey: "item", width: 50, halign: "left" },
+    { header: "Company Name", dataKey: "company", width: 40, halign: "left" },
+    { header: "Quantity", dataKey: "quantity", width: 22, halign: "center" },
+    { header: "Unit Price (Rs)", dataKey: "unitPrice", width: 30, halign: "center" },
+    { header: "Amount (Rs)", dataKey: "totalAmount", width: 28, halign: "right" },
+  ];
+
+  const columnStyles = Object.fromEntries(columns.map((col, i) => [i, { cellWidth: col.width, halign: col.halign }]));
+
+  const bodyRows = tableData.map((row) =>
+    columns.map((col) => {
+      const v = row[col.dataKey];
+      if (["quantity", "unitPrice", "totalAmount"].includes(col.dataKey) && v !== "" && v !== "-") return formatNum(v);
+      return v ?? "";
+    })
+  );
+
+  autoTable(doc, {
+    startY: doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 56,
+    head: [columns.map((col) => col.header)],
+    body: bodyRows,
+    tableWidth,
+    margin: { left: marginLeft },
+    styles: {
+      fontSize: 9,
+      cellPadding: [4, 3],
+      textColor: [0, 0, 0],
+      lineColor: BORDER_BLUE,
+      lineWidth: 0.3,
+      font: "helvetica",
+    },
+    headStyles: {
+      fillColor: HEADER_BLUE,
+      textColor: [255, 255, 255],
+      fontStyle: "bold",
+      lineColor: HEADER_BLUE,
+      lineWidth: 0.3,
+    },
+    columnStyles,
+    theme: "grid",
+    didParseCell: (data) => {
+      if (data.section === "head" && columns[data.column.index]?.dataKey === "totalAmount") {
+        data.cell.styles.halign = "right";
+      }
+      if (data.section === "body" && tableData[data.row.index]?.[TOTAL_KEY]) {
+        data.cell.styles.fontStyle = "bold";
+      }
+      if (data.section === "body" && ["item", "company"].includes(columns[data.column.index]?.dataKey)) {
+        data.cell.styles.fontSize = 8;
+      }
+    },
+  });
 }
 
 // ─── Number → words ──────────────────────────────────────────────────────────
