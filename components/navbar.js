@@ -34,6 +34,7 @@ const items = [
   { id: "5", title: "Purchase", url: "/purchase", icon: <FileOutlined /> },
   { id: "6", title: "Inventory", url: "/inventory", icon: <ShopOutlined /> },
   { id: "7", title: "Sales", url: "/sales", icon: <FileOutlined /> },
+  { id: "11", title: "Quotation", url: "/quotation/create", icon: <FilePptOutlined /> },
   { id: "8", title: "Ledger", url: "/ledger", icon: <DatabaseOutlined /> },
   { id: "9", title: "Reports", url: "/reports", icon: <FilePptOutlined /> },
   { id: "10", title: "Cheques", url: "/cheques", icon: <DollarCircleOutlined /> },
