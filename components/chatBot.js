@@ -21,6 +21,8 @@ export default function ChatBot() {
   const [messages, setMessages] = useState(INITIAL_MESSAGES);
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(false);
+  const [progressText, setProgressText] = useState("");
+  const [progressPct, setProgressPct] = useState(null);
   const [sessionId, setSessionId] = useState(() => {
     if (typeof window !== "undefined") return sessionStorage.getItem("chatSessionId") || null;
     return null;
@@ -50,32 +52,71 @@ export default function ChatBot() {
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
     setLoading(true);
+    setProgressText("");
+    setProgressPct(null);
 
     try {
-      const res = await fetch("/api/chat/message", {
+      const res = await fetch("/api/chat/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text, sessionId }),
       });
 
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.message || "Request failed");
-
-      if (data.sessionId && !sessionId) {
-        setSessionId(data.sessionId);
-        sessionStorage.setItem("chatSessionId", data.sessionId);
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Request failed");
       }
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: ++msgCounter.current,
-          role: "assistant",
-          text: data.reply,
-          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        },
-      ]);
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let reply = null;
+      let newSessionId = null;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split("\n\n");
+        buffer = parts.pop(); // keep any incomplete chunk
+
+        for (const part of parts) {
+          for (const line of part.split("\n")) {
+            if (!line.startsWith("data: ")) continue;
+            const event = JSON.parse(line.slice(6));
+
+            if (event.type === "progress") {
+              if (event.text) setProgressText(event.text);
+              if (event.progress !== undefined && event.total) {
+                setProgressPct(Math.round((event.progress / event.total) * 100));
+              }
+            } else if (event.type === "complete") {
+              reply = event.reply;
+              newSessionId = event.sessionId;
+            } else if (event.type === "error") {
+              throw new Error(event.message);
+            }
+          }
+        }
+      }
+
+      if (newSessionId && !sessionId) {
+        setSessionId(newSessionId);
+        sessionStorage.setItem("chatSessionId", newSessionId);
+      }
+
+      if (reply) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: ++msgCounter.current,
+            role: "assistant",
+            text: reply,
+            time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          },
+        ]);
+      }
     } catch (err) {
       setMessages((prev) => [
         ...prev,
@@ -88,6 +129,8 @@ export default function ChatBot() {
       ]);
     } finally {
       setLoading(false);
+      setProgressText("");
+      setProgressPct(null);
     }
   };
 
@@ -116,7 +159,7 @@ export default function ChatBot() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          boxShadow: "0 4px 16px rgba(245,135,72,0.5)",
+          boxShadow: "0 4px 16px rgba(0, 145, 255, 0.5)",
           zIndex: 1000,
           transition: "transform 0.2s, box-shadow 0.2s",
         }}
@@ -327,25 +370,62 @@ export default function ChatBot() {
                   padding: "10px 14px",
                   borderRadius: "16px 16px 16px 4px",
                   boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-                  display: "flex",
-                  gap: 4,
-                  alignItems: "center",
+                  minWidth: 120,
+                  maxWidth: 260,
                 }}
               >
-                {[0, 1, 2].map((i) => (
-                  <span
-                    key={i}
+                <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                  {[0, 1, 2].map((i) => (
+                    <span
+                      key={i}
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: "50%",
+                        backgroundColor: "#bbb",
+                        display: "inline-block",
+                        animation: "bounce 1.2s infinite",
+                        animationDelay: `${i * 0.2}s`,
+                        flexShrink: 0,
+                      }}
+                    />
+                  ))}
+                  {progressText && (
+                    <span
+                      style={{
+                        marginLeft: 6,
+                        fontSize: 12,
+                        color: "#555",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {progressText}
+                    </span>
+                  )}
+                </div>
+                {progressPct !== null && progressPct < 100 && (
+                  <div
                     style={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: "50%",
-                      backgroundColor: "#bbb",
-                      display: "inline-block",
-                      animation: "bounce 1.2s infinite",
-                      animationDelay: `${i * 0.2}s`,
+                      marginTop: 7,
+                      height: 3,
+                      backgroundColor: "#f0f0f0",
+                      borderRadius: 2,
+                      overflow: "hidden",
                     }}
-                  />
-                ))}
+                  >
+                    <div
+                      style={{
+                        height: "100%",
+                        width: `${progressPct}%`,
+                        backgroundColor: "#1677ff",
+                        borderRadius: 2,
+                        transition: "width 0.3s ease",
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           )}

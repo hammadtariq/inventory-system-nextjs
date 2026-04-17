@@ -303,17 +303,41 @@ function getDateFilter(period) {
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
 
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
+server.setRequestHandler(CallToolRequestSchema, async (request, extra) => {
   const { name, arguments: args = {} } = request.params;
+
+  // MCP context helpers — mirrors context.info() and context.report_progress()
+  const context = {
+    info: async (message) => {
+      try {
+        await extra.sendNotification({
+          method: "notifications/message",
+          params: { level: "info", logger: "inventory-mcp", data: message },
+        });
+      } catch (_) {}
+    },
+    report_progress: async (progress, total) => {
+      const token = extra._meta?.progressToken;
+      if (token === undefined) return;
+      try {
+        await extra.sendNotification({
+          method: "notifications/progress",
+          params: { progressToken: token, progress, total },
+        });
+      } catch (_) {}
+    },
+  };
 
   try {
     switch (name) {
       // ── list_all_inventory ────────────────────────────────────────────────
       case "list_all_inventory": {
+        await context.info("Querying all inventory items…");
+        await context.report_progress(0, 1);
         const limit = args.limit || 50;
         const offset = args.offset || 0;
         const { rows } = await pool.query(
-          `SELECT i.id, i."itemName", i."noOfBales", i."onHand",
+          `SELECT i.id, i."itemName", i."noOfBales" AS "totalBalesPurchased", i."onHand" AS "currentStockOnHand",
                   i."baleWeightLbs", i."baleWeightKgs",
                   i."ratePerLbs", i."ratePerKgs", i."ratePerBale",
                   c."companyName" AS "companyName"
@@ -323,6 +347,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
            LIMIT $1 OFFSET $2`,
           [limit, offset]
         );
+        await context.report_progress(1, 1);
         return { content: [{ type: "text", text: JSON.stringify(rows, null, 2) }] };
       }
 
@@ -334,22 +359,33 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             isError: true,
           };
         }
+        await context.info(`Looking up inventory item${args.itemName ? `: "${args.itemName}"` : ""}…`);
+        await context.report_progress(0, 1);
         const query = args.id
-          ? `SELECT i.*, c."companyName" AS "companyName" FROM inventories i
+          ? `SELECT i.id, i."itemName", i."noOfBales" AS "totalBalesPurchased", i."onHand" AS "currentStockOnHand",
+                    i."baleWeightLbs", i."baleWeightKgs", i."ratePerLbs", i."ratePerKgs", i."ratePerBale",
+                    c."companyName" AS "companyName"
+             FROM inventories i
              LEFT JOIN companies c ON i."companyId" = c.id WHERE i.id = $1`
-          : `SELECT i.*, c."companyName" AS "companyName" FROM inventories i
+          : `SELECT i.id, i."itemName", i."noOfBales" AS "totalBalesPurchased", i."onHand" AS "currentStockOnHand",
+                    i."baleWeightLbs", i."baleWeightKgs", i."ratePerLbs", i."ratePerKgs", i."ratePerBale",
+                    c."companyName" AS "companyName"
+             FROM inventories i
              LEFT JOIN companies c ON i."companyId" = c.id
              WHERE ${normCol('i."itemName"')} LIKE $1`;
         const param = args.id ? args.id : `%${normalizeSearch(args.itemName)}%`;
         const { rows } = await pool.query(query, [param]);
+        await context.report_progress(1, 1);
         return { content: [{ type: "text", text: JSON.stringify(rows, null, 2) }] };
       }
 
       // ── get_low_stock ─────────────────────────────────────────────────────
       case "get_low_stock": {
+        await context.info(`Checking low-stock items (threshold: ${args.threshold || 10})…`);
+        await context.report_progress(0, 1);
         const threshold = args.threshold || 10;
         const { rows } = await pool.query(
-          `SELECT i.id, i."itemName", i."onHand", i."noOfBales",
+          `SELECT i.id, i."itemName", i."onHand" AS "currentStockOnHand", i."noOfBales" AS "totalBalesPurchased",
                   c."companyName" AS "companyName"
            FROM inventories i
            LEFT JOIN companies c ON i."companyId" = c.id
@@ -357,13 +393,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
            ORDER BY i."onHand" ASC`,
           [threshold]
         );
+        await context.report_progress(1, 1);
         return { content: [{ type: "text", text: JSON.stringify(rows, null, 2) }] };
       }
 
       // ── search_inventory ──────────────────────────────────────────────────
       case "search_inventory": {
+        await context.info(`Searching inventory for "${args.query}"…`);
+        await context.report_progress(0, 1);
         const { rows } = await pool.query(
-          `SELECT i.id, i."itemName", i."onHand", i."ratePerLbs",
+          `SELECT i.id, i."itemName", i."onHand" AS "currentStockOnHand", i."ratePerLbs",
                   i."ratePerKgs", i."ratePerBale",
                   c."companyName" AS "companyName"
            FROM inventories i
@@ -372,11 +411,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
            ORDER BY i."itemName"`,
           [`%${normalizeSearch(args.query)}%`]
         );
+        await context.report_progress(1, 1);
         return { content: [{ type: "text", text: JSON.stringify(rows, null, 2) }] };
       }
 
       // ── get_sales_history ─────────────────────────────────────────────────
       case "get_sales_history": {
+        await context.info("Loading sales history…");
+        await context.report_progress(0, 1);
         const limit = args.limit || 20;
         const conditions = [];
         const params = [];
@@ -413,11 +455,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
            LIMIT $${idx}`,
           params
         );
+        await context.report_progress(1, 1);
         return { content: [{ type: "text", text: JSON.stringify(rows, null, 2) }] };
       }
 
       // ── get_sales_summary ─────────────────────────────────────────────────
       case "get_sales_summary": {
+        await context.info(`Loading sales summary (${args.period || "all time"})…`);
+        await context.report_progress(0, 2);
         const period = args.period || "all";
         const fromDate = getDateFilter(period);
         const params = [];
@@ -433,6 +478,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           params
         );
 
+        await context.report_progress(1, 2);
         const { rows: topItems } = await pool.query(
           `SELECT item->>'itemName' AS "itemName",
                   SUM((item->>'noOfBales')::numeric) AS "totalBalesSold",
@@ -445,6 +491,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           params
         );
 
+        await context.report_progress(2, 2);
         return {
           content: [
             {
@@ -457,6 +504,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       // ── get_revenue_report ────────────────────────────────────────────────
       case "get_revenue_report": {
+        await context.info(`Building revenue report (${args.period || "month"})…`);
+        await context.report_progress(0, 2);
         const period = args.period || "month";
         const fromDate = getDateFilter(period);
         const params = [];
@@ -475,6 +524,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           params
         );
 
+        await context.report_progress(1, 2);
         const { rows: summary } = await pool.query(
           `SELECT COUNT(*) AS "totalTransactions",
                   COALESCE(SUM("totalAmount"), 0) AS "totalRevenue",
@@ -484,6 +534,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           params
         );
 
+        await context.report_progress(2, 2);
         return {
           content: [
             {
@@ -496,6 +547,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       // ── get_item_sales_performance ────────────────────────────────────────
       case "get_item_sales_performance": {
+        await context.info(`Fetching sales performance for "${args.item_name}"…`);
+        await context.report_progress(0, 1);
         const { rows } = await pool.query(
           `SELECT
             item->>'itemName' AS "itemName",
@@ -509,11 +562,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
            GROUP BY item->>'itemName'`,
           [`%${normalizeSearch(args.item_name)}%`]
         );
+        await context.report_progress(1, 1);
         return { content: [{ type: "text", text: JSON.stringify(rows, null, 2) }] };
       }
 
       // ── get_customers ─────────────────────────────────────────────────────
       case "get_customers": {
+        await context.info(args.search ? `Searching customers: "${args.search}"…` : "Loading customer list…");
+        await context.report_progress(0, 1);
         const limit = args.limit || 20;
         const params = [];
         let where = "";
@@ -531,11 +587,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
            LIMIT $${params.length}`,
           params
         );
+        await context.report_progress(1, 1);
         return { content: [{ type: "text", text: JSON.stringify(rows, null, 2) }] };
       }
 
       // ── get_top_customers_by_sales ────────────────────────────────────────
       case "get_top_customers_by_sales": {
+        await context.info(`Ranking customers by ${args.rank_by || "revenue"}…`);
+        await context.report_progress(0, 1);
         const limit = args.limit || 10;
         const period = args.period || "all";
         const rankBy = args.rank_by || "totalRevenue";
@@ -567,11 +626,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
            LIMIT $${params.length}`,
           params
         );
+        await context.report_progress(1, 1);
         return { content: [{ type: "text", text: JSON.stringify(rows, null, 2) }] };
       }
 
       // ── get_purchase_history ──────────────────────────────────────────────
       case "get_purchase_history": {
+        await context.info("Loading purchase history…");
+        await context.report_progress(0, 1);
         const limit = args.limit || 20;
         const conditions = [];
         const params = [];
@@ -608,11 +670,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
            LIMIT $${idx}`,
           params
         );
+        await context.report_progress(1, 1);
         return { content: [{ type: "text", text: JSON.stringify(rows, null, 2) }] };
       }
 
       // ── get_purchase_summary ──────────────────────────────────────────────
       case "get_purchase_summary": {
+        await context.info(`Loading purchase summary (${args.period || "all time"})…`);
+        await context.report_progress(0, 2);
         const period = args.period || "all";
         const fromDate = getDateFilter(period);
         const params = [];
@@ -628,6 +693,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           params
         );
 
+        await context.report_progress(1, 2);
         const { rows: topItems } = await pool.query(
           `SELECT item->>'itemName' AS "itemName",
                   SUM((item->>'noOfBales')::numeric) AS "totalBalesPurchased",
@@ -640,6 +706,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           params
         );
 
+        await context.report_progress(2, 2);
         return {
           content: [
             {
@@ -652,6 +719,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       // ── get_purchase_spend_report ─────────────────────────────────────────
       case "get_purchase_spend_report": {
+        await context.info(`Building purchase spend report (${args.period || "month"})…`);
+        await context.report_progress(0, 2);
         const period = args.period || "month";
         const fromDate = getDateFilter(period);
         const params = [];
@@ -670,6 +739,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           params
         );
 
+        await context.report_progress(1, 2);
         const { rows: summary } = await pool.query(
           `SELECT COUNT(*) AS "totalTransactions",
                   COALESCE(SUM("totalAmount"), 0) AS "totalSpend",
@@ -679,6 +749,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           params
         );
 
+        await context.report_progress(2, 2);
         return {
           content: [
             {
@@ -691,6 +762,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       // ── get_item_purchase_performance ─────────────────────────────────────
       case "get_item_purchase_performance": {
+        await context.info(`Fetching purchase performance for "${args.item_name}"…`);
+        await context.report_progress(0, 1);
         const { rows } = await pool.query(
           `SELECT
             item->>'itemName' AS "itemName",
@@ -704,11 +777,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
            GROUP BY item->>'itemName'`,
           [`%${normalizeSearch(args.item_name)}%`]
         );
+        await context.report_progress(1, 1);
         return { content: [{ type: "text", text: JSON.stringify(rows, null, 2) }] };
       }
 
       // ── get_top_purchasing_companies ──────────────────────────────────────
       case "get_top_purchasing_companies": {
+        await context.info(`Ranking companies by ${args.rank_by || "spend"}…`);
+        await context.report_progress(0, 1);
         const limit = args.limit || 10;
         const period = args.period || "all";
         const rankBy = args.rank_by || "totalSpend";
@@ -740,11 +816,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
            LIMIT $${params.length}`,
           params
         );
+        await context.report_progress(1, 1);
         return { content: [{ type: "text", text: JSON.stringify(rows, null, 2) }] };
       }
 
       // ── get_item_profitability ────────────────────────────────────────────
       case "get_item_profitability": {
+        await context.info(`Calculating item profitability (${args.period || "all time"})…`);
+        await context.report_progress(0, 1);
         const limit = args.limit || 10;
         const period = args.period || "all";
         const fromDate = getDateFilter(period);
@@ -835,6 +914,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
            LIMIT $${params.length}`,
           params
         );
+        await context.report_progress(1, 1);
         return { content: [{ type: "text", text: JSON.stringify(rows, null, 2) }] };
       }
 
@@ -846,6 +926,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             isError: true,
           };
         }
+
+        await context.info(`Fetching purchase details for ${args.company_name || `company #${args.company_id}`}…`);
+        await context.report_progress(0, 2);
 
         const limit = args.limit || 20;
         const conditions = [];
@@ -886,6 +969,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           params
         );
 
+        await context.report_progress(1, 2);
         // aggregate summary for this company
         const { rows: summary } = await pool.query(
           `SELECT c."companyName" AS "companyName",
@@ -900,6 +984,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           params.slice(0, 1)
         );
 
+        await context.report_progress(2, 2);
         return {
           content: [
             {
@@ -912,6 +997,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       // ── get_companies ─────────────────────────────────────────────────────
       case "get_companies": {
+        await context.info(args.search ? `Searching companies: "${args.search}"…` : "Loading company list…");
+        await context.report_progress(0, 1);
         const limit = args.limit || 20;
         const params = [];
         let where = "";
@@ -929,6 +1016,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
            LIMIT $${params.length}`,
           params
         );
+        await context.report_progress(1, 1);
         return { content: [{ type: "text", text: JSON.stringify(rows, null, 2) }] };
       }
 
