@@ -55,6 +55,9 @@ export default function ChatBot() {
     setProgressText("");
     setProgressPct(null);
 
+    // Stable ID for the streaming assistant bubble
+    const streamingId = ++msgCounter.current;
+
     try {
       const res = await fetch("/api/chat/stream", {
         method: "POST",
@@ -70,7 +73,7 @@ export default function ChatBot() {
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
-      let reply = null;
+      let streamingStarted = false;
       let newSessionId = null;
 
       while (true) {
@@ -91,9 +94,33 @@ export default function ChatBot() {
               if (event.progress !== undefined && event.total) {
                 setProgressPct(Math.round((event.progress / event.total) * 100));
               }
-            } else if (event.type === "complete") {
-              reply = event.reply;
+            } else if (event.type === "token") {
+              if (!streamingStarted) {
+                // First token — insert the streaming bubble and hide the loading indicator
+                streamingStarted = true;
+                setLoading(false);
+                setProgressText("");
+                setProgressPct(null);
+                setMessages((prev) => [
+                  ...prev,
+                  {
+                    id: streamingId,
+                    role: "assistant",
+                    text: event.text,
+                    time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                    streaming: true,
+                  },
+                ]);
+              } else {
+                // Append chunk to the existing streaming bubble
+                setMessages((prev) =>
+                  prev.map((m) => (m.id === streamingId ? { ...m, text: m.text + event.text } : m))
+                );
+              }
+            } else if (event.type === "done") {
               newSessionId = event.sessionId;
+              // Mark streaming complete (removes the cursor indicator if any)
+              setMessages((prev) => prev.map((m) => (m.id === streamingId ? { ...m, streaming: false } : m)));
             } else if (event.type === "error") {
               throw new Error(event.message);
             }
@@ -104,18 +131,6 @@ export default function ChatBot() {
       if (newSessionId && !sessionId) {
         setSessionId(newSessionId);
         sessionStorage.setItem("chatSessionId", newSessionId);
-      }
-
-      if (reply) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: ++msgCounter.current,
-            role: "assistant",
-            text: reply,
-            time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-          },
-        ]);
       }
     } catch (err) {
       setMessages((prev) => [
@@ -258,6 +273,9 @@ export default function ChatBot() {
                   >
                     {isUser ? (
                       msg.text
+                    ) : msg.streaming ? (
+                      // While streaming: plain pre-wrap text — no ReactMarkdown re-parsing on every token
+                      <span style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{msg.text}</span>
                     ) : (
                       <div className="chat-markdown">
                         <ReactMarkdown
@@ -499,6 +517,7 @@ export default function ChatBot() {
           0%, 80%, 100% { transform: translateY(0); }
           40% { transform: translateY(-5px); }
         }
+
         .chat-markdown table {
           display: block;
           overflow-x: auto;

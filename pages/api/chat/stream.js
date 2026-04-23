@@ -55,13 +55,15 @@ export default nextConnect()
 
     try {
       const claudeService = getClaudeService();
-      const { reply, updatedMessages } = await claudeService.chat(history, ({ text, progress, total }) => {
-        sendEvent(res, { type: "progress", text, progress, total });
-      });
+      const { updatedMessages } = await claudeService.chat(
+        history,
+        ({ text, progress, total }) => sendEvent(res, { type: "progress", text, progress, total }),
+        (chunk) => sendEvent(res, { type: "token", text: chunk })
+      );
 
       sessions.set(sid, { messages: updatedMessages, lastAccess: Date.now() });
 
-      sendEvent(res, { type: "complete", reply, sessionId: rawSid });
+      sendEvent(res, { type: "done", sessionId: rawSid });
     } catch (err) {
       console.error("[/api/chat/stream] Error:", err);
       sendEvent(res, { type: "error", message: "Failed to get AI response. Check ANTHROPIC_API_KEY." });

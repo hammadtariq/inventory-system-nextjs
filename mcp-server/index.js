@@ -554,7 +554,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request, extra) => {
             item->>'itemName' AS "itemName",
             SUM((item->>'noOfBales')::numeric) AS "totalBalesSold",
             COUNT(DISTINCT s.id) AS "totalOrders",
-            SUM(s."totalAmount") AS "revenueGenerated",
+            -- Use per-item ratePerBale × noOfBales, not the whole sale totalAmount
+            SUM(
+              COALESCE(NULLIF(item->>'ratePerBale', '')::numeric, 0)
+              * (item->>'noOfBales')::numeric
+            ) AS "revenueGenerated",
             MAX(s."soldDate") AS "lastSaleDate"
            FROM sales s, jsonb_array_elements(s."soldProducts") AS item
            WHERE ${normCol("item->>'itemName'")} LIKE $1
@@ -601,27 +605,44 @@ server.setRequestHandler(CallToolRequestSchema, async (request, extra) => {
         const fromDate = getDateFilter(period);
 
         const params = [];
-        const dateCondition = fromDate ? (params.push(fromDate), `AND s."soldDate" >= $${params.length}`) : "";
+        const dateCond = fromDate ? (params.push(fromDate), `AND s."soldDate" >= $${params.length}`) : "";
 
         const orderCol =
           rankBy === "totalSales" ? '"totalSales"' : rankBy === "totalBales" ? '"totalBalesSold"' : '"totalRevenue"';
 
         params.push(limit);
 
+        // Use CTEs to avoid the fanout bug: joining soldProducts JSONB inflates
+        // each sale row by product count, causing SUM(totalAmount) to be over-counted.
         const { rows } = await pool.query(
-          `SELECT cu.id AS "customerId",
+          `WITH customer_revenue AS (
+             SELECT s."customerId",
+                    COUNT(s.id)::integer                    AS "totalSales",
+                    COALESCE(SUM(s."totalAmount"), 0)       AS "totalRevenue",
+                    COALESCE(SUM(s."laborCharge"), 0)       AS "totalLaborCharges",
+                    MAX(s."soldDate")                        AS "lastSaleDate"
+             FROM sales s
+             WHERE s.status = 'APPROVED' ${dateCond}
+             GROUP BY s."customerId"
+           ),
+           customer_bales AS (
+             SELECT s."customerId",
+                    COALESCE(SUM((item->>'noOfBales')::numeric), 0) AS "totalBalesSold"
+             FROM sales s
+             CROSS JOIN jsonb_array_elements(s."soldProducts") AS item
+             WHERE s.status = 'APPROVED' ${dateCond}
+             GROUP BY s."customerId"
+           )
+           SELECT cu.id AS "customerId",
                   cu."firstName" || ' ' || cu."lastName" AS "customerName",
-                  COUNT(DISTINCT s.id) AS "totalSales",
-                  COALESCE(SUM(s."totalAmount"), 0) AS "totalRevenue",
-                  COALESCE(SUM(s."laborCharge"), 0) AS "totalLaborCharges",
-                  COALESCE(SUM((item.val->>'noOfBales')::numeric), 0) AS "totalBalesSold",
-                  MAX(s."soldDate") AS "lastSaleDate"
+                  COALESCE(cr."totalSales", 0)        AS "totalSales",
+                  COALESCE(cr."totalRevenue", 0)      AS "totalRevenue",
+                  COALESCE(cr."totalLaborCharges", 0) AS "totalLaborCharges",
+                  COALESCE(cb."totalBalesSold", 0)    AS "totalBalesSold",
+                  cr."lastSaleDate"
            FROM customers cu
-           LEFT JOIN sales s ON s."customerId" = cu.id AND s.status = 'APPROVED' ${dateCondition}
-           LEFT JOIN LATERAL jsonb_array_elements(
-             COALESCE(s."soldProducts", '[]'::jsonb)
-           ) AS item(val) ON true
-           GROUP BY cu.id, cu."firstName", cu."lastName"
+           LEFT JOIN customer_revenue cr ON cr."customerId" = cu.id
+           LEFT JOIN customer_bales   cb ON cb."customerId" = cu.id
            ORDER BY ${orderCol} DESC
            LIMIT $${params.length}`,
           params
@@ -769,7 +790,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request, extra) => {
             item->>'itemName' AS "itemName",
             SUM((item->>'noOfBales')::numeric) AS "totalBalesPurchased",
             COUNT(DISTINCT p.id) AS "totalOrders",
-            SUM(p."totalAmount") AS "totalSpend",
+            -- Use per-item ratePerBale × noOfBales, not the whole purchase totalAmount
+            SUM(
+              COALESCE(NULLIF(item->>'ratePerBale', '')::numeric, 0)
+              * (item->>'noOfBales')::numeric
+            ) AS "totalSpend",
             MAX(p."purchaseDate") AS "lastPurchaseDate"
            FROM purchases p, jsonb_array_elements(p."purchasedProducts") AS item
            WHERE ${normCol("item->>'itemName'")} LIKE $1
@@ -791,27 +816,42 @@ server.setRequestHandler(CallToolRequestSchema, async (request, extra) => {
         const fromDate = getDateFilter(period);
 
         const params = [];
-        const dateCondition = fromDate ? (params.push(fromDate), `AND p."purchaseDate" >= $${params.length}`) : "";
+        const dateCond = fromDate ? (params.push(fromDate), `AND p."purchaseDate" >= $${params.length}`) : "";
 
         const orderCol =
           rankBy === "totalPurchases" ? '"totalPurchases"' : rankBy === "totalBales" ? '"totalBales"' : '"totalSpend"';
 
         params.push(limit);
 
+        // Use CTEs to avoid the fanout bug: joining purchasedProducts JSONB inflates
+        // each purchase row by product count, causing SUM(totalAmount) to be over-counted.
         const { rows } = await pool.query(
-          `SELECT c.id AS "companyId",
+          `WITH company_spend AS (
+             SELECT p."companyId",
+                    COUNT(p.id)::integer                  AS "totalPurchases",
+                    COALESCE(SUM(p."totalAmount"), 0)     AS "totalSpend",
+                    COALESCE(SUM(p."surCharge"), 0)       AS "totalSurcharges"
+             FROM purchases p
+             WHERE p.status = 'APPROVED' ${dateCond}
+             GROUP BY p."companyId"
+           ),
+           company_bales AS (
+             SELECT p."companyId",
+                    COALESCE(SUM((item->>'noOfBales')::numeric), 0) AS "totalBales"
+             FROM purchases p
+             CROSS JOIN jsonb_array_elements(p."purchasedProducts") AS item
+             WHERE p.status = 'APPROVED' ${dateCond}
+             GROUP BY p."companyId"
+           )
+           SELECT c.id AS "companyId",
                   c."companyName" AS "companyName",
-                  COUNT(DISTINCT p.id) AS "totalPurchases",
-                  COALESCE(SUM(p."totalAmount"), 0) AS "totalSpend",
-                  COALESCE(SUM(p."surCharge"), 0) AS "totalSurcharges",
-                  COALESCE(SUM((item.val->>'noOfBales')::numeric), 0) AS "totalBales"
+                  COALESCE(cs."totalPurchases", 0)   AS "totalPurchases",
+                  COALESCE(cs."totalSpend", 0)        AS "totalSpend",
+                  COALESCE(cs."totalSurcharges", 0)   AS "totalSurcharges",
+                  COALESCE(cb."totalBales", 0)        AS "totalBales"
            FROM companies c
-           LEFT JOIN purchases p
-             ON p."companyId" = c.id AND p.status = 'APPROVED' ${dateCondition}
-           LEFT JOIN LATERAL jsonb_array_elements(
-             COALESCE(p."purchasedProducts", '[]'::jsonb)
-           ) AS item(val) ON true
-           GROUP BY c.id, c."companyName"
+           LEFT JOIN company_spend cs ON cs."companyId" = c.id
+           LEFT JOIN company_bales cb ON cb."companyId" = c.id
            ORDER BY ${orderCol} DESC
            LIMIT $${params.length}`,
           params
