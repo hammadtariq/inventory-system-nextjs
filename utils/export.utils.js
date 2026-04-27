@@ -335,6 +335,121 @@ export function generateQuotationTable(doc, tableData) {
   });
 }
 
+/**
+ * Generates and downloads a report-style PDF (not an invoice).
+ * @param {object} opts
+ * @param {string} opts.title - e.g. "SALE REPORT"
+ * @param {string[]} [opts.dateRange] - e.g. ["From Date: 01-04-2026", "To Date: 30-04-2026"]
+ * @param {string} [opts.filterLabel] - shown left below title, e.g. "Customer: John Doe"
+ * @param {{ header: string, dataKey: string, width?: number, halign?: string }[]} opts.columns
+ * @param {object[]} opts.rows
+ * @param {{ label: string, value: number|string }[]} [opts.summary]
+ */
+export function exportReportToPDF({ title, dateRange, filterLabel, columns, rows, summary }) {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.width;
+
+  // Company header top-right (same logo as invoices)
+  doc.addImage(ImageBase64URL, "PNG", pageWidth - 45, 4, 42, 34);
+
+  // Centered report title
+  doc.setFontSize(18);
+  doc.setFont("helvetica", "bold");
+  doc.text(title, pageWidth / 2, 44, { align: "center" });
+
+  const contextY = 52;
+  const lineHeight = 5;
+
+  // Left: filter lines rendered vertically (one per line)
+  const filterLines = Array.isArray(filterLabel) ? filterLabel : filterLabel ? [filterLabel] : [];
+  if (filterLines.length) {
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    filterLines.forEach((line, i) => {
+      doc.text(line, 14, contextY + i * lineHeight);
+    });
+  }
+
+  // Right: date range lines rendered vertically
+  if (dateRange && dateRange.length) {
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    dateRange.forEach((line, i) => {
+      doc.text(line, pageWidth - 14, contextY + i * lineHeight, { align: "right" });
+    });
+  }
+
+  const contextLines = Math.max(filterLines.length, dateRange ? dateRange.length : 0);
+  const tableStartY = contextLines > 0 ? contextY + contextLines * lineHeight + 6 : 52;
+  const margin = 14;
+  const tableWidth = pageWidth - margin * 2; // 182mm on A4
+
+  // Normalize column widths so they sum exactly to tableWidth (keeps proportions, fixes centering)
+  const hasWidths = columns.some((c) => c.width);
+  let columnStyles = {};
+  if (hasWidths) {
+    const totalDefined = columns.reduce((sum, c) => sum + (c.width || 0), 0);
+    const scale = totalDefined > 0 ? tableWidth / totalDefined : 1;
+    columnStyles = Object.fromEntries(
+      columns.map((col, i) => [i, { cellWidth: (col.width || 0) * scale, halign: col.halign || "left" }])
+    );
+  }
+
+  const headRow = columns.map((c) => c.header);
+  const bodyRows = rows.map((row, idx) =>
+    columns.map((col) => {
+      if (col.dataKey === "sl") return idx + 1;
+      const v = row[col.dataKey];
+      if (v === undefined || v === null || v === "" || v === "-") return "";
+      if (typeof v === "number") return formatNum(v);
+      return String(v);
+    })
+  );
+
+  autoTable(doc, {
+    startY: tableStartY,
+    head: [headRow],
+    body: bodyRows,
+    tableWidth,
+    margin: { left: margin, right: margin },
+    styles: {
+      fontSize: 8,
+      cellPadding: [3, 2],
+      textColor: [0, 0, 0],
+      lineColor: BORDER_BLUE,
+      lineWidth: 0.3,
+      font: "helvetica",
+    },
+    headStyles: {
+      fillColor: HEADER_BLUE,
+      textColor: [255, 255, 255],
+      fontStyle: "bold",
+      lineColor: HEADER_BLUE,
+    },
+    columnStyles,
+    theme: "grid",
+  });
+
+  // Summary section bottom-right
+  if (summary && summary.length > 0) {
+    const sumStartY = doc.lastAutoTable.finalY + 14;
+    const labelX = pageWidth - 65;
+    const valueX = pageWidth - 14;
+
+    doc.setFontSize(9);
+    summary.forEach((item, i) => {
+      const y = sumStartY + i * 7;
+      doc.setFont("helvetica", "normal");
+      doc.text(item.label, labelX, y);
+      doc.setFont("helvetica", "bold");
+      const valStr = typeof item.value === "number" ? formatNum(item.value) : String(item.value ?? "0");
+      doc.text(valStr, valueX, y, { align: "right" });
+    });
+  }
+
+  doc.save(`${title.replace(/\s+/g, "_").toLowerCase()}_${Date.now()}.pdf`);
+}
+
 // ─── Number → words ──────────────────────────────────────────────────────────
 export function numberToWords(num) {
   const units = [
