@@ -162,9 +162,9 @@ const createSaleReturn = async (req, res) => {
         customerId,
         totalAmount,
         reference,
-        spendType: SPEND_TYPE.DEBIT,
+        spendType: SPEND_TYPE.CREDIT,
         paymentDate: returnDate,
-        paymentType: PAYMENT_TYPE.CASH,
+        paymentType: PAYMENT_TYPE.REFUND,
       },
       transaction
     );

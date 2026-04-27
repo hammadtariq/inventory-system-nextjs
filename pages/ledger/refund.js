@@ -60,9 +60,9 @@ const RefundToCustomer = () => {
           customerId,
           totalAmount,
           reference,
-          spendType: SPEND_TYPE.DEBIT,
+          spendType: SPEND_TYPE.CREDIT,
           paymentDate: dayjs(paymentDate),
-          paymentType: PAYMENT_TYPE.CASH,
+          paymentType: PAYMENT_TYPE.REFUND,
         });
 
         router.push("/ledger");
