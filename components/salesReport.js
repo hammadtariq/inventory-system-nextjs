@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { InputNumber, Row, Col, Typography, Divider, DatePicker } from "antd";
+import { Button, Card, Col, DatePicker, InputNumber, Row, Statistic } from "antd";
+import { FilePdfOutlined, FileExcelOutlined } from "@ant-design/icons";
+import * as XLSX from "xlsx";
 import styles from "@/styles/Report.module.css";
 import SearchInput from "./SearchInput";
 import { getAllSalesForReport, searchSales } from "@/hooks/sales";
@@ -9,6 +11,7 @@ import dayjs from "dayjs";
 import AppTable from "./table";
 import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 import { comaSeparatedValues } from "@/utils/comaSeparatedValues";
+import { exportReportToPDF } from "@/utils/export.utils";
 import weekday from "dayjs/plugin/weekday";
 import localeData from "dayjs/plugin/localeData";
 
@@ -16,7 +19,6 @@ dayjs.extend(weekday);
 dayjs.extend(localeData);
 
 const { RangePicker } = DatePicker;
-const { Title } = Typography;
 const startToTodayDate = [dayjs().startOf("month"), dayjs().endOf("month")];
 
 const columns = [
@@ -71,11 +73,11 @@ const columns = [
 
 const SalesReport = () => {
   const [searchCriteria, setSearchCriteria] = useState({ customer: "", company: "", item: "" });
+  const [searchLabels, setSearchLabels] = useState({ customer: "", company: "" });
   const [dateRange, setDateRange] = useState(startToTodayDate);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_LIMIT);
   const [updatedSales, setUpdatedSales] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-
   const [total, setTotal] = useState({});
 
   const transformData = (salesData) =>
@@ -106,7 +108,6 @@ const SalesReport = () => {
   const handlePagination = (newPageSize, offset) => {
     setPageSize(newPageSize);
     setCurrentPage(offset / newPageSize + 1);
-    fetchSalesData();
   };
 
   const handleSearch = async (value, type) => {
@@ -114,17 +115,18 @@ const SalesReport = () => {
       setSearchCriteria((prev) => ({ ...prev, [type]: "" }));
       return;
     }
-    const result =
-      type === "company"
-        ? await searchCompany(value)
-        : type === "item"
-        ? await searchItems(value)
-        : await searchSales(value);
-    return result;
+    return type === "company"
+      ? await searchCompany(value)
+      : type === "item"
+      ? await searchItems(value)
+      : await searchSales(value);
   };
 
-  const handleSelect = (id, type) => {
+  const handleSelect = (id, type, label) => {
     setSearchCriteria((prev) => ({ ...prev, [type]: id }));
+    if (label && (type === "customer" || type === "company")) {
+      setSearchLabels((prev) => ({ ...prev, [type]: label }));
+    }
   };
 
   const fetchSalesData = useCallback(async () => {
@@ -133,94 +135,194 @@ const SalesReport = () => {
       ...searchCriteria,
       dateRangeStart: start,
       dateRangeEnd: end,
-      page: currentPage,
-      limit: pageSize,
     });
     const transformedData = transformData(salesResults.rows);
     const totals = transformedData.reduce((acc, sale) => {
-      // Check if the invoiceNo is already processed
       if (!acc.processedInvoiceNos) acc.processedInvoiceNos = new Set();
-
       if (!acc.processedInvoiceNos.has(sale.invoiceNo)) {
         acc.processedInvoiceNos.add(sale.invoiceNo);
-
-        // Aggregate totals based on invoiceNo (only totalAmount for each unique invoiceNo)
         if (typeof sale.totalAmount === "number") {
           acc.totalAmount = (acc.totalAmount || 0) + sale.totalAmount;
         }
       }
-
-      // Aggregate other fields globally (don't change their behavior)
       Object.keys(sale).forEach((key) => {
         if (key !== "totalAmount" && typeof sale[key] === "number") {
           acc[key] = (acc[key] || 0) + sale[key];
         }
       });
-
       return acc;
     }, {});
 
     setUpdatedSales(transformedData);
     setTotal(totals);
-  }, [dateRange, searchCriteria, currentPage, pageSize]);
+  }, [dateRange, searchCriteria]);
 
   useEffect(() => {
     fetchSalesData();
   }, [fetchSalesData]);
 
+  const uniqueInvoiceCount = new Set(updatedSales.map((r) => r.invoiceNo)).size;
+
+  const handleExportPDF = () => {
+    const dateFrom = dateRange ? dateRange[0].format("DD-MM-YYYY") : "";
+    const dateTo = dateRange ? dateRange[1].format("DD-MM-YYYY") : "";
+
+    const filterLines = [];
+    if (searchLabels.customer) filterLines.push(`Customer: ${searchLabels.customer}`);
+    if (searchLabels.company) filterLines.push(`Company: ${searchLabels.company}`);
+
+    exportReportToPDF({
+      title: "SALE REPORT",
+      dateRange: [`From Date: ${dateFrom}`, `To Date: ${dateTo}`],
+      filterLabel: filterLines.length ? filterLines : undefined,
+      columns: [
+        { header: "SL", dataKey: "sl", width: 10, halign: "center" },
+        { header: "Date", dataKey: "soldDate", width: 22 },
+        { header: "Invoice", dataKey: "invoiceNo", width: 20 },
+        { header: "Customer", dataKey: "customer", width: 30 },
+        { header: "Item", dataKey: "itemName", width: 35 },
+        { header: "Company", dataKey: "company", width: 28 },
+        { header: "No. of Bales", dataKey: "noOfBales", width: 22, halign: "center" },
+        { header: "Total Amount", dataKey: "totalAmount", width: 25, halign: "right" },
+      ],
+      rows: updatedSales,
+      summary: [
+        { label: "Total Invoices", value: uniqueInvoiceCount },
+        { label: "Total Bales", value: total.noOfBales || 0 },
+        { label: "Total Amount", value: total.totalAmount || 0 },
+      ],
+    });
+  };
+
+  const handleExportExcel = () => {
+    const excelRows = updatedSales.map((row, idx) => ({
+      SL: idx + 1,
+      Date: row.soldDate,
+      Invoice: row.invoiceNo,
+      Customer: row.customer,
+      "Item Name": row.itemName,
+      Company: row.company,
+      "No. of Bales": row.noOfBales,
+      "Bale Weight (LBS)": row.baleWeightLbs,
+      "Bale Weight (KGS)": row.baleWeightKgs,
+      "Rate Per LBS": row.ratePerLbs,
+      "Rate Per KGS": row.ratePerKgs,
+      "Rate Per Bale": row.ratePerBale,
+      "Labour Charge": row.laborCharge,
+      "Total Amount": row.totalAmount,
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(excelRows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Sales Report");
+
+    const summaryStart = excelRows.length + 3;
+    XLSX.utils.sheet_add_aoa(
+      ws,
+      [
+        ["Total Invoices", uniqueInvoiceCount],
+        ["Total Bales", total.noOfBales || 0],
+        ["Total Amount", total.totalAmount || 0],
+      ],
+      { origin: `A${summaryStart}` }
+    );
+
+    XLSX.writeFile(wb, `sale_report_${Date.now()}.xlsx`);
+  };
+
   return (
     <div className={styles.container}>
-      <Row gutter={16}>
-        <Col span={18}>
-          <Title level={5}>Search:</Title>
+      {/* Summary Cards */}
+      <Row gutter={[16, 16]} className={styles.summaryCards}>
+        <Col xs={24} sm={8}>
+          <Card bordered={false} className={styles.statCard}>
+            <Statistic title="Total Invoices" value={uniqueInvoiceCount} />
+          </Card>
         </Col>
-        <Col span={6}>
-          <Title level={5}>Date Range:</Title>
+        <Col xs={24} sm={8}>
+          <Card bordered={false} className={styles.statCard}>
+            <Statistic title="Total Bales" value={comaSeparatedValues(total.noOfBales || 0)} />
+          </Card>
         </Col>
-      </Row>
-      <Row gutter={16}>
-        <Col span={18}>
-          <SearchInput
-            valueKey="firstName"
-            valueKey2="lastName"
-            placeholder="Customer"
-            handleSearch={(value) => handleSearch(value, "customer")}
-            handleSelect={(id) => handleSelect(id, "customer")}
-          />
-        </Col>
-        <Col span={6}>
-          <RangePicker className={styles.gap} value={dateRange} onChange={(newRange) => setDateRange(newRange)} />
-        </Col>
-      </Row>
-      <Row gutter={16}>
-        <Col span={18}>
-          <SearchInput
-            valueKey="companyName"
-            placeholder="Company"
-            handleSearch={(value) => handleSearch(value, "company")}
-            handleSelect={(id) => handleSelect(id, "company")}
-          />
-        </Col>
-        <Col span={6}>
-          <SearchInput
-            valueKey="itemName"
-            valueKey2="company.companyName"
-            placeholder="Item"
-            type="item"
-            handleSearch={(value) => handleSearch(value, "item")}
-            handleSelect={(id) => handleSelect(id, "item")}
-          />
+        <Col xs={24} sm={8}>
+          <Card bordered={false} className={styles.statCard}>
+            <Statistic title="Total Amount (Rs)" value={comaSeparatedValues(total.totalAmount || 0)} />
+          </Card>
         </Col>
       </Row>
 
-      <Divider />
+      {/* Filters Card */}
+      <Card
+        className={styles.filterCard}
+        title={<span className={styles.filterTitle}>Filters</span>}
+        extra={
+          <div className={styles.exportButtons}>
+            <Button
+              type="primary"
+              danger
+              icon={<FilePdfOutlined />}
+              onClick={handleExportPDF}
+              disabled={!updatedSales.length}
+            >
+              PDF
+            </Button>
+            <Button
+              type="primary"
+              icon={<FileExcelOutlined />}
+              onClick={handleExportExcel}
+              disabled={!updatedSales.length}
+              style={{ backgroundColor: "#217346", borderColor: "#217346" }}
+            >
+              Excel
+            </Button>
+          </div>
+        }
+      >
+        <Row gutter={[16, 12]}>
+          <Col xs={24} sm={12} lg={8}>
+            <div className={styles.filterLabel}>Customer</div>
+            <SearchInput
+              valueKey="firstName"
+              valueKey2="lastName"
+              placeholder="Search customer..."
+              handleSearch={(value) => handleSearch(value, "customer")}
+              handleSelect={(id, label) => handleSelect(id, "customer", label)}
+            />
+          </Col>
+          <Col xs={24} sm={12} lg={8}>
+            <div className={styles.filterLabel}>Company</div>
+            <SearchInput
+              valueKey="companyName"
+              placeholder="Search company..."
+              handleSearch={(value) => handleSearch(value, "company")}
+              handleSelect={(id, label) => handleSelect(id, "company", label)}
+            />
+          </Col>
+          <Col xs={24} sm={12} lg={8}>
+            <div className={styles.filterLabel}>Item</div>
+            <SearchInput
+              valueKey="itemName"
+              valueKey2="company.companyName"
+              placeholder="Search item..."
+              type="item"
+              handleSearch={(value) => handleSearch(value, "item")}
+              handleSelect={(id) => handleSelect(id, "item")}
+            />
+          </Col>
+          <Col xs={24} sm={12} lg={8}>
+            <div className={styles.filterLabel}>Date Range</div>
+            <RangePicker style={{ width: "100%" }} value={dateRange} onChange={(newRange) => setDateRange(newRange)} />
+          </Col>
+        </Row>
+      </Card>
+
+      {/* Data Table */}
       <AppTable
         columns={columns}
         dataSource={updatedSales}
         paginationHandler={handlePagination}
-        current={currentPage}
         pageSize={pageSize}
-        rowKey="id"
+        rowKey={(record, idx) => `${record.invoiceNo}_${idx}`}
         rowClassName={styles.editableRow}
         totalCount={updatedSales ? updatedSales.length : 0}
         footer={() => (
