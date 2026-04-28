@@ -85,8 +85,8 @@ const LedgerDetailsContent = ({ id, type }) => {
     },
     {
       title: "Date",
-      dataIndex: "paymentDate",
-      key: "paymentDate",
+      dataIndex: "updatedAt",
+      key: "updatedAt",
       render: (text) => (text ? dayjs(text).format(DATE_FORMAT) : ""),
     },
     {
@@ -128,12 +128,7 @@ const LedgerDetailsContent = ({ id, type }) => {
       dataIndex: "amount",
       key: "amount",
       render: (text, _data) => {
-        if (_data.paymentType && type === "customer") {
-          return comaSeparatedValues(text.toFixed(2));
-        } else if (!_data.paymentType) {
-          return _data.spendType === SPEND_TYPE.DEBIT ? comaSeparatedValues(text.toFixed(2)) : "";
-        }
-        return "";
+        return _data.spendType === SPEND_TYPE.DEBIT ? comaSeparatedValues(text.toFixed(2)) : "";
       },
     },
     {
@@ -141,11 +136,7 @@ const LedgerDetailsContent = ({ id, type }) => {
       dataIndex: "amount",
       key: "amount",
       render: (text, _data) => {
-        if (_data.paymentType && type === "company") {
-          return comaSeparatedValues(text.toFixed(2));
-        } else if (!_data.paymentType) {
-          return _data.spendType === SPEND_TYPE.CREDIT ? comaSeparatedValues(text.toFixed(2)) : "";
-        }
+        return _data.spendType === SPEND_TYPE.CREDIT ? comaSeparatedValues(text.toFixed(2)) : "";
       },
     },
     {

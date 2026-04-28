@@ -162,9 +162,9 @@ const createSaleReturn = async (req, res) => {
         customerId,
         totalAmount,
         reference,
-        spendType: SPEND_TYPE.DEBIT,
+        spendType: SPEND_TYPE.CREDIT,
         paymentDate: returnDate,
-        paymentType: PAYMENT_TYPE.CASH,
+        paymentType: PAYMENT_TYPE.REFUND,
       },
       transaction
     );
@@ -203,4 +203,23 @@ const createSaleReturn = async (req, res) => {
   }
 };
 
-export default nextConnect().use(auth).post(createSaleReturn);
+const getAllSaleReturns = async (req, res) => {
+  console.log("Get all sale returns Request Start");
+  const { limit, offset } = req.query;
+  try {
+    await db.dbConnect();
+    const saleReturns = await db.SaleReturn.findAndCountAll({
+      limit: limit ? Number(limit) : 50,
+      offset: offset ? Number(offset) : 0,
+      include: [db.Customer, db.Sale],
+      order: [["createdAt", "DESC"]],
+    });
+    console.log("Get all sale returns Request End");
+    return res.send(saleReturns);
+  } catch (err) {
+    console.log("Get all sale returns Request Error:", err);
+    return res.status(500).send({ message: err.toString() });
+  }
+};
+
+export default nextConnect().use(auth).post(createSaleReturn).get(getAllSaleReturns);

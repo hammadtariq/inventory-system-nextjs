@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { InputNumber, Row, Col, Typography, Divider, DatePicker } from "antd";
+import { Button, Card, Col, DatePicker, InputNumber, Row, Statistic } from "antd";
+import { FilePdfOutlined, FileExcelOutlined } from "@ant-design/icons";
+import * as XLSX from "xlsx";
 import styles from "@/styles/Report.module.css";
 import SearchInput from "./SearchInput";
 import { searchCompany } from "@/hooks/company";
@@ -8,15 +10,15 @@ import dayjs from "dayjs";
 import AppTable from "./table";
 import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 import { comaSeparatedValues } from "@/utils/comaSeparatedValues";
+import { exportReportToPDF } from "@/utils/export.utils";
+import { getAllPurchaseForReport } from "@/hooks/purchase";
 import weekday from "dayjs/plugin/weekday";
 import localeData from "dayjs/plugin/localeData";
-import { getAllPurchaseForReport } from "@/hooks/purchase";
 
 dayjs.extend(weekday);
 dayjs.extend(localeData);
 
 const { RangePicker } = DatePicker;
-const { Title } = Typography;
 const startToTodayDate = [dayjs().startOf("month"), dayjs().endOf("month")];
 
 const columns = [
@@ -69,13 +71,12 @@ const columns = [
 ];
 
 const PurchaseReport = () => {
-  // TODO: Most Boughten Items Filter
   const [searchCriteria, setSearchCriteria] = useState({ mostBoughten: false, company: "", item: "" });
+  const [searchLabels, setSearchLabels] = useState({ company: "" });
   const [dateRange, setDateRange] = useState(startToTodayDate);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_LIMIT);
   const [updatedPurchase, setUpdatedPurchase] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-
   const [total, setTotal] = useState({});
 
   const transformData = (purchaseData) =>
@@ -105,7 +106,6 @@ const PurchaseReport = () => {
   const handlePagination = (newPageSize, offset) => {
     setPageSize(newPageSize);
     setCurrentPage(offset / newPageSize + 1);
-    fetchPurchaseData();
   };
 
   const handleSearch = async (value, type) => {
@@ -113,12 +113,12 @@ const PurchaseReport = () => {
       setSearchCriteria((prev) => ({ ...prev, [type]: "" }));
       return;
     }
-    const result = type === "company" ? await searchCompany(value) : await searchItems(value);
-    return result;
+    return type === "company" ? await searchCompany(value) : await searchItems(value);
   };
 
-  const handleSelect = (id, type) => {
+  const handleSelect = (id, type, label) => {
     setSearchCriteria((prev) => ({ ...prev, [type]: id }));
+    if (type === "company" && label) setSearchLabels((prev) => ({ ...prev, company: label }));
   };
 
   const fetchPurchaseData = useCallback(async () => {
@@ -127,85 +127,179 @@ const PurchaseReport = () => {
       ...searchCriteria,
       dateRangeStart: start,
       dateRangeEnd: end,
-      page: currentPage,
-      limit: pageSize,
     });
     const transformedData = transformData(purchaseResults.rows);
     const totals = transformedData.reduce((acc, purchase) => {
-      // Check if the invoiceNo is already processed
       if (!acc.processedInvoiceNos) acc.processedInvoiceNos = new Set();
-
       if (!acc.processedInvoiceNos.has(purchase.invoiceNo)) {
         acc.processedInvoiceNos.add(purchase.invoiceNo);
-
-        // Aggregate totals based on invoiceNo (only totalAmount for each unique invoiceNo)
         if (typeof purchase.totalAmount === "number") {
           acc.totalAmount = (acc.totalAmount || 0) + purchase.totalAmount;
         }
       }
-
-      // Aggregate other fields globally (don't change their behavior)
       Object.keys(purchase).forEach((key) => {
         if (key !== "totalAmount" && typeof purchase[key] === "number") {
           acc[key] = (acc[key] || 0) + purchase[key];
         }
       });
-
       return acc;
     }, {});
 
     setUpdatedPurchase(transformedData);
     setTotal(totals);
-  }, [dateRange, searchCriteria, currentPage, pageSize]);
+  }, [dateRange, searchCriteria]);
 
   useEffect(() => {
     fetchPurchaseData();
   }, [fetchPurchaseData]);
 
+  const uniqueInvoiceCount = new Set(updatedPurchase.map((r) => r.invoiceNo)).size;
+
+  const handleExportPDF = () => {
+    const dateFrom = dateRange ? dateRange[0].format("DD-MM-YYYY") : "";
+    const dateTo = dateRange ? dateRange[1].format("DD-MM-YYYY") : "";
+
+    exportReportToPDF({
+      title: "PURCHASE REPORT",
+      dateRange: [`From Date: ${dateFrom}`, `To Date: ${dateTo}`],
+      filterLabel: searchLabels.company ? [`Supplier: ${searchLabels.company}`] : undefined,
+      columns: [
+        { header: "SL", dataKey: "sl", width: 10, halign: "center" },
+        { header: "Date", dataKey: "purchaseDate", width: 22 },
+        { header: "Invoice", dataKey: "invoiceNo", width: 20 },
+        { header: "Supplier", dataKey: "company", width: 32 },
+        { header: "Item", dataKey: "itemName", width: 40 },
+        { header: "No. of Bales", dataKey: "noOfBales", width: 22, halign: "center" },
+        { header: "Sur Charge", dataKey: "surCharge", width: 18, halign: "right" },
+        { header: "Total Amount", dataKey: "totalAmount", width: 28, halign: "right" },
+      ],
+      rows: updatedPurchase,
+      summary: [
+        { label: "Total Invoices", value: uniqueInvoiceCount },
+        { label: "Total Bales", value: total.noOfBales || 0 },
+        { label: "Total Amount", value: total.totalAmount || 0 },
+      ],
+    });
+  };
+
+  const handleExportExcel = () => {
+    const excelRows = updatedPurchase.map((row, idx) => ({
+      SL: idx + 1,
+      Date: row.purchaseDate,
+      Invoice: row.invoiceNo,
+      Supplier: row.company,
+      "Item Name": row.itemName,
+      "No. of Bales": row.noOfBales,
+      "Bale Weight (LBS)": row.baleWeightLbs,
+      "Bale Weight (KGS)": row.baleWeightKgs,
+      "Rate Per LBS": row.ratePerLbs,
+      "Rate Per KGS": row.ratePerKgs,
+      "Rate Per Bale": row.ratePerBale,
+      "Sur Charge": row.surCharge,
+      "Total Amount": row.totalAmount,
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(excelRows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Purchase Report");
+
+    const summaryStart = excelRows.length + 3;
+    XLSX.utils.sheet_add_aoa(
+      ws,
+      [
+        ["Total Invoices", uniqueInvoiceCount],
+        ["Total Bales", total.noOfBales || 0],
+        ["Total Amount", total.totalAmount || 0],
+      ],
+      { origin: `A${summaryStart}` }
+    );
+
+    XLSX.writeFile(wb, `purchase_report_${Date.now()}.xlsx`);
+  };
+
   return (
     <div className={styles.container}>
-      <Row gutter={16}>
-        <Col span={18}>
-          <Title level={5}>Search:</Title>
+      {/* Summary Cards */}
+      <Row gutter={[16, 16]} className={styles.summaryCards}>
+        <Col xs={24} sm={8}>
+          <Card bordered={false} className={styles.statCard}>
+            <Statistic title="Total Invoices" value={uniqueInvoiceCount} />
+          </Card>
         </Col>
-        <Col span={6}>
-          <Title level={5}>Date Range:</Title>
+        <Col xs={24} sm={8}>
+          <Card bordered={false} className={styles.statCard}>
+            <Statistic title="Total Bales" value={comaSeparatedValues(total.noOfBales || 0)} />
+          </Card>
         </Col>
-      </Row>
-      <Row gutter={16}>
-        <Col span={18}>
-          <SearchInput
-            valueKey="companyName"
-            placeholder="Company"
-            handleSearch={(value) => handleSearch(value, "company")}
-            handleSelect={(id) => handleSelect(id, "company")}
-          />
-        </Col>
-        <Col span={6}>
-          <RangePicker className={styles.gap} value={dateRange} onChange={(newRange) => setDateRange(newRange)} />
-        </Col>
-      </Row>
-      <Row gutter={16}>
-        <Col span={18}>
-          <SearchInput
-            valueKey="itemName"
-            valueKey2="company.companyName"
-            placeholder="Item"
-            type="item"
-            handleSearch={(value) => handleSearch(value, "item")}
-            handleSelect={(id) => handleSelect(id, "item")}
-          />
+        <Col xs={24} sm={8}>
+          <Card bordered={false} className={styles.statCard}>
+            <Statistic title="Total Amount (Rs)" value={comaSeparatedValues(total.totalAmount || 0)} />
+          </Card>
         </Col>
       </Row>
 
-      <Divider />
+      {/* Filters Card */}
+      <Card
+        className={styles.filterCard}
+        title={<span className={styles.filterTitle}>Filters</span>}
+        extra={
+          <div className={styles.exportButtons}>
+            <Button
+              type="primary"
+              danger
+              icon={<FilePdfOutlined />}
+              onClick={handleExportPDF}
+              disabled={!updatedPurchase.length}
+            >
+              PDF
+            </Button>
+            <Button
+              type="primary"
+              icon={<FileExcelOutlined />}
+              onClick={handleExportExcel}
+              disabled={!updatedPurchase.length}
+              style={{ backgroundColor: "#217346", borderColor: "#217346" }}
+            >
+              Excel
+            </Button>
+          </div>
+        }
+      >
+        <Row gutter={[16, 12]}>
+          <Col xs={24} sm={12} lg={8}>
+            <div className={styles.filterLabel}>Company</div>
+            <SearchInput
+              valueKey="companyName"
+              placeholder="Search company..."
+              handleSearch={(value) => handleSearch(value, "company")}
+              handleSelect={(id, label) => handleSelect(id, "company", label)}
+            />
+          </Col>
+          <Col xs={24} sm={12} lg={8}>
+            <div className={styles.filterLabel}>Item</div>
+            <SearchInput
+              valueKey="itemName"
+              valueKey2="company.companyName"
+              placeholder="Search item..."
+              type="item"
+              handleSearch={(value) => handleSearch(value, "item")}
+              handleSelect={(id) => handleSelect(id, "item")}
+            />
+          </Col>
+          <Col xs={24} sm={12} lg={8}>
+            <div className={styles.filterLabel}>Date Range</div>
+            <RangePicker style={{ width: "100%" }} value={dateRange} onChange={(newRange) => setDateRange(newRange)} />
+          </Col>
+        </Row>
+      </Card>
+
+      {/* Data Table */}
       <AppTable
         columns={columns}
         dataSource={updatedPurchase}
         paginationHandler={handlePagination}
-        current={currentPage}
         pageSize={pageSize}
-        rowKey="id"
+        rowKey={(record, idx) => `${record.invoiceNo}_${idx}`}
         rowClassName={styles.editableRow}
         totalCount={updatedPurchase ? updatedPurchase.length : 0}
         footer={() => (

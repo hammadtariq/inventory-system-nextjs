@@ -24,13 +24,6 @@ const getLedgerBalance = (transaction, type) => {
   return Number(balance ?? transaction.totalBalance ?? 0);
 };
 
-// Net contribution of a single transaction to the running balance
-const computeNetAmount = (t, type) => {
-  const raw = typeof t.get === "function" ? t.get({ plain: true }) : t;
-  if (raw.paymentType) return type === "customer" ? raw.amount : -raw.amount;
-  return raw.spendType === "DEBIT" ? raw.amount : -raw.amount;
-};
-
 const getDebitAmount = (transaction, type) => {
   if (transaction.paymentType) {
     return type === "customer" ? transaction.amount || 0 : 0;
@@ -79,12 +72,11 @@ const generateCustomerLedgerPdf = (transactions, totalBalance, headerFrom, heade
 
   // 2. Ledger Header with Dates (use provided range if any; else derive from rows)
   const fromDate =
-    headerFrom ?? (transactions[0]?.paymentDate ? dayjs(transactions[0].paymentDate).format("DD-MMM-YYYY") : "");
-  const toDate =
-    headerTo ??
-    (transactions[transactions.length - 1]?.paymentDate
-      ? dayjs(transactions[transactions.length - 1].paymentDate).format("DD-MMM-YYYY")
+    headerFrom ??
+    (transactions[transactions.length - 1]?.updatedAt
+      ? dayjs(transactions[transactions.length - 1].updatedAt).format("DD-MMM-YYYY")
       : "");
+  const toDate = headerTo ?? (transactions[0]?.updatedAt ? dayjs(transactions[0].updatedAt).format("DD-MMM-YYYY") : "");
 
   doc.setFontSize(11);
   if (fromDate || toDate) {
@@ -114,7 +106,7 @@ const generateCustomerLedgerPdf = (transactions, totalBalance, headerFrom, heade
   const rows = transactions.map((row) => {
     const rowBalance = balanceMap ? balanceMap.get(row.id) : getLedgerBalance(row, type);
     return [
-      row.paymentDate ? dayjs(row.paymentDate).format("DD-MM-YYYY") : "",
+      row.updatedAt ? dayjs(row.updatedAt).format("DD-MM-YYYY") : "",
       row.company ? row.company.companyName : row.otherName || "",
       row.reference || "",
       row.invoiceNumber || "",
@@ -229,7 +221,7 @@ const sanitizeTransactions = (transactions, type, balanceMap) =>
     }
     const rowBalance = balanceMap ? balanceMap.get(id) : getLedgerBalance(t, type);
     return {
-      Date: dayjs(t.paymentDate).format("DD-MM-YYYY"),
+      Date: t.updatedAt ? dayjs(t.updatedAt).format("DD-MM-YYYY") : "",
       PaidTo: t.company ? t.company.companyName : t.otherName || "",
       reference: t.reference,
       Debit: getDebitAmount(t, type) ? getDebitAmount(t, type).toFixed(2) : "",
@@ -268,22 +260,16 @@ const exportCustomerLedger = async (req, res) => {
 
     // Apply inclusive date filter only if both dates are provided
     if (start && end) {
-      where.paymentDate = { [Op.between]: [start.toDate(), end.toDate()] };
+      where.updatedAt = { [Op.between]: [start.toDate(), end.toDate()] };
     } else if (start && !end) {
-      // If only startDate provided, from startDate to future
-      where.paymentDate = { [Op.gte]: start.toDate() };
+      where.updatedAt = { [Op.gte]: start.toDate() };
     } else if (!start && end) {
-      // If only endDate provided, up to endDate
-      where.paymentDate = { [Op.lte]: end.toDate() };
+      where.updatedAt = { [Op.lte]: end.toDate() };
     }
 
     const transactions = await db.Ledger.findAll({
       where,
-      // chronological for a statement; tie-breaker on id
-      order: [
-        ["paymentDate", "DESC"],
-        ["id", "DESC"],
-      ],
+      order: [["id", "DESC"]],
       include: [
         {
           model: db.Company,
@@ -304,29 +290,9 @@ const exportCustomerLedger = async (req, res) => {
     const totalBalanceRows = await db.sequelize.query(rawQuery, { type: db.Sequelize.QueryTypes.SELECT });
     const totalBalanceFromQuery = Number(totalBalanceRows?.[0]?.amount ?? 0);
 
-    // Compute opening balance: sum of all transactions before the startDate
-    let openingBalance = 0;
-    if (start) {
-      const openingRows = await db.Ledger.findAll({
-        where: { ...baseCondition, paymentDate: { [Op.lt]: start.toDate() } },
-        attributes: ["paymentType", "spendType", "amount"],
-      });
-      openingBalance = openingRows.reduce((acc, t) => acc + computeNetAmount(t, type), 0);
-    }
-
-    // Compute per-row running balances (transactions are DESC; reverse to ASC for accumulation)
-    const balanceMap = new Map();
-    let runningBalance = openingBalance;
-    const transactionsAsc = [...transactions].reverse();
-    for (const t of transactionsAsc) {
-      runningBalance += computeNetAmount(t, type);
-      balanceMap.set(t.id, runningBalance);
-    }
-
-    // Closing balance for the grand total row
-    // With date filter: newest transaction's computed balance; without: authoritative sum query
+    // Use stored per-row balances (customerTotal/companyTotal) to match what the UI displays
     const dateFilterApplied = !!(startDate || endDate);
-    const effectiveClosingBalance = dateFilterApplied ? balanceMap.get(transactions[0].id) ?? 0 : totalBalanceFromQuery;
+    const effectiveClosingBalance = dateFilterApplied ? getLedgerBalance(transactions[0], type) : totalBalanceFromQuery;
 
     // Prepare header dates for PDF (if filters provided)
     const headerFrom = start ? start.format("DD-MMM-YYYY") : null;
@@ -339,7 +305,7 @@ const exportCustomerLedger = async (req, res) => {
         headerFrom,
         headerTo,
         type,
-        balanceMap
+        null
       );
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader("Content-Disposition", `attachment; filename=customer-ledger.pdf`);
@@ -348,7 +314,7 @@ const exportCustomerLedger = async (req, res) => {
     }
 
     if (fileType === "csv") {
-      const csv = generateCustomerLedgerCsv(transactions, type, balanceMap);
+      const csv = generateCustomerLedgerCsv(transactions, type, null);
       res.setHeader("Content-Type", "text/csv");
       res.setHeader("Content-Disposition", `attachment; filename=customer-ledger.csv`);
       res.setHeader("X-Total-Amount", effectiveClosingBalance);
