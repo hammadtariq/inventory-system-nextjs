@@ -13,6 +13,29 @@ const apiSchema = Joi.object({
   password: Joi.string().min(8).trim().required(),
 });
 
+export const ensureUserOrganization = async (user) => {
+  if (user.organizationId) {
+    const organization = await db.Organization.findByPk(user.organizationId);
+    return organization;
+  }
+
+  const [organization] = await db.Organization.findOrCreate({
+    where: { slug: "default" },
+    defaults: {
+      name: "Default",
+      plan: "STARTER",
+      status: "ACTIVE",
+      maxUsers: 5,
+    },
+    tenantBypass: true,
+  });
+
+  await user.update({ organizationId: organization.id }, { tenantBypass: true });
+  user.organizationId = organization.id;
+
+  return organization;
+};
+
 const login = async (req, res) => {
   console.log("Login Request Start");
 
@@ -25,16 +48,37 @@ const login = async (req, res) => {
   try {
     await db.dbConnect();
 
-    const user = await db.User.findOne({ where: { email: value.email } });
+    const user = await db.User.findOne({
+      where: { email: value.email },
+      tenantBypass: true,
+    });
 
     if (!user) {
       return res.status(404).send({ message: "User not found" });
+    }
+
+    if (user.status === "INVITED") {
+      return res.status(403).send({ message: "Please accept your invite before logging in." });
+    }
+
+    if (user.status === "DISABLED") {
+      return res.status(403).send({ message: "User account disabled." });
     }
 
     const isMatchPassword = await compareHash(value.password, user.password);
 
     if (!isMatchPassword) {
       return res.status(401).send({ message: "Invalid password" });
+    }
+
+    const organization = await ensureUserOrganization(user);
+
+    if (!organization) {
+      return res.status(401).send({ message: "Organization not found" });
+    }
+
+    if (organization.status !== "ACTIVE") {
+      return res.status(403).send({ message: "Organization suspended" });
     }
 
     const tokenWithouPassword = {
@@ -45,6 +89,8 @@ const login = async (req, res) => {
         lastName: user.lastName,
         email: user.email,
         role: user.role,
+        organizationId: user.organizationId,
+        organizationUuid: organization.uuid,
         createdAt: user.createdAt,
         updatedAt: user.createdAt,
       },
@@ -66,6 +112,8 @@ const login = async (req, res) => {
         lastName: user.lastName,
         email: user.email,
         role: user.role,
+        organizationUuid: organization.uuid,
+        organizationSlug: organization.slug,
       },
     });
   } catch (error) {

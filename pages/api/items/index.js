@@ -4,6 +4,7 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { DEFAULT_ROWS_LIMIT } from "@/utils/api.util";
+import TenantContext from "@/lib/tenant-context";
 
 const apiSchema = Joi.object({
   companyId: Joi.number().required(),
@@ -32,6 +33,12 @@ const createItem = async (req, res) => {
     }
 
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
+    const company = await db.Company.findOne({ where: { id: companyId, organizationId } });
+    if (!company) {
+      return res.status(404).send({ message: "company not found" });
+    }
+
     const item = await db.Items.findOne({ where: { itemName, companyId, type } });
     if (item) {
       return res.status(409).send({ message: "item already exist in list" });

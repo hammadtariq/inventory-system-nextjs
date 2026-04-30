@@ -3,12 +3,14 @@ import { verifyToken } from "@/hooks/login";
 import Spinner from "./spinner";
 import { to } from "@/utils/to.util";
 
+const publicRoutes = ["/login", "/register", "/accept-invite"];
+
 const ProtectedRoutes = ({ children, router }) => {
   const [canViewPage, setCanViewPage] = useState(false);
 
   useEffect(() => {
     const checkAccess = async () => {
-      if (router.pathname === "/login") {
+      if (publicRoutes.includes(router.pathname)) {
         setCanViewPage(true);
         return;
       }

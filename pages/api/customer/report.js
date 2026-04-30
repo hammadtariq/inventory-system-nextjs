@@ -12,45 +12,40 @@ const getCustomerReport = async (req, res) => {
 
     const whereClause = {};
     if (dateRangeStart && dateRangeEnd) {
-      whereClause.soldDate = {
-        [Op.between]: [new Date(dateRangeStart), new Date(dateRangeEnd)],
+      whereClause.createdAt = {
+        [Op.between]: [new Date(dateRangeStart), new Date(`${dateRangeEnd}T23:59:59.999Z`)],
       };
     }
     if (customerId) {
-      whereClause.customerId = customerId;
+      whereClause.id = customerId;
     }
 
-    const sales = await db.Sale.findAll({
+    const customers = await db.Customer.findAll({
       where: whereClause,
-      include: [{ model: db.Customer, required: false }],
+      include: [
+        {
+          model: db.Sale,
+          required: false,
+          attributes: ["id", "totalAmount"],
+        },
+      ],
+      order: [["createdAt", "DESC"]],
     });
 
-    // Aggregate sales by customer
-    const customerMap = {};
-    sales.forEach((sale) => {
-      const saleData = sale.toJSON();
-      const cid = saleData.customerId || "walk-in";
-      const customerName = saleData.customer
-        ? `${saleData.customer.firstName} ${saleData.customer.lastName}`
-        : "Walk-in Customer";
-
-      if (!customerMap[cid]) {
-        customerMap[cid] = {
-          id: cid,
-          name: customerName,
-          email: saleData.customer?.email || "-",
-          phone: saleData.customer?.phone || "-",
-          address: saleData.customer?.address || "-",
-          totalAmount: 0,
-          totalInvoices: 0,
-        };
-      }
-
-      customerMap[cid].totalAmount += parseFloat(saleData.totalAmount || 0);
-      customerMap[cid].totalInvoices += 1;
+    const rows = customers.map((customer) => {
+      const c = customer.toJSON();
+      const sales = c.Sales || [];
+      return {
+        id: c.id,
+        name: `${c.firstName} ${c.lastName}`,
+        email: c.email || "-",
+        phone: c.phone || "-",
+        address: c.address || "-",
+        totalInvoices: sales.length,
+        totalAmount: sales.reduce((sum, s) => sum + parseFloat(s.totalAmount || 0), 0),
+      };
     });
 
-    const rows = Object.values(customerMap).sort((a, b) => b.totalAmount - a.totalAmount);
     const grandTotal = rows.reduce((sum, r) => sum + r.totalAmount, 0);
 
     return res.json({ rows, total: { grandTotal, totalCustomers: rows.length } });

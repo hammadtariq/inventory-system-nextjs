@@ -2,8 +2,33 @@ import { approveSaleOrder } from "@/pages/api/sales/approve/[id]";
 import db from "@/lib/postgres";
 import { STATUS, SPEND_TYPE } from "@/utils/api.util";
 import { balanceQuery } from "@/utils/query.utils";
+import TenantContext from "@/lib/tenant-context";
 
-jest.mock("@/lib/postgres");
+jest.mock("@/lib/postgres", () => ({
+  __esModule: true,
+  default: {
+    dbConnect: jest.fn(),
+    sequelize: {
+      transaction: jest.fn(),
+    },
+    Sale: {
+      findOne: jest.fn(),
+    },
+    Inventory: {
+      findOne: jest.fn(),
+    },
+    Ledger: {
+      create: jest.fn(),
+    },
+    Customer: {},
+    Sequelize: {
+      Op: {
+        or: Symbol.for("sequelize.or"),
+        gte: Symbol.for("sequelize.gte"),
+      },
+    },
+  },
+}));
 jest.mock("@/utils/query.utils");
 
 describe("approveSaleOrder", () => {
@@ -13,7 +38,7 @@ describe("approveSaleOrder", () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
     db.dbConnect.mockResolvedValue();
     db.sequelize.transaction.mockResolvedValue(mockTransaction);
   });
@@ -66,12 +91,12 @@ describe("approveSaleOrder", () => {
       totalBalance: -100,
     };
 
-    db.Sale.findByPk.mockResolvedValue(mockSale);
+    db.Sale.findOne.mockResolvedValue(mockSale);
     db.Inventory.findOne.mockResolvedValue(mockInventory);
     balanceQuery.mockResolvedValue([{ amount: 0 }]);
     db.Ledger.create.mockResolvedValue(mockLedger);
 
-    const result = await approveSaleOrder(1, mockTransaction);
+    const result = await TenantContext.run(23, async () => approveSaleOrder(1, mockTransaction));
 
     expect(mockSale.update).toHaveBeenCalledWith({ status: STATUS.APPROVED }, { transaction: mockTransaction });
     expect(mockInventory.decrement).toHaveBeenCalledTimes(2);
@@ -83,21 +108,25 @@ describe("approveSaleOrder", () => {
   });
 
   it("should throw 404 if sale order is not found", async () => {
-    db.Sale.findByPk.mockResolvedValue(null);
-    await expect(approveSaleOrder(999, mockTransaction)).rejects.toThrow("NOT_FOUND:Sale order does not exist");
+    db.Sale.findOne.mockResolvedValue(null);
+    await expect(TenantContext.run(23, async () => approveSaleOrder(999, mockTransaction))).rejects.toThrow(
+      "NOT_FOUND:Sale order does not exist"
+    );
   });
 
   it("should throw 400 if sale is already approved", async () => {
-    db.Sale.findByPk.mockResolvedValue({ status: STATUS.APPROVED });
-    await expect(approveSaleOrder(1, mockTransaction)).rejects.toThrow("BAD_REQUEST:Sale order already approved");
+    db.Sale.findOne.mockResolvedValue({ status: STATUS.APPROVED });
+    await expect(TenantContext.run(23, async () => approveSaleOrder(1, mockTransaction))).rejects.toThrow(
+      "BAD_REQUEST:Sale order already approved"
+    );
   });
 
   it("should throw 400 if totalAmount is 0", async () => {
-    db.Sale.findByPk.mockResolvedValue({
+    db.Sale.findOne.mockResolvedValue({
       status: STATUS.PENDING,
       totalAmount: 0,
     });
-    await expect(approveSaleOrder(1, mockTransaction)).rejects.toThrow(
+    await expect(TenantContext.run(23, async () => approveSaleOrder(1, mockTransaction))).rejects.toThrow(
       "BAD_REQUEST:Sale order cannot be approved with total amount 0."
     );
   });
@@ -108,14 +137,18 @@ describe("approveSaleOrder", () => {
       totalAmount: 100,
       soldProducts: [{ id: 1, noOfBales: 10, itemName: "Shirt", companyId: 1 }],
     };
-    db.Sale.findByPk.mockResolvedValue(saleMock);
+    db.Sale.findOne.mockResolvedValue(saleMock);
     db.Inventory.findOne.mockResolvedValue(null);
-    await expect(approveSaleOrder(1, mockTransaction)).rejects.toThrow('NOT_FOUND:"Shirt" is out of stock');
+    await expect(TenantContext.run(23, async () => approveSaleOrder(1, mockTransaction))).rejects.toThrow(
+      'NOT_FOUND:"Shirt" is out of stock'
+    );
   });
 
   it("should rollback and throw 500 on unknown errors", async () => {
-    db.Sale.findByPk.mockRejectedValue(new Error("Something went wrong"));
-    await expect(approveSaleOrder(1, mockTransaction)).rejects.toThrow("Something went wrong");
+    db.Sale.findOne.mockRejectedValue(new Error("Something went wrong"));
+    await expect(TenantContext.run(23, async () => approveSaleOrder(1, mockTransaction))).rejects.toThrow(
+      "Something went wrong"
+    );
     expect(mockTransaction.rollback).toHaveBeenCalled();
   });
 });

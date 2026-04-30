@@ -2,24 +2,38 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { customerQuery, companyQuery } from "@/query/index";
+import TenantContext from "@/lib/tenant-context";
 
 const getCards = async (req, res) => {
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
+    const queryOptions = {
+      type: db.Sequelize.QueryTypes.SELECT,
+      replacements: { organizationId },
+    };
 
     const [totalSalesResult, totalPurchasesResult, customerBalances, companyBalances] = await Promise.all([
-      db.sequelize.query(`SELECT COALESCE(SUM("totalAmount"), 0) as total FROM sales WHERE status = 'APPROVED'`, {
-        type: db.Sequelize.QueryTypes.SELECT,
-      }),
-      db.sequelize.query(`SELECT COALESCE(SUM("totalAmount"), 0) as total FROM purchases WHERE status = 'APPROVED'`, {
-        type: db.Sequelize.QueryTypes.SELECT,
-      }),
-      db.sequelize.query(`SELECT COALESCE(SUM(t.total), 0) as total FROM (${customerQuery}) t WHERE t.total > 0`, {
-        type: db.Sequelize.QueryTypes.SELECT,
-      }),
-      db.sequelize.query(`SELECT COALESCE(SUM(t.total), 0) as total FROM (${companyQuery}) t WHERE t.total < 0`, {
-        type: db.Sequelize.QueryTypes.SELECT,
-      }),
+      db.sequelize.query(
+        `SELECT COALESCE(SUM("totalAmount"), 0) as total
+         FROM sales
+         WHERE status = 'APPROVED' AND "organizationId" = :organizationId`,
+        queryOptions
+      ),
+      db.sequelize.query(
+        `SELECT COALESCE(SUM("totalAmount"), 0) as total
+         FROM purchases
+         WHERE status = 'APPROVED' AND "organizationId" = :organizationId`,
+        queryOptions
+      ),
+      db.sequelize.query(
+        `SELECT COALESCE(SUM(t.total), 0) as total FROM (${customerQuery}) t WHERE t.total > 0`,
+        queryOptions
+      ),
+      db.sequelize.query(
+        `SELECT COALESCE(SUM(t.total), 0) as total FROM (${companyQuery}) t WHERE t.total < 0`,
+        queryOptions
+      ),
     ]);
 
     return res.send({

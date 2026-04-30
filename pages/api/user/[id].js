@@ -3,6 +3,7 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import TenantContext from "@/lib/tenant-context";
 
 // api schema for all routes for this file only
 const apiSchema = Joi.object({
@@ -25,7 +26,9 @@ const getUser = async (req, res) => {
   try {
     // if user id and api fields are valid then connect database
     await db.dbConnect();
-    const user = await db.User.findByPk(value.id, {
+    const organizationId = TenantContext.assertGet();
+    const user = await db.User.findOne({
+      where: { id: value.id, organizationId },
       attributes: { exclude: ["password"] },
     });
 
@@ -59,8 +62,10 @@ const updateUser = async (req, res) => {
   try {
     // if user id and api fields are valid then connect database
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
 
-    const user = await db.User.findByPk(value.id, {
+    const user = await db.User.findOne({
+      where: { id: value.id, organizationId },
       attributes: { exclude: ["password"] },
     });
 
@@ -105,7 +110,8 @@ const deleteUser = async (req, res) => {
 
   try {
     await db.dbConnect();
-    const user = await db.User.findByPk(value.id);
+    const organizationId = TenantContext.assertGet();
+    const user = await db.User.findOne({ where: { id: value.id, organizationId } });
 
     // if user not found
     if (!user) {
@@ -113,7 +119,7 @@ const deleteUser = async (req, res) => {
     }
 
     // delete user
-    await db.User.destroy({ where: { id: value.id } });
+    await db.User.destroy({ where: { id: value.id, organizationId } });
     console.log("delete user Request End");
 
     return res.send({

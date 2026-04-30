@@ -5,6 +5,7 @@ import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { SPEND_TYPE, STATUS } from "@/utils/api.util";
 import { balanceQuery } from "@/utils/query.utils";
+import TenantContext from "@/lib/tenant-context";
 
 const apiSchema = Joi.object({
   id: Joi.number().required(),
@@ -41,24 +42,30 @@ const approvePurchaseOrder = async (id, user) => {
   const t = await db.sequelize.transaction();
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
 
-    const purchase = await db.Purchase.findByPk(id, {
+    const purchase = await db.Purchase.findOne({
+      where: { id, organizationId },
       include: [db.Company],
       transaction: t,
     });
 
     if (!purchase) {
+      await t.rollback();
       return { status: 404, body: { message: "Purchase order does not exist" } };
     }
 
     if (purchase.status === STATUS.APPROVED) {
+      await t.rollback();
       return { status: 400, body: { message: "Purchase order already approved" } };
     }
 
     const { purchasedProducts, purchaseDate, companyId, totalAmount, invoiceNumber, revisionDetails, revisionNo } =
       purchase;
 
-    const productsToUse = revisionNo ? revisionDetails.purchasedProducts : purchasedProducts;
+    const productsToUse = revisionNo
+      ? hydrateRevisedProducts(revisionDetails?.purchasedProducts || [], purchasedProducts || [])
+      : purchasedProducts;
     const updatedInventory = await updateInventory(productsToUse, companyId, t);
     const updatedPurchaseOrder = await purchase.update({ status: STATUS.APPROVED }, { transaction: t });
     const updatedLedger = await updateLedger(revisionNo, {
@@ -92,7 +99,8 @@ const updateInventory = async (products, companyId, transaction) => {
   for (const product of products) {
     const { id, noOfBales, baleWeightKgs, baleWeightLbs, ratePerLbs, ratePerKgs, ratePerBale } = product;
 
-    let inventory = await db.Inventory.findOne({ where: { id, companyId }, transaction });
+    const organizationId = TenantContext.assertGet();
+    let inventory = await db.Inventory.findOne({ where: { id, companyId, organizationId }, transaction });
     if (inventory) {
       await inventory.increment({ onHand: noOfBales || 0, noOfBales: noOfBales || 0 }, { transaction });
 
@@ -126,7 +134,7 @@ const updateInventory = async (products, companyId, transaction) => {
         { transaction }
       );
     }
-    results.push(inventory); // ✅ collect updated inventory
+    results.push(inventory);
   }
   return results;
 };
@@ -136,7 +144,7 @@ const updateLedger = async (revisionNo, { companyId, transactionId, totalAmount,
   if (revisionNo !== 0) {
     // === Ledger Revision ===
     const ledger = await db.Ledger.findOne({
-      where: { companyId, transactionId },
+      where: { companyId, transactionId, organizationId: TenantContext.assertGet() },
       transaction: t,
     });
 
@@ -169,6 +177,7 @@ const updateLedger = async (revisionNo, { companyId, transactionId, totalAmount,
       {
         where: {
           companyId,
+          organizationId: TenantContext.assertGet(),
           paymentDate: { [db.Sequelize.Op.gt]: purchaseDate },
         },
         transaction: t,
@@ -196,5 +205,29 @@ const updateLedger = async (revisionNo, { companyId, transactionId, totalAmount,
   return ledger;
 };
 
-export { handler, approvePurchaseOrder, updateInventory, updateLedger }; // 👈 add this export so it can be available to import in test file
+const hydrateRevisedProducts = (revisionProducts, originalProducts) => {
+  return revisionProducts.map((product) => {
+    const productId = Number(product.id);
+    const productCompanyId = product.companyId != null ? Number(product.companyId) : null;
+    const originalProduct =
+      originalProducts.find(
+        (item) =>
+          Number(item.id) === productId &&
+          (productCompanyId === null || item.companyId == null || Number(item.companyId) === productCompanyId)
+      ) || originalProducts.find((item) => Number(item.id) === productId);
+
+    if (!originalProduct) {
+      return product;
+    }
+
+    return {
+      ...originalProduct,
+      ...product,
+      itemName: product.itemName ?? originalProduct.itemName,
+      companyId: product.companyId ?? originalProduct.companyId,
+    };
+  });
+};
+
+export { handler, approvePurchaseOrder, updateInventory, updateLedger };
 export default nextConnect().use(auth).put(handler);

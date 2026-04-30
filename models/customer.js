@@ -2,9 +2,10 @@
 const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class customer extends Model {
-    static associate({ Ledger, SaleReturn }) {
+    static associate({ Ledger, SaleReturn, Sale }) {
       this.hasMany(Ledger, { foreignKey: "customerId" });
       this.hasMany(SaleReturn, { foreignKey: "customerId" });
+      this.hasMany(Sale, { foreignKey: "customerId" });
     }
   }
   customer.init(
@@ -55,6 +56,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
         allowNull: false,
+      },
+      organizationId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
       },
     },
     {

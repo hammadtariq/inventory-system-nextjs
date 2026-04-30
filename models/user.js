@@ -4,7 +4,9 @@ const { createHash } = require("@/lib/bcrypt");
 
 module.exports = (sequelize, DataTypes) => {
   class user extends Model {
-    static associate() {}
+    static associate({ Organization }) {
+      this.belongsTo(Organization, { foreignKey: "organizationId" });
+    }
   }
   user.init(
     {
@@ -47,6 +49,30 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       role: DataTypes.ENUM(["ADMIN", "EDITOR"]),
+      organizationId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      status: {
+        type: DataTypes.ENUM(["ACTIVE", "INVITED", "DISABLED"]),
+        defaultValue: "ACTIVE",
+      },
+      inviteTokenHash: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      inviteExpiresAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+      invitedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+      acceptedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
     },
     {
       sequelize,

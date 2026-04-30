@@ -4,6 +4,7 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { DEFAULT_ROWS_LIMIT, STATUS } from "@/utils/api.util";
+import TenantContext from "@/lib/tenant-context";
 
 const inventorySchema = Joi.object().keys({
   itemName: Joi.string().min(3).trim().lowercase().required(),
@@ -35,6 +36,18 @@ export const createPurchaseOrder = async (req, res) => {
   }
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
+    const company = await db.Company.findOne({ where: { id: value.companyId, organizationId } });
+    if (!company) {
+      return res.status(404).send({ message: "company not found" });
+    }
+
+    const productIds = value.purchasedProducts.map((product) => product.id);
+    const items = await db.Items.findAll({ where: { id: productIds, companyId: value.companyId, organizationId } });
+    if (items.length !== new Set(productIds).size) {
+      return res.status(404).send({ message: "one or more purchased products were not found" });
+    }
+
     await db.Purchase.create({ ...value, status: STATUS.PENDING });
     console.log("Create Purchase order Request End");
     return res.send();

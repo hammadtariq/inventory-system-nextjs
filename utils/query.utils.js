@@ -1,25 +1,27 @@
 import { companySumQuery, customerSumQuery } from "@/query/index";
 import db from "@/lib/postgres";
+import TenantContext from "@/lib/tenant-context";
 
 export const balanceQuery = async (id, queryType, transaction) => {
   let rawQuery;
   try {
     if (queryType === "company") {
-      rawQuery = companySumQuery(id);
+      rawQuery = companySumQuery;
     } else if (queryType === "customer") {
-      rawQuery = customerSumQuery(id);
+      rawQuery = customerSumQuery;
     } else {
       throw new Error("Invalid query type");
     }
 
-    console.log("Executing query:", rawQuery); // Debugging: Check the query being executed
+    const organizationId = TenantContext.assertGet();
+    console.log("Executing query:", rawQuery);
 
     const result = await db.sequelize.query(rawQuery, {
       type: db.Sequelize.QueryTypes.SELECT,
+      replacements: { id, organizationId },
       ...(transaction ? { transaction } : {}),
     });
 
-    // Log the result for debugging
     console.log("Query result:", result);
 
     return result;

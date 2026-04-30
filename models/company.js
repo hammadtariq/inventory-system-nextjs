@@ -12,7 +12,6 @@ module.exports = (sequelize, DataTypes) => {
     {
       companyName: {
         type: DataTypes.STRING,
-        unique: true,
         allowNull: false,
         validate: {
           // isLowercase: {
@@ -46,10 +45,21 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: DataTypes.UUIDV4,
         allowNull: false,
       },
+      organizationId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
     },
     {
       sequelize,
       modelName: "company",
+      indexes: [
+        {
+          unique: true,
+          fields: ["organizationId", "companyName"],
+          name: "companies_organization_id_company_name_unique",
+        },
+      ],
     }
   );
   return company;

@@ -1,8 +1,10 @@
 import Joi from "joi";
 import nextConnect from "next-connect";
+import { UniqueConstraintError } from "sequelize";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import TenantContext from "@/lib/tenant-context";
 
 const apiSchema = Joi.object({
   companyName: Joi.string().min(3).trim(),
@@ -25,16 +27,31 @@ const updateCompany = async (req, res) => {
 
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
 
-    const company = await db.Company.findByPk(value.id);
+    const company = await db.Company.findOne({ where: { id: value.id, organizationId } });
     if (!company) {
       return res.status(404).send({ message: "company not found" });
     }
     if (!Object.keys(req.body).length) {
-      res.status(400).send({
+      return res.status(400).send({
         message: "Please provide at least one field",
         allowedFields: ["companyName", "phone", "email", "address"],
       });
+    }
+
+    if (value.companyName) {
+      const duplicateCompany = await db.Company.findOne({
+        where: {
+          companyName: value.companyName,
+          organizationId,
+          id: { [db.Sequelize.Op.ne]: value.id },
+        },
+      });
+
+      if (duplicateCompany) {
+        return res.status(409).send({ message: `Company "${value.companyName}" already exists in this organization.` });
+      }
     }
 
     await company.update({ ...value });
@@ -42,6 +59,9 @@ const updateCompany = async (req, res) => {
     return res.send();
   } catch (error) {
     console.log("Update Company Request Error:", error);
+    if (error instanceof UniqueConstraintError || error?.name === "SequelizeUniqueConstraintError") {
+      return res.status(409).send({ message: `Company "${value.companyName}" already exists in this organization.` });
+    }
     return res.status(500).send({ message: error.toString() });
   }
 };
@@ -58,13 +78,14 @@ const deleteCompany = async (req, res) => {
 
   try {
     await db.dbConnect();
-    const company = await db.Company.findByPk(value.id);
+    const organizationId = TenantContext.assertGet();
+    const company = await db.Company.findOne({ where: { id: value.id, organizationId } });
 
     if (!company) {
       return res.status(404).send({ message: "company does not exist" });
     }
 
-    const items = await db.Items.findAndCountAll({ where: { companyId: value.id } });
+    const items = await db.Items.findAndCountAll({ where: { companyId: value.id, organizationId } });
 
     if (items.count > 0) {
       return res
@@ -72,7 +93,7 @@ const deleteCompany = async (req, res) => {
         .send({ message: `${items.count} items exist against this company. Please remove dependencies first.` });
     }
 
-    await db.Company.destroy({ where: { id: value.id } });
+    await db.Company.destroy({ where: { id: value.id, organizationId } });
 
     console.log("Delete Company Request End");
     return res.send();
@@ -93,11 +114,12 @@ const getCompany = async (req, res) => {
   }
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
     const { id } = value;
-    const company = await db.Company.findByPk(id);
+    const company = await db.Company.findOne({ where: { id, organizationId } });
 
     if (!company) {
-      return res.status(409).send({ message: "company not exist" });
+      return res.status(404).send({ message: "company not exist" });
     }
     console.log("Get Company Request End");
 

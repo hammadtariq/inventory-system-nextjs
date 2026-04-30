@@ -10,6 +10,7 @@ import timezone from "dayjs/plugin/timezone";
 import { Op } from "sequelize";
 import { companySumQuery, customerSumQuery } from "@/query/index";
 import { capitalizeName } from "@/utils/ui.util";
+import TenantContext from "@/lib/tenant-context";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -245,6 +246,7 @@ const exportCustomerLedger = async (req, res) => {
   try {
     await db.dbConnect();
     const { id, type, fileType, startDate, endDate } = req.query;
+    const organizationId = TenantContext.assertGet();
 
     if (type !== "customer" && type !== "company") {
       return res.status(400).json({ message: 'Invalid type. Only "customer" or "company" is allowed.' });
@@ -255,7 +257,7 @@ const exportCustomerLedger = async (req, res) => {
     if (error) return res.status(400).json({ message: error });
 
     // Build where clause
-    const baseCondition = type === "company" ? { companyId: id } : { customerId: id };
+    const baseCondition = type === "company" ? { companyId: id, organizationId } : { customerId: id, organizationId };
     const where = { ...baseCondition };
 
     // Apply inclusive date filter only if both dates are provided
@@ -286,8 +288,11 @@ const exportCustomerLedger = async (req, res) => {
       return res.status(404).json({ message: "No transactions found." });
     }
 
-    const rawQuery = type === "company" ? companySumQuery(id) : customerSumQuery(id);
-    const totalBalanceRows = await db.sequelize.query(rawQuery, { type: db.Sequelize.QueryTypes.SELECT });
+    const rawQuery = type === "company" ? companySumQuery : customerSumQuery;
+    const totalBalanceRows = await db.sequelize.query(rawQuery, {
+      type: db.Sequelize.QueryTypes.SELECT,
+      replacements: { id, organizationId },
+    });
     const totalBalanceFromQuery = Number(totalBalanceRows?.[0]?.amount ?? 0);
 
     // Use stored per-row balances (customerTotal/companyTotal) to match what the UI displays

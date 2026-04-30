@@ -6,6 +6,7 @@ import { createLedgerPayment } from "@/lib/ledger";
 import { auth } from "@/middlewares/auth";
 import { PAYMENT_TYPE, SPEND_TYPE, STATUS } from "@/utils/api.util";
 import { getReturnedQuantityMap, getSaleReturnItemKey } from "@/utils/saleReturn.util";
+import TenantContext from "@/lib/tenant-context";
 
 const productSchema = Joi.object().keys({
   itemName: Joi.string().trim().required(),
@@ -30,13 +31,14 @@ const apiSchema = Joi.object({
 
 const updateInventoryForReturn = async (products, transaction) => {
   const updatedInventory = [];
+  const organizationId = TenantContext.assertGet();
 
   for (const product of products) {
     const { companyId, id, noOfBales, baleWeightKgs, baleWeightLbs, ratePerLbs, ratePerKgs, ratePerBale, itemName } =
       product;
 
     let inventory = await db.Inventory.findOne({
-      where: { id, companyId },
+      where: { id, companyId, organizationId },
       transaction,
     });
 
@@ -104,10 +106,12 @@ const createSaleReturn = async (req, res) => {
   try {
     await db.dbConnect();
     transaction = await db.sequelize.transaction();
+    const organizationId = TenantContext.assertGet();
 
     const { saleId, customerId, totalAmount, returnDate, reference, returnedProducts } = value;
 
-    const sale = await db.Sale.findByPk(saleId, {
+    const sale = await db.Sale.findOne({
+      where: { id: saleId, organizationId },
       include: [db.Customer],
       transaction,
     });
@@ -125,7 +129,7 @@ const createSaleReturn = async (req, res) => {
     }
 
     const priorReturns = await db.SaleReturn.findAll({
-      where: { saleId },
+      where: { saleId, organizationId },
       transaction,
     });
 
@@ -162,7 +166,7 @@ const createSaleReturn = async (req, res) => {
         customerId,
         totalAmount,
         reference,
-        spendType: SPEND_TYPE.CREDIT,
+        spendType: SPEND_TYPE.DEBIT,
         paymentDate: returnDate,
         paymentType: PAYMENT_TYPE.REFUND,
       },

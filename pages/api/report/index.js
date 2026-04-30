@@ -3,13 +3,15 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { calculateAmount } from "@/utils/api.util";
+import TenantContext from "@/lib/tenant-context";
 
 const getPurchaseReport = async (req, res) => {
   console.log("Get all Purchase order Request Start");
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
     const inventory = await db.Inventory.findAll({
-      where: { onHand: { [db.Sequelize.Op.gt]: 0 } },
+      where: { onHand: { [db.Sequelize.Op.gt]: 0 }, organizationId },
       include: [
         {
           model: db.Company,

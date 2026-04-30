@@ -4,6 +4,7 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { EDITABLE_STATUS, STATUS } from "@/utils/api.util";
+import TenantContext from "@/lib/tenant-context";
 
 const inventorySchema = Joi.object().keys({
   itemName: Joi.string().min(3).trim().lowercase(),
@@ -37,9 +38,10 @@ const getSale = async (req, res) => {
   }
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
     const { id } = value;
 
-    const sale = await db.Sale.findByPk(id, { include: [db.Customer] });
+    const sale = await db.Sale.findOne({ where: { id, organizationId }, include: [db.Customer] });
 
     if (!sale) {
       return res.status(404).send({ message: "sale order not exists" });
@@ -48,7 +50,7 @@ const getSale = async (req, res) => {
     // Fetch full company details for each sold product
     const soldProductsWithCompany = await Promise.all(
       sale.soldProducts.map(async (product) => {
-        const company = await db.Company.findByPk(product.companyId);
+        const company = await db.Company.findOne({ where: { id: product.companyId, organizationId } });
         return {
           ...product, // Directly spread the product object
           company, // Add full company details
@@ -81,8 +83,9 @@ const updateSaleOrder = async (req, res) => {
   }
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
     const { id } = value;
-    const sale = await db.Sale.findByPk(id);
+    const sale = await db.Sale.findOne({ where: { id, organizationId } });
 
     if (!sale) {
       return res.status(404).send({ message: "sale order not exist" });
@@ -90,6 +93,11 @@ const updateSaleOrder = async (req, res) => {
 
     if (!EDITABLE_STATUS.includes(sale.status)) {
       return res.status(400).send({ message: `sale order status is ${STATUS.APPROVED}` });
+    }
+
+    if (value.customerId) {
+      const customer = await db.Customer.findOne({ where: { id: value.customerId, organizationId } });
+      if (!customer) return res.status(404).send({ message: "customer not found" });
     }
 
     await sale.update({ ...value, status: STATUS.PENDING });

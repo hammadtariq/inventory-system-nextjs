@@ -1,10 +1,12 @@
 import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import TenantContext from "@/lib/tenant-context";
 
 const getTopCustomers = async (req, res) => {
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
 
     const result = await db.sequelize.query(
       `SELECT CONCAT(c."firstName", ' ', c."lastName") as name,
@@ -14,10 +16,12 @@ const getTopCustomers = async (req, res) => {
       FROM sales s
       INNER JOIN customers c ON s."customerId" = c.id
       WHERE s.status = 'APPROVED'
+      AND s."organizationId" = :organizationId
+      AND c."organizationId" = :organizationId
       GROUP BY c.id
       ORDER BY total DESC
       LIMIT 5`,
-      { type: db.Sequelize.QueryTypes.SELECT }
+      { type: db.Sequelize.QueryTypes.SELECT, replacements: { organizationId } }
     );
 
     return res.send(result);

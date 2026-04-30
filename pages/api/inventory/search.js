@@ -10,7 +10,6 @@ const searchInventory = async (req, res) => {
     await db.dbConnect();
     const results = await db.Inventory.findAll({
       where: {
-        onHand: { [db.Sequelize.Op.gt]: 0 },
         [Op.or]: [{ itemName: { [Op.like]: "%" + value + "%" } }],
       },
       include: [db.Company],

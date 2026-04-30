@@ -4,6 +4,7 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { STATUS } from "@/utils/api.util";
+import TenantContext from "@/lib/tenant-context";
 
 const apiSchema = Joi.object({
   id: Joi.number().required(),
@@ -23,8 +24,9 @@ const cancelSaleOrder = async (req, res) => {
   }
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
     const { id } = value;
-    const sale = await db.Sale.findByPk(id);
+    const sale = await db.Sale.findOne({ where: { id, organizationId } });
 
     if (!sale) {
       return res.status(404).send({ message: "sale order not exist" });

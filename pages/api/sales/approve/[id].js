@@ -5,6 +5,7 @@ import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { STATUS, SPEND_TYPE } from "@/utils/api.util";
 import { balanceQuery } from "@/utils/query.utils";
+import TenantContext from "@/lib/tenant-context";
 
 const apiSchema = Joi.object({
   id: Joi.number().required(),
@@ -41,8 +42,9 @@ export const approveSaleOrder = async (id, t) => {
   let updatedInventories = [];
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
 
-    const sale = await db.Sale.findByPk(id, { include: [db.Customer] });
+    const sale = await db.Sale.findOne({ where: { id, organizationId }, include: [db.Customer] });
 
     if (!sale) throw new Error("NOT_FOUND:Sale order does not exist");
     if (sale.status === STATUS.APPROVED) throw new Error("BAD_REQUEST:Sale order already approved");
@@ -56,6 +58,7 @@ export const approveSaleOrder = async (id, t) => {
         where: {
           id,
           companyId,
+          organizationId,
           onHand: {
             [db.Sequelize.Op.or]: {
               [db.Sequelize.Op.gte]: noOfBales,

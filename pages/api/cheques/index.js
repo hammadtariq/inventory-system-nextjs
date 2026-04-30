@@ -4,6 +4,7 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { DEFAULT_ROWS_LIMIT } from "@/utils/api.util";
+import TenantContext from "@/lib/tenant-context";
 
 const dbConnect = db.dbConnect;
 
@@ -48,9 +49,13 @@ const updateChequeStatus = async (req, res) => {
 
   try {
     await dbConnect();
+    const organizationId = TenantContext.assertGet();
     const { id, status } = value;
 
-    const cheque = await db.Cheque.findByPk(id);
+    const cheque = await db.Cheque.findOne({ where: { id, organizationId } });
+    if (!cheque) {
+      return res.status(404).send({ message: "cheque not found" });
+    }
     await cheque.update({ status });
 
     console.log("Cheques Update Request End");

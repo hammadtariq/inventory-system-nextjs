@@ -3,6 +3,7 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import TenantContext from "@/lib/tenant-context";
 
 const dbConnect = db.dbConnect;
 
@@ -11,10 +12,11 @@ const getCustomer = async (req, res) => {
   try {
     await dbConnect();
     const { id } = req.query;
-    const customer = await db.Customer.findByPk(id);
+    const organizationId = TenantContext.assertGet();
+    const customer = await db.Customer.findOne({ where: { id, organizationId } });
 
     if (!customer) {
-      return res.status(409).send({ message: "Customer not exist" });
+      return res.status(404).send({ message: "Customer not exist" });
     }
     console.log("Get Customer Request End");
     return res.send({
@@ -50,10 +52,11 @@ const editCustomer = async (req, res) => {
 
   try {
     await dbConnect();
+    const organizationId = TenantContext.assertGet();
 
-    const customer = await db.Customer.findByPk(value.id);
+    const customer = await db.Customer.findOne({ where: { id: value.id, organizationId } });
     if (!customer) {
-      return res.status(409).send({ message: "Customer not exist" });
+      return res.status(404).send({ message: "Customer not exist" });
     }
 
     await customer.update({ ...value });
@@ -78,12 +81,13 @@ const deleteCustomer = async (req, res) => {
 
   try {
     await dbConnect();
+    const organizationId = TenantContext.assertGet();
 
     const customer = await db.Customer.destroy({
-      where: { id },
+      where: { id, organizationId },
     });
     if (!customer) {
-      return res.status(409).send({ message: "Customer not exist" });
+      return res.status(404).send({ message: "Customer not exist" });
     }
     console.log("Delete Customer Request End");
 

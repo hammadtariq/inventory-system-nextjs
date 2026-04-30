@@ -4,6 +4,7 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { DEFAULT_ROWS_LIMIT, STATUS } from "@/utils/api.util";
+import TenantContext from "@/lib/tenant-context";
 
 const inventorySchema = Joi.object().keys({
   itemName: Joi.string().min(3).trim().lowercase().required(),
@@ -32,6 +33,26 @@ export const createSale = async (req, res) => {
   }
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
+    const customer = await db.Customer.findOne({ where: { id: value.customerId, organizationId } });
+    if (!customer) {
+      return res.status(404).send({ message: "customer not found" });
+    }
+
+    for (const product of value.soldProducts) {
+      const inventory = await db.Inventory.findOne({
+        where: {
+          id: product.id,
+          companyId: product.companyId,
+          organizationId,
+        },
+      });
+
+      if (!inventory) {
+        return res.status(404).send({ message: `${product.itemName} not found in inventory` });
+      }
+    }
+
     await db.Sale.create({ ...value, status: STATUS.PENDING });
     console.log("Create sale order Request End");
     return res.send();

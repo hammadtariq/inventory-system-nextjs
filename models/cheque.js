@@ -25,6 +25,10 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         type: DataTypes.ENUM(["PENDING", "PASS", "RETURN", "CANCEL"]),
       },
+      organizationId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
     },
     {
       sequelize,
