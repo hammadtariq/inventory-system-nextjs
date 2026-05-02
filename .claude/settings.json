@@ -1,31 +1,4 @@
 {
-  "mcpServers": {
-    "postgres": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-postgres",
-        "postgresql://postgres:postgres@localhost:5432/inventory-management-local"
-      ]
-    }
-  },
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash /Users/hammad/workspace/inventory-system-nextjs/.claude/scripts/prettier-format.sh"
-          },
-          {
-            "type": "command",
-            "command": "bash /Users/hammad/workspace/inventory-system-nextjs/.claude/scripts/tenant-check.sh"
-          }
-        ]
-      }
-    ]
-  },
   "permissions": {
     "allow": [
       "Bash(pnpm *)",
@@ -69,5 +42,37 @@
       "mcp__github-stockflow__get_file_contents",
       "mcp__github-stockflow__list_commits"
     ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/hammad/workspace/inventory-system-nextjs/.claude/scripts/prettier-format.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash /Users/hammad/workspace/inventory-system-nextjs/.claude/scripts/tenant-check.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "context7@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true
+  },
+  "mcpServers": {
+    "postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://postgres:postgres@localhost:5432/inventory-management-local"
+      ]
+    }
   }
 }
