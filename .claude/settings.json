@@ -1,0 +1,73 @@
+{
+  "mcpServers": {
+    "postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://postgres:postgres@localhost:5432/inventory-management-local"
+      ]
+    }
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/hammad/workspace/inventory-system-nextjs/.claude/scripts/prettier-format.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash /Users/hammad/workspace/inventory-system-nextjs/.claude/scripts/tenant-check.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(pnpm *)",
+      "Bash(sequelize *)",
+      "Bash(git status)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git add *)",
+      "Bash(git commit*)",
+      "Bash(git push*)",
+      "Bash(git checkout*)",
+      "Bash(git branch*)",
+      "Bash(git worktree*)",
+      "Bash(find . *)",
+      "Bash(grep *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(jq *)",
+      "Bash(node --version)",
+      "Bash(claude mcp *)",
+      "Bash(find /Users/hammad/workspace/inventory-system-nextjs *)",
+      "mcp__github__list_issues",
+      "mcp__github__get_issue",
+      "mcp__github__list_pull_requests",
+      "mcp__github__get_pull_request",
+      "mcp__github__get_pull_request_files",
+      "mcp__github__get_pull_request_comments",
+      "mcp__github__get_pull_request_reviews",
+      "mcp__github__get_pull_request_status",
+      "mcp__github__search_issues",
+      "mcp__github__search_code",
+      "mcp__github__get_file_contents",
+      "mcp__github__list_commits",
+      "mcp__github__get_commit",
+      "mcp__github-stockflow__list_issues",
+      "mcp__github-stockflow__get_issue",
+      "mcp__github-stockflow__get_pull_request",
+      "mcp__github-stockflow__get_pull_request_files",
+      "mcp__github-stockflow__search_issues",
+      "mcp__github-stockflow__search_code",
+      "mcp__github-stockflow__get_file_contents",
+      "mcp__github-stockflow__list_commits"
+    ]
+  }
+}

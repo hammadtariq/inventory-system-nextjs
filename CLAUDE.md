@@ -94,3 +94,83 @@ Tests use `node-mocks-http` for request/response mocking. DB is mocked via `jest
 ### Path alias
 
 `@/` maps to the project root (configured in `jsconfig.json` and `jest.config.js`).
+
+---
+
+## Tenant Safety Rules (ENFORCE ON EVERY API CHANGE)
+
+This codebase is migrating to multi-tenancy. Every API route MUST scope queries to the current tenant via `organizationId`. Violating these rules causes cross-tenant data leaks.
+
+### Hard rules
+
+- **NEVER** use `findByPk(id)` alone — always add `{ where: { id, organizationId } }` or use `findOne({ where: { id, organizationId } })`
+- **NEVER** use `Model.update({}, { where: { id } })` without `organizationId` in the where clause
+- **NEVER** use `Model.destroy({ where: { id } })` without `organizationId` in the where clause
+- **NEVER** use raw `sequelize.query(sql)` without `organizationId` in the `replacements` object
+- **NEVER** trust incoming `companyId`, `customerId`, `saleId`, or JSONB product IDs without verifying they belong to the current tenant first
+- **ALWAYS** call `getTenantContext()` at the top of every API handler to get `organizationId`
+- **ALWAYS** return 404 (not 403) when a record is not found for the tenant — avoid leaking existence of records
+- Every new Sequelize model **MUST** have `organizationId` as a non-nullable FK with an index
+
+### Tenant context pattern
+
+```js
+// Top of every API handler
+const { organizationId } = getTenantContext(req);
+
+// Safe findByPk replacement
+const record = await Model.findOne({ where: { id, organizationId } });
+if (!record) return res.status(404).json({ message: "Not found" });
+
+// Safe raw query
+await db.sequelize.query('SELECT * FROM "Table" WHERE id = :id AND "organizationId" = :organizationId', {
+  replacements: { id, organizationId },
+  type: QueryTypes.SELECT,
+});
+```
+
+### Files with known unscoped queries (fix before SaaS launch)
+
+There are **30 `findByPk` calls** across 14 files that bypass tenant scoping — each is a cross-tenant vulnerability. Run `.claude/scripts/tenant-check.sh` to audit.
+
+---
+
+## Adding a New Domain Feature (Agent Scaffolding Pattern)
+
+When adding a new domain (e.g., "returns", "vendor", "barcode"), create these files in order:
+
+1. **Model** — `models/<domain>.js` — must include `organizationId` FK
+2. **Migration** — `sequelize migration:generate --name add-<domain>` — use expand/backfill/contract for production safety
+3. **API routes** — `pages/api/<domain>/index.js` (list/create), `pages/api/<domain>/[id].js` (get/update/delete)
+4. **SWR hook** — `hooks/<domain>.js` — mirrors the pattern in `hooks/purchase.js`
+5. **Component** — `components/<Domain>Form.js`, `components/<Domain>Table.js`
+6. **Tests** — `__tests__/api/<domain>/<handler>.test.js` — must include a cross-tenant access test
+
+Every API route must follow this exact structure:
+
+```js
+import nc from "next-connect";
+import { auth } from "@/middlewares/auth";
+import db from "@/lib/postgres";
+
+const handler = nc({ onError, onNoMatch });
+handler.use(auth);
+
+handler.get(async (req, res) => {
+  await db.dbConnect();
+  const { organizationId } = getTenantContext(req);
+  // all queries scoped to organizationId
+});
+
+export default handler;
+```
+
+---
+
+## Agentic Workflow Notes
+
+- **Bug reported?** Paste the GitHub issue URL — agent reads via GitHub MCP, traces the request lifecycle, fixes, opens PR
+- **New feature?** Describe it; agent reads similar existing domain files first, then scaffolds using the pattern above
+- **Schema question?** Agent uses PostgreSQL MCP to inspect live schema — no need to describe it manually
+- **Tenant audit?** Run `.claude/scripts/tenant-check.sh` to find all unscoped queries
+- **Before every PR:** Agent checks for tenant safety violations automatically via CI
