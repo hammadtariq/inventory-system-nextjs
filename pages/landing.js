@@ -41,3 +41,5 @@ export default function Landing() {
     </>
   );
 }
+
+Landing.getLayout = (page) => page;

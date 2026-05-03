@@ -8,7 +8,7 @@ const ProtectedRoutes = ({ children, router }) => {
 
   useEffect(() => {
     const checkAccess = async () => {
-      if (router.pathname === "/login") {
+      if (router.pathname === "/login" || router.pathname === "/landing") {
         setCanViewPage(true);
         return;
       }
