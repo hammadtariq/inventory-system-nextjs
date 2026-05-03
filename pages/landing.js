@@ -70,6 +70,70 @@ function Hero({ onDemoClick }) {
   );
 }
 
+const FEATURES = [
+  {
+    icon: "📦",
+    color: "iconPurple",
+    title: "Real-Time Inventory",
+    desc: "Live stock levels, product tracking, and smart allocation across all your locations.",
+  },
+  {
+    icon: "🧾",
+    color: "iconViolet",
+    title: "Purchase Orders",
+    desc: "Supplier management, order approval workflows, and full purchase history at a glance.",
+  },
+  {
+    icon: "💰",
+    color: "iconGreen",
+    title: "Integrated Ledger",
+    desc: "Double-entry accounting built in, not bolted on. Payables, receivables, reconciliation.",
+  },
+  {
+    icon: "📊",
+    color: "iconBlue",
+    title: "Reports and Analytics",
+    desc: "Sales vs purchases charts, top products, customer distribution, and export to CSV or Excel.",
+  },
+  {
+    icon: "🏢",
+    color: "iconOrange",
+    title: "Multi-Company Support",
+    desc: "Manage multiple business entities from one dashboard with role-based access control.",
+  },
+  {
+    icon: "🤖",
+    color: "iconPink",
+    title: "AI Assistant",
+    desc: "Ask your inventory questions in plain language. Get instant insights without digging through reports.",
+  },
+];
+
+function Features() {
+  return (
+    <section className={styles.section} id="features">
+      <p className={styles.sectionLabel}>What You Get</p>
+      <h2 className={styles.sectionHeading}>
+        Everything your business needs
+        <br />
+        in one place
+      </h2>
+      <p className={styles.sectionSub}>
+        From purchase orders to financial reconciliation, StockFlow handles the complexity so you can focus on growth.
+      </p>
+      <div className={styles.featuresGrid}>
+        {FEATURES.map(({ icon, color, title, desc }) => (
+          <div key={title} className={styles.featureCard}>
+            <div className={`${styles.featureIcon} ${styles[color]}`}>{icon}</div>
+            <h3 className={styles.featureTitle}>{title}</h3>
+            <p className={styles.featureDesc}>{desc}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function Landing() {
   const [modalOpen, setModalOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
@@ -86,6 +150,7 @@ export default function Landing() {
       <div className={styles.page}>
         <Nav onDemoClick={() => setModalOpen(true)} />
         <Hero onDemoClick={() => setModalOpen(true)} />
+        <Features />
       </div>
     </>
   );

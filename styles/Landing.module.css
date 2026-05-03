@@ -290,3 +290,66 @@
   color: #9ca3af;
   margin-top: 2px;
 }
+
+/* ── FEATURES ── */
+.featuresGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 48px;
+}
+
+.featureCard {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.07);
+}
+
+.featureIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  margin: 0 auto 14px;
+}
+
+.iconPurple {
+  background: rgba(99, 102, 241, 0.12);
+}
+.iconViolet {
+  background: rgba(139, 92, 246, 0.12);
+}
+.iconGreen {
+  background: rgba(16, 185, 129, 0.12);
+}
+.iconBlue {
+  background: rgba(59, 130, 246, 0.12);
+}
+.iconOrange {
+  background: rgba(245, 158, 11, 0.12);
+}
+.iconPink {
+  background: rgba(236, 72, 153, 0.12);
+}
+
+.featureTitle {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  text-align: center;
+  color: #1e1b4b;
+}
+
+.featureDesc {
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.6;
+  text-align: center;
+}
