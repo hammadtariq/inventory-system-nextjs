@@ -432,20 +432,28 @@ function DemoModal({ open, onClose }) {
         <p className={styles.modalSub}>We will reach out within 24 hours to schedule your walkthrough.</p>
         <form onSubmit={handleSubmit}>
           <div className={styles.formGroup}>
-            <label className={styles.formLabel}>Full Name</label>
-            <input className={styles.formInput} type="text" placeholder="Your name" required />
+            <label className={styles.formLabel} htmlFor="demo-name">
+              Full Name
+            </label>
+            <input id="demo-name" className={styles.formInput} type="text" placeholder="Your name" required />
           </div>
           <div className={styles.formGroup}>
-            <label className={styles.formLabel}>Business Email</label>
-            <input className={styles.formInput} type="email" placeholder="you@company.com" required />
+            <label className={styles.formLabel} htmlFor="demo-email">
+              Business Email
+            </label>
+            <input id="demo-email" className={styles.formInput} type="email" placeholder="you@company.com" required />
           </div>
           <div className={styles.formGroup}>
-            <label className={styles.formLabel}>Company Name</label>
-            <input className={styles.formInput} type="text" placeholder="Your company" required />
+            <label className={styles.formLabel} htmlFor="demo-company">
+              Company Name
+            </label>
+            <input id="demo-company" className={styles.formInput} type="text" placeholder="Your company" required />
           </div>
           <div className={styles.formGroup}>
-            <label className={styles.formLabel}>Team Size</label>
-            <select className={styles.formSelect}>
+            <label className={styles.formLabel} htmlFor="demo-size">
+              Team Size
+            </label>
+            <select id="demo-size" className={styles.formSelect} required>
               <option>1 to 10 employees</option>
               <option>11 to 50 employees</option>
               <option>51 to 200 employees</option>
