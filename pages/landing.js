@@ -217,9 +217,7 @@ function Pricing({ onDemoClick }) {
           {PLANS.map((plan) => (
             <div key={plan.tier} className={`${styles.planCard} ${styles[plan.style]}`}>
               {plan.popular && <div className={styles.popularBadge}>⭐ Most Popular</div>}
-              <p className={`${styles.planTier} ${plan.tierClass === "planTierGold" ? styles.planTierGold : ""}`}>
-                {plan.tier}
-              </p>
+              <p className={`${styles.planTier} ${styles[plan.tierClass] ?? ""}`}>{plan.tier}</p>
               <div className={styles.planPrice}>
                 <sup className={styles.planPriceSup}>$</sup>
                 {plan.price.replace("$", "")}
