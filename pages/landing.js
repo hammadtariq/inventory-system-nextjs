@@ -294,6 +294,50 @@ function Pricing({ onDemoClick }) {
   );
 }
 
+const FAQS = [
+  {
+    q: "Can I manage multiple companies under one account?",
+    a: "Yes. Gold and Platinum plans support multiple business entities from a single dashboard, each with isolated data and user roles.",
+  },
+  {
+    q: "How secure is my business data?",
+    a: "Your data is encrypted in transit and at rest. We follow OWASP security standards and conduct regular audits.",
+  },
+  {
+    q: "Can I cancel or switch plans anytime?",
+    a: "Absolutely. Upgrade, downgrade, or cancel at any time. No lock-in contracts, no cancellation fees.",
+  },
+  {
+    q: "How long does onboarding take?",
+    a: "Most businesses are up and running within a week. Platinum customers get dedicated onboarding support.",
+  },
+];
+
+function Faq({ openFaq, setOpenFaq }) {
+  return (
+    <section className={styles.section} id="faq">
+      <p className={styles.sectionLabel}>FAQ</p>
+      <h2 className={styles.sectionHeading}>Common questions</h2>
+      <div className={styles.faqList}>
+        {FAQS.map(({ q, a }) => {
+          const isOpen = openFaq === q;
+          return (
+            <div key={q} className={styles.faqItem}>
+              <button className={styles.faqToggle} onClick={() => setOpenFaq(isOpen ? null : q)}>
+                <span className={styles.faqQuestion}>{q}</span>
+                <span className={`${styles.faqChevron} ${isOpen ? styles.faqChevronOpen : ""}`}>›</span>
+              </button>
+              <div className={`${styles.faqBody} ${isOpen ? styles.faqBodyOpen : ""}`}>
+                <p className={styles.faqAnswer}>{a}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 export default function Landing() {
   const [modalOpen, setModalOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
@@ -313,6 +357,7 @@ export default function Landing() {
         <Features />
         <Pricing onDemoClick={() => setModalOpen(true)} />
         <Testimonials />
+        <Faq openFaq={openFaq} setOpenFaq={setOpenFaq} />
       </div>
     </>
   );
