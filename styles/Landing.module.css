@@ -353,3 +353,189 @@
   line-height: 1.6;
   text-align: center;
 }
+
+/* ── PRICING ── */
+.pricingBg {
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 24px;
+  padding: 60px;
+}
+
+.toggleWrap {
+  display: flex;
+  justify-content: center;
+  margin: 24px 0 48px;
+}
+
+.planToggle {
+  display: inline-flex;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.planToggleBtn {
+  padding: 7px 20px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #6b7280;
+  white-space: nowrap;
+  background: none;
+  border: none;
+  font-family: inherit;
+}
+
+.planToggleActive {
+  background: linear-gradient(135deg, #6366f1, #7c3aed);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.pricingGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.planCard {
+  border-radius: 16px;
+  padding: 32px 28px;
+  position: relative;
+}
+
+.planSilver {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+}
+
+.planGold {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.08));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 2px solid rgba(99, 102, 241, 0.35);
+  box-shadow: 0 12px 40px rgba(99, 102, 241, 0.15);
+}
+
+.planPlatinum {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.12), rgba(168, 85, 247, 0.08));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  box-shadow: 0 8px 30px rgba(139, 92, 246, 0.1);
+}
+
+.popularBadge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #6366f1, #7c3aed);
+  color: #fff;
+  border-radius: 20px;
+  padding: 4px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.planTier {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  margin-bottom: 12px;
+}
+
+.planTierGold {
+  color: #7c3aed;
+}
+
+.planPrice {
+  font-size: 42px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #1e1b4b;
+  line-height: 1;
+}
+
+.planPriceSup {
+  font-size: 20px;
+  vertical-align: top;
+  margin-top: 8px;
+  font-weight: 800;
+}
+
+.planPriceSub {
+  font-size: 14px;
+  font-weight: 500;
+  color: #9ca3af;
+}
+
+.planDesc {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 8px 0 24px;
+}
+
+.planFeatures {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 28px;
+  padding: 0;
+}
+
+.planFeatureItem {
+  font-size: 13px;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.planFeatureItem::before {
+  content: "✓";
+  color: #6366f1;
+  font-weight: 700;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.planBtn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
+
+.btnOutlinePlan {
+  background: transparent;
+  border: 1.5px solid rgba(99, 102, 241, 0.35);
+  color: #6366f1;
+}
+
+.btnFillPlan {
+  background: linear-gradient(135deg, #6366f1, #7c3aed);
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
+}
+
+.btnGhostPlan {
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  color: #7c3aed;
+}

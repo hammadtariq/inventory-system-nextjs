@@ -134,6 +134,116 @@ function Features() {
   );
 }
 
+const PLANS = [
+  {
+    tier: "🥈 Silver",
+    style: "planSilver",
+    tierClass: "planTier",
+    btnClass: "btnOutlinePlan",
+    btnLabel: "Get Started",
+    price: "$20",
+    period: "/mo",
+    desc: "Perfect for small teams getting started",
+    features: ["1 Company", "Up to 5 Users", "Inventory and Orders", "Basic Reports", "Email Support"],
+  },
+  {
+    tier: "🥇 Gold",
+    style: "planGold",
+    tierClass: "planTierGold",
+    btnClass: "btnFillPlan",
+    btnLabel: "Request a Demo",
+    popular: true,
+    price: "$100",
+    period: "/6 mo",
+    desc: "Save 17%. Best for growing businesses.",
+    features: [
+      "3 Companies",
+      "Up to 15 Users",
+      "Advanced Reporting",
+      "Ledger and Cheques",
+      "Priority Support",
+      "CSV and Excel Exports",
+    ],
+  },
+  {
+    tier: "💎 Platinum",
+    style: "planPlatinum",
+    tierClass: "planTier",
+    btnClass: "btnGhostPlan",
+    btnLabel: "Request a Demo",
+    price: "$150",
+    period: "/yr",
+    desc: "Best value. Save 38% annually.",
+    features: [
+      "Unlimited Companies",
+      "Unlimited Users",
+      "All Gold Features",
+      "AI Assistant",
+      "Dedicated Onboarding",
+      "99.9% SLA",
+    ],
+  },
+];
+
+const TOGGLE_LABELS = ["Monthly", "6 Months", "Annual"];
+
+function Pricing({ onDemoClick }) {
+  const [active, setActive] = useState(0);
+
+  return (
+    <section className={styles.section} id="pricing">
+      <div className={styles.pricingBg}>
+        <p className={styles.sectionLabel}>Simple Pricing</p>
+        <h2 className={styles.sectionHeading}>
+          Choose the plan that fits
+          <br />
+          your business
+        </h2>
+        <p className={styles.sectionSub}>No hidden fees. Cancel anytime. Switch plans as you grow.</p>
+        <div className={styles.toggleWrap}>
+          <div className={styles.planToggle}>
+            {TOGGLE_LABELS.map((label, i) => (
+              <button
+                key={label}
+                className={`${styles.planToggleBtn} ${active === i ? styles.planToggleActive : ""}`}
+                onClick={() => setActive(i)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className={styles.pricingGrid}>
+          {PLANS.map((plan) => (
+            <div key={plan.tier} className={`${styles.planCard} ${styles[plan.style]}`}>
+              {plan.popular && <div className={styles.popularBadge}>⭐ Most Popular</div>}
+              <p className={`${styles.planTier} ${plan.tierClass === "planTierGold" ? styles.planTierGold : ""}`}>
+                {plan.tier}
+              </p>
+              <div className={styles.planPrice}>
+                <sup className={styles.planPriceSup}>$</sup>
+                {plan.price.replace("$", "")}
+                <sub className={styles.planPriceSub}>{plan.period}</sub>
+              </div>
+              <p className={styles.planDesc}>{plan.desc}</p>
+              <ul className={styles.planFeatures}>
+                {plan.features.map((f) => (
+                  <li key={f} className={styles.planFeatureItem}>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <button className={`${styles.planBtn} ${styles[plan.btnClass]}`} onClick={onDemoClick}>
+                {plan.btnLabel}
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Landing() {
   const [modalOpen, setModalOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
@@ -151,6 +261,7 @@ export default function Landing() {
         <Nav onDemoClick={() => setModalOpen(true)} />
         <Hero onDemoClick={() => setModalOpen(true)} />
         <Features />
+        <Pricing onDemoClick={() => setModalOpen(true)} />
       </div>
     </>
   );
