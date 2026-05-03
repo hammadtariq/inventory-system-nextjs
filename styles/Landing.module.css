@@ -910,3 +910,98 @@
   margin-top: 8px;
   font-family: inherit;
 }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .nav {
+    padding: 14px 20px;
+  }
+
+  .navLinks {
+    display: none;
+  }
+
+  .hero {
+    padding: 60px 20px 50px;
+  }
+
+  .heroHeading {
+    font-size: 32px;
+  }
+
+  .heroSub {
+    font-size: 15px;
+  }
+
+  .heroCard {
+    padding: 16px;
+  }
+
+  .cardStats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .statVal {
+    font-size: 15px;
+  }
+
+  .section {
+    padding: 56px 20px;
+  }
+
+  .sectionHeading {
+    font-size: 28px;
+  }
+
+  .featuresGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .pricingBg {
+    padding: 40px 20px;
+  }
+
+  .planToggle {
+    width: 100%;
+  }
+
+  .planToggleBtn {
+    flex: 1;
+    text-align: center;
+    padding: 9px 8px;
+    font-size: 12px;
+  }
+
+  .pricingGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .testimonialsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .finalCta {
+    margin: 0 20px 60px;
+    padding: 48px 24px;
+  }
+
+  .finalCtaHeading {
+    font-size: 28px;
+  }
+
+  .footer {
+    padding: 40px 20px 24px;
+  }
+
+  .footerGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+}
+
+@media (max-width: 400px) {
+  .featuresGrid {
+    grid-template-columns: 1fr;
+  }
+}
