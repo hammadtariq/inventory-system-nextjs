@@ -338,6 +338,79 @@ function Faq({ openFaq, setOpenFaq }) {
   );
 }
 
+function FinalCta({ onDemoClick }) {
+  return (
+    <div className={styles.finalCta}>
+      <h2 className={styles.finalCtaHeading}>
+        Ready to streamline
+        <br />
+        your inventory?
+      </h2>
+      <p className={styles.finalCtaSub}>Join hundreds of businesses already running smarter with StockFlow.</p>
+      <button className={styles.btnPrimaryLg} onClick={onDemoClick}>
+        Request a Demo <span aria-hidden="true">→</span>
+      </button>
+    </div>
+  );
+}
+
+function Footer({ onDemoClick }) {
+  return (
+    <footer className={styles.footer}>
+      <div className={styles.footerGrid}>
+        <div>
+          <a href="#hero" className={styles.logo} style={{ fontSize: 18 }}>
+            ⬡ StockFlow
+          </a>
+          <p className={styles.footerBrandText}>
+            Modern inventory management for growing businesses across South Asia.
+          </p>
+        </div>
+        <div>
+          <p className={styles.footerColHeading}>Product</p>
+          <a href="#features" className={styles.footerLink}>
+            Features
+          </a>
+          <a href="#pricing" className={styles.footerLink}>
+            Pricing
+          </a>
+          <a href="#testimonials" className={styles.footerLink}>
+            Testimonials
+          </a>
+          <a href="#faq" className={styles.footerLink}>
+            FAQ
+          </a>
+        </div>
+        <div>
+          <p className={styles.footerColHeading}>Company</p>
+          <a href="/about" className={styles.footerLink}>
+            About
+          </a>
+          <a href="/blog" className={styles.footerLink}>
+            Blog
+          </a>
+          <button className={styles.footerLinkBtn} onClick={onDemoClick}>
+            Contact Us
+          </button>
+        </div>
+        <div>
+          <p className={styles.footerColHeading}>Legal</p>
+          <a href="/privacy" className={styles.footerLink}>
+            Privacy Policy
+          </a>
+          <a href="/terms" className={styles.footerLink}>
+            Terms of Service
+          </a>
+        </div>
+      </div>
+      <div className={styles.footerBottom}>
+        <span>© 2026 StockFlow. All rights reserved.</span>
+        <span>Built for SMBs in South Asia 🌍</span>
+      </div>
+    </footer>
+  );
+}
+
 export default function Landing() {
   const [modalOpen, setModalOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
@@ -358,6 +431,8 @@ export default function Landing() {
         <Pricing onDemoClick={() => setModalOpen(true)} />
         <Testimonials />
         <Faq openFaq={openFaq} setOpenFaq={setOpenFaq} />
+        <FinalCta onDemoClick={() => setModalOpen(true)} />
+        <Footer onDemoClick={() => setModalOpen(true)} />
       </div>
     </>
   );
