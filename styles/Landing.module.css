@@ -803,3 +803,110 @@
   flex-wrap: wrap;
   gap: 8px;
 }
+
+/* ── DEMO MODAL ── */
+.modalOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(30, 27, 74, 0.4);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modalOverlayOpen {
+  display: flex;
+}
+
+.modal {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 40px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 30px 80px rgba(99, 102, 241, 0.2);
+  position: relative;
+}
+
+.modalClose {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #9ca3af;
+  line-height: 1;
+  font-family: inherit;
+}
+
+.modalHeading {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 6px;
+  text-align: center;
+  color: #1e1b4b;
+}
+
+.modalSub {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+.formGroup {
+  margin-bottom: 16px;
+}
+
+.formLabel {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.formInput,
+.formSelect {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  color: #1e1b4b;
+  outline: none;
+  font-family: inherit;
+}
+
+.formInput:focus,
+.formSelect:focus {
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.formSubmit {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, #6366f1, #7c3aed);
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
+  margin-top: 8px;
+  font-family: inherit;
+}

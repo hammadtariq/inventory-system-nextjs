@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Head from "next/head";
 import styles from "@/styles/Landing.module.css";
 
@@ -411,9 +411,67 @@ function Footer({ onDemoClick }) {
   );
 }
 
+function DemoModal({ open, onClose }) {
+  function handleOverlayClick(e) {
+    if (e.target === e.currentTarget) onClose();
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    console.log("Demo request submitted");
+    onClose();
+  }
+
+  return (
+    <div className={`${styles.modalOverlay} ${open ? styles.modalOverlayOpen : ""}`} onClick={handleOverlayClick}>
+      <div className={styles.modal}>
+        <button className={styles.modalClose} onClick={onClose} aria-label="Close">
+          ✕
+        </button>
+        <h3 className={styles.modalHeading}>Request a Demo</h3>
+        <p className={styles.modalSub}>We will reach out within 24 hours to schedule your walkthrough.</p>
+        <form onSubmit={handleSubmit}>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Full Name</label>
+            <input className={styles.formInput} type="text" placeholder="Your name" required />
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Business Email</label>
+            <input className={styles.formInput} type="email" placeholder="you@company.com" required />
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Company Name</label>
+            <input className={styles.formInput} type="text" placeholder="Your company" required />
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Team Size</label>
+            <select className={styles.formSelect}>
+              <option>1 to 10 employees</option>
+              <option>11 to 50 employees</option>
+              <option>51 to 200 employees</option>
+              <option>200+ employees</option>
+            </select>
+          </div>
+          <button type="submit" className={styles.formSubmit}>
+            Submit Request →
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function Landing() {
   const [modalOpen, setModalOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
+
+  useEffect(() => {
+    function handleKey(e) {
+      if (e.key === "Escape") setModalOpen(false);
+    }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, []);
 
   return (
     <>
@@ -433,6 +491,7 @@ export default function Landing() {
         <Faq openFaq={openFaq} setOpenFaq={setOpenFaq} />
         <FinalCta onDemoClick={() => setModalOpen(true)} />
         <Footer onDemoClick={() => setModalOpen(true)} />
+        <DemoModal open={modalOpen} onClose={() => setModalOpen(false)} />
       </div>
     </>
   );
