@@ -1,0 +1,155 @@
+/* ── PAGE ── */
+.page {
+  background: linear-gradient(160deg, #f0f4ff 0%, #faf5ff 45%, #f0fdf4 100%);
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  color: #1e1b4b;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.page::before {
+  content: "";
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, transparent 70%);
+  top: -200px;
+  right: -100px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.page::after {
+  content: "";
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%);
+  bottom: 200px;
+  left: -100px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* ── NAV ── */
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 60px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #6366f1, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-decoration: none;
+}
+
+.navLinks {
+  display: flex;
+  gap: 28px;
+  font-size: 13px;
+}
+
+.navLinks a {
+  text-decoration: none;
+  color: #4b5563;
+  transition: color 0.15s;
+}
+
+.navLinks a:hover {
+  color: #6366f1;
+}
+
+.navCta {
+  background: linear-gradient(135deg, #6366f1, #7c3aed);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+/* ── SHARED BUTTONS ── */
+.btnPrimary {
+  background: linear-gradient(135deg, #6366f1, #7c3aed);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 14px 32px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+  text-decoration: none;
+  display: inline-block;
+  font-family: inherit;
+}
+
+.btnSecondary {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: 10px;
+  padding: 14px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #6366f1;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  text-decoration: none;
+  display: inline-block;
+  font-family: inherit;
+}
+
+/* ── SHARED SECTION ── */
+.section {
+  padding: 80px 60px;
+  position: relative;
+  z-index: 2;
+}
+
+.sectionLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #7c3aed;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.sectionHeading {
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.sectionSub {
+  font-size: 16px;
+  color: #6b7280;
+  max-width: 500px;
+  line-height: 1.7;
+  text-align: center;
+  margin: 0 auto;
+}
