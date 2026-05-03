@@ -539,3 +539,78 @@
   border: 1px solid rgba(139, 92, 246, 0.25);
   color: #7c3aed;
 }
+
+/* ── TESTIMONIALS ── */
+.testimonialsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 48px;
+}
+
+.testimonialCard {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.stars {
+  color: #f59e0b;
+  font-size: 13px;
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+.testimonialQuote {
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.7;
+  margin-bottom: 16px;
+  font-style: italic;
+  text-align: center;
+}
+
+.author {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.avatarA {
+  background: linear-gradient(135deg, #6366f1, #7c3aed);
+}
+.avatarB {
+  background: linear-gradient(135deg, #059669, #10b981);
+}
+.avatarC {
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+}
+
+.authorName {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e1b4b;
+}
+
+.authorRole {
+  font-size: 11px;
+  color: #9ca3af;
+}

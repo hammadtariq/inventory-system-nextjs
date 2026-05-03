@@ -134,6 +134,58 @@ function Features() {
   );
 }
 
+const TESTIMONIALS = [
+  {
+    quote: "StockFlow saved us 15 hours a week on reconciliation. GST compliance is finally stress-free.",
+    name: "Ali Hassan",
+    role: "Finance Manager, Karachi",
+    initial: "A",
+    avatarClass: "avatarA",
+  },
+  {
+    quote: "We cut inventory costs by 20% in the first quarter. The real-time visibility is a game-changer.",
+    name: "Omar Shaikh",
+    role: "Operations Lead, Lahore",
+    initial: "O",
+    avatarClass: "avatarB",
+  },
+  {
+    quote: "As a founder wearing all hats, StockFlow lets me run the whole business from my phone.",
+    name: "Fatima Malik",
+    role: "Founder, Islamabad",
+    initial: "F",
+    avatarClass: "avatarC",
+  },
+];
+
+function Testimonials() {
+  return (
+    <section className={styles.section} id="testimonials">
+      <p className={styles.sectionLabel}>Customer Stories</p>
+      <h2 className={styles.sectionHeading}>
+        Trusted by businesses
+        <br />
+        across South Asia
+      </h2>
+      <div className={styles.testimonialsGrid}>
+        {TESTIMONIALS.map(({ quote, name, role, initial, avatarClass }) => (
+          <div key={name} className={styles.testimonialCard}>
+            <div className={styles.stars}>★★★★★</div>
+            <p className={styles.testimonialQuote}>&ldquo;{quote}&rdquo;</p>
+            <div className={styles.author}>
+              <div className={`${styles.avatar} ${styles[avatarClass]}`}>{initial}</div>
+              <div>
+                <div className={styles.authorName}>{name}</div>
+                <div className={styles.authorRole}>{role}</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 const PLANS = [
   {
     tier: "🥈 Silver",
@@ -260,6 +312,7 @@ export default function Landing() {
         <Hero onDemoClick={() => setModalOpen(true)} />
         <Features />
         <Pricing onDemoClick={() => setModalOpen(true)} />
+        <Testimonials />
       </div>
     </>
   );
