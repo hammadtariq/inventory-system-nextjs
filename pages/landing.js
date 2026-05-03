@@ -45,7 +45,7 @@ function Hero({ onDemoClick }) {
       </p>
       <div className={styles.heroCtaRow}>
         <button className={styles.btnPrimary} onClick={onDemoClick}>
-          Request a Demo →
+          Request a Demo <span aria-hidden="true">→</span>
         </button>
         <a href="#pricing" className={styles.btnSecondary}>
           See Pricing
@@ -53,9 +53,9 @@ function Hero({ onDemoClick }) {
       </div>
       <div className={styles.heroCard}>
         <div className={styles.heroCardHeader}>
-          <span className={`${styles.dot} ${styles.dotRed}`} />
-          <span className={`${styles.dot} ${styles.dotYellow}`} />
-          <span className={`${styles.dot} ${styles.dotGreen}`} />
+          <span className={`${styles.dot} ${styles.dotRed}`} aria-hidden="true" />
+          <span className={`${styles.dot} ${styles.dotYellow}`} aria-hidden="true" />
+          <span className={`${styles.dot} ${styles.dotGreen}`} aria-hidden="true" />
         </div>
         <div className={styles.cardStats}>
           {STATS.map(({ val, lbl }) => (

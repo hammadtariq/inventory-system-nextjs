@@ -119,6 +119,27 @@
   font-family: inherit;
 }
 
+.btnPrimary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+.btnPrimary:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 3px;
+}
+.btnSecondary:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(99, 102, 241, 0.5);
+}
+.btnSecondary:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 3px;
+}
+.navCta:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 3px;
+}
+
 /* ── SHARED SECTION ── */
 .section {
   padding: 80px 60px;
@@ -265,7 +286,7 @@
 }
 
 .statLbl {
-  font-size: 10px;
+  font-size: 11px;
   color: #9ca3af;
   margin-top: 2px;
 }
