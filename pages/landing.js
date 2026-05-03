@@ -21,6 +21,55 @@ function Nav({ onDemoClick }) {
   );
 }
 
+const STATS = [
+  { val: "₨12.4M", lbl: "Total Sales" },
+  { val: "₨8.1M", lbl: "Total Purchases" },
+  { val: "2,840", lbl: "Items in Stock" },
+  { val: "98.2%", lbl: "Order Accuracy" },
+];
+
+function Hero({ onDemoClick }) {
+  return (
+    <section className={styles.hero} id="hero">
+      <div className={styles.heroBadge}>✦ Inventory Management for Modern Businesses</div>
+      <h1 className={styles.heroHeading}>
+        Run Your Inventory
+        <br />
+        <span className={styles.heroGradient}>Smarter, Faster,</span>
+        <br />
+        With Confidence.
+      </h1>
+      <p className={styles.heroSub}>
+        StockFlow brings real-time inventory tracking, integrated accounting, and smart order management, all in one
+        clean dashboard.
+      </p>
+      <div className={styles.heroCtaRow}>
+        <button className={styles.btnPrimary} onClick={onDemoClick}>
+          Request a Demo →
+        </button>
+        <a href="#pricing" className={styles.btnSecondary}>
+          See Pricing
+        </a>
+      </div>
+      <div className={styles.heroCard}>
+        <div className={styles.heroCardHeader}>
+          <span className={`${styles.dot} ${styles.dotRed}`} />
+          <span className={`${styles.dot} ${styles.dotYellow}`} />
+          <span className={`${styles.dot} ${styles.dotGreen}`} />
+        </div>
+        <div className={styles.cardStats}>
+          {STATS.map(({ val, lbl }) => (
+            <div key={lbl} className={styles.statChip}>
+              <div className={styles.statVal}>{val}</div>
+              <div className={styles.statLbl}>{lbl}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Landing() {
   const [modalOpen, setModalOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
@@ -36,7 +85,7 @@ export default function Landing() {
       </Head>
       <div className={styles.page}>
         <Nav onDemoClick={() => setModalOpen(true)} />
-        <p style={{ padding: "40px 60px", color: "#6b7280" }}>Sections coming soon...</p>
+        <Hero onDemoClick={() => setModalOpen(true)} />
       </div>
     </>
   );
