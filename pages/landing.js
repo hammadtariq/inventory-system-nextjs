@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Head from "next/head";
+import Link from "next/link";
 import styles from "@/styles/Landing.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -477,24 +478,21 @@ function Footer({ onDemoClick }) {
         </div>
         <div>
           <p className={styles.footerColHeading}>Company</p>
-          <a href="/about" className={styles.footerLink}>
+          <Link href="/about" className={styles.footerLink}>
             About
-          </a>
-          <a href="/blog" className={styles.footerLink}>
-            Blog
-          </a>
+          </Link>
           <button className={styles.footerLinkBtn} onClick={onDemoClick}>
             Contact Us
           </button>
         </div>
         <div>
           <p className={styles.footerColHeading}>Legal</p>
-          <a href="/privacy" className={styles.footerLink}>
+          <Link href="/privacy" className={styles.footerLink}>
             Privacy Policy
-          </a>
-          <a href="/terms" className={styles.footerLink}>
+          </Link>
+          <Link href="/terms" className={styles.footerLink}>
             Terms of Service
-          </a>
+          </Link>
         </div>
       </div>
       <div className={styles.footerBottom}>
