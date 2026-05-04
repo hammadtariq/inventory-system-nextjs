@@ -1,6 +1,17 @@
 import { useState, useEffect } from "react";
 import Head from "next/head";
 import styles from "@/styles/Landing.module.css";
+import { motion, AnimatePresence } from "framer-motion";
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+};
+
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.08 } },
+};
 
 function Nav({ onDemoClick }) {
   return (
@@ -14,9 +25,9 @@ function Nav({ onDemoClick }) {
         <a href="#testimonials">Testimonials</a>
         <a href="#faq">FAQ</a>
       </div>
-      <button className={styles.navCta} onClick={onDemoClick}>
+      <motion.button className={styles.navCta} onClick={onDemoClick} whileTap={{ scale: 0.97 }}>
         Request a Demo
-      </button>
+      </motion.button>
     </nav>
   );
 }
@@ -31,41 +42,55 @@ const STATS = [
 function Hero({ onDemoClick }) {
   return (
     <section className={styles.hero} id="hero">
-      <div className={styles.heroBadge}>✦ Inventory Management for Modern Businesses</div>
-      <h1 className={styles.heroHeading}>
-        Run Your Inventory
-        <br />
-        <span className={styles.heroGradient}>Smarter, Faster,</span>
-        <br />
-        With Confidence.
-      </h1>
-      <p className={styles.heroSub}>
-        StockFlow brings real-time inventory tracking, integrated accounting, and smart order management, all in one
-        clean dashboard.
-      </p>
-      <div className={styles.heroCtaRow}>
-        <button className={styles.btnPrimary} onClick={onDemoClick}>
-          Request a Demo <span aria-hidden="true">→</span>
-        </button>
-        <a href="#pricing" className={styles.btnSecondary}>
-          See Pricing
-        </a>
-      </div>
-      <div className={styles.heroCard}>
-        <div className={styles.heroCardHeader}>
-          <span className={`${styles.dot} ${styles.dotRed}`} aria-hidden="true" />
-          <span className={`${styles.dot} ${styles.dotYellow}`} aria-hidden="true" />
-          <span className={`${styles.dot} ${styles.dotGreen}`} aria-hidden="true" />
-        </div>
-        <div className={styles.cardStats}>
-          {STATS.map(({ val, lbl }) => (
-            <div key={lbl} className={styles.statChip}>
-              <div className={styles.statVal}>{val}</div>
-              <div className={styles.statLbl}>{lbl}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <motion.div variants={stagger} initial="hidden" animate="visible">
+        <motion.div variants={fadeUp} className={styles.heroBadge}>
+          ✦ Inventory Management for Modern Businesses
+        </motion.div>
+        <motion.h1 variants={fadeUp} className={styles.heroHeading}>
+          Run Your Inventory
+          <br />
+          <span className={styles.heroGradient}>Smarter, Faster,</span>
+          <br />
+          With Confidence.
+        </motion.h1>
+        <motion.p variants={fadeUp} className={styles.heroSub}>
+          StockFlow brings real-time inventory tracking, integrated accounting, and smart order management, all in one
+          clean dashboard.
+        </motion.p>
+        <motion.div variants={fadeUp} className={styles.heroCtaRow}>
+          <motion.button
+            className={styles.btnPrimary}
+            onClick={onDemoClick}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+          >
+            Request a Demo <span aria-hidden="true">→</span>
+          </motion.button>
+          <motion.a
+            href="#pricing"
+            className={styles.btnSecondary}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+          >
+            See Pricing
+          </motion.a>
+        </motion.div>
+        <motion.div variants={fadeUp} className={styles.heroCard}>
+          <div className={styles.heroCardHeader}>
+            <span className={`${styles.dot} ${styles.dotRed}`} aria-hidden="true" />
+            <span className={`${styles.dot} ${styles.dotYellow}`} aria-hidden="true" />
+            <span className={`${styles.dot} ${styles.dotGreen}`} aria-hidden="true" />
+          </div>
+          <div className={styles.cardStats}>
+            {STATS.map(({ val, lbl }) => (
+              <div key={lbl} className={styles.statChip}>
+                <div className={styles.statVal}>{val}</div>
+                <div className={styles.statLbl}>{lbl}</div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      </motion.div>
     </section>
   );
 }
@@ -112,24 +137,38 @@ const FEATURES = [
 function Features() {
   return (
     <section className={styles.section} id="features">
-      <p className={styles.sectionLabel}>What You Get</p>
-      <h2 className={styles.sectionHeading}>
-        Everything your business needs
-        <br />
-        in one place
-      </h2>
-      <p className={styles.sectionSub}>
-        From purchase orders to financial reconciliation, StockFlow handles the complexity so you can focus on growth.
-      </p>
-      <div className={styles.featuresGrid}>
+      <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+        <p className={styles.sectionLabel}>What You Get</p>
+        <h2 className={styles.sectionHeading}>
+          Everything your business needs
+          <br />
+          in one place
+        </h2>
+        <p className={styles.sectionSub}>
+          From purchase orders to financial reconciliation, StockFlow handles the complexity so you can focus on growth.
+        </p>
+      </motion.div>
+      <motion.div
+        className={styles.featuresGrid}
+        variants={stagger}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
         {FEATURES.map(({ icon, color, title, desc }) => (
-          <div key={title} className={styles.featureCard}>
+          <motion.div
+            key={title}
+            className={styles.featureCard}
+            variants={fadeUp}
+            whileHover={{ y: -6, boxShadow: "0 12px 40px rgba(99,102,241,0.15)" }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          >
             <div className={`${styles.featureIcon} ${styles[color]}`}>{icon}</div>
             <h3 className={styles.featureTitle}>{title}</h3>
             <p className={styles.featureDesc}>{desc}</p>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </section>
   );
 }
@@ -161,15 +200,29 @@ const TESTIMONIALS = [
 function Testimonials() {
   return (
     <section className={styles.section} id="testimonials">
-      <p className={styles.sectionLabel}>Customer Stories</p>
-      <h2 className={styles.sectionHeading}>
-        Trusted by businesses
-        <br />
-        across South Asia
-      </h2>
-      <div className={styles.testimonialsGrid}>
+      <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+        <p className={styles.sectionLabel}>Customer Stories</p>
+        <h2 className={styles.sectionHeading}>
+          Trusted by businesses
+          <br />
+          across South Asia
+        </h2>
+      </motion.div>
+      <motion.div
+        className={styles.testimonialsGrid}
+        variants={stagger}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
         {TESTIMONIALS.map(({ quote, name, role, initial, avatarClass }) => (
-          <div key={name} className={styles.testimonialCard}>
+          <motion.div
+            key={name}
+            className={styles.testimonialCard}
+            variants={fadeUp}
+            whileHover={{ y: -4, boxShadow: "0 12px 40px rgba(0,0,0,0.1)" }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          >
             <div className={styles.stars}>★★★★★</div>
             <p className={styles.testimonialQuote}>&ldquo;{quote}&rdquo;</p>
             <div className={styles.author}>
@@ -179,9 +232,9 @@ function Testimonials() {
                 <div className={styles.authorRole}>{role}</div>
               </div>
             </div>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </section>
   );
 }
@@ -243,7 +296,14 @@ function Pricing({ onDemoClick }) {
   const [active, setActive] = useState(0);
 
   return (
-    <section className={styles.section} id="pricing">
+    <motion.section
+      className={styles.section}
+      id="pricing"
+      variants={fadeUp}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+    >
       <div className={styles.pricingBg}>
         <p className={styles.sectionLabel}>Simple Pricing</p>
         <h2 className={styles.sectionHeading}>
@@ -265,9 +325,21 @@ function Pricing({ onDemoClick }) {
             ))}
           </div>
         </div>
-        <div className={styles.pricingGrid}>
+        <motion.div
+          className={styles.pricingGrid}
+          variants={stagger}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
           {PLANS.map((plan) => (
-            <div key={plan.tier} className={`${styles.planCard} ${styles[plan.style]}`}>
+            <motion.div
+              key={plan.tier}
+              className={`${styles.planCard} ${styles[plan.style]}`}
+              variants={fadeUp}
+              whileHover={{ y: -6, boxShadow: "0 20px 50px rgba(99,102,241,0.18)" }}
+              transition={{ type: "spring", stiffness: 280, damping: 20 }}
+            >
               {plan.popular && <div className={styles.popularBadge}>⭐ Most Popular</div>}
               <p className={`${styles.planTier} ${styles[plan.tierClass] ?? ""}`}>{plan.tier}</p>
               <div className={styles.planPrice}>
@@ -283,14 +355,18 @@ function Pricing({ onDemoClick }) {
                   </li>
                 ))}
               </ul>
-              <button className={`${styles.planBtn} ${styles[plan.btnClass]}`} onClick={onDemoClick}>
+              <motion.button
+                className={`${styles.planBtn} ${styles[plan.btnClass]}`}
+                onClick={onDemoClick}
+                whileTap={{ scale: 0.97 }}
+              >
                 {plan.btnLabel}
-              </button>
-            </div>
+              </motion.button>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
-    </section>
+    </motion.section>
   );
 }
 
@@ -315,7 +391,14 @@ const FAQS = [
 
 function Faq({ openFaq, setOpenFaq }) {
   return (
-    <section className={styles.section} id="faq">
+    <motion.section
+      className={styles.section}
+      id="faq"
+      variants={fadeUp}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+    >
       <p className={styles.sectionLabel}>FAQ</p>
       <h2 className={styles.sectionHeading}>Common questions</h2>
       <div className={styles.faqList}>
@@ -334,23 +417,34 @@ function Faq({ openFaq, setOpenFaq }) {
           );
         })}
       </div>
-    </section>
+    </motion.section>
   );
 }
 
 function FinalCta({ onDemoClick }) {
   return (
-    <div className={styles.finalCta}>
+    <motion.div
+      className={styles.finalCta}
+      variants={fadeUp}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+    >
       <h2 className={styles.finalCtaHeading}>
         Ready to streamline
         <br />
         your inventory?
       </h2>
       <p className={styles.finalCtaSub}>Join hundreds of businesses already running smarter with StockFlow.</p>
-      <button className={styles.btnPrimaryLg} onClick={onDemoClick}>
+      <motion.button
+        className={styles.btnPrimaryLg}
+        onClick={onDemoClick}
+        whileHover={{ scale: 1.03 }}
+        whileTap={{ scale: 0.97 }}
+      >
         Request a Demo <span aria-hidden="true">→</span>
-      </button>
-    </div>
+      </motion.button>
+    </motion.div>
   );
 }
 
@@ -423,49 +517,72 @@ function DemoModal({ open, onClose }) {
   }
 
   return (
-    <div className={`${styles.modalOverlay} ${open ? styles.modalOverlayOpen : ""}`} onClick={handleOverlayClick}>
-      <div className={styles.modal}>
-        <button className={styles.modalClose} onClick={onClose} aria-label="Close">
-          ✕
-        </button>
-        <h3 className={styles.modalHeading}>Request a Demo</h3>
-        <p className={styles.modalSub}>We will reach out within 24 hours to schedule your walkthrough.</p>
-        <form onSubmit={handleSubmit}>
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel} htmlFor="demo-name">
-              Full Name
-            </label>
-            <input id="demo-name" className={styles.formInput} type="text" placeholder="Your name" required />
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel} htmlFor="demo-email">
-              Business Email
-            </label>
-            <input id="demo-email" className={styles.formInput} type="email" placeholder="you@company.com" required />
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel} htmlFor="demo-company">
-              Company Name
-            </label>
-            <input id="demo-company" className={styles.formInput} type="text" placeholder="Your company" required />
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel} htmlFor="demo-size">
-              Team Size
-            </label>
-            <select id="demo-size" className={styles.formSelect} required>
-              <option>1 to 10 employees</option>
-              <option>11 to 50 employees</option>
-              <option>51 to 200 employees</option>
-              <option>200+ employees</option>
-            </select>
-          </div>
-          <button type="submit" className={styles.formSubmit}>
-            Submit Request →
-          </button>
-        </form>
-      </div>
-    </div>
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          className={`${styles.modalOverlay} ${styles.modalOverlayOpen}`}
+          onClick={handleOverlayClick}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <motion.div
+            className={styles.modal}
+            initial={{ opacity: 0, scale: 0.95, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 16 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+          >
+            <button className={styles.modalClose} onClick={onClose} aria-label="Close">
+              ✕
+            </button>
+            <h3 className={styles.modalHeading}>Request a Demo</h3>
+            <p className={styles.modalSub}>We will reach out within 24 hours to schedule your walkthrough.</p>
+            <form onSubmit={handleSubmit}>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel} htmlFor="demo-name">
+                  Full Name
+                </label>
+                <input id="demo-name" className={styles.formInput} type="text" placeholder="Your name" required />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel} htmlFor="demo-email">
+                  Business Email
+                </label>
+                <input
+                  id="demo-email"
+                  className={styles.formInput}
+                  type="email"
+                  placeholder="you@company.com"
+                  required
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel} htmlFor="demo-company">
+                  Company Name
+                </label>
+                <input id="demo-company" className={styles.formInput} type="text" placeholder="Your company" required />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel} htmlFor="demo-size">
+                  Team Size
+                </label>
+                <select id="demo-size" className={styles.formSelect} required>
+                  <option>1 to 10 employees</option>
+                  <option>11 to 50 employees</option>
+                  <option>51 to 200 employees</option>
+                  <option>200+ employees</option>
+                </select>
+              </div>
+              <motion.button type="submit" className={styles.formSubmit} whileTap={{ scale: 0.97 }}>
+                Submit Request →
+              </motion.button>
+            </form>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
