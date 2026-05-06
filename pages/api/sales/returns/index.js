@@ -7,6 +7,7 @@ import { auth } from "@/middlewares/auth";
 import { PAYMENT_TYPE, SPEND_TYPE, STATUS } from "@/utils/api.util";
 import { getReturnedQuantityMap, getSaleReturnItemKey } from "@/utils/saleReturn.util";
 import TenantContext from "@/lib/tenant-context";
+import { createTenantTransaction } from "@/lib/tenant-transaction";
 
 const productSchema = Joi.object().keys({
   itemName: Joi.string().trim().required(),
@@ -79,6 +80,7 @@ const updateInventoryForReturn = async (products, transaction) => {
           noOfBales: noOfBales || 0,
           baleWeightKgs: baleWeightKgs ?? null,
           baleWeightLbs: baleWeightLbs ?? null,
+          organizationId,
         },
         { transaction }
       );
@@ -99,14 +101,15 @@ const createSaleReturn = async (req, res) => {
     return res.status(400).send({ message: error.toString() });
   }
 
-  if (req.user.role !== "ADMIN") {
+  if (!["ADMIN", "SUPER_ADMIN"].includes(req.user.role)) {
     return res.status(400).send({ message: "Operation not permitted." });
   }
 
   try {
     await db.dbConnect();
-    transaction = await db.sequelize.transaction();
-    const organizationId = TenantContext.assertGet();
+    const tenantTransaction = await createTenantTransaction();
+    transaction = tenantTransaction.transaction;
+    const { organizationId } = tenantTransaction;
 
     const { saleId, customerId, totalAmount, returnDate, reference, returnedProducts } = value;
 
@@ -182,6 +185,7 @@ const createSaleReturn = async (req, res) => {
         reference,
         returnDate,
         ledgerId: ledger.id,
+        organizationId,
       },
       { transaction }
     );
@@ -201,7 +205,8 @@ const createSaleReturn = async (req, res) => {
     }
     console.log("Create sale return Request Error:", err);
 
-    const [code, message] = err.message.split(":");
+    const [code, ...messageParts] = err.message.split(":");
+    const message = messageParts.join(":") || err.message;
     const status = code === "NOT_FOUND" ? 404 : code === "BAD_REQUEST" ? 400 : 500;
     return res.status(status).send({ message });
   }
@@ -212,7 +217,9 @@ const getAllSaleReturns = async (req, res) => {
   const { limit, offset } = req.query;
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
     const saleReturns = await db.SaleReturn.findAndCountAll({
+      where: { organizationId },
       limit: limit ? Number(limit) : 50,
       offset: offset ? Number(offset) : 0,
       include: [db.Customer, db.Sale],

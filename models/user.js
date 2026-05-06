@@ -48,10 +48,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      role: DataTypes.ENUM(["ADMIN", "EDITOR"]),
+      role: DataTypes.ENUM(["ADMIN", "EDITOR", "SUPER_ADMIN"]),
       organizationId: {
         type: DataTypes.INTEGER,
-        allowNull: true,
+        allowNull: false,
       },
       status: {
         type: DataTypes.ENUM(["ACTIVE", "INVITED", "DISABLED"]),

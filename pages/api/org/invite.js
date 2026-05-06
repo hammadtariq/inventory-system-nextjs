@@ -6,6 +6,7 @@ import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import TenantContext from "@/lib/tenant-context";
 import { buildInviteUrl, createInviteToken, getInviteExpiry, hashInviteToken } from "@/lib/org-onboarding";
+import { sendInviteEmail } from "@/lib/invite-email";
 
 const apiSchema = Joi.object({
   firstName: Joi.string().min(3).trim().lowercase().required(),
@@ -15,7 +16,7 @@ const apiSchema = Joi.object({
 });
 
 export const inviteUser = async (req, res) => {
-  if (req.user.role !== "ADMIN") {
+  if (!["ADMIN", "SUPER_ADMIN"].includes(req.user.role)) {
     return res.status(403).send({ message: "Operation not permitted." });
   }
 
@@ -61,9 +62,25 @@ export const inviteUser = async (req, res) => {
       { tenantBypass: true }
     );
 
+    const inviteUrl = buildInviteUrl(req, inviteToken);
+    let emailStatus = "NOT_CONFIGURED";
+    try {
+      const emailSent = await sendInviteEmail({
+        to: invitedUser.email,
+        inviteUrl,
+        organizationName: req.organization?.name || "Inventory System",
+        firstName: invitedUser.firstName,
+      });
+      emailStatus = emailSent ? "SENT" : "NOT_CONFIGURED";
+    } catch (emailError) {
+      console.error("Invite email failed:", emailError);
+      emailStatus = "FAILED";
+    }
+
     return res.status(201).send({
       success: true,
-      inviteUrl: buildInviteUrl(req, inviteToken),
+      inviteUrl,
+      emailStatus,
       user: {
         id: invitedUser.id,
         uuid: invitedUser.uuid,

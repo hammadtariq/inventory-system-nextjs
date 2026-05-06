@@ -3,11 +3,15 @@ import Iron from "@hapi/iron";
 import db from "@/lib/postgres";
 import { getTokenCookie } from "@/lib/auth-cookies";
 import TenantContext from "@/lib/tenant-context";
+import { resolveOrganizationScope } from "@/lib/organization-scope";
 
 const TOKEN_SECRET = process.env.TOKEN_SECRET;
 
 export const auth = async (req, res, next) => {
   const token = getTokenCookie(req);
+  let transaction = null;
+  let finalized = false;
+  let finalize = null;
 
   if (!token) {
     return res.status(401).send({ message: "Please login first" });
@@ -37,21 +41,62 @@ export const auth = async (req, res, next) => {
       return res.status(401).send({ message: "Token validation failed" });
     }
 
-    const organization = await db.Organization.findByPk(user.organizationId);
+    const organization = await resolveOrganizationScope(user);
     if (!organization) {
       return res.status(401).send({ message: "Organization not found" });
     }
 
-    if (organization.status !== "ACTIVE") {
+    if (organization.status !== "ACTIVE" && user.role !== "SUPER_ADMIN") {
       return res.status(403).send({ message: "Organization suspended" });
     }
+
+    transaction = await db.sequelize.transaction();
+    finalize = async (shouldCommit) => {
+      if (finalized) return;
+      finalized = true;
+
+      try {
+        if (shouldCommit) {
+          await transaction.commit();
+        } else {
+          await transaction.rollback();
+        }
+      } finally {
+        TenantContext.setTransaction(null);
+      }
+    };
+
+    res.once("finish", () => {
+      void finalize(res.statusCode < 400);
+    });
+
+    res.once("close", () => {
+      void finalize(false);
+    });
+
+    await db.sequelize.query("SET LOCAL app.tenant_id = :organizationId", {
+      transaction,
+      replacements: { organizationId: organization.id },
+    });
 
     req.user = user;
     req.organization = organization;
 
-    return TenantContext.run(user.organizationId, () => next());
+    return TenantContext.run(organization.id, () => {
+      TenantContext.setTransaction(transaction);
+      return next();
+    });
   } catch (error) {
     console.log(error);
+    if (transaction && finalize && !finalized) {
+      try {
+        await finalize(false);
+      } catch (rollbackError) {
+        console.log(rollbackError);
+      }
+    } else {
+      TenantContext.setTransaction(null);
+    }
     res.status(401).send({ message: "Authentication failed" });
   }
 };

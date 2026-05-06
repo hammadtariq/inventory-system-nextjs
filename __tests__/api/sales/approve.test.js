@@ -10,6 +10,7 @@ jest.mock("@/lib/postgres", () => ({
     dbConnect: jest.fn(),
     sequelize: {
       transaction: jest.fn(),
+      query: jest.fn(),
     },
     Sale: {
       findOne: jest.fn(),

@@ -1,12 +1,9 @@
 import Joi from "joi";
-import Iron from "@hapi/iron";
 import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { compareHash } from "@/lib/bcrypt";
-import { setTokenCookie, MAX_AGE } from "@/lib/auth-cookies";
-
-const TOKEN_SECRET = process.env.TOKEN_SECRET;
+import { setLoginSession } from "@/lib/org-onboarding";
 
 const apiSchema = Joi.object({
   email: Joi.string().email().trim().required(),
@@ -81,27 +78,7 @@ const login = async (req, res) => {
       return res.status(403).send({ message: "Organization suspended" });
     }
 
-    const tokenWithouPassword = {
-      user: {
-        id: user.id,
-        uuid: user.uuid,
-        fisrtName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-        organizationId: user.organizationId,
-        organizationUuid: organization.uuid,
-        createdAt: user.createdAt,
-        updatedAt: user.createdAt,
-      },
-      token: {
-        maxAge: new Date(Date.now() + MAX_AGE * 1000),
-      },
-    };
-
-    const sealedToken = await Iron.seal(tokenWithouPassword, TOKEN_SECRET, Iron.defaults);
-
-    setTokenCookie(res, sealedToken);
+    const sealedToken = await setLoginSession(res, { user, organization });
     console.log("Login Request End");
 
     return res.send({
@@ -112,6 +89,7 @@ const login = async (req, res) => {
         lastName: user.lastName,
         email: user.email,
         role: user.role,
+        organizationId: user.organizationId,
         organizationUuid: organization.uuid,
         organizationSlug: organization.slug,
       },

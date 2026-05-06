@@ -6,6 +6,10 @@ import { acceptInvite } from "@/pages/api/org/accept-invite";
 import db from "@/lib/postgres";
 import TenantContext from "@/lib/tenant-context";
 
+jest.mock("@/lib/invite-email", () => ({
+  sendInviteEmail: jest.fn().mockResolvedValue(null),
+}));
+
 jest.mock("@/lib/postgres", () => ({
   __esModule: true,
   default: {
@@ -74,6 +78,7 @@ describe("organization onboarding APIs", () => {
         password: "password123",
       },
     });
+    req.user = { role: "SUPER_ADMIN" };
 
     await registerOrg(req, res);
 
@@ -119,6 +124,7 @@ describe("organization onboarding APIs", () => {
         password: "password123",
       },
     });
+    req.user = { role: "SUPER_ADMIN" };
 
     await registerOrg(req, res);
 
@@ -130,6 +136,25 @@ describe("organization onboarding APIs", () => {
       expect.objectContaining({ slug: "true-refined-solution" }),
       expect.anything()
     );
+  });
+
+  it("rejects non super admin organization registration", async () => {
+    const { req, res } = createMocks({
+      method: "POST",
+      headers: { host: "localhost:3000" },
+      body: {
+        organizationName: "Acme",
+        firstName: "Admin",
+        lastName: "User",
+        email: "admin@example.com",
+        password: "password123",
+      },
+    });
+    req.user = { role: "ADMIN" };
+
+    await registerOrg(req, res);
+
+    expect(res._getStatusCode()).toBe(403);
   });
 
   it("creates an invite for an admin within seat limit", async () => {

@@ -47,7 +47,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       organizationId: {
         type: DataTypes.INTEGER,
-        allowNull: true,
+        allowNull: false,
       },
     },
     {

@@ -1,3 +1,5 @@
+import Sequelize, { Model } from "sequelize";
+
 import TenantContext from "@/lib/tenant-context";
 import { applyTenantWriteHooks } from "@/lib/tenant-write-hooks";
 
@@ -72,5 +74,49 @@ describe("applyTenantWriteHooks", () => {
     });
 
     expect(instance).toEqual({});
+  });
+});
+
+describe("tenant write hooks", () => {
+  let sequelize;
+  let TenantRecord;
+
+  beforeEach(async () => {
+    sequelize = new Sequelize({ dialect: "sqlite", storage: ":memory:", logging: false });
+
+    class Record extends Model {}
+    Record.init(
+      {
+        name: {
+          type: Sequelize.STRING,
+          allowNull: false,
+        },
+        organizationId: {
+          type: Sequelize.INTEGER,
+          allowNull: false,
+        },
+      },
+      { sequelize, modelName: "tenantRecord" }
+    );
+
+    TenantRecord = Record;
+    applyTenantWriteHooks(TenantRecord);
+    await sequelize.sync({ force: true });
+  });
+
+  afterEach(async () => {
+    await sequelize.close();
+  });
+
+  it("stamps organizationId before not-null validation runs", async () => {
+    const record = await TenantContext.run(42, () => TenantRecord.create({ name: "purchase" }));
+
+    expect(record.organizationId).toBe(42);
+  });
+
+  it("rejects cross-tenant creates before validation", async () => {
+    await expect(
+      TenantContext.run(42, () => TenantRecord.create({ name: "purchase", organizationId: 7 }))
+    ).rejects.toThrow("Cross-tenant create attempted");
   });
 });

@@ -3,7 +3,6 @@ import { Form, Input, Button, message } from "antd";
 import Head from "next/head";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import Link from "next/link";
 import styles from "./login.module.css";
 import AuthLayout from "@/components/authLayout";
 import { loginUser } from "@/hooks/login";
@@ -29,7 +28,7 @@ const Login = () => {
       .then((data) => {
         setUserAccess(data.user);
         message.success("User logged in successfully");
-        router.replace("/");
+        router.replace(data.user?.role === "SUPER_ADMIN" ? "/organizations" : "/");
       })
       .catch((err) => {
         message.error("Login failed. Please check your credentials.");
@@ -84,10 +83,6 @@ const Login = () => {
                 Sign in
               </Button>
             </Form.Item>
-
-            <div style={{ textAlign: "center" }}>
-              <Link href="/register">Create an organization</Link>
-            </div>
           </Form>
         </div>
       </div>

@@ -15,6 +15,7 @@ import {
   SettingOutlined,
   LogoutOutlined,
   UserAddOutlined,
+  ApartmentOutlined,
 } from "@ant-design/icons";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
@@ -43,6 +44,7 @@ const baseItems = [
 ];
 
 const adminItems = [{ id: "13", title: "Users", url: "/users", icon: <UserAddOutlined /> }];
+const superAdminItems = [{ id: "14", title: "Organizations", url: "/organizations", icon: <ApartmentOutlined /> }];
 
 export default function AppNavbar(props = {}) {
   const { collapsed = false, onCollapseChange = () => {} } = props;
@@ -50,7 +52,17 @@ export default function AppNavbar(props = {}) {
   const router = useRouter();
   const [isSelected, setIsSelected] = useState();
   const user = StorageUtils.getItem("user");
-  const items = useMemo(() => (user?.role === "ADMIN" ? [...baseItems, ...adminItems] : baseItems), [user?.role]);
+  const items = useMemo(() => {
+    if (user?.role === "SUPER_ADMIN") {
+      return [...baseItems, ...adminItems, ...superAdminItems];
+    }
+
+    if (user?.role === "ADMIN") {
+      return [...baseItems, ...adminItems];
+    }
+
+    return baseItems;
+  }, [user?.role]);
   const onClickHandler = (url, id) => {
     setIsSelected(id);
     router.push(url);
@@ -64,7 +76,6 @@ export default function AppNavbar(props = {}) {
   }, [items, router.pathname]);
 
   const [dropdownVisible, setDropdownVisible] = useState(false);
-
   const onLogout = async () => {
     try {
       const data = await logoutUser();

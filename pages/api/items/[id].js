@@ -4,6 +4,7 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import TenantContext from "@/lib/tenant-context";
+import { createTenantTransaction } from "@/lib/tenant-transaction";
 
 const apiSchema = Joi.object({
   companyId: Joi.number(),
@@ -30,8 +31,9 @@ const updateItems = async (req, res) => {
   let t;
   try {
     await db.dbConnect();
-    t = await db.sequelize.transaction();
-    const organizationId = TenantContext.assertGet();
+    const tenantTransaction = await createTenantTransaction();
+    t = tenantTransaction.transaction;
+    const { organizationId } = tenantTransaction;
 
     const item = await db.Items.findOne({ where: { id: value.id, organizationId }, transaction: t });
     const inventoryItem = await db.Inventory.findOne({ where: { id: value.id, organizationId }, transaction: t });

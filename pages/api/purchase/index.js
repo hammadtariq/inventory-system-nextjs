@@ -48,7 +48,7 @@ export const createPurchaseOrder = async (req, res) => {
       return res.status(404).send({ message: "one or more purchased products were not found" });
     }
 
-    await db.Purchase.create({ ...value, status: STATUS.PENDING });
+    await db.Purchase.create({ ...value, status: STATUS.PENDING, organizationId });
     console.log("Create Purchase order Request End");
     return res.send();
   } catch (error) {
@@ -68,11 +68,13 @@ const getAllPurchase = async (req, res) => {
 
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
     const whereClause = search
       ? {
+          organizationId,
           [db.Sequelize.Op.or]: [{ companyId: { [db.Sequelize.Op.eq]: Number(search) } }],
         }
-      : {};
+      : { organizationId };
     const data = await db.Purchase.findAndCountAll({
       where: whereClause,
       include: [db.Company],

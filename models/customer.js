@@ -37,7 +37,6 @@ module.exports = (sequelize, DataTypes) => {
       email: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true,
         validate: {
           isEmail: { msg: "Provide valid email address" },
           isLowercase: { msg: "Email should be lowercase" },
@@ -59,12 +58,19 @@ module.exports = (sequelize, DataTypes) => {
       },
       organizationId: {
         type: DataTypes.INTEGER,
-        allowNull: true,
+        allowNull: false,
       },
     },
     {
       sequelize,
       modelName: "customer",
+      indexes: [
+        {
+          unique: true,
+          fields: ["organizationId", "email"],
+          name: "customers_organization_id_email_unique",
+        },
+      ],
     }
   );
   return customer;

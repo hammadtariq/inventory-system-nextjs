@@ -61,6 +61,7 @@ describe("createPurchaseOrder API", () => {
           }),
         ],
         status: "PENDING",
+        organizationId: 23,
       })
     );
 

@@ -3,7 +3,8 @@ import nextConnect from "next-connect";
 import { UniqueConstraintError } from "sequelize";
 
 import db from "@/lib/postgres";
-import { normalizeSlug, setLoginSession } from "@/lib/org-onboarding";
+import { auth } from "@/middlewares/auth";
+import { normalizeSlug } from "@/lib/org-onboarding";
 
 const apiSchema = Joi.object({
   organizationName: Joi.string().min(3).max(255).trim().required(),
@@ -15,6 +16,10 @@ const apiSchema = Joi.object({
 });
 
 export const registerOrg = async (req, res) => {
+  if (req.user?.role !== "SUPER_ADMIN") {
+    return res.status(403).send({ message: "Operation not permitted." });
+  }
+
   const { error, value } = apiSchema.validate(req.body);
   if (error && Object.keys(error).length) {
     return res.status(400).send({ message: error.toString() });
@@ -77,11 +82,8 @@ export const registerOrg = async (req, res) => {
 
     await transaction.commit();
 
-    const token = await setLoginSession(res, { user, organization });
-
     return res.status(201).send({
       success: true,
-      token,
       user: {
         uuid: user.uuid,
         fisrtName: user.firstName,
@@ -92,6 +94,7 @@ export const registerOrg = async (req, res) => {
         organizationSlug: organization.slug,
       },
       organization: {
+        id: organization.id,
         uuid: organization.uuid,
         name: organization.name,
         slug: organization.slug,
@@ -117,4 +120,4 @@ export const registerOrg = async (req, res) => {
   }
 };
 
-export default nextConnect().post(registerOrg);
+export default nextConnect().use(auth).post(registerOrg);

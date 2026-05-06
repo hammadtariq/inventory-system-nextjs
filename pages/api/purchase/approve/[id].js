@@ -6,6 +6,7 @@ import { auth } from "@/middlewares/auth";
 import { SPEND_TYPE, STATUS } from "@/utils/api.util";
 import { balanceQuery } from "@/utils/query.utils";
 import TenantContext from "@/lib/tenant-context";
+import { createTenantTransaction } from "@/lib/tenant-transaction";
 
 const apiSchema = Joi.object({
   id: Joi.number().required(),
@@ -35,14 +36,16 @@ const handler = async (req, res) => {
 };
 
 const approvePurchaseOrder = async (id, user) => {
-  if (user.role !== "ADMIN") {
+  if (!["ADMIN", "SUPER_ADMIN"].includes(user.role)) {
     return { status: 403, body: { message: "Operation not permitted." } };
   }
 
-  const t = await db.sequelize.transaction();
+  let t;
   try {
     await db.dbConnect();
-    const organizationId = TenantContext.assertGet();
+    const tenantTransaction = await createTenantTransaction();
+    t = tenantTransaction.transaction;
+    const { organizationId } = tenantTransaction;
 
     const purchase = await db.Purchase.findOne({
       where: { id, organizationId },
@@ -88,7 +91,7 @@ const approvePurchaseOrder = async (id, user) => {
       },
     };
   } catch (error) {
-    await t.rollback();
+    if (t) await t.rollback();
     return { status: 500, body: { message: error.message } };
   }
 };
@@ -96,10 +99,11 @@ const approvePurchaseOrder = async (id, user) => {
 // Consolidated Inventory Update
 const updateInventory = async (products, companyId, transaction) => {
   const results = [];
+  const organizationId = TenantContext.assertGet();
+
   for (const product of products) {
     const { id, noOfBales, baleWeightKgs, baleWeightLbs, ratePerLbs, ratePerKgs, ratePerBale } = product;
 
-    const organizationId = TenantContext.assertGet();
     let inventory = await db.Inventory.findOne({ where: { id, companyId, organizationId }, transaction });
     if (inventory) {
       await inventory.increment({ onHand: noOfBales || 0, noOfBales: noOfBales || 0 }, { transaction });
@@ -130,7 +134,7 @@ const updateInventory = async (products, companyId, transaction) => {
       );
     } else {
       inventory = await db.Inventory.create(
-        { ...product, companyId, onHand: noOfBales || 0, baleWeightKgs, baleWeightLbs },
+        { ...product, companyId, onHand: noOfBales || 0, baleWeightKgs, baleWeightLbs, organizationId },
         { transaction }
       );
     }
@@ -141,10 +145,12 @@ const updateInventory = async (products, companyId, transaction) => {
 
 // Ledger Update Logic
 const updateLedger = async (revisionNo, { companyId, transactionId, totalAmount, purchaseDate, invoiceNumber, t }) => {
+  const organizationId = TenantContext.assertGet();
+
   if (revisionNo !== 0) {
     // === Ledger Revision ===
     const ledger = await db.Ledger.findOne({
-      where: { companyId, transactionId, organizationId: TenantContext.assertGet() },
+      where: { companyId, transactionId, organizationId },
       transaction: t,
     });
 
@@ -177,7 +183,7 @@ const updateLedger = async (revisionNo, { companyId, transactionId, totalAmount,
       {
         where: {
           companyId,
-          organizationId: TenantContext.assertGet(),
+          organizationId,
           paymentDate: { [db.Sequelize.Op.gt]: purchaseDate },
         },
         transaction: t,
@@ -199,6 +205,7 @@ const updateLedger = async (revisionNo, { companyId, transactionId, totalAmount,
       invoiceNumber,
       paymentDate: purchaseDate,
       totalBalance,
+      organizationId,
     },
     { transaction: t }
   );

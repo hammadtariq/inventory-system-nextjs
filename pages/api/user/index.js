@@ -7,7 +7,7 @@ import TenantContext from "@/lib/tenant-context";
 
 export const getAllUsers = async (req, res) => {
   console.log("get all users Request Start");
-  if (req.user.role !== "ADMIN") {
+  if (!["ADMIN", "SUPER_ADMIN"].includes(req.user.role)) {
     return res.status(403).send({ message: "Operation not permitted." });
   }
 

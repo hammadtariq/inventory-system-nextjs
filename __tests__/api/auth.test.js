@@ -16,6 +16,10 @@ jest.mock("@hapi/iron", () => ({
 
 jest.mock("@/lib/postgres", () => ({
   dbConnect: jest.fn(),
+  sequelize: {
+    transaction: jest.fn(),
+    query: jest.fn(),
+  },
   User: {
     findOne: jest.fn(),
   },
@@ -37,6 +41,13 @@ describe("auth tenant bootstrap", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    const transaction = {
+      commit: jest.fn().mockResolvedValue(),
+      rollback: jest.fn().mockResolvedValue(),
+    };
+    db.sequelize.transactionObject = transaction;
+    db.sequelize.transaction.mockResolvedValue(transaction);
+    db.sequelize.query.mockResolvedValue();
     getTokenCookie.mockReturnValue("sealed-token");
     Iron.unseal.mockResolvedValue(tokenPayload);
     db.User.findOne.mockResolvedValue({
@@ -55,6 +66,7 @@ describe("auth tenant bootstrap", () => {
     const { req, res } = createMocks({ method: "GET" });
     const next = jest.fn(() => {
       expect(TenantContext.get()).toBe(11);
+      expect(TenantContext.getTransaction()).toBe(db.sequelize.transactionObject);
     });
 
     await auth(req, res, next);
@@ -64,7 +76,7 @@ describe("auth tenant bootstrap", () => {
       attributes: { exclude: ["password"] },
       tenantBypass: true,
     });
-    expect(db.Organization.findByPk).toHaveBeenCalledWith(11);
+    expect(db.Organization.findByPk).toHaveBeenCalledWith(11, { tenantBypass: true });
     expect(req.user.organizationId).toBe(11);
     expect(req.organization.id).toBe(11);
     expect(next).toHaveBeenCalledTimes(1);

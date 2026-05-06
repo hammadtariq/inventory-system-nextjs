@@ -57,6 +57,7 @@ const createPayment = async (req, res) => {
         chequeId,
         dueDate,
         status: "PENDING",
+        organizationId,
       });
     }
 

@@ -10,6 +10,7 @@ jest.mock("@/lib/postgres", () => ({
       commit: jest.fn(),
       rollback: jest.fn(),
     }),
+    query: jest.fn().mockResolvedValue(),
     literal: jest.fn((value) => value),
   },
   Purchase: { findOne: jest.fn(), update: jest.fn() },
@@ -41,6 +42,10 @@ describe("approvePurchaseOrder", () => {
   it("should return 404 if purchase is not found", async () => {
     db.Purchase.findOne.mockResolvedValue(null);
     const res = await TenantContext.run(23, async () => approvePurchaseOrder(1, { role: "ADMIN" }));
+    expect(db.sequelize.query).toHaveBeenCalledWith("SET LOCAL app.tenant_id = :organizationId", {
+      transaction: expect.any(Object),
+      replacements: { organizationId: 23 },
+    });
     expect(res.status).toBe(404);
     expect(res.body.message).toMatch(/does not exist/);
   });

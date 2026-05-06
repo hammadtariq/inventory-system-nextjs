@@ -53,7 +53,7 @@ export const createSale = async (req, res) => {
       }
     }
 
-    await db.Sale.create({ ...value, status: STATUS.PENDING });
+    await db.Sale.create({ ...value, status: STATUS.PENDING, organizationId });
     console.log("Create sale order Request End");
     return res.send();
   } catch (error) {

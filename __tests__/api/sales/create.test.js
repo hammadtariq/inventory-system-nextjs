@@ -76,6 +76,7 @@ describe("createSale API", () => {
         },
       ],
       status: STATUS.PENDING,
+      organizationId: 23,
     });
   });
 

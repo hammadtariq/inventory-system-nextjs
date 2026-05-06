@@ -1,16 +1,19 @@
 import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import TenantContext from "@/lib/tenant-context";
 
 const Op = db.Sequelize.Op;
 
-const getCustomerReport = async (req, res) => {
+export const getCustomerReport = async (req, res) => {
   const { dateRangeStart, dateRangeEnd, customerId } = req.query;
 
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
 
     const whereClause = {};
+    whereClause.organizationId = organizationId;
     if (dateRangeStart && dateRangeEnd) {
       whereClause.createdAt = {
         [Op.between]: [new Date(dateRangeStart), new Date(`${dateRangeEnd}T23:59:59.999Z`)],
@@ -27,6 +30,9 @@ const getCustomerReport = async (req, res) => {
           model: db.Sale,
           required: false,
           attributes: ["id", "totalAmount"],
+          where: {
+            organizationId,
+          },
         },
       ],
       order: [["createdAt", "DESC"]],

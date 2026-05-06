@@ -1,9 +1,10 @@
 import get from "lodash/get";
-import { adminPermissions, editorPermissions } from "../data/permission";
+import { adminPermissions, editorPermissions, superAdminPermissions } from "../data/permission";
 
 const permissions = {
   ADMIN: adminPermissions,
   EDITOR: editorPermissions,
+  SUPER_ADMIN: superAdminPermissions,
 };
 
 class PermissionsUtil {
@@ -18,7 +19,7 @@ class PermissionsUtil {
   }
 
   setPermissions(role) {
-    this.permissions = permissions[role];
+    this.permissions = permissions[role] || {};
   }
 
   clearPermissions() {

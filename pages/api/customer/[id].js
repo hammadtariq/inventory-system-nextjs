@@ -7,7 +7,7 @@ import TenantContext from "@/lib/tenant-context";
 
 const dbConnect = db.dbConnect;
 
-const getCustomer = async (req, res) => {
+export const getCustomer = async (req, res) => {
   console.log("Get Customer Request Start");
   try {
     await dbConnect();
@@ -30,7 +30,7 @@ const getCustomer = async (req, res) => {
   }
 };
 
-const editCustomer = async (req, res) => {
+export const editCustomer = async (req, res) => {
   console.log("Edit Customer Request Start");
   const apiSchema = Joi.object({
     firstName: Joi.string().min(3).trim(),
@@ -74,7 +74,7 @@ const editCustomer = async (req, res) => {
   }
 };
 
-const deleteCustomer = async (req, res) => {
+export const deleteCustomer = async (req, res) => {
   console.log("Delete Customer Request Start");
 
   const { id } = req.query;

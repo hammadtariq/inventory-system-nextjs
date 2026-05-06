@@ -63,6 +63,7 @@ export const acceptInvite = async (req, res) => {
         lastName: invitedUser.lastName,
         email: invitedUser.email,
         role: invitedUser.role,
+        organizationId: invitedUser.organizationId,
         organizationUuid: organization.uuid,
         organizationSlug: organization.slug,
       },

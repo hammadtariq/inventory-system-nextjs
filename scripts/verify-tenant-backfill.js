@@ -42,11 +42,15 @@ async function run() {
   console.log("Tenant backfill verification passed");
 }
 
-run()
-  .catch((error) => {
-    console.error(error);
-    process.exitCode = 1;
-  })
-  .finally(async () => {
-    await sequelize.close();
-  });
+if (require.main === module) {
+  run()
+    .catch((error) => {
+      console.error(error);
+      process.exitCode = 1;
+    })
+    .finally(async () => {
+      await sequelize.close();
+    });
+}
+
+module.exports = run;

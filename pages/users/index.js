@@ -1,17 +1,33 @@
-import { Button, Form, Input, Modal, Select, Space, Table, Tag, message } from "antd";
+import { Button, Form, Input, Modal, Select, Space, Table, Tag, Tooltip, Typography, message } from "antd";
+import {
+  EditOutlined,
+  DeleteOutlined,
+  MailOutlined,
+  LinkOutlined,
+  PlusOutlined,
+  ReloadOutlined,
+} from "@ant-design/icons";
 import Head from "next/head";
 import { useEffect, useState } from "react";
 
-import { getOrganizationUsers, inviteOrganizationUser } from "@/hooks/org";
+import {
+  deleteOrganizationUser,
+  getOrganizationUsers,
+  inviteOrganizationUser,
+  resendOrganizationInvite,
+  updateOrganizationUser,
+} from "@/hooks/org";
 import StorageUtils from "@/utils/storage.util";
 
 const Users = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
-  const [inviteLoading, setInviteLoading] = useState(false);
-  const [inviteUrl, setInviteUrl] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [mode, setMode] = useState("create");
+  const [selectedUser, setSelectedUser] = useState(null);
   const [form] = Form.useForm();
+  const [inviteLinks, setInviteLinks] = useState({});
   const currentUser = StorageUtils.getItem("user");
 
   const loadUsers = async () => {
@@ -30,19 +46,146 @@ const Users = () => {
     loadUsers();
   }, []);
 
-  const onInvite = async (values) => {
-    setInviteLoading(true);
+  const openCreate = () => {
+    setMode("create");
+    setSelectedUser(null);
+    form.resetFields();
+    form.setFieldsValue({ role: "EDITOR" });
+    setInviteOpen(true);
+  };
+
+  const openEdit = (user) => {
+    setMode("edit");
+    setSelectedUser(user);
+    form.setFieldsValue({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+    });
+    setInviteOpen(true);
+  };
+
+  const closeModal = () => {
+    setInviteOpen(false);
+    setSelectedUser(null);
+    setSaving(false);
+    form.resetFields();
+  };
+
+  const submitUser = async (values) => {
+    setSaving(true);
     try {
-      const data = await inviteOrganizationUser(values);
-      setInviteUrl(data.inviteUrl);
-      message.success("Invite created");
-      form.resetFields();
+      if (mode === "create") {
+        const data = await inviteOrganizationUser(values);
+        if (data?.inviteUrl) {
+          setInviteLinks((prev) => ({ ...prev, [data.user.id]: data.inviteUrl }));
+        }
+        if (data?.emailStatus === "SENT") {
+          message.success("Invite sent");
+        } else if (data?.emailStatus === "NOT_CONFIGURED") {
+          message.warning("Invite created, but email is not configured on this server.");
+        } else if (data?.emailStatus === "FAILED") {
+          message.error("Invite created, but the email delivery failed.");
+        } else {
+          message.success("Invite created");
+        }
+      } else {
+        await updateOrganizationUser(selectedUser.id, values);
+        message.success("User updated");
+      }
+      closeModal();
       loadUsers();
     } catch (error) {
-      console.error("invite user error:", error);
+      console.error("save user error:", error);
     } finally {
-      setInviteLoading(false);
+      setSaving(false);
     }
+  };
+
+  const removeUser = (user) => {
+    Modal.confirm({
+      title: "Delete user",
+      content: `Delete ${user.firstName || ""} ${user.lastName || ""}?`,
+      okText: "Delete",
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try {
+          await deleteOrganizationUser(user.id);
+          message.success("User deleted");
+          loadUsers();
+        } catch (error) {
+          console.error("delete user error:", error);
+        }
+      },
+    });
+  };
+
+  const handleInviteAction = async (user, sendEmail = false) => {
+    try {
+      const data = await resendOrganizationInvite(user.id, sendEmail);
+      setInviteLinks((prev) => ({ ...prev, [user.id]: data.inviteUrl }));
+      return data.inviteUrl;
+    } catch (error) {
+      console.error("invite link error:", error);
+      return null;
+    }
+  };
+
+  const copyInviteLink = async (user) => {
+    const inviteUrl = inviteLinks[user.id] || (await handleInviteAction(user, false));
+    if (!inviteUrl) return;
+    await navigator.clipboard.writeText(inviteUrl);
+    message.success("Invite link copied");
+  };
+
+  const resendInviteEmail = async (user) => {
+    const data = await resendOrganizationInvite(user.id, true);
+    setInviteLinks((prev) => ({ ...prev, [user.id]: data.inviteUrl }));
+    if (data?.emailStatus === "SENT") {
+      message.success("Invite email sent");
+    } else if (data?.emailStatus === "NOT_CONFIGURED") {
+      message.warning("Email is not configured on this server.");
+    } else {
+      message.error("Invite email failed.");
+    }
+  };
+
+  const openInviteLink = async (user) => {
+    const inviteUrl = inviteLinks[user.id] || (await handleInviteAction(user, false));
+    if (!inviteUrl) return;
+    window.open(inviteUrl, "_blank", "noopener,noreferrer");
+  };
+
+  const renderInviteCell = (row) => {
+    if (row.status !== "INVITED") {
+      return <Tag color="default">Not pending</Tag>;
+    }
+
+    const inviteUrl = inviteLinks[row.id];
+
+    return (
+      <Space direction="vertical" size={8} style={{ width: "100%" }}>
+        <Space wrap size={6}>
+          <Tooltip title="Copy invite link">
+            <Button size="small" icon={<LinkOutlined />} onClick={() => copyInviteLink(row)}>
+              Copy
+            </Button>
+          </Tooltip>
+          <Tooltip title="Send the invite email again">
+            <Button size="small" icon={<MailOutlined />} onClick={() => resendInviteEmail(row)}>
+              Resend
+            </Button>
+          </Tooltip>
+          <Tooltip title="Open the invite page">
+            <Button size="small" type="primary" icon={<ReloadOutlined />} onClick={() => openInviteLink(row)}>
+              Accept Invite
+            </Button>
+          </Tooltip>
+        </Space>
+      </Space>
+    );
   };
 
   const columns = [
@@ -59,9 +202,29 @@ const Users = () => {
       key: "status",
       render: (status = "ACTIVE") => <Tag color={status === "ACTIVE" ? "green" : "gold"}>{status}</Tag>,
     },
+    {
+      title: "Invite Link",
+      width: 360,
+      key: "inviteLink",
+      render: (_, row) => renderInviteCell(row),
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, row) => (
+        <Space>
+          <Button size="small" icon={<EditOutlined />} onClick={() => openEdit(row)}>
+            Edit
+          </Button>
+          <Button size="small" danger icon={<DeleteOutlined />} onClick={() => removeUser(row)}>
+            Delete
+          </Button>
+        </Space>
+      ),
+    },
   ];
 
-  if (currentUser?.role !== "ADMIN") {
+  if (!["ADMIN", "SUPER_ADMIN"].includes(currentUser?.role)) {
     return <div>Operation not permitted.</div>;
   }
 
@@ -74,7 +237,7 @@ const Users = () => {
       <Space direction="vertical" size="middle" style={{ width: "100%" }}>
         <Space style={{ width: "100%", justifyContent: "space-between" }}>
           <h2 style={{ margin: 0 }}>Users</h2>
-          <Button type="primary" onClick={() => setInviteOpen(true)}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
             Invite user
           </Button>
         </Space>
@@ -83,15 +246,13 @@ const Users = () => {
       </Space>
 
       <Modal
-        title="Invite user"
+        title={mode === "create" ? "Invite user" : "Edit user"}
         open={inviteOpen}
-        onCancel={() => {
-          setInviteOpen(false);
-          setInviteUrl("");
-        }}
+        onCancel={closeModal}
         footer={null}
+        destroyOnClose
       >
-        <Form form={form} layout="vertical" onFinish={onInvite} initialValues={{ role: "EDITOR" }}>
+        <Form form={form} layout="vertical" onFinish={submitUser} initialValues={{ role: "EDITOR" }}>
           <Form.Item name="firstName" label="First name" rules={[{ required: true, min: 3 }]}>
             <Input />
           </Form.Item>
@@ -109,20 +270,21 @@ const Users = () => {
               ]}
             />
           </Form.Item>
-          <Button type="primary" htmlType="submit" loading={inviteLoading} block>
-            Create invite
+          {mode === "edit" && (
+            <Form.Item name="status" label="Status" rules={[{ required: true }]}>
+              <Select
+                options={[
+                  { label: "Active", value: "ACTIVE" },
+                  { label: "Invited", value: "INVITED" },
+                  { label: "Disabled", value: "DISABLED" },
+                ]}
+              />
+            </Form.Item>
+          )}
+          <Button type="primary" htmlType="submit" loading={saving} block>
+            {mode === "create" ? "Create invite" : "Save changes"}
           </Button>
         </Form>
-
-        {inviteUrl && (
-          <Input.TextArea
-            value={inviteUrl}
-            readOnly
-            autoSize
-            style={{ marginTop: 16 }}
-            onFocus={(e) => e.target.select()}
-          />
-        )}
       </Modal>
     </>
   );

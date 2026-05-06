@@ -45,6 +45,7 @@ const createItem = async (req, res) => {
     }
     await db.Items.create({
       ...value,
+      organizationId,
     });
     console.log("create items Request End");
 
