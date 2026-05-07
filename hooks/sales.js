@@ -37,7 +37,10 @@ export const searchSales = (value) => get(`/api/sales/search?value=${value}`);
 
 export const getSales = (id) => get(`/api/sales/${id}?type=${type}`);
 
-export const getAllSalesbyCustomer = (id) => get(`/api/sales/byCustomerId/${id}`);
+export const getAllSalesbyCustomer = (id, params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  return get(`/api/sales/byCustomerId/${id}${query ? `?${query}` : ""}`);
+};
 
 export const getAllSalesForReport = async ({ customer, company, item, dateRangeStart, dateRangeEnd }) => {
   const params = new URLSearchParams({

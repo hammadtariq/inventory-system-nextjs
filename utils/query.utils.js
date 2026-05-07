@@ -1,7 +1,7 @@
 import { companySumQuery, customerSumQuery } from "@/query/index";
 import db from "@/lib/postgres";
 
-export const balanceQuery = async (id, queryType) => {
+export const balanceQuery = async (id, queryType, transaction) => {
   let rawQuery;
   try {
     if (queryType === "company") {
@@ -16,6 +16,7 @@ export const balanceQuery = async (id, queryType) => {
 
     const result = await db.sequelize.query(rawQuery, {
       type: db.Sequelize.QueryTypes.SELECT,
+      ...(transaction ? { transaction } : {}),
     });
 
     // Log the result for debugging

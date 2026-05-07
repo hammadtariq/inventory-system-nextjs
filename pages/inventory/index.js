@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Col, Row } from "antd";
 import EditableInventoryCell from "@/components/editableInventoryCell";
 import ExportButton from "@/components/exportButton";
@@ -25,7 +25,9 @@ const Inventory = () => {
     action: "edit",
   });
 
+  const inventoryRef = useRef(inventory);
   useEffect(() => {
+    inventoryRef.current = inventory;
     setUpdatedInventory(inventory);
   }, [inventory]);
 
@@ -112,15 +114,14 @@ const Inventory = () => {
     }
   };
 
-  const handleSearch = async (value) => {
+  const handleSearch = useCallback(async (value) => {
     if (!value) {
-      setUpdatedInventory(inventory);
-      return inventory;
-    } else {
-      const searchResults = await searchInventory(value);
-      return searchResults;
+      setUpdatedInventory(inventoryRef.current);
+      return;
     }
-  };
+    const searchResults = await searchInventory(value);
+    return searchResults;
+  }, []);
 
   const handleSelect = async (id) => {
     setFilters({ itemId: [id] });

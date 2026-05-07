@@ -3,8 +3,9 @@ const { Model } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
   class sale extends Model {
-    static associate({ Customer }) {
+    static associate({ Customer, SaleReturn }) {
       this.belongsTo(Customer, { foreignKey: "customerId" });
+      this.hasMany(SaleReturn, { foreignKey: "saleId" });
     }
     toJSON() {
       return { ...this.get(), customerId: undefined };

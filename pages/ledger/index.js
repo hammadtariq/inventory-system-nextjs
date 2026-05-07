@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import _isEmpty from "lodash/isEmpty";
-import { Alert, Empty, Radio, Row, Col, Input } from "antd";
+import { Alert, Button, Empty, Radio, Row, Col, Input } from "antd";
 import { useLedger } from "@/hooks/ledger";
 import styles from "@/styles/Ledger.module.css";
 import AppTitle from "@/components/title";
@@ -59,6 +59,9 @@ const Ledger = () => {
             onChange={(e) => setSearch(e.target.value)}
             style={{ maxWidth: 220, marginRight: 12 }}
           />
+          <Button style={{ float: "right", marginLeft: 8 }} onClick={() => router.push("/ledger/refund")}>
+            Refund to Customer
+          </Button>
           <AppCreateButton url="/ledger/create" />
         </Col>
       </AppTitle>

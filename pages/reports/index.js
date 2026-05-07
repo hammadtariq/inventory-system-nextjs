@@ -4,6 +4,7 @@ import { Tabs } from "antd";
 import CompanyReports from "@/components/companyReports";
 import SalesReport from "@/components/salesReport";
 import PurchaseReport from "@/components/purchaseReport";
+import CustomersReport from "@/components/customersReport";
 
 export default function ReportsOverview() {
   const [activeKey, setActiveKey] = useState("sales");
@@ -21,8 +22,11 @@ export default function ReportsOverview() {
         <Tabs.TabPane tab="Purchase" key="purchase">
           <PurchaseReport />
         </Tabs.TabPane>
-        <Tabs.TabPane tab="Company" key="company">
+        <Tabs.TabPane tab="Inventory" key="company">
           <CompanyReports />
+        </Tabs.TabPane>
+        <Tabs.TabPane tab="Customers" key="customers">
+          <CustomersReport />
         </Tabs.TabPane>
       </Tabs>
     </div>

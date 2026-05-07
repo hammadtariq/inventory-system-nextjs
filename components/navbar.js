@@ -20,7 +20,7 @@ import { useRouter } from "next/router";
 import AppMenuItems from "./menuItems";
 import Link from "next/link";
 import Image from "next/image";
-import Logo from "../public/vast-apparel.png";
+import Logo from "../public/logo.png";
 import { logoutUser } from "@/hooks/login";
 import StorageUtils from "@/utils/storage.util";
 
@@ -34,6 +34,8 @@ const items = [
   { id: "5", title: "Purchase", url: "/purchase", icon: <FileOutlined /> },
   { id: "6", title: "Inventory", url: "/inventory", icon: <ShopOutlined /> },
   { id: "7", title: "Sales", url: "/sales", icon: <FileOutlined /> },
+  { id: "12", title: "Sale Returns", url: "/sale-returns", icon: <FileOutlined /> },
+  { id: "11", title: "Quotation", url: "/quotation/create", icon: <FilePptOutlined /> },
   { id: "8", title: "Ledger", url: "/ledger", icon: <DatabaseOutlined /> },
   { id: "9", title: "Reports", url: "/reports", icon: <FilePptOutlined /> },
   { id: "10", title: "Cheques", url: "/cheques", icon: <DollarCircleOutlined /> },
@@ -128,7 +130,7 @@ export default function AppNavbar(props = {}) {
               padding: collapsed ? "10px 0 0 0" : "0px 10px 0px",
             }}
           >
-            <Image src={Logo} width={25} height={25} alt="Logo" />
+            <Image src={Logo} width={30} height={30} alt="Logo" />
             <h2
               style={{
                 fontWeight: "bold",

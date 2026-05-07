@@ -1,0 +1,57 @@
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - development
+      - main
+  issue_comment:
+    types: [created]
+
+jobs:
+  claude-review:
+    # Run on PRs, or when someone comments @claude on a PR
+    if: |
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request != null &&
+       contains(github.event.comment.body, '@claude'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: anthropics/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          model: claude-sonnet-4-6-20251101
+          direct_prompt: |
+            You are reviewing a pull request for StockFlow — an inventory management SaaS (Next.js + PostgreSQL/Sequelize, Pages Router).
+
+            Review the changed files and check for ALL of the following:
+
+            ## Tenant Safety (CRITICAL — SaaS multi-tenancy migration in progress)
+            - Any `findByPk(id)` call without `organizationId` in the where clause = cross-tenant data leak, MUST block
+            - Any `sequelize.query()` without `organizationId` in `replacements` = cross-tenant data leak, MUST block
+            - Any `Model.update()` or `Model.destroy()` without `organizationId` in where clause = cross-tenant mutation risk
+            - Any new model file missing `organizationId` FK
+            - Any incoming FK (companyId, customerId, saleId, itemId) accepted without ownership verification
+
+            ## Code Quality
+            - Auth middleware (`handler.use(auth)`) must be present on every new API route
+            - `db.dbConnect()` must be called at the start of every API handler
+            - New API routes must follow the `next-connect` pattern matching existing routes
+            - Joi validation must be present for POST/PUT body inputs
+            - No hardcoded credentials or secrets
+
+            ## Tests
+            - New API endpoints must have a corresponding test in `__tests__/api/<domain>/`
+            - Tests must include at least one cross-tenant access attempt that expects 404
+
+            ## Summary format
+            Post a concise review with:
+            1. A PASS/FAIL verdict on tenant safety
+            2. Bullet list of issues found (with file:line references)
+            3. Bullet list of what looks good
