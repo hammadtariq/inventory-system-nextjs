@@ -11,6 +11,7 @@ import { Op } from "sequelize";
 import { companySumQuery, customerSumQuery } from "@/query/index";
 import { capitalizeName } from "@/utils/ui.util";
 import TenantContext from "@/lib/tenant-context";
+import { withTenantTransaction } from "@/lib/tenant-transaction";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -302,10 +303,13 @@ const exportCustomerLedger = async (req, res) => {
     }
 
     const rawQuery = type === "company" ? companySumQuery : customerSumQuery;
-    const totalBalanceRows = await db.sequelize.query(rawQuery, {
-      type: db.Sequelize.QueryTypes.SELECT,
-      replacements: { id, organizationId },
-    });
+    const totalBalanceRows = await db.sequelize.query(
+      rawQuery,
+      withTenantTransaction({
+        type: db.Sequelize.QueryTypes.SELECT,
+        replacements: { id, organizationId },
+      })
+    );
     const totalBalanceFromQuery = Number(totalBalanceRows?.[0]?.amount ?? 0);
 
     // Use stored per-row balances (customerTotal/companyTotal) to match what the UI displays

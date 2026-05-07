@@ -6,7 +6,7 @@ export default function AppMenuItems(props) {
     return null;
   }
 
-  const { mode = "inline", items = [], onClickHandler, selected, collapsed = false } = props;
+  const { mode = "inline", items = [], onClickHandler, selected, collapsed = false, height = "76vh" } = props;
 
   return (
     <Menu
@@ -14,7 +14,7 @@ export default function AppMenuItems(props) {
       mode={mode}
       selectedKeys={selected ? [selected] : []}
       style={{
-        height: "76vh",
+        height,
         borderRight: 0,
         overflowY: "auto",
         scrollbarWidth: "none",

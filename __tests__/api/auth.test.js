@@ -82,6 +82,39 @@ describe("auth tenant bootstrap", () => {
     expect(next).toHaveBeenCalledTimes(1);
   });
 
+  it("allows super admin to run requests in a selected organization scope", async () => {
+    db.User.findOne.mockResolvedValue({
+      id: 7,
+      email: "super@test.com",
+      role: "SUPER_ADMIN",
+      organizationId: 11,
+    });
+    db.Organization.findByPk.mockResolvedValue({
+      id: 22,
+      name: "Client Org",
+      status: "ACTIVE",
+    });
+
+    const { req, res } = createMocks({
+      method: "GET",
+      headers: { "x-organization-id": "22" },
+    });
+    const next = jest.fn(() => {
+      expect(TenantContext.get()).toBe(22);
+    });
+
+    await auth(req, res, next);
+
+    expect(db.Organization.findByPk).toHaveBeenCalledWith(22, { tenantBypass: true });
+    expect(db.sequelize.query).toHaveBeenCalledWith("SET LOCAL app.tenant_id = :organizationId", {
+      transaction: db.sequelize.transactionObject,
+      replacements: { organizationId: 22 },
+    });
+    expect(req.user.organizationId).toBe(11);
+    expect(req.organization.id).toBe(22);
+    expect(next).toHaveBeenCalledTimes(1);
+  });
+
   it("rejects tokens without organizationId", async () => {
     Iron.unseal.mockResolvedValue({
       ...tokenPayload,

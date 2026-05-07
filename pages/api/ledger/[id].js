@@ -4,6 +4,7 @@ import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { companySumQuery, customerSumQuery } from "@/query/index";
 import TenantContext from "@/lib/tenant-context";
+import { withTenantTransaction } from "@/lib/tenant-transaction";
 
 const CASH_LIKE_TYPES = new Set(["CASH", "ONLINE", "CHEQUE"]);
 
@@ -51,10 +52,13 @@ const getTransactions = async (req, res) => {
     transactions.reverse();
 
     const rawQuery = type === "company" ? companySumQuery : customerSumQuery;
-    const totalBalanceResult = await db.sequelize.query(rawQuery, {
-      type: db.Sequelize.QueryTypes.SELECT,
-      replacements: { id, organizationId },
-    });
+    const totalBalanceResult = await db.sequelize.query(
+      rawQuery,
+      withTenantTransaction({
+        type: db.Sequelize.QueryTypes.SELECT,
+        replacements: { id, organizationId },
+      })
+    );
     console.log("get transaction Request End");
 
     return res.send({

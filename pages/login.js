@@ -10,6 +10,7 @@ import StorageUtils from "@/utils/storage.util";
 import PermissionUtil from "@/utils/permission.util";
 
 const setUserAccess = (user) => {
+  localStorage.removeItem("activeOrganization");
   StorageUtils.setItem("user", user);
   PermissionUtil.setPermissions(user?.role ?? "EDITOR");
 };
@@ -28,7 +29,7 @@ const Login = () => {
       .then((data) => {
         setUserAccess(data.user);
         message.success("User logged in successfully");
-        router.replace(data.user?.role === "SUPER_ADMIN" ? "/organizations" : "/");
+        router.replace("/");
       })
       .catch((err) => {
         message.error("Login failed. Please check your credentials.");

@@ -3,7 +3,7 @@ import Iron from "@hapi/iron";
 import db from "@/lib/postgres";
 import { getTokenCookie } from "@/lib/auth-cookies";
 import TenantContext from "@/lib/tenant-context";
-import { resolveOrganizationScope } from "@/lib/organization-scope";
+import { getRequestedOrganizationId, resolveOrganizationScope } from "@/lib/organization-scope";
 
 const TOKEN_SECRET = process.env.TOKEN_SECRET;
 
@@ -41,7 +41,8 @@ export const auth = async (req, res, next) => {
       return res.status(401).send({ message: "Token validation failed" });
     }
 
-    const organization = await resolveOrganizationScope(user);
+    const requestedOrganizationId = getRequestedOrganizationId(req);
+    const organization = await resolveOrganizationScope(user, requestedOrganizationId);
     if (!organization) {
       return res.status(401).send({ message: "Organization not found" });
     }
@@ -81,6 +82,7 @@ export const auth = async (req, res, next) => {
 
     req.user = user;
     req.organization = organization;
+    req.activeOrganizationId = organization.id;
 
     return TenantContext.run(organization.id, () => {
       TenantContext.setTransaction(transaction);

@@ -1,5 +1,5 @@
 "use client";
-import { Layout, Avatar, Dropdown, message } from "antd";
+import { Layout, Avatar, Dropdown, Select, message } from "antd";
 import {
   MenuUnfoldOutlined,
   MenuFoldOutlined,
@@ -24,6 +24,7 @@ import Link from "next/link";
 import Image from "next/image";
 import Logo from "../public/logo.png";
 import { logoutUser } from "@/hooks/login";
+import { getOrganizations } from "@/hooks/org";
 import StorageUtils from "@/utils/storage.util";
 
 const { Sider } = Layout;
@@ -45,6 +46,7 @@ const baseItems = [
 
 const adminItems = [{ id: "13", title: "Users", url: "/users", icon: <UserAddOutlined /> }];
 const superAdminItems = [{ id: "14", title: "Organizations", url: "/organizations", icon: <ApartmentOutlined /> }];
+const ACTIVE_ORGANIZATION_KEY = "activeOrganization";
 
 export default function AppNavbar(props = {}) {
   const { collapsed = false, onCollapseChange = () => {} } = props;
@@ -52,6 +54,9 @@ export default function AppNavbar(props = {}) {
   const router = useRouter();
   const [isSelected, setIsSelected] = useState();
   const user = StorageUtils.getItem("user");
+  const [organizations, setOrganizations] = useState([]);
+  const [activeOrganization, setActiveOrganization] = useState(() => StorageUtils.getItem(ACTIVE_ORGANIZATION_KEY));
+  const [loadingOrganizations, setLoadingOrganizations] = useState(false);
   const items = useMemo(() => {
     if (user?.role === "SUPER_ADMIN") {
       return [...baseItems, ...adminItems, ...superAdminItems];
@@ -75,10 +80,51 @@ export default function AppNavbar(props = {}) {
     setIsSelected(activeItem?.id || items[0].id);
   }, [items, router.pathname]);
 
+  useEffect(() => {
+    if (user?.role !== "SUPER_ADMIN") {
+      return;
+    }
+
+    const loadOrganizations = async () => {
+      setLoadingOrganizations(true);
+      try {
+        const data = await getOrganizations();
+        setOrganizations(data.rows || []);
+      } catch (error) {
+        console.error("load sidebar organizations error:", error);
+      } finally {
+        setLoadingOrganizations(false);
+      }
+    };
+
+    loadOrganizations();
+  }, [user?.role]);
+
+  const currentOrganizationId = activeOrganization?.id || user?.organizationId;
+  const selectedOrganization = organizations.find((organization) => organization.id === currentOrganizationId);
+
+  const onOrganizationChange = (organizationId) => {
+    const organization = organizations.find((row) => row.id === organizationId);
+    if (!organization) return;
+
+    const nextOrganization = {
+      id: organization.id,
+      uuid: organization.uuid,
+      name: organization.name,
+      slug: organization.slug,
+    };
+
+    StorageUtils.setItem(ACTIVE_ORGANIZATION_KEY, nextOrganization);
+    setActiveOrganization(nextOrganization);
+    message.success(`Switched to ${organization.name}`);
+    router.reload();
+  };
+
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const onLogout = async () => {
     try {
       const data = await logoutUser();
+      StorageUtils.clearStorage();
       message.success(data.message);
       router.push("/login");
     } catch (err) {
@@ -189,8 +235,38 @@ export default function AppNavbar(props = {}) {
           onClickHandler={onClickHandler}
           selected={isSelected}
           collapsed={collapsed}
+          height={user?.role === "SUPER_ADMIN" ? "calc(100vh - 250px)" : "calc(100vh - 145px)"}
         />
       </div>
+
+      {user?.role === "SUPER_ADMIN" && (
+        <div
+          style={{
+            padding: collapsed ? "8px 6px" : "8px 14px 12px",
+            borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+          }}
+        >
+          <Select
+            showSearch
+            size="small"
+            loading={loadingOrganizations}
+            value={currentOrganizationId}
+            placeholder={collapsed ? "" : "Select organization"}
+            optionFilterProp="label"
+            onChange={onOrganizationChange}
+            style={{ width: "100%" }}
+            options={organizations.map((organization) => ({
+              value: organization.id,
+              label: organization.name,
+            }))}
+          />
+          {!collapsed && (
+            <div style={{ color: "#b9b9b9ff", fontSize: 11, lineHeight: "16px", marginTop: 6 }}>
+              {selectedOrganization?.slug || activeOrganization?.slug || "Default organization"}
+            </div>
+          )}
+        </div>
+      )}
 
       <div style={{ bottom: 0, position: "absolute", width: "100%" }}>
         <Dropdown

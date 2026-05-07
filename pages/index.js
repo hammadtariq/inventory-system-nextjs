@@ -1,4 +1,4 @@
-import { Card, Col, Row, List, Spin } from "antd";
+import { Alert, Card, Col, Row, List, Skeleton, Spin } from "antd";
 import { ShoppingCartOutlined, CreditCardOutlined, ShopOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { Line, Pie, Column } from "@ant-design/charts";
 import { useEffect, useState } from "react";
@@ -53,28 +53,102 @@ const STAT_CARDS = [
   },
 ];
 
+const EMPTY_CARDS = {
+  totalSales: 0,
+  totalSaleDue: 0,
+  totalPurchases: 0,
+  totalPurchaseDue: 0,
+};
+
+const EMPTY_CHARTS = {
+  salesVsPurchases: { purchasesData: [], salesData: [] },
+  salesDist: { paid: 0, due: 0, return: 0 },
+  purchaseDist: { paid: 0, remaining: 0, total: 0 },
+  companies: [],
+};
+
+const EMPTY_LISTS = {
+  products: [],
+  customers: [],
+};
+
+const getSettledValue = (result, fallback) => (result.status === "fulfilled" ? result.value : fallback);
+
+const logDashboardTiming = (label, startedAt) => {
+  if (typeof performance === "undefined") return;
+
+  console.info(`${label} loaded in ${Math.round(performance.now() - startedAt)}ms`);
+};
+
 export default function Home() {
-  const [cards, setCards] = useState(null);
-  const [chartsData, setChartsData] = useState(null);
-  const [listsData, setListsData] = useState(null);
+  const [cards, setCards] = useState(EMPTY_CARDS);
+  const [chartsData, setChartsData] = useState(EMPTY_CHARTS);
+  const [listsData, setListsData] = useState(EMPTY_LISTS);
+  const [dashboardError, setDashboardError] = useState(null);
   const [loadingCards, setLoadingCards] = useState(true);
   const [loadingCharts, setLoadingCharts] = useState(true);
   const [loadingLists, setLoadingLists] = useState(true);
 
   useEffect(() => {
+    const cardsStartedAt = performance.now();
     getDashboardCards()
       .then(setCards)
-      .finally(() => setLoadingCards(false));
-
-    Promise.all([getSalesVsPurchases(), getSalesDistribution(), getPurchaseDistribution(), getCompanyComparison()])
-      .then(([salesVsPurchases, salesDist, purchaseDist, companies]) => {
-        setChartsData({ salesVsPurchases, salesDist, purchaseDist, companies });
+      .catch((error) => {
+        console.error("dashboard cards error:", error);
+        setCards(EMPTY_CARDS);
+        setDashboardError("Some dashboard data could not be loaded.");
       })
-      .finally(() => setLoadingCharts(false));
+      .finally(() => {
+        logDashboardTiming("Dashboard cards", cardsStartedAt);
+        setLoadingCards(false);
+      });
 
-    Promise.all([getTopProducts(), getTopCustomers()])
-      .then(([products, customers]) => setListsData({ products, customers }))
-      .finally(() => setLoadingLists(false));
+    const chartsStartedAt = performance.now();
+    Promise.allSettled([
+      getSalesVsPurchases(),
+      getSalesDistribution(),
+      getPurchaseDistribution(),
+      getCompanyComparison(),
+    ])
+      .then(([salesVsPurchases, salesDist, purchaseDist, companies]) => {
+        const hasError = [salesVsPurchases, salesDist, purchaseDist, companies].some(
+          (result) => result.status === "rejected"
+        );
+
+        if (hasError) {
+          setDashboardError("Some dashboard charts could not be loaded.");
+        }
+
+        setChartsData({
+          salesVsPurchases: getSettledValue(salesVsPurchases, EMPTY_CHARTS.salesVsPurchases),
+          salesDist: getSettledValue(salesDist, EMPTY_CHARTS.salesDist),
+          purchaseDist: getSettledValue(purchaseDist, EMPTY_CHARTS.purchaseDist),
+          companies: getSettledValue(companies, EMPTY_CHARTS.companies),
+        });
+      })
+      .finally(() => {
+        logDashboardTiming("Dashboard charts", chartsStartedAt);
+        setLoadingCharts(false);
+      });
+
+    const listsStartedAt = performance.now();
+    Promise.allSettled([getTopProducts(), getTopCustomers()])
+      .then(([products, customers]) => {
+        const hasError = [products, customers].some((result) => result.status === "rejected");
+
+        if (hasError) {
+          setDashboardError("Some dashboard lists could not be loaded.");
+        }
+
+        setListsData({
+          products: getSettledValue(products, EMPTY_LISTS.products),
+          customers: getSettledValue(customers, EMPTY_LISTS.customers),
+        });
+      })
+      .finally(() => {
+        logDashboardTiming("Dashboard lists", listsStartedAt);
+        setLoadingLists(false);
+      });
   }, []);
 
   // Transform to flat array for multi-line chart
@@ -125,6 +199,17 @@ export default function Home() {
 
   return (
     <div className={styles.dashboard}>
+      {dashboardError && (
+        <Alert
+          type="warning"
+          showIcon
+          closable
+          message={dashboardError}
+          onClose={() => setDashboardError(null)}
+          style={{ marginBottom: 16 }}
+        />
+      )}
+
       {/* Row 1 — Stat Cards */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         {STAT_CARDS.map((card) => (
@@ -135,14 +220,18 @@ export default function Home() {
               styles={{ body: { padding: "20px 24px" } }}
             >
               <Spin spinning={loadingCards}>
-                <div className={styles.statCard}>
-                  <div className={styles.statCardIcon}>{card.icon}</div>
-                  <div>
-                    <div className={styles.statCardTitle}>{card.title}</div>
-                    <div className={styles.statCardValue}>{formatCurrency(cards?.[card.key])}</div>
-                    <div className={styles.statCardSubtitle}>{card.subtitle}</div>
+                {loadingCards ? (
+                  <Skeleton active paragraph={{ rows: 2 }} title={false} />
+                ) : (
+                  <div className={styles.statCard}>
+                    <div className={styles.statCardIcon}>{card.icon}</div>
+                    <div>
+                      <div className={styles.statCardTitle}>{card.title}</div>
+                      <div className={styles.statCardValue}>{formatCurrency(cards?.[card.key])}</div>
+                      <div className={styles.statCardSubtitle}>{card.subtitle}</div>
+                    </div>
                   </div>
-                </div>
+                )}
               </Spin>
             </Card>
           </Col>
@@ -157,58 +246,66 @@ export default function Home() {
             title={cardTitle("Sales vs Purchases (Monthly)", "Monthly sales vs purchase performance")}
           >
             <Spin spinning={loadingCharts}>
-              <Line
-                data={lineChartData}
-                xField="month"
-                yField="value"
-                colorField="type"
-                height={260}
-                style={({ type }) => ({
-                  lineWidth: 2,
-                  lineDash: type === "Purchase" ? [4, 4] : undefined,
-                })}
-                axis={{
-                  y: {
-                    labelFormatter: (val) => {
-                      if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(0)}M`;
-                      if (val >= 1_000) return `${(val / 1_000).toFixed(0)}K`;
-                      return val;
+              {loadingCharts ? (
+                <Skeleton active paragraph={{ rows: 8 }} title={false} />
+              ) : (
+                <Line
+                  data={lineChartData}
+                  xField="month"
+                  yField="value"
+                  colorField="type"
+                  height={260}
+                  style={({ type }) => ({
+                    lineWidth: 2,
+                    lineDash: type === "Purchase" ? [4, 4] : undefined,
+                  })}
+                  axis={{
+                    y: {
+                      labelFormatter: (val) => {
+                        if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(0)}M`;
+                        if (val >= 1_000) return `${(val / 1_000).toFixed(0)}K`;
+                        return val;
+                      },
                     },
-                  },
-                }}
-                tooltip={{
-                  items: [
-                    {
-                      channel: "y",
-                      valueFormatter: (val) => formatCurrency(val),
-                    },
-                  ],
-                }}
-                legend={{ position: "bottom" }}
-              />
+                  }}
+                  tooltip={{
+                    items: [
+                      {
+                        channel: "y",
+                        valueFormatter: (val) => formatCurrency(val),
+                      },
+                    ],
+                  }}
+                  legend={{ position: "bottom" }}
+                />
+              )}
             </Spin>
           </Card>
         </Col>
         <Col xs={24} lg={10}>
           <Card bordered={false} title={cardTitle("Sales (Paid/Due/Return)", "Sales Overview Paid, Due, and Returned")}>
             <Spin spinning={loadingCharts}>
-              <Pie
-                data={salesDonutData.length ? salesDonutData : [{ type: "No Data", value: 1 }]}
-                angleField="value"
-                colorField="type"
-                innerRadius={0.6}
-                height={260}
-                scale={{ color: { range: ["#7c3aed", "#4f46e5", "#a78bfa"] } }}
-                tooltip={{
-                  items: [
-                    {
-                      channel: "y",
-                      valueFormatter: (val) => formatCurrency(val),
-                    },
-                  ],
-                }}
-                legend={{ position: "bottom" }}
-              />
+              {loadingCharts ? (
+                <Skeleton active paragraph={{ rows: 8 }} title={false} />
+              ) : (
+                <Pie
+                  data={salesDonutData.length ? salesDonutData : [{ type: "No Data", value: 1 }]}
+                  angleField="value"
+                  colorField="type"
+                  innerRadius={0.6}
+                  height={260}
+                  scale={{ color: { range: ["#7c3aed", "#4f46e5", "#a78bfa"] } }}
+                  tooltip={{
+                    items: [
+                      {
+                        channel: "y",
+                        valueFormatter: (val) => formatCurrency(val),
+                      },
+                    ],
+                  }}
+                  legend={{ position: "bottom" }}
+                />
+              )}
             </Spin>
           </Card>
         </Col>
@@ -222,53 +319,61 @@ export default function Home() {
             title={cardTitle("Purchase Distribution", "Purchase Overview Paid, Due, and Returned")}
           >
             <Spin spinning={loadingCharts}>
-              <Pie
-                data={purchasePieData.length ? purchasePieData : [{ type: "No Data", value: 1 }]}
-                angleField="value"
-                colorField="type"
-                innerRadius={0.6}
-                height={260}
-                scale={{ color: { range: ["#059669", "#d1fae5"] } }}
-                tooltip={{
-                  items: [
-                    {
-                      channel: "y",
-                      valueFormatter: (val) => formatCurrency(val),
-                    },
-                  ],
-                }}
-                legend={{ position: "bottom" }}
-              />
+              {loadingCharts ? (
+                <Skeleton active paragraph={{ rows: 8 }} title={false} />
+              ) : (
+                <Pie
+                  data={purchasePieData.length ? purchasePieData : [{ type: "No Data", value: 1 }]}
+                  angleField="value"
+                  colorField="type"
+                  innerRadius={0.6}
+                  height={260}
+                  scale={{ color: { range: ["#059669", "#d1fae5"] } }}
+                  tooltip={{
+                    items: [
+                      {
+                        channel: "y",
+                        valueFormatter: (val) => formatCurrency(val),
+                      },
+                    ],
+                  }}
+                  legend={{ position: "bottom" }}
+                />
+              )}
             </Spin>
           </Card>
         </Col>
         <Col xs={24} lg={14}>
           <Card bordered={false} title={cardTitle("Company Comparison", "Revenue and orders by company")}>
             <Spin spinning={loadingCharts}>
-              <Column
-                data={companiesData}
-                xField="label"
-                yField="total"
-                height={260}
-                style={{ fill: "#7c3aed", radius: 4 }}
-                axis={{
-                  y: {
-                    labelFormatter: (val) => {
-                      if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(0)}M`;
-                      if (val >= 1_000) return `${(val / 1_000).toFixed(0)}K`;
-                      return val;
+              {loadingCharts ? (
+                <Skeleton active paragraph={{ rows: 8 }} title={false} />
+              ) : (
+                <Column
+                  data={companiesData}
+                  xField="label"
+                  yField="total"
+                  height={260}
+                  style={{ fill: "#7c3aed", radius: 4 }}
+                  axis={{
+                    y: {
+                      labelFormatter: (val) => {
+                        if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(0)}M`;
+                        if (val >= 1_000) return `${(val / 1_000).toFixed(0)}K`;
+                        return val;
+                      },
                     },
-                  },
-                }}
-                tooltip={{
-                  items: [
-                    {
-                      channel: "y",
-                      valueFormatter: (val) => formatCurrency(val),
-                    },
-                  ],
-                }}
-              />
+                  }}
+                  tooltip={{
+                    items: [
+                      {
+                        channel: "y",
+                        valueFormatter: (val) => formatCurrency(val),
+                      },
+                    ],
+                  }}
+                />
+              )}
             </Spin>
           </Card>
         </Col>
@@ -286,18 +391,22 @@ export default function Home() {
             }
           >
             <Spin spinning={loadingLists}>
-              <List
-                dataSource={listsData?.products || []}
-                locale={{ emptyText: "No data" }}
-                renderItem={(item, index) => (
-                  <List.Item extra={<span className={styles.rankBadge}>#{index + 1}</span>}>
-                    <List.Item.Meta
-                      title={item.name}
-                      description={`${parseFloat(item.totalBales).toLocaleString()} Bales Sold`}
-                    />
-                  </List.Item>
-                )}
-              />
+              {loadingLists ? (
+                <Skeleton active paragraph={{ rows: 5 }} title={false} />
+              ) : (
+                <List
+                  dataSource={listsData?.products || []}
+                  locale={{ emptyText: "No data" }}
+                  renderItem={(item, index) => (
+                    <List.Item extra={<span className={styles.rankBadge}>#{index + 1}</span>}>
+                      <List.Item.Meta
+                        title={item.name}
+                        description={`${parseFloat(item.totalBales).toLocaleString()} Bales Sold`}
+                      />
+                    </List.Item>
+                  )}
+                />
+              )}
             </Spin>
           </Card>
         </Col>
@@ -311,15 +420,19 @@ export default function Home() {
             }
           >
             <Spin spinning={loadingLists}>
-              <List
-                dataSource={listsData?.customers || []}
-                locale={{ emptyText: "No data" }}
-                renderItem={(item, index) => (
-                  <List.Item extra={<span className={styles.rankBadge}>#{index + 1}</span>}>
-                    <List.Item.Meta title={item.name} description={`${formatCurrency(item.total)} Total Revenue`} />
-                  </List.Item>
-                )}
-              />
+              {loadingLists ? (
+                <Skeleton active paragraph={{ rows: 5 }} title={false} />
+              ) : (
+                <List
+                  dataSource={listsData?.customers || []}
+                  locale={{ emptyText: "No data" }}
+                  renderItem={(item, index) => (
+                    <List.Item extra={<span className={styles.rankBadge}>#{index + 1}</span>}>
+                      <List.Item.Meta title={item.name} description={`${formatCurrency(item.total)} Total Revenue`} />
+                    </List.Item>
+                  )}
+                />
+              )}
             </Spin>
           </Card>
         </Col>

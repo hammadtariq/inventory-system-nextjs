@@ -3,15 +3,16 @@ import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { customerQuery, companyQuery } from "@/query/index";
 import TenantContext from "@/lib/tenant-context";
+import { withTenantTransaction } from "@/lib/tenant-transaction";
 
 const getCards = async (req, res) => {
   try {
     await db.dbConnect();
     const organizationId = TenantContext.assertGet();
-    const queryOptions = {
+    const queryOptions = withTenantTransaction({
       type: db.Sequelize.QueryTypes.SELECT,
       replacements: { organizationId },
-    };
+    });
 
     const [totalSalesResult, totalPurchasesResult, customerBalances, companyBalances] = await Promise.all([
       db.sequelize.query(

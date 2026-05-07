@@ -1,11 +1,18 @@
-import { Button, Form, Input, InputNumber, Modal, Select, Space, Table, Tag, message } from "antd";
-import { EditOutlined, PlusOutlined } from "@ant-design/icons";
+import { Button, Form, Input, InputNumber, Modal, Popconfirm, Select, Space, Table, Tag, message } from "antd";
+import { DeleteOutlined, EditOutlined, EyeOutlined, PlusOutlined, SearchOutlined } from "@ant-design/icons";
 import Head from "next/head";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import OrganizationRegisterFields from "@/components/organizationRegisterFields";
-import { getOrganizations, registerOrganization, updateOrganization } from "@/hooks/org";
+import {
+  deleteOrganization,
+  getOrganization,
+  getOrganizations,
+  registerOrganization,
+  updateOrganization,
+} from "@/hooks/org";
 import { requirePageRole } from "@/lib/page-access";
+import StorageUtils from "@/utils/storage.util";
 
 const statusColors = {
   ACTIVE: "green",
@@ -19,25 +26,46 @@ const Organizations = ({ currentUser }) => {
   const [creating, setCreating] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [viewing, setViewing] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
   const [createForm] = Form.useForm();
   const [form] = Form.useForm();
 
-  const loadOrganizations = async () => {
+  const loadOrganizations = useCallback(async (query = "") => {
     setLoading(true);
     try {
-      const data = await getOrganizations();
+      const data = await getOrganizations(query ? { q: query } : {});
       setRows(data.rows || []);
     } catch (error) {
       console.error("load organizations error:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadOrganizations();
-  }, []);
+  }, [loadOrganizations]);
+
+  const submitSearch = (value) => {
+    setSearch(value);
+    loadOrganizations(value);
+  };
+
+  const openDetails = async (organization) => {
+    setViewing(organization);
+    setDetailLoading(true);
+    try {
+      const data = await getOrganization(organization.id);
+      setViewing(data);
+    } catch (error) {
+      console.error("load organization detail error:", error);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
 
   const openEdit = (organization) => {
     setEditing(organization);
@@ -93,9 +121,26 @@ const Organizations = ({ currentUser }) => {
     }
   };
 
+  const confirmDelete = async (organization) => {
+    try {
+      await deleteOrganization(organization.id);
+      const activeOrganization = StorageUtils.getItem("activeOrganization");
+
+      if (activeOrganization?.id === organization.id) {
+        localStorage.removeItem("activeOrganization");
+      }
+
+      message.success("Organization deleted");
+      loadOrganizations(search);
+    } catch (error) {
+      console.error("delete organization error:", error);
+    }
+  };
+
   const columns = [
     { title: "Name", dataIndex: "name", key: "name" },
     { title: "Slug", dataIndex: "slug", key: "slug" },
+    { title: "Email", dataIndex: "email", key: "email", render: (email) => email || "-" },
     { title: "Plan", dataIndex: "plan", key: "plan" },
     {
       title: "Status",
@@ -104,14 +149,30 @@ const Organizations = ({ currentUser }) => {
       render: (status) => <Tag color={statusColors[status] || "default"}>{status}</Tag>,
     },
     { title: "Seat limit", dataIndex: "maxUsers", key: "maxUsers" },
+    { title: "Users", dataIndex: "usersCount", key: "usersCount", render: (count) => count || 0 },
     {
       title: "Actions",
       key: "actions",
       render: (_, row) => (
         <Space>
+          <Button size="small" icon={<EyeOutlined />} onClick={() => openDetails(row)}>
+            View
+          </Button>
           <Button size="small" icon={<EditOutlined />} onClick={() => openEdit(row)}>
             Edit
           </Button>
+          <Popconfirm
+            title="Delete organization"
+            description="This will delete this organization and its tenant data."
+            okText="Delete"
+            okButtonProps={{ danger: true }}
+            onConfirm={() => confirmDelete(row)}
+            disabled={row.id === currentUser?.organizationId}
+          >
+            <Button size="small" danger icon={<DeleteOutlined />} disabled={row.id === currentUser?.organizationId}>
+              Delete
+            </Button>
+          </Popconfirm>
         </Space>
       ),
     },
@@ -129,12 +190,21 @@ const Organizations = ({ currentUser }) => {
             <h2 style={{ margin: 0 }}>Organizations</h2>
             <div style={{ color: "#666" }}>Signed in as {currentUser?.email}</div>
           </div>
-          <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
-            Create organization
-          </Button>
+          <Space>
+            <Input.Search
+              allowClear
+              enterButton={<SearchOutlined />}
+              placeholder="Search organizations"
+              onSearch={submitSearch}
+              style={{ width: 280 }}
+            />
+            <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
+              Create organization
+            </Button>
+          </Space>
         </Space>
 
-        <Table rowKey="id" columns={columns} dataSource={rows} loading={loading} pagination={false} />
+        <Table rowKey="id" columns={columns} dataSource={rows} loading={loading} pagination={{ pageSize: 10 }} />
       </Space>
 
       <Modal title="Edit organization" open={!!editing} onCancel={closeEdit} footer={null} destroyOnClose>
@@ -184,6 +254,55 @@ const Organizations = ({ currentUser }) => {
             Create organization
           </Button>
         </Form>
+      </Modal>
+
+      <Modal
+        title="Organization details"
+        open={!!viewing}
+        onCancel={() => setViewing(null)}
+        footer={null}
+        destroyOnClose
+        width={760}
+      >
+        <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+          <Table
+            loading={detailLoading}
+            pagination={false}
+            showHeader={false}
+            rowKey="label"
+            columns={[
+              { dataIndex: "label", width: 160, render: (value) => <strong>{value}</strong> },
+              { dataIndex: "value" },
+            ]}
+            dataSource={[
+              { label: "Name", value: viewing?.name },
+              { label: "Slug", value: viewing?.slug },
+              { label: "Email", value: viewing?.email || "-" },
+              { label: "Status", value: viewing?.status },
+              { label: "Plan", value: viewing?.plan },
+              { label: "Seat limit", value: viewing?.maxUsers },
+              { label: "Users", value: viewing?.usersCount || 0 },
+            ]}
+          />
+
+          <Table
+            title={() => "Users"}
+            rowKey="id"
+            size="small"
+            pagination={false}
+            dataSource={viewing?.users || []}
+            columns={[
+              {
+                title: "Name",
+                key: "name",
+                render: (_, user) => `${user.firstName || ""} ${user.lastName || ""}`.trim() || "-",
+              },
+              { title: "Email", dataIndex: "email", key: "email" },
+              { title: "Role", dataIndex: "role", key: "role" },
+              { title: "Status", dataIndex: "status", key: "status" },
+            ]}
+          />
+        </Space>
       </Modal>
     </>
   );

@@ -28,9 +28,65 @@ export const getOrganizations = async (req, res) => {
     await db.dbConnect();
     const organizations = await db.Organization.findAll({
       order: [["createdAt", "DESC"]],
+      tenantBypass: true,
+    });
+    const organizationIds = organizations.map((organization) => organization.id);
+    const users = organizationIds.length
+      ? await db.User.findAll({
+          where: { organizationId: organizationIds },
+          attributes: ["id", "firstName", "lastName", "email", "role", "status", "organizationId"],
+          order: [
+            ["role", "ASC"],
+            ["email", "ASC"],
+          ],
+          tenantBypass: true,
+        })
+      : [];
+
+    const usersByOrganizationId = users.reduce((acc, user) => {
+      const userData = typeof user.get === "function" ? user.get({ plain: true }) : user;
+      acc[userData.organizationId] = acc[userData.organizationId] || [];
+      acc[userData.organizationId].push(userData);
+      return acc;
+    }, {});
+
+    const rows = organizations.map((organization) => {
+      const organizationData =
+        typeof organization.get === "function" ? organization.get({ plain: true }) : organization;
+      const organizationUsers = usersByOrganizationId[organizationData.id] || [];
+      const primaryUser = organizationUsers.find((user) => user.role === "ADMIN") || organizationUsers[0] || null;
+
+      return {
+        ...organizationData,
+        email: primaryUser?.email || null,
+        usersCount: organizationUsers.length,
+        users: organizationUsers,
+      };
     });
 
-    return res.send({ count: organizations.length, rows: organizations });
+    const query = String(req.query.q || "")
+      .trim()
+      .toLowerCase();
+    const filteredRows = query
+      ? rows.filter((organization) => {
+          const searchableValues = [
+            organization.name,
+            organization.slug,
+            organization.status,
+            organization.plan,
+            organization.email,
+            ...(organization.users || []).map((user) => user.email),
+          ];
+
+          return searchableValues.some((value) =>
+            String(value || "")
+              .toLowerCase()
+              .includes(query)
+          );
+        })
+      : rows;
+
+    return res.send({ count: filteredRows.length, rows: filteredRows });
   } catch (error) {
     console.error("Get organizations error:", error);
     return res.status(500).send({ message: error.toString() });

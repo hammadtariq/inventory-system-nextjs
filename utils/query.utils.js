@@ -1,6 +1,7 @@
 import { companySumQuery, customerSumQuery } from "@/query/index";
 import db from "@/lib/postgres";
 import TenantContext from "@/lib/tenant-context";
+import { withTenantTransaction } from "@/lib/tenant-transaction";
 
 export const balanceQuery = async (id, queryType, transaction) => {
   let rawQuery;
@@ -16,11 +17,14 @@ export const balanceQuery = async (id, queryType, transaction) => {
     const organizationId = TenantContext.assertGet();
     console.log("Executing query:", rawQuery);
 
-    const result = await db.sequelize.query(rawQuery, {
-      type: db.Sequelize.QueryTypes.SELECT,
-      replacements: { id, organizationId },
-      ...(transaction ? { transaction } : {}),
-    });
+    const result = await db.sequelize.query(
+      rawQuery,
+      withTenantTransaction({
+        type: db.Sequelize.QueryTypes.SELECT,
+        replacements: { id, organizationId },
+        ...(transaction ? { transaction } : {}),
+      })
+    );
 
     console.log("Query result:", result);
 

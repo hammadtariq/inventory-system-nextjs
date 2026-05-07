@@ -2,6 +2,7 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import TenantContext from "@/lib/tenant-context";
+import { withTenantTransaction } from "@/lib/tenant-transaction";
 
 const getTopProducts = async (req, res) => {
   try {
@@ -19,7 +20,7 @@ const getTopProducts = async (req, res) => {
        GROUP BY product->>'itemName'
        ORDER BY "totalBales" DESC
        LIMIT 5`,
-      { type: db.Sequelize.QueryTypes.SELECT, replacements: { organizationId } }
+      withTenantTransaction({ type: db.Sequelize.QueryTypes.SELECT, replacements: { organizationId } })
     );
 
     return res.send(result);

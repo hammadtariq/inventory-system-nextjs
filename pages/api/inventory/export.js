@@ -8,6 +8,7 @@ import path from "path";
 import fs from "fs";
 import { PRINT_TYPE } from "@/utils/ui.util";
 import TenantContext from "@/lib/tenant-context";
+import { withTenantTransaction } from "@/lib/tenant-transaction";
 
 const exportInventory = async (req, res) => {
   console.log("Export inventory starts");
@@ -96,10 +97,13 @@ const fetchInventoryData = async (filters, organizationId) => {
         include: [db.Company],
         order: [["itemName", "ASC"]],
       }),
-      db.sequelize.query(companyTotalBalesQuery, {
-        type: db.Sequelize.QueryTypes.SELECT,
-        replacements: { organizationId },
-      }),
+      db.sequelize.query(
+        companyTotalBalesQuery,
+        withTenantTransaction({
+          type: db.Sequelize.QueryTypes.SELECT,
+          replacements: { organizationId },
+        })
+      ),
     ]);
   } catch (error) {
     console.error("Error fetching inventory data:", error);

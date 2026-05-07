@@ -4,6 +4,7 @@ import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { companyQuery, customerQuery } from "../../../query";
 import TenantContext from "@/lib/tenant-context";
+import { withTenantTransaction } from "@/lib/tenant-transaction";
 
 const getAllTransactions = async (req, res) => {
   console.log("get all transaction Request Start");
@@ -31,10 +32,13 @@ const getAllTransactions = async (req, res) => {
 
     finalQuery += ` ORDER BY t.total DESC;`;
 
-    const transactions = await db.sequelize.query(finalQuery, {
-      type: db.Sequelize.QueryTypes.SELECT,
-      replacements,
-    });
+    const transactions = await db.sequelize.query(
+      finalQuery,
+      withTenantTransaction({
+        type: db.Sequelize.QueryTypes.SELECT,
+        replacements,
+      })
+    );
 
     const totalBalance = transactions.reduce((acc, obj) => acc + obj.total, 0);
     console.log("get all transaction Request End");

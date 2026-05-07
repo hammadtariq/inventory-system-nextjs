@@ -2,15 +2,16 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import TenantContext from "@/lib/tenant-context";
+import { withTenantTransaction } from "@/lib/tenant-transaction";
 
 const graphTablesCount = async (req, res) => {
   try {
     await db.dbConnect();
     const organizationId = TenantContext.assertGet();
-    const queryOptions = {
+    const queryOptions = withTenantTransaction({
       type: db.Sequelize.QueryTypes.SELECT,
       replacements: { organizationId },
-    };
+    });
     const customerCount = await db.sequelize.query(
       `SELECT COUNT(*) FROM customers WHERE "organizationId" = :organizationId`,
       queryOptions

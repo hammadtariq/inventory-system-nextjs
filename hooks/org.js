@@ -17,6 +17,10 @@ export const updateOrganizationUser = (id, data) => put(`/api/user/${id}`, data)
 
 export const deleteOrganizationUser = (id) => remove(`/api/user/${id}`);
 
-export const getOrganizations = () => get("/api/organizations");
+export const getOrganizations = (params = {}) => get("/api/organizations", { params });
+
+export const getOrganization = (id) => get(`/api/organizations/${id}`);
 
 export const updateOrganization = (id, data) => put(`/api/organizations/${id}`, data);
+
+export const deleteOrganization = (id) => remove(`/api/organizations/${id}`);
