@@ -6,6 +6,8 @@ import { createLedgerPayment } from "@/lib/ledger";
 import { auth } from "@/middlewares/auth";
 import { PAYMENT_TYPE, SPEND_TYPE, STATUS } from "@/utils/api.util";
 import { getReturnedQuantityMap, getSaleReturnItemKey } from "@/utils/saleReturn.util";
+import TenantContext from "@/lib/tenant-context";
+import { createTenantTransaction } from "@/lib/tenant-transaction";
 
 const productSchema = Joi.object().keys({
   itemName: Joi.string().trim().required(),
@@ -30,13 +32,14 @@ const apiSchema = Joi.object({
 
 const updateInventoryForReturn = async (products, transaction) => {
   const updatedInventory = [];
+  const organizationId = TenantContext.assertGet();
 
   for (const product of products) {
     const { companyId, id, noOfBales, baleWeightKgs, baleWeightLbs, ratePerLbs, ratePerKgs, ratePerBale, itemName } =
       product;
 
     let inventory = await db.Inventory.findOne({
-      where: { id, companyId },
+      where: { id, companyId, organizationId },
       transaction,
     });
 
@@ -61,9 +64,6 @@ const updateInventoryForReturn = async (products, transaction) => {
 
       await inventory.update(
         {
-          ratePerLbs: ratePerLbs || inventory.ratePerLbs,
-          ratePerKgs: ratePerKgs || inventory.ratePerKgs,
-          ratePerBale: ratePerBale || inventory.ratePerBale,
           itemName: itemName || inventory.itemName,
         },
         { transaction }
@@ -77,6 +77,7 @@ const updateInventoryForReturn = async (products, transaction) => {
           noOfBales: noOfBales || 0,
           baleWeightKgs: baleWeightKgs ?? null,
           baleWeightLbs: baleWeightLbs ?? null,
+          organizationId,
         },
         { transaction }
       );
@@ -97,17 +98,20 @@ const createSaleReturn = async (req, res) => {
     return res.status(400).send({ message: error.toString() });
   }
 
-  if (req.user.role !== "ADMIN") {
+  if (!["ADMIN", "SUPER_ADMIN"].includes(req.user.role)) {
     return res.status(400).send({ message: "Operation not permitted." });
   }
 
   try {
     await db.dbConnect();
-    transaction = await db.sequelize.transaction();
+    const tenantTransaction = await createTenantTransaction();
+    transaction = tenantTransaction.transaction;
+    const { organizationId } = tenantTransaction;
 
     const { saleId, customerId, totalAmount, returnDate, reference, returnedProducts } = value;
 
-    const sale = await db.Sale.findByPk(saleId, {
+    const sale = await db.Sale.findOne({
+      where: { id: saleId, organizationId },
       include: [db.Customer],
       transaction,
     });
@@ -125,7 +129,7 @@ const createSaleReturn = async (req, res) => {
     }
 
     const priorReturns = await db.SaleReturn.findAll({
-      where: { saleId },
+      where: { saleId, organizationId },
       transaction,
     });
 
@@ -157,14 +161,15 @@ const createSaleReturn = async (req, res) => {
 
     const updatedInventory = await updateInventoryForReturn(returnedProducts, transaction);
 
-    const ledger = await createLedgerPayment(
+    // Single entry: inventory return on debit side, reduces customer's outstanding balance
+    const inventoryReturnLedger = await createLedgerPayment(
       {
         customerId,
         totalAmount,
         reference,
-        spendType: SPEND_TYPE.CREDIT,
+        spendType: SPEND_TYPE.DEBIT,
         paymentDate: returnDate,
-        paymentType: PAYMENT_TYPE.REFUND,
+        paymentType: PAYMENT_TYPE.INVENTORY_RETURN,
       },
       transaction
     );
@@ -177,7 +182,8 @@ const createSaleReturn = async (req, res) => {
         returnedProducts,
         reference,
         returnDate,
-        ledgerId: ledger.id,
+        ledgerId: inventoryReturnLedger.id,
+        organizationId,
       },
       { transaction }
     );
@@ -188,7 +194,7 @@ const createSaleReturn = async (req, res) => {
     return res.status(200).json({
       success: true,
       saleReturn,
-      ledger,
+      ledger: inventoryReturnLedger,
       inventory: updatedInventory,
     });
   } catch (err) {
@@ -197,7 +203,8 @@ const createSaleReturn = async (req, res) => {
     }
     console.log("Create sale return Request Error:", err);
 
-    const [code, message] = err.message.split(":");
+    const [code, ...messageParts] = err.message.split(":");
+    const message = messageParts.join(":") || err.message;
     const status = code === "NOT_FOUND" ? 404 : code === "BAD_REQUEST" ? 400 : 500;
     return res.status(status).send({ message });
   }
@@ -208,7 +215,9 @@ const getAllSaleReturns = async (req, res) => {
   const { limit, offset } = req.query;
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
     const saleReturns = await db.SaleReturn.findAndCountAll({
+      where: { organizationId },
       limit: limit ? Number(limit) : 50,
       offset: offset ? Number(offset) : 0,
       include: [db.Customer, db.Sale],

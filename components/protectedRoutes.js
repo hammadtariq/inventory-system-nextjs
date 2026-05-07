@@ -3,6 +3,8 @@ import { verifyToken } from "@/hooks/login";
 import Spinner from "./spinner";
 import { to } from "@/utils/to.util";
 
+const publicRoutes = ["/login", "/accept-invite"];
+
 const ProtectedRoutes = ({ children, router }) => {
   const [canViewPage, setCanViewPage] = useState(false);
 

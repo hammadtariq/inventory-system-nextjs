@@ -2,9 +2,10 @@
 const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class customer extends Model {
-    static associate({ Ledger, SaleReturn }) {
+    static associate({ Ledger, SaleReturn, Sale }) {
       this.hasMany(Ledger, { foreignKey: "customerId" });
       this.hasMany(SaleReturn, { foreignKey: "customerId" });
+      this.hasMany(Sale, { foreignKey: "customerId" });
     }
   }
   customer.init(
@@ -36,7 +37,6 @@ module.exports = (sequelize, DataTypes) => {
       email: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true,
         validate: {
           isEmail: { msg: "Provide valid email address" },
           isLowercase: { msg: "Email should be lowercase" },
@@ -56,10 +56,21 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: DataTypes.UUIDV4,
         allowNull: false,
       },
+      organizationId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
     },
     {
       sequelize,
       modelName: "customer",
+      indexes: [
+        {
+          unique: true,
+          fields: ["organizationId", "email"],
+          name: "customers_organization_id_email_unique",
+        },
+      ],
     }
   );
   return customer;

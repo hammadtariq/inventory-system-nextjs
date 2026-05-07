@@ -4,6 +4,7 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { DEFAULT_ROWS_LIMIT } from "@/utils/api.util";
+import TenantContext from "@/lib/tenant-context";
 
 const dbConnect = db.dbConnect;
 
@@ -42,15 +43,19 @@ const updateChequeStatus = async (req, res) => {
   if (error && error && Object.keys(error).length) {
     return res.status(400).send({ message: error.toString() });
   }
-  if (req.user.role !== "ADMIN") {
+  if (!["ADMIN", "SUPER_ADMIN"].includes(req.user.role)) {
     return res.status(400).send({ message: "Operation not permitted." });
   }
 
   try {
     await dbConnect();
+    const organizationId = TenantContext.assertGet();
     const { id, status } = value;
 
-    const cheque = await db.Cheque.findByPk(id);
+    const cheque = await db.Cheque.findOne({ where: { id, organizationId } });
+    if (!cheque) {
+      return res.status(404).send({ message: "cheque not found" });
+    }
     await cheque.update({ status });
 
     console.log("Cheques Update Request End");

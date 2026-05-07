@@ -2,11 +2,18 @@
 import { createPurchaseOrder } from "@/pages/api/purchase/index";
 import { createMocks } from "node-mocks-http";
 import db from "@/lib/postgres";
+import TenantContext from "@/lib/tenant-context";
 
 jest.mock("@/lib/postgres", () => ({
   dbConnect: jest.fn(),
   Purchase: {
     create: jest.fn(),
+  },
+  Company: {
+    findOne: jest.fn(),
+  },
+  Items: {
+    findAll: jest.fn(),
   },
 }));
 
@@ -18,6 +25,8 @@ describe("createPurchaseOrder API", () => {
   it("should create a purchase order successfully", async () => {
     const newDate = new Date();
     db.Purchase.create.mockResolvedValue({}); // Simulate success
+    db.Company.findOne.mockResolvedValue({ id: 1 });
+    db.Items.findAll.mockResolvedValue([{ id: 101 }]);
 
     const { req, res } = createMocks({
       method: "POST",
@@ -41,7 +50,7 @@ describe("createPurchaseOrder API", () => {
       },
     });
 
-    await createPurchaseOrder(req, res);
+    await TenantContext.run(23, async () => createPurchaseOrder(req, res));
 
     expect(db.Purchase.create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -52,6 +61,7 @@ describe("createPurchaseOrder API", () => {
           }),
         ],
         status: "PENDING",
+        organizationId: 23,
       })
     );
 
@@ -66,7 +76,7 @@ describe("createPurchaseOrder API", () => {
       },
     });
 
-    await createPurchaseOrder(req, res);
+    await TenantContext.run(23, async () => createPurchaseOrder(req, res));
 
     expect(res._getStatusCode()).toBe(400);
     expect(res._getData()).toMatchObject({
@@ -80,7 +90,7 @@ describe("createPurchaseOrder API", () => {
       body: {},
     });
 
-    await createPurchaseOrder(req, res);
+    await TenantContext.run(23, async () => createPurchaseOrder(req, res));
 
     expect(res._getStatusCode()).toBe(400);
     expect(res._getData()).toMatchObject({
@@ -90,6 +100,8 @@ describe("createPurchaseOrder API", () => {
 
   it("should return 500 when DB throw error", async () => {
     db.Purchase.create.mockRejectedValue(new Error("DB crashed"));
+    db.Company.findOne.mockResolvedValue({ id: 1 });
+    db.Items.findAll.mockResolvedValue([{ id: 524 }]);
 
     const { req, res } = createMocks({
       method: "POST",
@@ -109,7 +121,7 @@ describe("createPurchaseOrder API", () => {
       },
     });
 
-    await createPurchaseOrder(req, res);
+    await TenantContext.run(23, async () => createPurchaseOrder(req, res));
 
     expect(res._getStatusCode()).toBe(500);
     expect(res._getData()).toEqual({ message: "Error: DB crashed" });

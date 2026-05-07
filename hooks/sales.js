@@ -24,11 +24,11 @@ export const useSales = () => {
 };
 
 export const useSale = (id, type) => {
-  const { data, error } = useSWR(`/api/sales/${id}?type=${type}`, get);
+  const { data, error } = useSWR(id ? `/api/sales/${id}?type=${type}` : null, get);
 
   return {
     sale: data,
-    isLoading: !error && !data,
+    isLoading: !id || (!error && !data),
     error,
   };
 };

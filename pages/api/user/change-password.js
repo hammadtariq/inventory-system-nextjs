@@ -4,6 +4,7 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { compareHash } from "@/lib/bcrypt";
+import TenantContext from "@/lib/tenant-context";
 
 const apiSchema = Joi.object({
   id: Joi.number().required(),
@@ -23,7 +24,8 @@ const changePassword = async (req, res) => {
 
   try {
     await db.dbConnect();
-    const user = await db.User.findByPk(value.id);
+    const organizationId = TenantContext.assertGet();
+    const user = await db.User.findOne({ where: { id: value.id, organizationId } });
 
     // if user not found
     if (!user) {

@@ -1,22 +1,32 @@
 import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import TenantContext from "@/lib/tenant-context";
 
 const getPurchaseDistribution = async (req, res) => {
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
+    const queryOptions = {
+      type: db.Sequelize.QueryTypes.SELECT,
+      replacements: { organizationId },
+    };
 
     const [paidResult, totalResult] = await Promise.all([
       db.sequelize.query(
         `SELECT COALESCE(SUM(amount), 0) as total
          FROM ledgers
          WHERE "companyId" IS NOT NULL
+           AND "organizationId" = :organizationId
            AND "paymentType" IN ('CASH', 'ONLINE', 'CHEQUE')`,
-        { type: db.Sequelize.QueryTypes.SELECT }
+        queryOptions
       ),
-      db.sequelize.query(`SELECT COALESCE(SUM("totalAmount"), 0) as total FROM purchases WHERE status = 'APPROVED'`, {
-        type: db.Sequelize.QueryTypes.SELECT,
-      }),
+      db.sequelize.query(
+        `SELECT COALESCE(SUM("totalAmount"), 0) as total
+         FROM purchases
+         WHERE status = 'APPROVED' AND "organizationId" = :organizationId`,
+        queryOptions
+      ),
     ]);
 
     const paid = parseFloat(paidResult[0].total) || 0;

@@ -281,7 +281,7 @@ export default function Home() {
             bordered={false}
             title={
               <span>
-                <span style={{ marginRight: 6 }}>⭐</span>Selling Products
+                <span style={{ marginRight: 6 }}>Top</span>Selling Products
               </span>
             }
           >
@@ -306,7 +306,7 @@ export default function Home() {
             bordered={false}
             title={
               <span>
-                <span style={{ marginRight: 6 }}>👥</span>Customers
+                <span style={{ marginRight: 6 }}>Top</span>Customers
               </span>
             }
           >

@@ -10,6 +10,9 @@ const sequelize = new Sequelize("sqlite::memory:", { logging: false });
 class Company extends Model {} // ✅ mock valid Sequelize model
 Company.init({}, { sequelize, modelName: "company" });
 
+class SaleReturn extends Model {}
+SaleReturn.init({}, { sequelize, modelName: "saleReturn" });
+
 const Inventory = inventoryModel(sequelize, DataTypes);
 const Sale = saleModel(sequelize, DataTypes);
 const Customer = customerModel(sequelize, DataTypes);
@@ -20,7 +23,7 @@ if (typeof Inventory.associate === "function") {
   Inventory.associate({ Company });
 }
 if (typeof Sale.associate === "function") {
-  Sale.associate({ Customer });
+  Sale.associate({ Customer, SaleReturn });
 }
 if (typeof Ledger.associate === "function") {
   Ledger.associate({ Customer, Company });
@@ -32,5 +35,6 @@ module.exports = {
   Company,
   Customer,
   Sale,
+  SaleReturn,
   Ledger,
 };

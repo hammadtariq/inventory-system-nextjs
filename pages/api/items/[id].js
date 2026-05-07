@@ -3,6 +3,8 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import TenantContext from "@/lib/tenant-context";
+import { createTenantTransaction } from "@/lib/tenant-transaction";
 
 const apiSchema = Joi.object({
   companyId: Joi.number(),
@@ -25,20 +27,33 @@ const updateItems = async (req, res) => {
   if (error && Object.keys(error).length) {
     return res.status(400).send({ message: error.toString() });
   }
-  const t = await db.sequelize.transaction();
 
+  let t;
   try {
     await db.dbConnect();
+    const tenantTransaction = await createTenantTransaction();
+    t = tenantTransaction.transaction;
+    const { organizationId } = tenantTransaction;
 
-    const item = await db.Items.findByPk(value.id, { transaction: t });
-    const inventoryItem = await db.Inventory.findByPk(value.id, { transaction: t });
+    const item = await db.Items.findOne({ where: { id: value.id, organizationId }, transaction: t });
+    const inventoryItem = await db.Inventory.findOne({ where: { id: value.id, organizationId }, transaction: t });
 
     if (!item) {
+      await t.rollback();
       return res.status(404).send({ message: "item not found" });
     }
 
+    if (value.companyId) {
+      const company = await db.Company.findOne({ where: { id: value.companyId, organizationId }, transaction: t });
+      if (!company) {
+        await t.rollback();
+        return res.status(404).send({ message: "company not found" });
+      }
+    }
+
     if (!Object.keys(req.body).length) {
-      res.status(400).send({
+      await t.rollback();
+      return res.status(400).send({
         message: "Please provide at least one field",
         allowedFields: ["itemName", "companyId", "ratePerLbs", "ratePerKgs", "ratePerBale", "type"],
       });
@@ -53,7 +68,7 @@ const updateItems = async (req, res) => {
     await t.commit();
     return res.send();
   } catch (error) {
-    await t.rollback();
+    if (t) await t.rollback();
     console.log("update items Request Error:", error);
     return res.status(500).send({ message: error.toString() });
   }
@@ -72,13 +87,14 @@ const deleteItem = async (req, res) => {
 
   try {
     await db.dbConnect();
-    const item = await db.Items.findByPk(value.id);
+    const organizationId = TenantContext.assertGet();
+    const item = await db.Items.findOne({ where: { id: value.id, organizationId } });
 
     if (!item) {
       return res.status(404).send({ message: "item does not exist" });
     }
 
-    await db.Items.destroy({ where: { id: value.id } });
+    await db.Items.destroy({ where: { id: value.id, organizationId } });
     console.log("delete items Request End");
 
     return res.send();
@@ -100,11 +116,12 @@ const getItem = async (req, res) => {
   }
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
     const { id } = value;
-    const item = await db.Items.findByPk(id, { include: [db.Company] });
+    const item = await db.Items.findOne({ where: { id, organizationId }, include: [db.Company] });
 
     if (!item) {
-      return res.status(409).send({ message: "item not exist" });
+      return res.status(404).send({ message: "item not exist" });
     }
     console.log("get items Request End");
     return res.send(item);

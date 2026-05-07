@@ -28,14 +28,15 @@ export default function UpdateSalesItems({
   const edit = useCallback(
     (record) => {
       form.setFieldsValue({
-        itemName: "",
-        noOfBales: "",
-        baleWeightLbs: "",
-        baleWeightKgs: "",
-        ratePerLbs: "",
-        ratePerKgs: "",
-        ratePerBale: "",
-        ...record,
+        [record.id]: {
+          itemName: record.itemName ?? "",
+          noOfBales: record.noOfBales ?? "",
+          baleWeightLbs: record.baleWeightLbs ?? "",
+          baleWeightKgs: record.baleWeightKgs ?? "",
+          ratePerLbs: record.ratePerLbs ?? "",
+          ratePerKgs: record.ratePerKgs ?? "",
+          ratePerBale: record.ratePerBale ?? "",
+        },
       });
     },
     [form]
