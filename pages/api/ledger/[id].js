@@ -5,6 +5,21 @@ import { auth } from "@/middlewares/auth";
 import { companySumQuery, customerSumQuery } from "@/query/index";
 import TenantContext from "@/lib/tenant-context";
 
+const CASH_LIKE_TYPES = new Set(["CASH", "ONLINE", "CHEQUE"]);
+
+const computeEntryDelta = (type, paymentType, spendType, amount) => {
+  if (type === "company") {
+    if (CASH_LIKE_TYPES.has(paymentType) || spendType === "CREDIT") return -amount;
+    if (spendType === "DEBIT") return amount;
+    return 0;
+  }
+  // customer
+  if (CASH_LIKE_TYPES.has(paymentType) || paymentType === "REFUND" || paymentType === "INVENTORY_RETURN") return amount;
+  if (spendType === "DEBIT") return amount;
+  if (spendType === "CREDIT") return -amount;
+  return 0;
+};
+
 const getTransactions = async (req, res) => {
   console.log("get transaction Request Start");
 
@@ -13,24 +28,30 @@ const getTransactions = async (req, res) => {
     const { id, type = "company" } = req.query;
     const organizationId = TenantContext.assertGet();
     const condition = type === "company" ? { companyId: id, organizationId } : { customerId: id, organizationId };
-    const transactions = await db.Ledger.findAll({
+
+    // Fetch in ASC order so we can compute running balance chronologically
+    const rows = await db.Ledger.findAll({
       where: condition,
-      order: [["id", "DESC"]],
+      order: [["id", "ASC"]],
       include: [
-        {
-          model: db.Company,
-          as: "company",
-        },
-        {
-          model: db.Customer,
-          as: "customer",
-        },
+        { model: db.Company, as: "company" },
+        { model: db.Customer, as: "customer" },
       ],
     });
 
-    const rawQuery = type === "company" ? companySumQuery : customerSumQuery;
+    // Compute running balance for each row
+    let runningBalance = 0;
+    const transactions = rows.map((row) => {
+      const plain = row.toJSON();
+      runningBalance += computeEntryDelta(type, plain.paymentType, plain.spendType, Number(plain.amount));
+      return { ...plain, runningBalance };
+    });
 
-    const totalBalance = await db.sequelize.query(rawQuery, {
+    // Reverse to DESC for display (newest first)
+    transactions.reverse();
+
+    const rawQuery = type === "company" ? companySumQuery : customerSumQuery;
+    const totalBalanceResult = await db.sequelize.query(rawQuery, {
       type: db.Sequelize.QueryTypes.SELECT,
       replacements: { id, organizationId },
     });
@@ -38,7 +59,7 @@ const getTransactions = async (req, res) => {
 
     return res.send({
       transactions,
-      totalBalance: totalBalance[0].amount,
+      totalBalance: totalBalanceResult[0]?.amount ?? 0,
     });
   } catch (error) {
     console.log("get transaction Request Error:", error);

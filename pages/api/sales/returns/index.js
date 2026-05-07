@@ -64,9 +64,6 @@ const updateInventoryForReturn = async (products, transaction) => {
 
       await inventory.update(
         {
-          ratePerLbs: ratePerLbs || inventory.ratePerLbs,
-          ratePerKgs: ratePerKgs || inventory.ratePerKgs,
-          ratePerBale: ratePerBale || inventory.ratePerBale,
           itemName: itemName || inventory.itemName,
         },
         { transaction }
@@ -164,14 +161,15 @@ const createSaleReturn = async (req, res) => {
 
     const updatedInventory = await updateInventoryForReturn(returnedProducts, transaction);
 
-    const ledger = await createLedgerPayment(
+    // Single entry: inventory return on debit side, reduces customer's outstanding balance
+    const inventoryReturnLedger = await createLedgerPayment(
       {
         customerId,
         totalAmount,
         reference,
         spendType: SPEND_TYPE.DEBIT,
         paymentDate: returnDate,
-        paymentType: PAYMENT_TYPE.REFUND,
+        paymentType: PAYMENT_TYPE.INVENTORY_RETURN,
       },
       transaction
     );
@@ -184,7 +182,7 @@ const createSaleReturn = async (req, res) => {
         returnedProducts,
         reference,
         returnDate,
-        ledgerId: ledger.id,
+        ledgerId: inventoryReturnLedger.id,
         organizationId,
       },
       { transaction }
@@ -196,7 +194,7 @@ const createSaleReturn = async (req, res) => {
     return res.status(200).json({
       success: true,
       saleReturn,
-      ledger,
+      ledger: inventoryReturnLedger,
       inventory: updatedInventory,
     });
   } catch (err) {

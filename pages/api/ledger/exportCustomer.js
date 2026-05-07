@@ -26,19 +26,31 @@ const getLedgerBalance = (transaction, type) => {
 };
 
 const getDebitAmount = (transaction, type) => {
-  if (transaction.paymentType) {
-    return type === "customer" ? transaction.amount || 0 : 0;
+  const { paymentType, spendType, amount } = transaction;
+  if (type === "customer") {
+    // REFUND always on credit side; INVENTORY_RETURN always on debit side
+    if (paymentType === "REFUND") return 0;
+    if (paymentType === "INVENTORY_RETURN") return amount || 0;
+    if (["CASH", "ONLINE", "CHEQUE"].includes(paymentType)) return amount || 0;
+    return spendType === "DEBIT" ? amount || 0 : 0;
   }
-
-  return transaction.spendType === "DEBIT" ? transaction.amount || 0 : 0;
+  // company
+  if (["CASH", "ONLINE", "CHEQUE"].includes(paymentType)) return amount || 0;
+  return spendType === "DEBIT" ? amount || 0 : 0;
 };
 
 const getCreditAmount = (transaction, type) => {
-  if (transaction.paymentType) {
-    return type === "company" ? transaction.amount || 0 : 0;
+  const { paymentType, spendType, amount } = transaction;
+  if (type === "customer") {
+    // REFUND always on credit side (handles both legacy DEBIT entries and new CREDIT entries)
+    if (paymentType === "REFUND") return amount || 0;
+    if (paymentType === "INVENTORY_RETURN") return 0;
+    if (["CASH", "ONLINE", "CHEQUE"].includes(paymentType)) return 0;
+    return spendType === "CREDIT" ? amount || 0 : 0;
   }
-
-  return transaction.spendType === "CREDIT" ? transaction.amount || 0 : 0;
+  // company
+  if (["CASH", "ONLINE", "CHEQUE"].includes(paymentType)) return 0;
+  return spendType === "CREDIT" ? amount || 0 : 0;
 };
 
 // Helper: parse optional dates
@@ -74,10 +86,11 @@ const generateCustomerLedgerPdf = (transactions, totalBalance, headerFrom, heade
   // 2. Ledger Header with Dates (use provided range if any; else derive from rows)
   const fromDate =
     headerFrom ??
-    (transactions[transactions.length - 1]?.updatedAt
-      ? dayjs(transactions[transactions.length - 1].updatedAt).format("DD-MMM-YYYY")
+    (transactions[transactions.length - 1]?.paymentDate
+      ? dayjs(transactions[transactions.length - 1].paymentDate).format("DD-MMM-YYYY")
       : "");
-  const toDate = headerTo ?? (transactions[0]?.updatedAt ? dayjs(transactions[0].updatedAt).format("DD-MMM-YYYY") : "");
+  const toDate =
+    headerTo ?? (transactions[0]?.paymentDate ? dayjs(transactions[0].paymentDate).format("DD-MMM-YYYY") : "");
 
   doc.setFontSize(11);
   if (fromDate || toDate) {
@@ -107,7 +120,7 @@ const generateCustomerLedgerPdf = (transactions, totalBalance, headerFrom, heade
   const rows = transactions.map((row) => {
     const rowBalance = balanceMap ? balanceMap.get(row.id) : getLedgerBalance(row, type);
     return [
-      row.updatedAt ? dayjs(row.updatedAt).format("DD-MM-YYYY") : "",
+      row.paymentDate ? dayjs(row.paymentDate).format("DD-MM-YYYY") : "",
       row.company ? row.company.companyName : row.otherName || "",
       row.reference || "",
       row.invoiceNumber || "",
@@ -222,7 +235,7 @@ const sanitizeTransactions = (transactions, type, balanceMap) =>
     }
     const rowBalance = balanceMap ? balanceMap.get(id) : getLedgerBalance(t, type);
     return {
-      Date: t.updatedAt ? dayjs(t.updatedAt).format("DD-MM-YYYY") : "",
+      Date: t.paymentDate ? dayjs(t.paymentDate).format("DD-MM-YYYY") : "",
       PaidTo: t.company ? t.company.companyName : t.otherName || "",
       reference: t.reference,
       Debit: getDebitAmount(t, type) ? getDebitAmount(t, type).toFixed(2) : "",
@@ -262,11 +275,11 @@ const exportCustomerLedger = async (req, res) => {
 
     // Apply inclusive date filter only if both dates are provided
     if (start && end) {
-      where.updatedAt = { [Op.between]: [start.toDate(), end.toDate()] };
+      where.paymentDate = { [Op.between]: [start.toDate(), end.toDate()] };
     } else if (start && !end) {
-      where.updatedAt = { [Op.gte]: start.toDate() };
+      where.paymentDate = { [Op.gte]: start.toDate() };
     } else if (!start && end) {
-      where.updatedAt = { [Op.lte]: end.toDate() };
+      where.paymentDate = { [Op.lte]: end.toDate() };
     }
 
     const transactions = await db.Ledger.findAll({
