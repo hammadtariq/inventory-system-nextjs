@@ -30,10 +30,13 @@ const getTransactions = async (req, res) => {
     const organizationId = TenantContext.assertGet();
     const condition = type === "company" ? { companyId: id, organizationId } : { customerId: id, organizationId };
 
-    // Fetch in ASC order so we can compute running balance chronologically
+    // Fetch in date order so running balance respects paymentDate, not insertion order
     const rows = await db.Ledger.findAll({
       where: condition,
-      order: [["id", "ASC"]],
+      order: [
+        ["paymentDate", "ASC"],
+        ["id", "ASC"],
+      ],
       include: [
         { model: db.Company, as: "company" },
         { model: db.Customer, as: "customer" },

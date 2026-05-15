@@ -1,32 +1,27 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import styles from "@/styles/Landing.module.css";
 import { motion, AnimatePresence } from "framer-motion";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
-};
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.08 } },
-};
+gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 function Nav({ onDemoClick }) {
   return (
-    <nav className={styles.nav}>
-      <a href="#hero" className={styles.logo}>
+    <nav className={styles.nav} data-gsap="nav">
+      <a href="#hero" className={styles.logo} data-gsap="nav-logo">
         ⬡ StockFlow
       </a>
-      <div className={styles.navLinks}>
+      <div className={styles.navLinks} data-gsap="nav-links">
         <a href="#features">Features</a>
         <a href="#pricing">Pricing</a>
         <a href="#testimonials">Testimonials</a>
         <a href="#faq">FAQ</a>
       </div>
-      <motion.button className={styles.navCta} onClick={onDemoClick} whileTap={{ scale: 0.97 }}>
+      <motion.button className={styles.navCta} onClick={onDemoClick} whileTap={{ scale: 0.97 }} data-gsap="nav-cta">
         Request a Demo
       </motion.button>
     </nav>
@@ -40,25 +35,34 @@ const STATS = [
   { val: "98.2%", lbl: "Order Accuracy" },
 ];
 
-function Hero({ onDemoClick }) {
+function Hero({ onDemoClick, glowRef }) {
   return (
-    <section className={styles.hero} id="hero">
-      <motion.div variants={stagger} initial="hidden" animate="visible">
-        <motion.div variants={fadeUp} className={styles.heroBadge}>
+    <section className={styles.hero} id="hero" data-gsap="hero">
+      <div className={styles.ambientGlow} ref={glowRef} />
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <div className={styles.heroBadge} data-gsap="hero-badge">
           ✦ Inventory Management for Modern Businesses
-        </motion.div>
-        <motion.h1 variants={fadeUp} className={styles.heroHeading}>
-          Run Your Inventory
+        </div>
+        <h1 className={styles.heroHeading} data-gsap="hero-heading">
+          <span className={styles.lineWrap}>
+            <span data-gsap="line-inner">Run Your Inventory</span>
+          </span>
           <br />
-          <span className={styles.heroGradient}>Smarter, Faster,</span>
+          <span className={styles.lineWrap}>
+            <span className={styles.heroGradient} data-gsap="line-inner">
+              Smarter, Faster,
+            </span>
+          </span>
           <br />
-          With Confidence.
-        </motion.h1>
-        <motion.p variants={fadeUp} className={styles.heroSub}>
+          <span className={styles.lineWrap}>
+            <span data-gsap="line-inner">With Confidence.</span>
+          </span>
+        </h1>
+        <p className={styles.heroSub} data-gsap="hero-sub">
           StockFlow brings real-time inventory tracking, integrated accounting, and smart order management, all in one
           clean dashboard.
-        </motion.p>
-        <motion.div variants={fadeUp} className={styles.heroCtaRow}>
+        </p>
+        <div className={styles.heroCtaRow} data-gsap="hero-cta">
           <motion.button
             className={styles.btnPrimary}
             onClick={onDemoClick}
@@ -75,8 +79,8 @@ function Hero({ onDemoClick }) {
           >
             See Pricing
           </motion.a>
-        </motion.div>
-        <motion.div variants={fadeUp} className={styles.heroCard}>
+        </div>
+        <div className={styles.heroCard} data-gsap="hero-card">
           <div className={styles.heroCardHeader}>
             <span className={`${styles.dot} ${styles.dotRed}`} aria-hidden="true" />
             <span className={`${styles.dot} ${styles.dotYellow}`} aria-hidden="true" />
@@ -90,8 +94,8 @@ function Hero({ onDemoClick }) {
               </div>
             ))}
           </div>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </section>
   );
 }
@@ -137,8 +141,8 @@ const FEATURES = [
 
 function Features() {
   return (
-    <section className={styles.section} id="features">
-      <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+    <section className={styles.section} id="features" data-gsap="features">
+      <div data-gsap="features-header">
         <p className={styles.sectionLabel}>What You Get</p>
         <h2 className={styles.sectionHeading}>
           Everything your business needs
@@ -148,28 +152,24 @@ function Features() {
         <p className={styles.sectionSub}>
           From purchase orders to financial reconciliation, StockFlow handles the complexity so you can focus on growth.
         </p>
-      </motion.div>
-      <motion.div
-        className={styles.featuresGrid}
-        variants={stagger}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-      >
+      </div>
+      <div className={styles.featuresGrid} data-gsap="features-grid">
         {FEATURES.map(({ icon, color, title, desc }) => (
           <motion.div
             key={title}
             className={styles.featureCard}
-            variants={fadeUp}
+            data-gsap="feature-card"
             whileHover={{ y: -6, boxShadow: "0 12px 40px rgba(99,102,241,0.15)" }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
           >
-            <div className={`${styles.featureIcon} ${styles[color]}`}>{icon}</div>
+            <div className={`${styles.featureIcon} ${styles[color]}`} data-gsap="feature-icon">
+              {icon}
+            </div>
             <h3 className={styles.featureTitle}>{title}</h3>
             <p className={styles.featureDesc}>{desc}</p>
           </motion.div>
         ))}
-      </motion.div>
+      </div>
     </section>
   );
 }
@@ -200,27 +200,21 @@ const TESTIMONIALS = [
 
 function Testimonials() {
   return (
-    <section className={styles.section} id="testimonials">
-      <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+    <section className={styles.section} id="testimonials" data-gsap="testimonials">
+      <div data-gsap="testimonials-header">
         <p className={styles.sectionLabel}>Customer Stories</p>
         <h2 className={styles.sectionHeading}>
           Trusted by businesses
           <br />
           across South Asia
         </h2>
-      </motion.div>
-      <motion.div
-        className={styles.testimonialsGrid}
-        variants={stagger}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-      >
+      </div>
+      <div className={styles.testimonialsGrid} data-gsap="testimonials-grid">
         {TESTIMONIALS.map(({ quote, name, role, initial, avatarClass }) => (
           <motion.div
             key={name}
             className={styles.testimonialCard}
-            variants={fadeUp}
+            data-gsap="testimonial-card"
             whileHover={{ y: -4, boxShadow: "0 12px 40px rgba(0,0,0,0.1)" }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
           >
@@ -235,7 +229,7 @@ function Testimonials() {
             </div>
           </motion.div>
         ))}
-      </motion.div>
+      </div>
     </section>
   );
 }
@@ -297,14 +291,7 @@ function Pricing({ onDemoClick }) {
   const [active, setActive] = useState(0);
 
   return (
-    <motion.section
-      className={styles.section}
-      id="pricing"
-      variants={fadeUp}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true }}
-    >
+    <section className={styles.section} id="pricing" data-gsap="pricing">
       <div className={styles.pricingBg}>
         <p className={styles.sectionLabel}>Simple Pricing</p>
         <h2 className={styles.sectionHeading}>
@@ -326,22 +313,20 @@ function Pricing({ onDemoClick }) {
             ))}
           </div>
         </div>
-        <motion.div
-          className={styles.pricingGrid}
-          variants={stagger}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
+        <div className={styles.pricingGrid} data-gsap="pricing-grid">
           {PLANS.map((plan) => (
             <motion.div
               key={plan.tier}
               className={`${styles.planCard} ${styles[plan.style]}`}
-              variants={fadeUp}
+              data-gsap="plan-card"
               whileHover={{ y: -6, boxShadow: "0 20px 50px rgba(99,102,241,0.18)" }}
               transition={{ type: "spring", stiffness: 280, damping: 20 }}
             >
-              {plan.popular && <div className={styles.popularBadge}>⭐ Most Popular</div>}
+              {plan.popular && (
+                <div className={styles.popularBadge} data-gsap="popular-badge">
+                  ⭐ Most Popular
+                </div>
+              )}
               <p className={`${styles.planTier} ${styles[plan.tierClass] ?? ""}`}>{plan.tier}</p>
               <div className={styles.planPrice}>
                 <sup className={styles.planPriceSup}>$</sup>
@@ -365,9 +350,9 @@ function Pricing({ onDemoClick }) {
               </motion.button>
             </motion.div>
           ))}
-        </motion.div>
+        </div>
       </div>
-    </motion.section>
+    </section>
   );
 }
 
@@ -392,21 +377,14 @@ const FAQS = [
 
 function Faq({ openFaq, setOpenFaq }) {
   return (
-    <motion.section
-      className={styles.section}
-      id="faq"
-      variants={fadeUp}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true }}
-    >
+    <section className={styles.section} id="faq" data-gsap="faq">
       <p className={styles.sectionLabel}>FAQ</p>
       <h2 className={styles.sectionHeading}>Common questions</h2>
       <div className={styles.faqList}>
         {FAQS.map(({ q, a }) => {
           const isOpen = openFaq === q;
           return (
-            <div key={q} className={styles.faqItem}>
+            <div key={q} className={styles.faqItem} data-gsap="faq-item">
               <button className={styles.faqToggle} onClick={() => setOpenFaq(isOpen ? null : q)}>
                 <span className={styles.faqQuestion}>{q}</span>
                 <span className={`${styles.faqChevron} ${isOpen ? styles.faqChevronOpen : ""}`}>›</span>
@@ -418,34 +396,36 @@ function Faq({ openFaq, setOpenFaq }) {
           );
         })}
       </div>
-    </motion.section>
+    </section>
   );
 }
 
 function FinalCta({ onDemoClick }) {
   return (
-    <motion.div
-      className={styles.finalCta}
-      variants={fadeUp}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true }}
-    >
-      <h2 className={styles.finalCtaHeading}>
-        Ready to streamline
+    <div className={styles.finalCta} data-gsap="final-cta">
+      <div className={styles.finalCtaGlow} />
+      <h2 className={styles.finalCtaHeading} data-gsap="final-cta-heading">
+        <span className={styles.lineWrap}>
+          <span data-gsap="line-inner">Ready to streamline</span>
+        </span>
         <br />
-        your inventory?
+        <span className={styles.lineWrap}>
+          <span data-gsap="line-inner">your inventory?</span>
+        </span>
       </h2>
-      <p className={styles.finalCtaSub}>Join hundreds of businesses already running smarter with StockFlow.</p>
+      <p className={styles.finalCtaSub} data-gsap="final-cta-sub">
+        Join hundreds of businesses already running smarter with StockFlow.
+      </p>
       <motion.button
         className={styles.btnPrimaryLg}
         onClick={onDemoClick}
         whileHover={{ scale: 1.03 }}
         whileTap={{ scale: 0.97 }}
+        data-gsap="final-cta-btn"
       >
         Request a Demo <span aria-hidden="true">→</span>
       </motion.button>
-    </motion.div>
+    </div>
   );
 }
 
@@ -587,6 +567,8 @@ function DemoModal({ open, onClose }) {
 export default function Landing() {
   const [modalOpen, setModalOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
+  const pageRef = useRef(null);
+  const glowRef = useRef(null);
 
   useEffect(() => {
     function handleKey(e) {
@@ -595,6 +577,351 @@ export default function Landing() {
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, []);
+
+  useGSAP(
+    () => {
+      // ── NAV LOAD ──
+      const navEl = document.querySelector('[data-gsap="nav"]');
+      const logo = document.querySelector('[data-gsap="nav-logo"]');
+      const navLinks = gsap.utils.toArray('[data-gsap="nav-links"] a');
+      const navCta = document.querySelector('[data-gsap="nav-cta"]');
+
+      gsap
+        .timeline({ delay: 0.1 })
+        .from(logo, { x: -30, opacity: 0, duration: 0.5, ease: "power3.out" })
+        .from(navLinks, { x: 20, opacity: 0, stagger: 0.06, duration: 0.4, ease: "power3.out" }, "-=0.3")
+        .from(navCta, { scale: 0.8, opacity: 0, duration: 0.4, ease: "back.out(1.7)" }, "-=0.2");
+
+      // ── NAV SCROLL STATE ──
+      ScrollTrigger.create({
+        trigger: '[data-gsap="hero"]',
+        start: "bottom top",
+        toggleClass: { targets: navEl, className: styles.navScrolled },
+      });
+
+      // ── HERO LOAD ──
+      const heroBadge = document.querySelector('[data-gsap="hero-badge"]');
+      const heroLines = gsap.utils.toArray('[data-gsap="hero-heading"] [data-gsap="line-inner"]');
+      const heroSub = document.querySelector('[data-gsap="hero-sub"]');
+      const heroCtaEl = document.querySelector('[data-gsap="hero-cta"]');
+      const heroCardEl = document.querySelector('[data-gsap="hero-card"]');
+
+      gsap
+        .timeline({ delay: 0.25 })
+        .from(heroBadge, { y: -20, opacity: 0, duration: 0.4, ease: "power3.out" })
+        .fromTo(
+          heroLines,
+          { clipPath: "inset(100% 0 0 0)", y: 30 },
+          { clipPath: "inset(0% 0 0 0)", y: 0, stagger: 0.18, duration: 0.65, ease: "power4.out" },
+          "-=0.15"
+        )
+        .from(heroSub, { opacity: 0, y: 20, duration: 0.5, ease: "power3.out" }, "-=0.3")
+        .from(heroCtaEl, { opacity: 0, y: 20, duration: 0.4, ease: "power3.out" }, "-=0.3")
+        .from(heroCardEl, { opacity: 0, y: 40, duration: 0.5, ease: "power3.out" }, "-=0.2");
+
+      // ── HERO SCROLL PARALLAX ──
+      gsap.to('[data-gsap="hero-card"]', {
+        y: -60,
+        ease: "none",
+        scrollTrigger: {
+          trigger: '[data-gsap="hero"]',
+          start: "top top",
+          end: "bottom top",
+          scrub: 1,
+        },
+      });
+
+      // Background orb scales subtly on scroll for cinematic depth
+      gsap.to(".page-bg-orb", {
+        scale: 1.08,
+        ease: "none",
+        scrollTrigger: {
+          trigger: '[data-gsap="hero"]',
+          start: "top top",
+          end: "bottom top",
+          scrub: 1,
+        },
+      });
+
+      // ── AMBIENT GLOW LOOP ──
+      if (glowRef.current) {
+        gsap.to(glowRef.current, {
+          y: 50,
+          x: 40,
+          scale: 1.12,
+          duration: 7,
+          ease: "sine.inOut",
+          yoyo: true,
+          repeat: -1,
+        });
+      }
+
+      // ── FEATURES ──
+      const featuresSection = document.querySelector('[data-gsap="features"]');
+      const featureCards = gsap.utils.toArray('[data-gsap="feature-card"]');
+      const featureIcons = gsap.utils.toArray('[data-gsap="feature-icon"]');
+      const featuresHeader = document.querySelector('[data-gsap="features-header"]');
+      const mm = gsap.matchMedia();
+
+      mm.add("(min-width: 769px)", () => {
+        gsap.from(featuresHeader, {
+          opacity: 0,
+          y: 30,
+          duration: 0.6,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: featuresSection,
+            start: "top 80%",
+            toggleActions: "play none none none",
+          },
+        });
+
+        gsap.set(featuresSection, { perspective: 1000 });
+
+        ScrollTrigger.create({
+          trigger: featuresSection,
+          start: "top top",
+          end: "+=500",
+          pin: true,
+          anticipatePin: 1,
+          onEnter: () => {
+            gsap.fromTo(
+              featureCards,
+              {
+                x: (i) => (i % 2 === 0 ? -120 : 120),
+                opacity: 0,
+                rotateX: 8,
+                filter: "blur(8px)",
+                scale: 0.96,
+              },
+              {
+                x: 0,
+                opacity: 1,
+                rotateX: 0,
+                filter: "blur(0px)",
+                scale: 1,
+                stagger: 0.1,
+                duration: 0.7,
+                ease: "power3.out",
+              }
+            );
+            gsap.from(featureIcons, {
+              scale: 0,
+              ease: "elastic.out(1, 0.5)",
+              duration: 1,
+              stagger: 0.1,
+              delay: 0.35,
+            });
+          },
+        });
+      });
+
+      mm.add("(max-width: 768px)", () => {
+        gsap.from(featureCards, {
+          opacity: 0,
+          y: 40,
+          stagger: 0.08,
+          duration: 0.5,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: featuresSection,
+            start: "top 85%",
+            toggleActions: "play none none none",
+          },
+        });
+      });
+
+      // ── PRICING ──
+      const pricingSection = document.querySelector('[data-gsap="pricing"]');
+      const planCards = gsap.utils.toArray('[data-gsap="plan-card"]');
+      const popularBadge = document.querySelector('[data-gsap="popular-badge"]');
+
+      gsap.fromTo(
+        planCards,
+        { y: 100, opacity: 0, scale: 0.92, filter: "blur(10px)" },
+        {
+          y: 0,
+          opacity: 1,
+          scale: 1,
+          filter: "blur(0px)",
+          stagger: 0.12,
+          duration: 0.7,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: pricingSection,
+            start: "top 75%",
+            toggleActions: "play none none none",
+          },
+        }
+      );
+
+      if (popularBadge) {
+        gsap.fromTo(
+          popularBadge,
+          { scale: 0, opacity: 0 },
+          {
+            scale: 1,
+            opacity: 1,
+            ease: "back.out(2)",
+            duration: 0.5,
+            delay: 0.5,
+            scrollTrigger: {
+              trigger: pricingSection,
+              start: "top 75%",
+              toggleActions: "play none none none",
+            },
+          }
+        );
+      }
+
+      // ── TESTIMONIALS ──
+      const testimonialsSection = document.querySelector('[data-gsap="testimonials"]');
+      const testimonialsGrid = document.querySelector('[data-gsap="testimonials-grid"]');
+      const testimonialCards = gsap.utils.toArray('[data-gsap="testimonial-card"]');
+      const testimonialsHeader = document.querySelector('[data-gsap="testimonials-header"]');
+
+      mm.add("(min-width: 769px)", () => {
+        gsap.from(testimonialsHeader, {
+          opacity: 0,
+          y: 30,
+          duration: 0.6,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: testimonialsSection,
+            start: "top 80%",
+            toggleActions: "play none none none",
+          },
+        });
+
+        // Start cards slightly faded for blur-to-focus reveal during scroll
+        gsap.set(testimonialCards, { opacity: 0.45, filter: "blur(4px)", scale: 0.97 });
+        gsap.to(testimonialCards, {
+          opacity: 1,
+          filter: "blur(0px)",
+          scale: 1,
+          stagger: 0.15,
+          duration: 0.5,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: testimonialsSection,
+            start: "top 70%",
+            toggleActions: "play none none none",
+          },
+        });
+
+        // Horizontal scroll pin — grid travels left as user scrolls down
+        gsap.set(testimonialsGrid, {
+          display: "flex",
+          flexWrap: "nowrap",
+          width: "max-content",
+          gap: "16px",
+        });
+
+        const getScrollAmount = () => -(testimonialsGrid.scrollWidth - testimonialsSection.clientWidth + 120);
+
+        gsap.to(testimonialsGrid, {
+          x: getScrollAmount,
+          ease: "none",
+          scrollTrigger: {
+            trigger: testimonialsSection,
+            start: "top top",
+            end: () => `+=${Math.abs(getScrollAmount())}`,
+            pin: true,
+            anticipatePin: 1,
+            scrub: 1,
+            invalidateOnRefresh: true,
+          },
+        });
+      });
+
+      mm.add("(max-width: 768px)", () => {
+        gsap.from(testimonialCards, {
+          opacity: 0,
+          y: 40,
+          stagger: 0.1,
+          duration: 0.5,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: testimonialsSection,
+            start: "top 85%",
+            toggleActions: "play none none none",
+          },
+        });
+      });
+
+      // ── FAQ ──
+      const faqSection = document.querySelector('[data-gsap="faq"]');
+      const faqItems = gsap.utils.toArray('[data-gsap="faq-item"]');
+
+      gsap.fromTo(
+        faqItems,
+        { clipPath: "inset(0 100% 0 0)", opacity: 0, y: 24, filter: "blur(6px)" },
+        {
+          clipPath: "inset(0 0% 0 0)",
+          opacity: 1,
+          y: 0,
+          filter: "blur(0px)",
+          stagger: 0.1,
+          duration: 0.55,
+          ease: "power3.inOut",
+          scrollTrigger: {
+            trigger: faqSection,
+            start: "top 80%",
+            toggleActions: "play none none none",
+          },
+        }
+      );
+
+      // ── FINAL CTA ──
+      const finalCtaEl = document.querySelector('[data-gsap="final-cta"]');
+      const finalCtaLines = gsap.utils.toArray('[data-gsap="final-cta-heading"] [data-gsap="line-inner"]');
+      const finalCtaSub = document.querySelector('[data-gsap="final-cta-sub"]');
+      const finalCtaBtn = document.querySelector('[data-gsap="final-cta-btn"]');
+      const finalCtaGlow = finalCtaEl?.querySelector(`.${styles.finalCtaGlow}`);
+
+      gsap
+        .timeline({
+          scrollTrigger: {
+            trigger: finalCtaEl,
+            start: "top 75%",
+            toggleActions: "play none none none",
+          },
+        })
+        .fromTo(
+          finalCtaLines,
+          { clipPath: "inset(100% 0 0 0)", y: 30 },
+          { clipPath: "inset(0% 0 0 0)", y: 0, stagger: 0.15, duration: 0.65, ease: "power4.out" }
+        )
+        .from(finalCtaSub, { opacity: 0, y: 16, duration: 0.4, ease: "power3.out" }, "-=0.2")
+        .fromTo(
+          finalCtaBtn,
+          { scale: 0.85, opacity: 0 },
+          { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.7)" },
+          "-=0.15"
+        )
+        .to(finalCtaGlow, { opacity: 1, duration: 0.8, ease: "power2.out" }, "-=0.25");
+
+      // ── SECTION CONTINUITY ──
+      const transitionSections = gsap.utils.toArray(
+        '[data-gsap="features"], [data-gsap="pricing"], [data-gsap="testimonials"], [data-gsap="faq"]'
+      );
+
+      transitionSections.forEach((section) => {
+        gsap.to(section, {
+          scale: 0.97,
+          opacity: 0.75,
+          ease: "none",
+          scrollTrigger: {
+            trigger: section,
+            start: "bottom 70%",
+            end: "bottom 20%",
+            scrub: true,
+          },
+        });
+      });
+    },
+    { scope: pageRef, dependencies: [] }
+  );
 
   return (
     <>
@@ -605,9 +932,9 @@ export default function Landing() {
           content="StockFlow brings real-time inventory tracking, integrated accounting, and smart order management for SMBs."
         />
       </Head>
-      <div className={styles.page}>
+      <div className={styles.page} ref={pageRef}>
         <Nav onDemoClick={() => setModalOpen(true)} />
-        <Hero onDemoClick={() => setModalOpen(true)} />
+        <Hero onDemoClick={() => setModalOpen(true)} glowRef={glowRef} />
         <Features />
         <Pricing onDemoClick={() => setModalOpen(true)} />
         <Testimonials />
