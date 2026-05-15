@@ -106,13 +106,18 @@ const LedgerDetailsContent = ({ id, type }) => {
       title: "Payment Type",
       dataIndex: "paymentType",
       key: "paymentType",
-      render: (text) => (text === "INVENTORY_RETURN" ? "Inventory Return" : text),
+      width: 170,
+      render: (text) => {
+        if (text === "INVENTORY_RETURN") return "INVENTORY REFUND";
+        if (text === "REFUND") return "AMOUNT REFUND";
+        return text;
+      },
     },
     {
       title: "Invoice Number",
       dataIndex: "invoiceNumber",
       key: "invoiceNumber",
-      render: (text, _data) =>
+      render: (_, _data) =>
         _data.invoiceNumber && _data.transactionId ? (
           <NextLink
             href={`/${_data.spendType === SPEND_TYPE.CREDIT ? "sales" : "purchase"}/${_data.transactionId}?type=view`}

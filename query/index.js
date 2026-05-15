@@ -34,7 +34,9 @@ export const customerQuery = `SELECT CONCAT(c."firstName", ' ', c."lastName") as
 c."id" as "id",
 SUM(
     CASE
-        WHEN "ledgers"."paymentType" = 'CASH' OR "ledgers"."paymentType" = 'ONLINE' OR "ledgers"."paymentType" = 'CHEQUE' OR "ledgers"."paymentType" = 'REFUND' THEN
+        WHEN "ledgers"."paymentType" = 'REFUND' THEN
+        - amount
+        WHEN "ledgers"."paymentType" = 'CASH' OR "ledgers"."paymentType" = 'ONLINE' OR "ledgers"."paymentType" = 'CHEQUE' THEN
         amount
         WHEN "ledgers"."paymentType" = 'INVENTORY_RETURN' THEN
         amount
@@ -71,7 +73,9 @@ GROUP BY "companies"."id"`;
 
 export const customerSumQuery = `SELECT SUM(
     CASE
-        WHEN "ledgers"."paymentType" = 'CASH' OR "ledgers"."paymentType" = 'ONLINE' OR "ledgers"."paymentType" = 'CHEQUE' OR "ledgers"."paymentType" = 'REFUND' THEN
+        WHEN "ledgers"."paymentType" = 'REFUND' THEN
+        - amount
+        WHEN "ledgers"."paymentType" = 'CASH' OR "ledgers"."paymentType" = 'ONLINE' OR "ledgers"."paymentType" = 'CHEQUE' THEN
         amount
         WHEN "ledgers"."paymentType" = 'INVENTORY_RETURN' THEN
         amount
