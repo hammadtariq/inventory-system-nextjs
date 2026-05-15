@@ -14,7 +14,8 @@ const computeEntryDelta = (type, paymentType, spendType, amount) => {
     return 0;
   }
   // customer
-  if (CASH_LIKE_TYPES.has(paymentType) || paymentType === "REFUND" || paymentType === "INVENTORY_RETURN") return amount;
+  if (paymentType === "REFUND") return -amount;
+  if (CASH_LIKE_TYPES.has(paymentType) || paymentType === "INVENTORY_RETURN") return amount;
   if (spendType === "DEBIT") return amount;
   if (spendType === "CREDIT") return -amount;
   return 0;
