@@ -7,8 +7,13 @@ module.exports = {
     database: process.env.POSTGRES_DB || "inventory-management-local",
     host: process.env.POSTGRES_HOST,
     port: process.env.POSTGRES_PORT || 5432,
-
     dialect: "postgres",
+    pool: {
+      max: 20,
+      min: 0,
+      acquire: 30000,
+      idle: 10000,
+    },
   },
   test: {
     username: "root",
