@@ -125,6 +125,10 @@ export const deleteUser = async (req, res) => {
     return res.status(400).send({ message: error.toString() });
   }
 
+  if (Number(value.id) === req.user.id) {
+    return res.status(403).send({ message: "You cannot delete your own account" });
+  }
+
   try {
     await db.dbConnect();
     const organizationId = TenantContext.assertGet();
