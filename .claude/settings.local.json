@@ -1,6 +1,14 @@
 {
   "permissions": {
-    "allow": ["mcp__github__issue_read", "Bash(bash *)"]
+    "allow": [
+      "mcp__github__issue_read",
+      "Bash(bash *)",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_fill_form",
+      "mcp__playwright__browser_type",
+      "mcp__playwright__browser_press_key"
+    ]
   },
   "enabledPlugins": {
     "frontend-design@claude-plugins-official": true
