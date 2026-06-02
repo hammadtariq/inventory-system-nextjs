@@ -5,7 +5,7 @@ import { auth } from "@/middlewares/auth";
 import TenantContext from "@/lib/tenant-context";
 const Op = db.Sequelize.Op;
 
-const searchInventory = async (req, res) => {
+export const searchInventory = async (req, res) => {
   const { value } = req.query;
   try {
     await db.dbConnect();
@@ -13,6 +13,7 @@ const searchInventory = async (req, res) => {
     const results = await db.Inventory.findAll({
       where: {
         organizationId,
+        onHand: { [Op.gt]: 0 },
         [Op.or]: [{ itemName: { [Op.like]: "%" + value + "%" } }],
       },
       include: [db.Company],

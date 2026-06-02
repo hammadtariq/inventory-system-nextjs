@@ -86,12 +86,12 @@ const parseFilters = (filters) => {
   }
 };
 
-const fetchInventoryData = async (filters, organizationId) => {
+export const fetchInventoryData = async (filters, organizationId) => {
   try {
     return await Promise.all([
       db.Inventory.findAndCountAll({
         where: {
-          [db.Sequelize.Op.and]: [{ onHand: { [db.Sequelize.Op.gt]: 0 } }, { organizationId }, ...filters],
+          [db.Sequelize.Op.and]: [{ organizationId }, ...filters],
         },
         include: [db.Company],
         order: [["itemName", "ASC"]],
