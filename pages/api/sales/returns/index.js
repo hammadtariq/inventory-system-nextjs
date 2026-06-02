@@ -41,6 +41,7 @@ const updateInventoryForReturn = async (products, transaction) => {
     let inventory = await db.Inventory.findOne({
       where: { id, companyId, organizationId },
       transaction,
+      ...getLockOption(transaction),
     });
 
     if (inventory) {
@@ -114,6 +115,7 @@ const createSaleReturn = async (req, res) => {
       where: { id: saleId, organizationId },
       include: [db.Customer],
       transaction,
+      ...getLockOption(transaction, db.Sale),
     });
 
     if (!sale) {
@@ -229,6 +231,12 @@ const getAllSaleReturns = async (req, res) => {
     console.log("Get all sale returns Request Error:", err);
     return res.status(500).send({ message: err.toString() });
   }
+};
+
+const getLockOption = (transaction, model) => {
+  if (!transaction?.LOCK?.UPDATE) return {};
+
+  return model ? { lock: { level: transaction.LOCK.UPDATE, of: model } } : { lock: transaction.LOCK.UPDATE };
 };
 
 export default nextConnect().use(auth).post(createSaleReturn).get(getAllSaleReturns);

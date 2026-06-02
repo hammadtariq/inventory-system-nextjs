@@ -36,7 +36,7 @@ describe("getAllInventory API", () => {
 
     expect(db.Inventory.findAndCountAll).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: {},
+        where: { organizationId: 9 },
       })
     );
     expect(res._getStatusCode()).toBe(200);

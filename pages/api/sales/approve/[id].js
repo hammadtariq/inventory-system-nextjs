@@ -5,7 +5,6 @@ import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { STATUS, SPEND_TYPE } from "@/utils/api.util";
 import { balanceQuery } from "@/utils/query.utils";
-import TenantContext from "@/lib/tenant-context";
 import { applyTenantToTransaction, createTenantTransaction } from "@/lib/tenant-transaction";
 
 const apiSchema = Joi.object({
@@ -54,7 +53,12 @@ export const approveSaleOrder = async (id, t) => {
       organizationId = tenantTransaction.organizationId;
     }
 
-    const sale = await db.Sale.findOne({ where: { id, organizationId }, include: [db.Customer], transaction });
+    const sale = await db.Sale.findOne({
+      where: { id, organizationId },
+      include: [db.Customer],
+      transaction,
+      ...getLockOption(transaction, db.Sale),
+    });
 
     if (!sale) throw new Error("NOT_FOUND:Sale order does not exist");
     if (sale.status === STATUS.APPROVED) throw new Error("BAD_REQUEST:Sale order already approved");
@@ -76,6 +80,7 @@ export const approveSaleOrder = async (id, t) => {
           },
         },
         transaction,
+        ...getLockOption(transaction),
       });
       if (!inventory) throw new Error(`NOT_FOUND:"${itemName}" is out of stock`);
 
@@ -121,6 +126,12 @@ export const approveSaleOrder = async (id, t) => {
     console.log("Approve sale order Error:", error);
     throw error;
   }
+};
+
+const getLockOption = (transaction, model) => {
+  if (!transaction?.LOCK?.UPDATE) return {};
+
+  return model ? { lock: { level: transaction.LOCK.UPDATE, of: model } } : { lock: transaction.LOCK.UPDATE };
 };
 
 export default nextConnect().use(auth).put(handler);

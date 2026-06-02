@@ -301,6 +301,80 @@ describe("approvePurchaseOrder", () => {
     );
     expect(res.status).toBe(200);
   });
+
+  it("should not re-add unchanged revised purchase product quantities", async () => {
+    const mockTransaction = {
+      commit: jest.fn(),
+      rollback: jest.fn(),
+    };
+
+    db.sequelize.transaction.mockResolvedValue(mockTransaction);
+
+    const mockPurchase = {
+      id: 902,
+      status: "PENDING",
+      totalAmount: 30,
+      invoiceNumber: "INV-1",
+      revisionNo: 1,
+      purchaseDate: "2025-04-22T12:37:45.496Z",
+      companyId: 36,
+      revisionDetails: {
+        previousPurchasedProducts: [
+          {
+            id: 524,
+            companyId: 36,
+            itemName: "men tropical pant xl",
+            noOfBales: 3,
+            ratePerBale: 10,
+          },
+        ],
+        purchasedProducts: [
+          {
+            id: 524,
+            ratePerBale: 20,
+          },
+        ],
+      },
+      purchasedProducts: [
+        {
+          id: 524,
+          companyId: 36,
+          itemName: "men tropical pant xl",
+          noOfBales: 3,
+          ratePerBale: 10,
+        },
+      ],
+      update: jest.fn().mockResolvedValue({ status: "APPROVED" }),
+    };
+
+    const mockInventory = {
+      increment: jest.fn(),
+      update: jest.fn(),
+      baleWeightKgs: 0,
+      baleWeightLbs: 0,
+      ratePerBale: 10,
+    };
+
+    db.Purchase.findOne.mockResolvedValue(mockPurchase);
+    db.Inventory.findOne.mockResolvedValue(mockInventory);
+    db.Ledger.findOne.mockResolvedValue({
+      amount: 20,
+      totalBalance: 20,
+      update: jest.fn(),
+    });
+
+    const res = await TenantContext.run(23, async () => approvePurchaseOrder(902, { role: "ADMIN" }));
+
+    expect(mockInventory.increment).toHaveBeenCalledWith({ onHand: 0, noOfBales: 0 }, { transaction: mockTransaction });
+    expect(mockInventory.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ratePerBale: 20,
+      }),
+      { transaction: mockTransaction }
+    );
+    expect(res.status).toBe(200);
+    expect(mockTransaction.commit).toHaveBeenCalled();
+  });
 });
 
 describe("updateInventory", () => {
