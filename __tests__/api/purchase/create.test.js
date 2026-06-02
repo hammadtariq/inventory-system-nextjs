@@ -98,6 +98,38 @@ describe("createPurchaseOrder API", () => {
     });
   });
 
+  it("should reject negative purchase quantities", async () => {
+    const { req, res } = createMocks({
+      method: "POST",
+      body: {
+        companyId: 1,
+        totalAmount: 1000,
+        surCharge: null,
+        invoiceNumber: null,
+        purchaseDate: "2024-04-23",
+        baleType: "SMALL_BALES",
+        purchasedProducts: [
+          {
+            itemName: "shirt",
+            noOfBales: -1,
+            baleWeightLbs: 20,
+            baleWeightKgs: 9,
+            ratePerLbs: 10,
+            ratePerKgs: 20,
+            ratePerBale: 200,
+            id: 101,
+          },
+        ],
+      },
+    });
+
+    await TenantContext.run(23, async () => createPurchaseOrder(req, res));
+
+    expect(res._getStatusCode()).toBe(400);
+    expect(res._getData().message).toContain('"purchasedProducts[0].noOfBales" must be greater than 0');
+    expect(db.Purchase.create).not.toHaveBeenCalled();
+  });
+
   it("should return 500 when DB throw error", async () => {
     db.Purchase.create.mockRejectedValue(new Error("DB crashed"));
     db.Company.findOne.mockResolvedValue({ id: 1 });

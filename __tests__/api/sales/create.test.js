@@ -21,6 +21,7 @@ describe("createSale API", () => {
   let req, res;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     // Create new mock request and response objects before each test
     ({ req, res } = createMocks({
       method: "POST",
@@ -106,6 +107,34 @@ describe("createSale API", () => {
     // Assert that validation fails and the response status code is 400
     expect(res.statusCode).toBe(400);
     expect(res._getData()).toEqual({ message: 'ValidationError: "soldDate" must be a valid date' });
+  });
+
+  it("should reject negative sale quantities", async () => {
+    req.body = {
+      customerId: 123,
+      totalAmount: 1000,
+      laborCharge: null,
+      soldDate: "2025-04-24T00:00:00Z",
+      soldProducts: [
+        {
+          itemName: "Shirt",
+          noOfBales: -1,
+          baleWeightLbs: 20,
+          baleWeightKgs: 9,
+          ratePerLbs: 10,
+          ratePerKgs: 20,
+          ratePerBale: 200,
+          companyId: 1,
+          id: 101,
+        },
+      ],
+    };
+
+    await TenantContext.run(23, async () => createSale(req, res));
+
+    expect(res.statusCode).toBe(400);
+    expect(res._getData().message).toContain('"soldProducts[0].noOfBales" must be greater than 0');
+    expect(db.Sale.create).not.toHaveBeenCalled();
   });
 
   it("should return 500 if there is a database error", async () => {

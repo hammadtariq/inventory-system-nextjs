@@ -59,7 +59,12 @@ export const getAllCompanies = async (req, res) => {
   }
   try {
     await db.dbConnect();
-    const data = await db.Company.findAndCountAll({ ...options, order: [["updatedAt", "DESC"]] });
+    const organizationId = TenantContext.assertGet();
+    const data = await db.Company.findAndCountAll({
+      ...options,
+      where: { ...(options.where || {}), organizationId },
+      order: [["updatedAt", "DESC"]],
+    });
 
     console.log("Get All Company Request End");
 

@@ -9,12 +9,12 @@ import TenantContext from "@/lib/tenant-context";
 
 const inventorySchema = Joi.object().keys({
   itemName: Joi.string().min(3).trim().lowercase(),
-  noOfBales: Joi.number(),
-  baleWeightLbs: Joi.number().allow(null),
-  baleWeightKgs: Joi.number().allow(null),
-  ratePerLbs: Joi.number().allow(null),
-  ratePerKgs: Joi.number().allow(null),
-  ratePerBale: Joi.number().allow(null),
+  noOfBales: Joi.number().greater(0),
+  baleWeightLbs: Joi.number().min(0).allow(null),
+  baleWeightKgs: Joi.number().min(0).allow(null),
+  ratePerLbs: Joi.number().min(0).allow(null),
+  ratePerKgs: Joi.number().min(0).allow(null),
+  ratePerBale: Joi.number().min(0).allow(null),
   id: Joi.number().required(),
 });
 const apiSchema = Joi.object({
@@ -95,6 +95,16 @@ const updatePurchaseOrder = async (req, res) => {
     if (value.companyId) {
       const company = await db.Company.findOne({ where: { id: value.companyId, organizationId } });
       if (!company) return res.status(404).send({ message: "company not found" });
+    }
+
+    if (value.purchasedProducts) {
+      const companyId = value.companyId || purchase.companyId;
+      const productIds = value.purchasedProducts.map((product) => product.id);
+      const items = await db.Items.findAll({ where: { id: productIds, companyId, organizationId } });
+
+      if (items.length !== new Set(productIds).size) {
+        return res.status(404).send({ message: "one or more purchased products were not found" });
+      }
     }
 
     // Check status for editing

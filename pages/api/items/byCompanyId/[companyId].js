@@ -1,6 +1,7 @@
 import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import TenantContext from "@/lib/tenant-context";
 
 const getItemListByCompanyId = async (req, res) => {
   console.log("getItemListByCompanyId Request Start");
@@ -11,10 +12,11 @@ const getItemListByCompanyId = async (req, res) => {
   pagination.offset = offset ? offset : 0;
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
     const data = await db.Items.findAndCountAll({
       ...pagination,
-      include: [db.Company],
-      where: { companyId: companyId },
+      include: [{ model: db.Company, where: { organizationId }, required: false }],
+      where: { companyId, organizationId },
     });
     console.log("getItemListByCompanyId Request End");
     return res.send(data);

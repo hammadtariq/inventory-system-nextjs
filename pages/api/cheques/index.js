@@ -22,7 +22,12 @@ const getAllCheques = async (req, res) => {
 
   try {
     await dbConnect();
-    const cheques = await db.Cheque.findAndCountAll({ ...pagination, order: [["updatedAt", "DESC"]] });
+    const organizationId = TenantContext.assertGet();
+    const cheques = await db.Cheque.findAndCountAll({
+      ...pagination,
+      where: { organizationId },
+      order: [["updatedAt", "DESC"]],
+    });
     console.log("Get all Cheques Request End");
 
     return res.send(cheques);

@@ -31,6 +31,11 @@ const cancelPurchaseOrder = async (req, res) => {
     if (!purchase) {
       return res.status(404).send({ message: "purchase order not exist" });
     }
+
+    if (purchase.status === STATUS.APPROVED) {
+      return res.status(400).send({ message: "Approved purchase orders cannot be cancelled without reversal." });
+    }
+
     await purchase.update({ status: STATUS.CANCEL });
     console.log("Cancel Purchase order Request End");
     return res.send();
@@ -40,4 +45,5 @@ const cancelPurchaseOrder = async (req, res) => {
   }
 };
 
+export { cancelPurchaseOrder };
 export default nextConnect().use(auth).put(cancelPurchaseOrder);

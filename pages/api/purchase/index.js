@@ -8,12 +8,12 @@ import TenantContext from "@/lib/tenant-context";
 
 const inventorySchema = Joi.object().keys({
   itemName: Joi.string().min(3).trim().lowercase().required(),
-  noOfBales: Joi.number().required(),
-  baleWeightLbs: Joi.number().allow(null),
-  baleWeightKgs: Joi.number().allow(null),
-  ratePerLbs: Joi.number().allow(null),
-  ratePerKgs: Joi.number().allow(null),
-  ratePerBale: Joi.number().allow(null),
+  noOfBales: Joi.number().greater(0).required(),
+  baleWeightLbs: Joi.number().min(0).allow(null),
+  baleWeightKgs: Joi.number().min(0).allow(null),
+  ratePerLbs: Joi.number().min(0).allow(null),
+  ratePerKgs: Joi.number().min(0).allow(null),
+  ratePerBale: Joi.number().min(0).allow(null),
   id: Joi.number().required(),
 });
 const apiSchema = Joi.object({

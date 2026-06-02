@@ -31,6 +31,11 @@ const cancelSaleOrder = async (req, res) => {
     if (!sale) {
       return res.status(404).send({ message: "sale order not exist" });
     }
+
+    if (sale.status === STATUS.APPROVED) {
+      return res.status(400).send({ message: "Approved sale orders cannot be cancelled without reversal." });
+    }
+
     await sale.update({ status: STATUS.CANCEL });
     console.log("Cancel Sale order Request End");
     return res.send();
@@ -40,4 +45,5 @@ const cancelSaleOrder = async (req, res) => {
   }
 };
 
+export { cancelSaleOrder };
 export default nextConnect().use(auth).put(cancelSaleOrder);

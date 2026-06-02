@@ -51,6 +51,7 @@ const approvePurchaseOrder = async (id, user) => {
       where: { id, organizationId },
       include: [db.Company],
       transaction: t,
+      ...getLockOption(t, db.Purchase),
     });
 
     if (!purchase) {
@@ -67,8 +68,13 @@ const approvePurchaseOrder = async (id, user) => {
       purchase;
 
     const productsToUse = revisionNo
-      ? hydrateRevisedProducts(revisionDetails?.purchasedProducts || [], purchasedProducts || [])
+      ? buildRevisionInventoryAdjustments(revisionDetails, purchasedProducts || [])
       : purchasedProducts;
+
+    if (!revisionNo) {
+      validateInitialPurchaseProducts(productsToUse || []);
+    }
+
     const updatedInventory = await updateInventory(productsToUse, companyId, t);
     const updatedPurchaseOrder = await purchase.update({ status: STATUS.APPROVED }, { transaction: t });
     const updatedLedger = await updateLedger(revisionNo, {
@@ -92,7 +98,10 @@ const approvePurchaseOrder = async (id, user) => {
     };
   } catch (error) {
     if (t) await t.rollback();
-    return { status: 500, body: { message: error.message } };
+    const [code, ...messageParts] = error.message.split(":");
+    const message = messageParts.join(":") || error.message;
+    const status = code === "BAD_REQUEST" ? 400 : code === "NOT_FOUND" ? 404 : 500;
+    return { status, body: { message } };
   }
 };
 
@@ -104,8 +113,13 @@ const updateInventory = async (products, companyId, transaction) => {
   for (const product of products) {
     const { id, noOfBales, baleWeightKgs, baleWeightLbs, ratePerLbs, ratePerKgs, ratePerBale } = product;
 
-    let inventory = await db.Inventory.findOne({ where: { id, companyId, organizationId }, transaction });
+    let inventory = await db.Inventory.findOne({
+      where: { id, companyId, organizationId },
+      transaction,
+      ...getLockOption(transaction),
+    });
     if (inventory) {
+      ensureInventoryCanApplyDelta(inventory, product);
       await inventory.increment({ onHand: noOfBales || 0, noOfBales: noOfBales || 0 }, { transaction });
 
       if (baleWeightKgs !== undefined) {
@@ -133,6 +147,12 @@ const updateInventory = async (products, companyId, transaction) => {
         { transaction }
       );
     } else {
+      if (Number(noOfBales || 0) < 0 || Number(baleWeightKgs || 0) < 0 || Number(baleWeightLbs || 0) < 0) {
+        throw new Error(
+          `BAD_REQUEST:${product.itemName || "Inventory item"} cannot be reduced because it does not exist`
+        );
+      }
+
       inventory = await db.Inventory.create(
         { ...product, companyId, onHand: noOfBales || 0, baleWeightKgs, baleWeightLbs, organizationId },
         { transaction }
@@ -141,6 +161,43 @@ const updateInventory = async (products, companyId, transaction) => {
     results.push(inventory);
   }
   return results;
+};
+
+const ensureInventoryCanApplyDelta = (inventory, product) => {
+  const checks = [
+    ["onHand", product.noOfBales],
+    ["noOfBales", product.noOfBales],
+    ["baleWeightKgs", product.baleWeightKgs],
+    ["baleWeightLbs", product.baleWeightLbs],
+  ];
+
+  checks.forEach(([field, delta]) => {
+    const numericDelta = Number(delta || 0);
+    if (numericDelta >= 0) return;
+
+    const currentValue = Number(inventory[field] || 0);
+    if (currentValue + numericDelta < 0) {
+      throw new Error(
+        `BAD_REQUEST:${
+          product.itemName || inventory.itemName || "Inventory item"
+        } ${field} cannot be reduced below zero`
+      );
+    }
+  });
+};
+
+const validateInitialPurchaseProducts = (products) => {
+  products.forEach((product) => {
+    const itemName = product.itemName || "Inventory item";
+
+    if (Number(product.noOfBales || 0) <= 0) {
+      throw new Error(`BAD_REQUEST:${itemName} purchase quantity must be greater than 0`);
+    }
+
+    if (Number(product.baleWeightKgs || 0) < 0 || Number(product.baleWeightLbs || 0) < 0) {
+      throw new Error(`BAD_REQUEST:${itemName} purchase weights cannot be negative`);
+    }
+  });
 };
 
 // Ledger Update Logic
@@ -212,7 +269,32 @@ const updateLedger = async (revisionNo, { companyId, transactionId, totalAmount,
   return ledger;
 };
 
-const hydrateRevisedProducts = (revisionProducts, originalProducts) => {
+const getLockOption = (transaction, model) => {
+  if (!transaction?.LOCK?.UPDATE) return {};
+
+  return model ? { lock: { level: transaction.LOCK.UPDATE, of: model } } : { lock: transaction.LOCK.UPDATE };
+};
+
+const buildRevisionInventoryAdjustments = (revisionDetails, originalProducts) => {
+  const revisionProducts = revisionDetails?.purchasedProducts || [];
+  const usesDeltaValues = Array.isArray(revisionDetails?.previousPurchasedProducts);
+
+  return hydrateRevisedProducts(revisionProducts, originalProducts, usesDeltaValues);
+};
+
+const buildStockValue = (product, field, usesDeltaValues) => {
+  if (!usesDeltaValues) {
+    return product[field];
+  }
+
+  if (!Object.prototype.hasOwnProperty.call(product, field)) {
+    return field === "noOfBales" ? 0 : undefined;
+  }
+
+  return product[field];
+};
+
+const hydrateRevisedProducts = (revisionProducts, originalProducts, usesDeltaValues = false) => {
   return revisionProducts.map((product) => {
     const productId = Number(product.id);
     const productCompanyId = product.companyId != null ? Number(product.companyId) : null;
@@ -232,6 +314,9 @@ const hydrateRevisedProducts = (revisionProducts, originalProducts) => {
       ...product,
       itemName: product.itemName ?? originalProduct.itemName,
       companyId: product.companyId ?? originalProduct.companyId,
+      noOfBales: buildStockValue(product, "noOfBales", usesDeltaValues),
+      baleWeightKgs: buildStockValue(product, "baleWeightKgs", usesDeltaValues),
+      baleWeightLbs: buildStockValue(product, "baleWeightLbs", usesDeltaValues),
     };
   });
 };

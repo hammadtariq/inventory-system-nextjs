@@ -132,6 +132,20 @@ describe("approveSaleOrder", () => {
     );
   });
 
+  it("should reject negative sale quantities before updating inventory", async () => {
+    const saleMock = {
+      status: STATUS.PENDING,
+      totalAmount: 100,
+      soldProducts: [{ id: 1, noOfBales: -1, itemName: "Shirt", companyId: 1 }],
+    };
+    db.Sale.findOne.mockResolvedValue(saleMock);
+
+    await expect(TenantContext.run(23, async () => approveSaleOrder(1, mockTransaction))).rejects.toThrow(
+      "BAD_REQUEST:Shirt sale quantity must be greater than 0"
+    );
+    expect(db.Inventory.findOne).not.toHaveBeenCalled();
+  });
+
   it("should throw 404 if inventory is insufficient", async () => {
     const saleMock = {
       status: STATUS.PENDING,

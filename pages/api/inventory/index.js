@@ -3,6 +3,7 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { DEFAULT_ROWS_LIMIT } from "@/utils/api.util";
+import TenantContext from "@/lib/tenant-context";
 
 export const getAllInventory = async (req, res) => {
   console.log("Get all inventory Request Start");
@@ -20,9 +21,11 @@ export const getAllInventory = async (req, res) => {
 
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
     const data = await db.Inventory.findAndCountAll({
       ...options,
       where: {
+        organizationId,
         ...(companyIds.length > 0 && {
           companyId: { [db.Sequelize.Op.in]: companyIds },
         }),

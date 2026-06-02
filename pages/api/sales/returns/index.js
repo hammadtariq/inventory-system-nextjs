@@ -5,18 +5,18 @@ import db from "@/lib/postgres";
 import { createLedgerPayment } from "@/lib/ledger";
 import { auth } from "@/middlewares/auth";
 import { PAYMENT_TYPE, SPEND_TYPE, STATUS } from "@/utils/api.util";
-import { getReturnedQuantityMap, getSaleReturnItemKey } from "@/utils/saleReturn.util";
+import { getReturnedMetricsMap, getSaleReturnItemKey } from "@/utils/saleReturn.util";
 import TenantContext from "@/lib/tenant-context";
 import { createTenantTransaction } from "@/lib/tenant-transaction";
 
 const productSchema = Joi.object().keys({
   itemName: Joi.string().trim().required(),
-  noOfBales: Joi.number().min(0).required(),
-  baleWeightLbs: Joi.number().allow(null),
-  baleWeightKgs: Joi.number().allow(null),
-  ratePerLbs: Joi.number().allow(null),
-  ratePerKgs: Joi.number().allow(null),
-  ratePerBale: Joi.number().allow(null),
+  noOfBales: Joi.number().greater(0).required(),
+  baleWeightLbs: Joi.number().min(0).allow(null),
+  baleWeightKgs: Joi.number().min(0).allow(null),
+  ratePerLbs: Joi.number().min(0).allow(null),
+  ratePerKgs: Joi.number().min(0).allow(null),
+  ratePerBale: Joi.number().min(0).allow(null),
   companyId: Joi.number().required(),
   id: Joi.number().required(),
 });
@@ -35,12 +35,12 @@ const updateInventoryForReturn = async (products, transaction) => {
   const organizationId = TenantContext.assertGet();
 
   for (const product of products) {
-    const { companyId, id, noOfBales, baleWeightKgs, baleWeightLbs, ratePerLbs, ratePerKgs, ratePerBale, itemName } =
-      product;
+    const { companyId, id, noOfBales, baleWeightKgs, baleWeightLbs, itemName } = product;
 
     let inventory = await db.Inventory.findOne({
       where: { id, companyId, organizationId },
       transaction,
+      ...getLockOption(transaction),
     });
 
     if (inventory) {
@@ -114,6 +114,7 @@ const createSaleReturn = async (req, res) => {
       where: { id: saleId, organizationId },
       include: [db.Customer],
       transaction,
+      ...getLockOption(transaction, db.Sale),
     });
 
     if (!sale) {
@@ -133,7 +134,7 @@ const createSaleReturn = async (req, res) => {
       transaction,
     });
 
-    const returnedQuantityMap = getReturnedQuantityMap(priorReturns);
+    const returnedMetricsMap = getReturnedMetricsMap(priorReturns);
 
     for (const product of returnedProducts) {
       const originalProduct = (sale.soldProducts || []).find(
@@ -146,7 +147,8 @@ const createSaleReturn = async (req, res) => {
 
       const key = getSaleReturnItemKey(product);
       const soldQuantity = Number(originalProduct.noOfBales || 0);
-      const alreadyReturned = Number(returnedQuantityMap[key] || 0);
+      const returnedMetrics = returnedMetricsMap[key] || {};
+      const alreadyReturned = Number(returnedMetrics.noOfBales || 0);
       const remainingQuantity = soldQuantity - alreadyReturned;
       const requestedQuantity = Number(product.noOfBales || 0);
 
@@ -157,6 +159,9 @@ const createSaleReturn = async (req, res) => {
       if (requestedQuantity > remainingQuantity) {
         throw new Error(`BAD_REQUEST:${product.itemName} return quantity cannot exceed ${remainingQuantity}`);
       }
+
+      validateReturnMetric(product, originalProduct, returnedMetrics, "baleWeightKgs", "KGS");
+      validateReturnMetric(product, originalProduct, returnedMetrics, "baleWeightLbs", "LBS");
     }
 
     const updatedInventory = await updateInventoryForReturn(returnedProducts, transaction);
@@ -229,6 +234,25 @@ const getAllSaleReturns = async (req, res) => {
     console.log("Get all sale returns Request Error:", err);
     return res.status(500).send({ message: err.toString() });
   }
+};
+
+const validateReturnMetric = (product, originalProduct, returnedMetrics, field, label) => {
+  if (product[field] == null) return;
+
+  const originalValue = Number(originalProduct[field] || 0);
+  const alreadyReturned = Number(returnedMetrics[field] || 0);
+  const remainingValue = originalValue - alreadyReturned;
+  const requestedValue = Number(product[field] || 0);
+
+  if (requestedValue > remainingValue) {
+    throw new Error(`BAD_REQUEST:${product.itemName} return ${label} cannot exceed ${remainingValue}`);
+  }
+};
+
+const getLockOption = (transaction, model) => {
+  if (!transaction?.LOCK?.UPDATE) return {};
+
+  return model ? { lock: { level: transaction.LOCK.UPDATE, of: model } } : { lock: transaction.LOCK.UPDATE };
 };
 
 export default nextConnect().use(auth).post(createSaleReturn).get(getAllSaleReturns);

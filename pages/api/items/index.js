@@ -39,7 +39,7 @@ const createItem = async (req, res) => {
       return res.status(404).send({ message: "company not found" });
     }
 
-    const item = await db.Items.findOne({ where: { itemName, companyId, type } });
+    const item = await db.Items.findOne({ where: { itemName, companyId, type, organizationId } });
     if (item) {
       return res.status(409).send({ message: "item already exist in list" });
     }
@@ -80,7 +80,13 @@ const getAllItems = async (req, res) => {
   const order = orderBy && sortOrder ? [orderBy, sortOrder] : ["updatedAt", "DESC"];
   try {
     await db.dbConnect();
-    const data = await db.Items.findAndCountAll({ ...options, include: [db.Company], order: [order] });
+    const organizationId = TenantContext.assertGet();
+    const data = await db.Items.findAndCountAll({
+      ...options,
+      where: { ...(options.where || {}), organizationId },
+      include: [{ model: db.Company, where: { organizationId }, required: false }],
+      order: [order],
+    });
     console.log("get all items Request End");
     return res.send(data);
   } catch (error) {
@@ -88,4 +94,5 @@ const getAllItems = async (req, res) => {
     return res.status(500).send({ message: error.toString() });
   }
 };
+export { getAllItems };
 export default nextConnect().use(auth).post(createItem).get(getAllItems);

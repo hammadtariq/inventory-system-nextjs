@@ -2,12 +2,13 @@ import { createMocks } from "node-mocks-http";
 
 import db from "@/lib/postgres";
 import TenantContext from "@/lib/tenant-context";
-import { createCompany } from "@/pages/api/company/index";
+import { createCompany, getAllCompanies } from "@/pages/api/company/index";
 
 jest.mock("@/lib/postgres", () => ({
   dbConnect: jest.fn(),
   Company: {
     findOne: jest.fn(),
+    findAndCountAll: jest.fn(),
     create: jest.fn(),
   },
 }));
@@ -69,5 +70,23 @@ describe("company create API", () => {
       message: 'Company "same company" already exists in this organization.',
     });
     expect(db.Company.create).not.toHaveBeenCalled();
+  });
+
+  it("returns only companies for the active organization", async () => {
+    db.Company.findAndCountAll.mockResolvedValue({ count: 0, rows: [] });
+
+    const { req, res } = createMocks({
+      method: "GET",
+      query: {},
+    });
+
+    await TenantContext.run(11, async () => getAllCompanies(req, res));
+
+    expect(db.Company.findAndCountAll).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { organizationId: 11 },
+      })
+    );
+    expect(res._getStatusCode()).toBe(200);
   });
 });

@@ -1,6 +1,8 @@
 import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { DEFAULT_ROWS_LIMIT } from "@/utils/api.util";
+import { auth } from "@/middlewares/auth";
+import TenantContext from "@/lib/tenant-context";
 
 const getAllInventory = async (req, res) => {
   console.log("Get all inventory Request Start");
@@ -14,12 +16,15 @@ const getAllInventory = async (req, res) => {
   }
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
     const inventoryItems = await db.Inventory.findAll({
       ...options,
+      where: { organizationId },
       order: [["id", "ASC"]],
     });
     const itemList = await db.Items.findAll({
       ...options,
+      where: { organizationId },
       order: [["id", "ASC"]],
     });
     console.log("Get all inventory Request End");
@@ -49,4 +54,4 @@ const getAllInventory = async (req, res) => {
     return res.status(500).send({ message: error.toString() });
   }
 };
-export default nextConnect().get(getAllInventory);
+export default nextConnect().use(auth).get(getAllInventory);

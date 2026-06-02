@@ -3,6 +3,7 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { DEFAULT_ROWS_LIMIT } from "@/utils/api.util";
+import TenantContext from "@/lib/tenant-context";
 
 const getCustomerNamebyCustomerId = async (req, res) => {
   console.log("getCustomerNamebyCustomerId Request Start");
@@ -13,10 +14,11 @@ const getCustomerNamebyCustomerId = async (req, res) => {
   pagination.offset = offset ? offset : 0;
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
     const data = await db.Sale.findAndCountAll({
       ...pagination,
-      include: [db.Customer],
-      where: { customerId },
+      include: [{ model: db.Customer, where: { organizationId }, required: false }],
+      where: { customerId, organizationId },
       order: [["id", "DESC"]],
     });
     console.log("getCustomerNamebyCustomerId Request End");

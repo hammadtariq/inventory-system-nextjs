@@ -8,13 +8,13 @@ import TenantContext from "@/lib/tenant-context";
 
 const inventorySchema = Joi.object().keys({
   itemName: Joi.string().min(3).trim().lowercase(),
-  noOfBales: Joi.number().allow(null),
-  baleWeightLbs: Joi.number().allow(null),
-  baleWeightKgs: Joi.number().allow(null),
-  ratePerLbs: Joi.number().allow(null),
-  ratePerKgs: Joi.number().allow(null),
-  ratePerBale: Joi.number().allow(null),
-  onHand: Joi.number(),
+  noOfBales: Joi.number().greater(0).allow(null),
+  baleWeightLbs: Joi.number().min(0).allow(null),
+  baleWeightKgs: Joi.number().min(0).allow(null),
+  ratePerLbs: Joi.number().min(0).allow(null),
+  ratePerKgs: Joi.number().min(0).allow(null),
+  ratePerBale: Joi.number().min(0).allow(null),
+  onHand: Joi.number().min(0),
   companyId: Joi.number(),
   id: Joi.number().required(),
 });
@@ -98,6 +98,22 @@ const updateSaleOrder = async (req, res) => {
     if (value.customerId) {
       const customer = await db.Customer.findOne({ where: { id: value.customerId, organizationId } });
       if (!customer) return res.status(404).send({ message: "customer not found" });
+    }
+
+    if (value.soldProducts) {
+      for (const product of value.soldProducts) {
+        const inventory = await db.Inventory.findOne({
+          where: {
+            id: product.id,
+            companyId: product.companyId,
+            organizationId,
+          },
+        });
+
+        if (!inventory) {
+          return res.status(404).send({ message: `${product.itemName} not found in inventory` });
+        }
+      }
     }
 
     await sale.update({ ...value, status: STATUS.PENDING });

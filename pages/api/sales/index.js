@@ -8,12 +8,12 @@ import TenantContext from "@/lib/tenant-context";
 
 const inventorySchema = Joi.object().keys({
   itemName: Joi.string().min(3).trim().lowercase().required(),
-  noOfBales: Joi.number().required(),
-  baleWeightLbs: Joi.number(),
-  baleWeightKgs: Joi.number(),
-  ratePerLbs: Joi.number(),
-  ratePerKgs: Joi.number(),
-  ratePerBale: Joi.number(),
+  noOfBales: Joi.number().greater(0).required(),
+  baleWeightLbs: Joi.number().min(0),
+  baleWeightKgs: Joi.number().min(0),
+  ratePerLbs: Joi.number().min(0),
+  ratePerKgs: Joi.number().min(0),
+  ratePerBale: Joi.number().min(0),
   companyId: Joi.number().required(),
   id: Joi.number().required(),
 });
@@ -72,9 +72,11 @@ const getAllSales = async (req, res) => {
   pagination.offset = offset ? offset : 0;
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
     const sales = await db.Sale.findAndCountAll({
       ...pagination,
-      include: [db.Customer],
+      where: { organizationId },
+      include: [{ model: db.Customer, where: { organizationId }, required: false }],
       order: [["updatedAt", "DESC"]],
     });
     console.log("Get all sale order Request End");

@@ -29,7 +29,7 @@ afterAll(async () => {
 });
 
 describe("updateInventory integration", () => {
-  it("increments noOfBales properly for multiple items", async () => {
+  it("increments noOfBales properly for multiple items and rejects reductions below zero", async () => {
     await Inventory.bulkCreate([
       {
         id: 1,
@@ -65,6 +65,48 @@ describe("updateInventory integration", () => {
 
     const t = await sequelize.transaction();
 
+    await expect(
+      TenantContext.run(23, async () =>
+        updateInventory(
+          [
+            {
+              id: 1,
+              noOfBales: 10,
+              baleWeightKgs: 20,
+              baleWeightLbs: 40,
+              ratePerBale: 5,
+            },
+            {
+              id: 524,
+              itemName: "men tropical pant xl",
+              noOfBales: "10",
+              ratePerKgs: 1,
+              ratePerLbs: 1,
+              ratePerBale: 1,
+              baleWeightKgs: 0,
+              baleWeightLbs: 0,
+            },
+            {
+              id: 500,
+              itemName: "white bed cover",
+              noOfBales: -3,
+              ratePerKgs: 1,
+              ratePerLbs: 1,
+              ratePerBale: 1,
+              baleWeightKgs: 0,
+              baleWeightLbs: 0,
+            },
+          ],
+          1,
+          t
+        )
+      )
+    ).rejects.toThrow("white bed cover onHand cannot be reduced below zero");
+
+    await t.rollback();
+
+    const retryTransaction = await sequelize.transaction();
+
     await TenantContext.run(23, async () =>
       updateInventory(
         [
@@ -85,27 +127,16 @@ describe("updateInventory integration", () => {
             baleWeightKgs: 0,
             baleWeightLbs: 0,
           },
-          {
-            id: 500,
-            itemName: "white bed cover",
-            noOfBales: -3,
-            ratePerKgs: 1,
-            ratePerLbs: 1,
-            ratePerBale: 1,
-            baleWeightKgs: 0,
-            baleWeightLbs: 0,
-          },
         ],
         1,
-        t
+        retryTransaction
       )
     );
 
-    await t.commit();
+    await retryTransaction.commit();
 
     const cotton = await Inventory.findByPk(1);
     const pant = await Inventory.findByPk(524);
-    const bedCover = await Inventory.findByPk(500);
 
     expect(cotton.noOfBales).toBe(20);
     expect(cotton.onHand).toBe(20);
@@ -117,10 +148,9 @@ describe("updateInventory integration", () => {
     expect(pant.baleWeightKgs).toBe(10); // unchanged
     expect(pant.baleWeightLbs).toBe(20); // unchanged
 
-    expect(bedCover.noOfBales).toBe(-3);
-    expect(bedCover.onHand).toBe(-3);
-    expect(bedCover.baleWeightKgs).toBe(0);
-    expect(bedCover.baleWeightLbs).toBe(0);
+    const bedCover = await Inventory.findByPk(500);
+    expect(bedCover.noOfBales).toBe(0);
+    expect(bedCover.onHand).toBe(0);
   });
 
   it("decrements inventory correctly upon sale approval", async () => {
