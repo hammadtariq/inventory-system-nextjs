@@ -51,6 +51,7 @@ const approvePurchaseOrder = async (id, user) => {
       where: { id, organizationId },
       include: [db.Company],
       transaction: t,
+      ...getLockOption(t, db.Purchase),
     });
 
     if (!purchase) {
@@ -67,7 +68,7 @@ const approvePurchaseOrder = async (id, user) => {
       purchase;
 
     const productsToUse = revisionNo
-      ? hydrateRevisedProducts(revisionDetails?.purchasedProducts || [], purchasedProducts || [])
+      ? buildRevisionInventoryAdjustments(revisionDetails, purchasedProducts || [])
       : purchasedProducts;
     const updatedInventory = await updateInventory(productsToUse, companyId, t);
     const updatedPurchaseOrder = await purchase.update({ status: STATUS.APPROVED }, { transaction: t });
@@ -104,7 +105,11 @@ const updateInventory = async (products, companyId, transaction) => {
   for (const product of products) {
     const { id, noOfBales, baleWeightKgs, baleWeightLbs, ratePerLbs, ratePerKgs, ratePerBale } = product;
 
-    let inventory = await db.Inventory.findOne({ where: { id, companyId, organizationId }, transaction });
+    let inventory = await db.Inventory.findOne({
+      where: { id, companyId, organizationId },
+      transaction,
+      ...getLockOption(transaction),
+    });
     if (inventory) {
       await inventory.increment({ onHand: noOfBales || 0, noOfBales: noOfBales || 0 }, { transaction });
 
@@ -212,7 +217,32 @@ const updateLedger = async (revisionNo, { companyId, transactionId, totalAmount,
   return ledger;
 };
 
-const hydrateRevisedProducts = (revisionProducts, originalProducts) => {
+const getLockOption = (transaction, model) => {
+  if (!transaction?.LOCK?.UPDATE) return {};
+
+  return model ? { lock: { level: transaction.LOCK.UPDATE, of: model } } : { lock: transaction.LOCK.UPDATE };
+};
+
+const buildRevisionInventoryAdjustments = (revisionDetails, originalProducts) => {
+  const revisionProducts = revisionDetails?.purchasedProducts || [];
+  const usesDeltaValues = Array.isArray(revisionDetails?.previousPurchasedProducts);
+
+  return hydrateRevisedProducts(revisionProducts, originalProducts, usesDeltaValues);
+};
+
+const buildStockValue = (product, field, usesDeltaValues) => {
+  if (!usesDeltaValues) {
+    return product[field];
+  }
+
+  if (!Object.prototype.hasOwnProperty.call(product, field)) {
+    return field === "noOfBales" ? 0 : undefined;
+  }
+
+  return product[field];
+};
+
+const hydrateRevisedProducts = (revisionProducts, originalProducts, usesDeltaValues = false) => {
   return revisionProducts.map((product) => {
     const productId = Number(product.id);
     const productCompanyId = product.companyId != null ? Number(product.companyId) : null;
@@ -232,6 +262,9 @@ const hydrateRevisedProducts = (revisionProducts, originalProducts) => {
       ...product,
       itemName: product.itemName ?? originalProduct.itemName,
       companyId: product.companyId ?? originalProduct.companyId,
+      noOfBales: buildStockValue(product, "noOfBales", usesDeltaValues),
+      baleWeightKgs: buildStockValue(product, "baleWeightKgs", usesDeltaValues),
+      baleWeightLbs: buildStockValue(product, "baleWeightLbs", usesDeltaValues),
     };
   });
 };

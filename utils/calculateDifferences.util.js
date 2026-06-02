@@ -5,15 +5,7 @@ export const calculateDifferences = (newData, oldData) => {
 
   for (const key in newData) {
     if (Array.isArray(newData[key]) && Array.isArray(oldData[key])) {
-      // Handle array differences
-      differences[key] = newData[key].map((newItem, index) => {
-        const oldItem = oldData[key][index] || {};
-        const itemDifferences = calculateDifferences(newItem, oldItem);
-        if (newItem.id) {
-          itemDifferences.id = newItem.id;
-        }
-        return itemDifferences;
-      });
+      differences[key] = calculateArrayDifferences(newData[key], oldData[key], fieldsToCalculate);
     } else if (
       typeof newData[key] === "object" &&
       typeof oldData[key] === "object" &&
@@ -35,4 +27,40 @@ export const calculateDifferences = (newData, oldData) => {
   }
 
   return differences;
+};
+
+const calculateArrayDifferences = (newItems, oldItems, fieldsToCalculate) => {
+  const oldItemsById = new Map(oldItems.filter((item) => item?.id != null).map((item) => [String(item.id), item]));
+  const newItemIds = new Set(newItems.filter((item) => item?.id != null).map((item) => String(item.id)));
+
+  const itemDifferences = newItems.map((newItem, index) => {
+    const oldItem = newItem?.id != null ? oldItemsById.get(String(newItem.id)) || {} : oldItems[index] || {};
+    const diff = calculateDifferences(newItem, oldItem);
+
+    if (newItem.id) {
+      diff.id = newItem.id;
+    }
+
+    return diff;
+  });
+
+  oldItems.forEach((oldItem) => {
+    if (!oldItem?.id || newItemIds.has(String(oldItem.id))) return;
+
+    const removedItemDiff = {
+      id: oldItem.id,
+      itemName: oldItem.itemName,
+      companyId: oldItem.companyId,
+    };
+
+    fieldsToCalculate.forEach((field) => {
+      if (typeof oldItem[field] === "number") {
+        removedItemDiff[field] = -oldItem[field];
+      }
+    });
+
+    itemDifferences.push(removedItemDiff);
+  });
+
+  return itemDifferences;
 };

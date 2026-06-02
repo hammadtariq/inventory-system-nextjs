@@ -2,6 +2,7 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import TenantContext from "@/lib/tenant-context";
 
 const getInventoryNameByCompanyId = async (req, res) => {
   console.log("getInventoryNameByCompanyId Request Start");
@@ -13,9 +14,10 @@ const getInventoryNameByCompanyId = async (req, res) => {
   pagination.offset = offset ? offset : 0;
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
     const data = await db.Inventory.findAndCountAll({
       ...pagination,
-      where: { onHand: { [db.Sequelize.Op.gt]: 0 }, companyId },
+      where: { onHand: { [db.Sequelize.Op.gt]: 0 }, companyId, organizationId },
       attributes: ["itemName", "id"],
     });
     console.log("getInventoryNameByCompanyId Request End");
