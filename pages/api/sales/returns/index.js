@@ -35,8 +35,7 @@ const updateInventoryForReturn = async (products, transaction) => {
   const organizationId = TenantContext.assertGet();
 
   for (const product of products) {
-    const { companyId, id, noOfBales, baleWeightKgs, baleWeightLbs, ratePerLbs, ratePerKgs, ratePerBale, itemName } =
-      product;
+    const { companyId, id, noOfBales, baleWeightKgs, baleWeightLbs, itemName } = product;
 
     let inventory = await db.Inventory.findOne({
       where: { id, companyId, organizationId },

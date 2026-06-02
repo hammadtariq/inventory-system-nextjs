@@ -2,7 +2,6 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
-import { DEFAULT_ROWS_LIMIT } from "@/utils/api.util";
 import TenantContext from "@/lib/tenant-context";
 
 export const getAllInventory = async (req, res) => {
@@ -10,8 +9,10 @@ export const getAllInventory = async (req, res) => {
 
   const { limit, offset, attributes = [], filters } = req.query;
   const options = {};
-  options.limit = limit ? limit : DEFAULT_ROWS_LIMIT;
-  options.offset = offset ? offset : 0;
+  if (limit) {
+    options.limit = Number(limit);
+    options.offset = offset ? Number(offset) : 0;
+  }
   if (attributes.length) {
     options.attributes = JSON.parse(attributes);
   }
@@ -26,6 +27,7 @@ export const getAllInventory = async (req, res) => {
       ...options,
       where: {
         organizationId,
+        onHand: { [db.Sequelize.Op.gt]: 0 },
         ...(companyIds.length > 0 && {
           companyId: { [db.Sequelize.Op.in]: companyIds },
         }),
