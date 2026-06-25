@@ -21,7 +21,7 @@ function Nav({ onDemoClick }) {
         <img
           src="/only-shape-no-bg.png"
           alt="StockFlow logo"
-          style={{ height: 28, width: 28, marginRight: 8, verticalAlign: "middle" }}
+          style={{ height: 40, width: 40, marginRight: 2, verticalAlign: "middle" }}
         />
         StockFlow
       </a>
@@ -512,7 +512,7 @@ function Footer({ onDemoClick }) {
             <img
               src="/only-shape-no-bg.png"
               alt="StockFlow logo"
-              style={{ height: 22, width: 22, marginRight: 6, verticalAlign: "middle" }}
+              style={{ height: 40, width: 40, marginRight: 2, verticalAlign: "middle" }}
             />
             StockFlow
           </a>
