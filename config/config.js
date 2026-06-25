@@ -14,7 +14,7 @@ module.exports = {
     dialect: "postgres",
     dialectOptions: ssl ? { ssl } : {},
     pool: {
-      max: 20,
+      max: 2,
       min: 0,
       acquire: 30000,
       idle: 10000,
