@@ -1,6 +1,8 @@
 require("dotenv").config();
 
-const ssl = process.env.POSTGRES_SSL === "true" ? { require: true, rejectUnauthorized: false } : false;
+const host = process.env.POSTGRES_HOST || "localhost";
+const isRemote = process.env.POSTGRES_SSL === "true" || host.includes("supabase.co");
+const ssl = isRemote ? { require: true, rejectUnauthorized: false } : false;
 
 module.exports = {
   development: {
