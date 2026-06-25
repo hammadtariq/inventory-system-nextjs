@@ -3,8 +3,8 @@
   "private": true,
   "scripts": {
     "dev": "node --max-old-space-size=8192 ./node_modules/next/dist/bin/next",
-    "build": "next build",
-    "build:test": "next build && jest --watchman=false",
+    "build": "next build --webpack",
+    "build:test": "next build --webpack && jest --watchman=false",
     "db:migrate": "node scripts/run-migrations.js",
     "db:verify-tenants": "node scripts/verify-tenant-backfill.js",
     "db:verify-rls": "node scripts/verify-rls.js",
