@@ -1,59 +1,56 @@
-name: deploy app to vercel
-"on":
+name: CI / Deploy
+
+on:
   push:
-    branches:
-      - development
+    branches: [main, development]
   pull_request:
-    branches:
-      - development
+    branches: [main]
 
 jobs:
-  deploy:
-    if: github.repository_owner == 'hammadtariq' && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
+  test:
     runs-on: ubuntu-latest
-    permissions:
-      deployments: write
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v2
+      - uses: pnpm/action-setup@v4
         with:
-          node-version: "14"
+          version: 9
 
-      - run: npm install -g yarn
-      - run: yarn
-      - run: yarn global add pg
-      - run: yarn global add sequelize-cli
-      - run: yarn build
-
-      - name: Start Deployment
-        uses: bobheadxi/deployments@v0.4.3
-        id: deployment
+      - uses: actions/setup-node@v4
         with:
-          step: start
-          token: ${{ secrets.GITHUB_TOKEN }}
-          env: ${{ fromJSON('["Production","Preview"]')[github.ref != 'refs/heads/main' ] }}
+          node-version: 22
+          cache: pnpm
 
-      - uses: actions/checkout@v2
+      - run: pnpm install --frozen-lockfile
 
-      - uses: amondnet/vercel-action@v20
+      - run: pnpm test
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
         with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }} # Required
-          vercel-args: ${{ fromJSON('["--prod",""]')[github.ref != 'refs/heads/main' ] }}
-          vercel-org-id: ${{ secrets.ORG_ID}} #Required
-          vercel-project-id: ${{ secrets.PROJECT_ID}} #Required
-          POSTGRES_USER: nzbliwzd #Required
-          POSTGRES_PASSWORD: DznAYziOCUKA2A2nsiUgwbgpOkakitB8 #Required
-          POSTGRES_DB: nzbliwzd #Required
-          POSTGRES_HOST: kandula.db.elephantsql.com #Required
-          scope: ${{ secrets.ORG_ID}}
-          working-directory: ./
+          version: 9
 
-      - name: Update Deployment Status
-        uses: bobheadxi/deployments@v0.4.3
-        if: always()
+      - uses: actions/setup-node@v4
         with:
-          step: finish
-          token: ${{ secrets.GITHUB_TOKEN }}
-          status: ${{ job.status}}
-          deployment_id: ${{ steps.deployment.outputs.deployment_id}}
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Pull Vercel environment
+        run: npx vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build
+        run: npx vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy
+        run: npx vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}

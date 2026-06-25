@@ -1,6 +1,8 @@
 {
   "version": 2,
-  "github": {
-    "enabled": false
+  "build": {
+    "env": {
+      "NODE_VERSION": "22"
+    }
   }
 }
