@@ -390,6 +390,50 @@ const FAQS = [
   },
 ];
 
+const LANDING_URL = "https://stockflow.app/landing";
+const LANDING_TITLE = "StockFlow — Inventory Management for Modern Businesses";
+const LANDING_DESCRIPTION =
+  "StockFlow brings real-time inventory tracking, integrated accounting, and smart order management for SMBs.";
+
+const landingStructuredData = [
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "StockFlow",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    url: LANDING_URL,
+    description: LANDING_DESCRIPTION,
+    offers: PLANS.map((plan) => ({
+      "@type": "Offer",
+      name: plan.tier.replace(/[^\w\s]/g, "").trim(),
+      price: plan.price.replace("$", ""),
+      priceCurrency: "USD",
+      availability: "https://schema.org/InStock",
+      url: `${LANDING_URL}#pricing`,
+    })),
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "StockFlow",
+    url: "https://stockflow.app",
+    description: "Inventory, accounting, purchasing, sales, ledger, and reporting software for growing SMBs.",
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQS.map(({ q, a }) => ({
+      "@type": "Question",
+      name: q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: a,
+      },
+    })),
+  },
+];
+
 function Faq({ openFaq, setOpenFaq }) {
   return (
     <motion.section
@@ -475,6 +519,15 @@ function Footer({ onDemoClick }) {
           <a href="#faq" className={styles.footerLink}>
             FAQ
           </a>
+          <Link href="/inventory-management-software" className={styles.footerLink}>
+            Inventory Software Guide
+          </Link>
+          <Link href="/inventory-accounting-software" className={styles.footerLink}>
+            Inventory Accounting Guide
+          </Link>
+          <Link href="/inventory-software-south-asia" className={styles.footerLink}>
+            South Asia SMB Guide
+          </Link>
         </div>
         <div>
           <p className={styles.footerColHeading}>Company</p>
@@ -599,10 +652,21 @@ export default function Landing() {
   return (
     <>
       <Head>
-        <title>StockFlow — Inventory Management for Modern Businesses</title>
-        <meta
-          name="description"
-          content="StockFlow brings real-time inventory tracking, integrated accounting, and smart order management for SMBs."
+        <title>{LANDING_TITLE}</title>
+        <meta name="description" content={LANDING_DESCRIPTION} />
+        <meta name="robots" content="index,follow" />
+        <link rel="canonical" href={LANDING_URL} />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="StockFlow" />
+        <meta property="og:title" content={LANDING_TITLE} />
+        <meta property="og:description" content={LANDING_DESCRIPTION} />
+        <meta property="og:url" content={LANDING_URL} />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content={LANDING_TITLE} />
+        <meta name="twitter:description" content={LANDING_DESCRIPTION} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(landingStructuredData) }}
         />
       </Head>
       <div className={styles.page}>

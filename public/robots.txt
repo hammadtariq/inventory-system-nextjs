@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /landing
+Allow: /about
+Allow: /privacy
+Allow: /terms
+Allow: /inventory-management-software
+Allow: /inventory-accounting-software
+Allow: /inventory-software-south-asia
+Allow: /llms.txt
+Disallow: /
+
+Sitemap: https://stockflow.app/sitemap.xml
