@@ -167,6 +167,56 @@ export default handler;
 
 ---
 
+## Deployment
+
+### Infrastructure
+
+- **Hosting:** Vercel (Hobby free tier) — target subdomain: `inventory.treesols.com`
+- **Database:** Supabase free tier — project `rbkipyssjjpenpohpiyl`
+  - Direct host: `db.rbkipyssjjpenpohpiyl.supabase.co` (port 5432) — for migrations and psql
+  - Pooler host: `aws-0-<region>.pooler.supabase.co` (port 6543, Transaction mode) — use this on Vercel if connection limits are hit
+
+### Status (as of 2026-06-25)
+
+- [x] All Sequelize migrations run successfully on Supabase
+- [x] Production data imported from `inventory_backup_20_06_26` (all 12 tables)
+- [x] `config/config.js` updated — reads all DB config from env vars; production forces SSL
+- [x] `.env` updated with `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_SSL` vars
+- [ ] Vercel project created and connected to GitHub repo
+- [ ] Custom domain `inventory.treesols.com` configured (CNAME → `cname.vercel-dns.com`)
+
+### Vercel environment variables (set in Vercel dashboard)
+
+```
+POSTGRES_HOST=db.rbkipyssjjpenpohpiyl.supabase.co
+POSTGRES_PORT=5432
+POSTGRES_DB=postgres
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=<see .env Supabase section>
+TOKEN_SECRET=<same value as local .env>
+NODE_ENV=production
+```
+
+### Migration notes
+
+- `purchase_histories` had no migration file — `20260428094000-create-purchase-history.js` was created
+- `purchases` was missing `revisionNo`/`revisionDetails` columns (existed in model, not in migration) — `20260625120000-add-revision-fields-to-purchases.js` was created
+- `20260430121000-demote-app-role-for-rls.js` is skipped on Supabase (role alteration not permitted; marked done in SequelizeMeta)
+
+### Running migrations against Supabase
+
+```bash
+POSTGRES_USER=postgres \
+POSTGRES_PASSWORD=<password> \
+POSTGRES_DB=postgres \
+POSTGRES_HOST=db.rbkipyssjjpenpohpiyl.supabase.co \
+POSTGRES_PORT=5432 \
+NODE_ENV=development \
+npx sequelize-cli db:migrate
+```
+
+---
+
 ## Agentic Workflow Notes
 
 - **Bug reported?** Paste the GitHub issue URL — agent reads via GitHub MCP, traces the request lifecycle, fixes, opens PR
@@ -174,3 +224,19 @@ export default handler;
 - **Schema question?** Agent uses PostgreSQL MCP to inspect live schema — no need to describe it manually
 - **Tenant audit?** Run `.claude/scripts/tenant-check.sh` to find all unscoped queries
 - **Before every PR:** Agent checks for tenant safety violations automatically via CI
+
+---
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues at `hammadtariq/inventory-system-nextjs`; external PRs are not a triage surface. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default label vocabulary — `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context — one `CONTEXT.md` + `docs/adr/` at the repo root (neither exists yet; skills proceed silently). See `docs/agents/domain.md`.
