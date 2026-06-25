@@ -14,6 +14,7 @@ export default function Layout({ children }) {
     <>
       <Head>
         <title>Inventory System</title>
+        <meta name="robots" content="noindex,nofollow" />
       </Head>
       <AntLayout className="site-layout">
         <AppSider collapsed={collapsed} onCollapseChange={setCollapsed} />

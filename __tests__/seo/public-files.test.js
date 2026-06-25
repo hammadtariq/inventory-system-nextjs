@@ -18,6 +18,9 @@ describe("SEO discovery files", () => {
 
     expect(sitemap).toContain("<loc>https://stockflow.app/landing</loc>");
     expect(sitemap).toContain("<loc>https://stockflow.app/about</loc>");
+    expect(sitemap).toContain("<loc>https://stockflow.app/inventory-management-software</loc>");
+    expect(sitemap).toContain("<loc>https://stockflow.app/inventory-accounting-software</loc>");
+    expect(sitemap).toContain("<loc>https://stockflow.app/inventory-software-south-asia</loc>");
     expect(sitemap).toContain("<loc>https://stockflow.app/privacy</loc>");
     expect(sitemap).toContain("<loc>https://stockflow.app/terms</loc>");
   });

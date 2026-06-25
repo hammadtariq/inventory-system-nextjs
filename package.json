@@ -10,6 +10,7 @@
     "db:verify-rls": "node scripts/verify-rls.js",
     "db:verify-security": "node scripts/verify-security.js",
     "db:bootstrap-super-admin": "node scripts/bootstrap-super-admin.js",
+    "seo:audit": "node scripts/seo-audit.js",
     "test": "jest --watchman=false",
     "start": "next start",
     "lint": "eslint .",

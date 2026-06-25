@@ -2,6 +2,11 @@ import Head from "next/head";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
+const PRIVACY_URL = "https://stockflow.app/privacy";
+const PRIVACY_TITLE = "Privacy Policy - StockFlow";
+const PRIVACY_DESCRIPTION =
+  "Learn how StockFlow collects, uses, stores, and protects data for its inventory management platform.";
+
 const pageStyle = {
   background: "linear-gradient(160deg, #f0f4ff 0%, #faf5ff 45%, #f0fdf4 100%)",
   minHeight: "100vh",
@@ -160,11 +165,15 @@ export default function Privacy() {
   return (
     <>
       <Head>
-        <title>Privacy Policy — StockFlow</title>
-        <meta
-          name="description"
-          content="Learn how StockFlow collects, uses, and protects your data. GDPR-compliant privacy policy."
-        />
+        <title>{PRIVACY_TITLE}</title>
+        <meta name="description" content={PRIVACY_DESCRIPTION} />
+        <meta name="robots" content="index,follow" />
+        <link rel="canonical" href={PRIVACY_URL} />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="StockFlow" />
+        <meta property="og:title" content={PRIVACY_TITLE} />
+        <meta property="og:description" content={PRIVACY_DESCRIPTION} />
+        <meta property="og:url" content={PRIVACY_URL} />
       </Head>
       <div style={pageStyle}>
         {/* Mini Nav */}

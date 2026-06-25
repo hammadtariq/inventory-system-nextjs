@@ -2,6 +2,11 @@ import Head from "next/head";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
+const ABOUT_URL = "https://stockflow.app/about";
+const ABOUT_TITLE = "About StockFlow - Inventory Software for South Asian SMBs";
+const ABOUT_DESCRIPTION =
+  "Learn how StockFlow helps South Asian SMBs manage inventory, purchases, sales, ledgers, and reporting in one place.";
+
 const pageStyle = {
   background: "linear-gradient(160deg, #f0f4ff 0%, #faf5ff 45%, #f0fdf4 100%)",
   minHeight: "100vh",
@@ -122,11 +127,15 @@ export default function About() {
   return (
     <>
       <Head>
-        <title>About StockFlow — Built for Businesses That Mean Business</title>
-        <meta
-          name="description"
-          content="Learn how StockFlow helps South Asian SMBs manage inventory, orders, and accounting in one place."
-        />
+        <title>{ABOUT_TITLE}</title>
+        <meta name="description" content={ABOUT_DESCRIPTION} />
+        <meta name="robots" content="index,follow" />
+        <link rel="canonical" href={ABOUT_URL} />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="StockFlow" />
+        <meta property="og:title" content={ABOUT_TITLE} />
+        <meta property="og:description" content={ABOUT_DESCRIPTION} />
+        <meta property="og:url" content={ABOUT_URL} />
       </Head>
       <div style={pageStyle}>
         {/* Mini Nav */}

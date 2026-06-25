@@ -2,6 +2,10 @@ import Head from "next/head";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
+const TERMS_URL = "https://stockflow.app/terms";
+const TERMS_TITLE = "Terms of Service - StockFlow";
+const TERMS_DESCRIPTION = "Read the terms governing use of the StockFlow inventory management and accounting platform.";
+
 const pageStyle = {
   background: "linear-gradient(160deg, #f0f4ff 0%, #faf5ff 45%, #f0fdf4 100%)",
   minHeight: "100vh",
@@ -165,11 +169,15 @@ export default function Terms() {
   return (
     <>
       <Head>
-        <title>Terms of Service — StockFlow</title>
-        <meta
-          name="description"
-          content="StockFlow Terms of Service — the rules governing your use of the StockFlow inventory management platform."
-        />
+        <title>{TERMS_TITLE}</title>
+        <meta name="description" content={TERMS_DESCRIPTION} />
+        <meta name="robots" content="index,follow" />
+        <link rel="canonical" href={TERMS_URL} />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="StockFlow" />
+        <meta property="og:title" content={TERMS_TITLE} />
+        <meta property="og:description" content={TERMS_DESCRIPTION} />
+        <meta property="og:url" content={TERMS_URL} />
       </Head>
       <div style={pageStyle}>
         {/* Mini Nav */}
