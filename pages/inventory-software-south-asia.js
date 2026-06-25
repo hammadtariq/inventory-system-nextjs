@@ -48,6 +48,19 @@ const faqs = [
   },
 ];
 
+const relatedGuides = [
+  {
+    href: "/inventory-management-software",
+    title: "Inventory management software",
+    description: "Review the core SMB stock, purchase, sales, reporting, and export workflows.",
+  },
+  {
+    href: "/inventory-accounting-software",
+    title: "Inventory accounting software",
+    description: "See how inventory connects with ledgers, customer dues, supplier payables, and payments.",
+  },
+];
+
 const structuredData = [
   {
     "@context": "https://schema.org",
@@ -256,6 +269,18 @@ export default function InventorySoftwareSouthAsia() {
                   <h3 style={h3Style}>{q}</h3>
                   <p style={pStyle}>{a}</p>
                 </div>
+              ))}
+            </div>
+          </section>
+
+          <section style={sectionStyle}>
+            <h2 style={h2Style}>Related guides</h2>
+            <div style={gridStyle}>
+              {relatedGuides.map(({ href, title, description }) => (
+                <Link key={href} href={href} style={{ ...cardStyle, display: "block", textDecoration: "none" }}>
+                  <h3 style={h3Style}>{title}</h3>
+                  <p style={pStyle}>{description}</p>
+                </Link>
               ))}
             </div>
           </section>

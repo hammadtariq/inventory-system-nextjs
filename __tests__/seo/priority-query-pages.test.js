@@ -3,6 +3,10 @@ import path from "path";
 
 const read = (filePath) => fs.readFileSync(path.join(process.cwd(), filePath), "utf8");
 
+const expectInternalLink = (source, route) => {
+  expect(source).toEqual(expect.stringMatching(new RegExp(`(href="${route}"|href: "${route}")`)));
+};
+
 describe("priority query pages", () => {
   it("maps inventory management software queries to an answer-ready page", () => {
     const page = read("pages/inventory-management-software.js");
@@ -17,6 +21,8 @@ describe("priority query pages", () => {
     expect(page).toContain("Sources");
     expect(page).toContain("https://www.irs.gov/publications/p334");
     expect(page).toContain("https://www.ifrs.org/issued-standards/list-of-standards/ias-2-inventories/");
+    expectInternalLink(page, "/inventory-accounting-software");
+    expectInternalLink(page, "/inventory-software-south-asia");
     expect(protectedRoutes).toContain('"/inventory-management-software"');
     expect(landing).toContain('href="/inventory-management-software"');
     expect(sitemap).toContain("<loc>https://www.treesols.com/inventory-management-software</loc>");
@@ -38,6 +44,8 @@ describe("priority query pages", () => {
     expect(page).toContain("Sources");
     expect(page).toContain("https://www.irs.gov/publications/p334");
     expect(page).toContain("https://www.ifrs.org/issued-standards/list-of-standards/ias-2-inventories/");
+    expectInternalLink(page, "/inventory-management-software");
+    expectInternalLink(page, "/inventory-software-south-asia");
     expect(protectedRoutes).toContain('"/inventory-accounting-software"');
     expect(landing).toContain('href="/inventory-accounting-software"');
     expect(sitemap).toContain("<loc>https://www.treesols.com/inventory-accounting-software</loc>");
@@ -62,6 +70,8 @@ describe("priority query pages", () => {
     expect(page).toContain(
       "https://www.worldbank.org/ext/en/topic/competitiveness/small-and-medium-enterprises-smes-finance"
     );
+    expectInternalLink(page, "/inventory-management-software");
+    expectInternalLink(page, "/inventory-accounting-software");
     expect(protectedRoutes).toContain('"/inventory-software-south-asia"');
     expect(landing).toContain('href="/inventory-software-south-asia"');
     expect(sitemap).toContain("<loc>https://www.treesols.com/inventory-software-south-asia</loc>");

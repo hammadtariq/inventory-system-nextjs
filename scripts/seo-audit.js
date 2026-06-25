@@ -40,6 +40,8 @@ const priorityQueries = [
   },
 ];
 
+const priorityPaths = priorityQueries.map((query) => query.path);
+
 function read(cwd, filePath) {
   return fs.readFileSync(path.join(cwd, filePath), "utf8");
 }
@@ -50,6 +52,10 @@ function addGap(gaps, impact, area, pathName, message) {
 
 function hasAll(source, checks) {
   return checks.every((check) => source.includes(check));
+}
+
+function hasInternalLink(source, pathName) {
+  return source.includes(`href="${pathName}"`) || source.includes(`href: "${pathName}"`);
 }
 
 function auditSeoState({ cwd = process.cwd() } = {}) {
@@ -104,6 +110,20 @@ function auditSeoState({ cwd = process.cwd() } = {}) {
 
     if (!landing.includes(`href="${query.path}"`)) {
       addGap(gaps, "high", "internal-links", query.path, `Landing page does not link to ${query.query}.`);
+    }
+
+    const missingPriorityLinks = priorityPaths
+      .filter((pathName) => pathName !== query.path)
+      .filter((pathName) => !hasInternalLink(source, pathName));
+
+    if (missingPriorityLinks.length > 0) {
+      addGap(
+        gaps,
+        "high",
+        "internal-links",
+        query.path,
+        `Priority page does not link to related answer pages: ${missingPriorityLinks.join(", ")}.`
+      );
     }
 
     if (!llms.includes(`${siteUrl}${query.path}`)) {
