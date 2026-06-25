@@ -34,6 +34,11 @@ jest.mock("@/middlewares/auth", () => ({
   auth: (req, res, next) => next(),
 }));
 
+jest.mock("@/lib/org-onboarding", () => ({
+  ...jest.requireActual("@/lib/org-onboarding"),
+  setLoginSession: jest.fn().mockResolvedValue("mock-sealed-token"),
+}));
+
 describe("organization onboarding APIs", () => {
   const transaction = {
     commit: jest.fn(),

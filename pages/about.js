@@ -2,6 +2,11 @@ import Head from "next/head";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
+const ABOUT_URL = "https://www.treesols.com/about";
+const ABOUT_TITLE = "About StockFlow - Inventory Software for South Asian SMBs";
+const ABOUT_DESCRIPTION =
+  "Learn how StockFlow helps South Asian SMBs manage inventory, purchases, sales, ledgers, and reporting in one place.";
+
 const pageStyle = {
   background: "linear-gradient(160deg, #f0f4ff 0%, #faf5ff 45%, #f0fdf4 100%)",
   minHeight: "100vh",
@@ -122,19 +127,23 @@ export default function About() {
   return (
     <>
       <Head>
-        <title>About StockFlow — Built for Businesses That Mean Business</title>
-        <meta
-          name="description"
-          content="Learn how StockFlow helps South Asian SMBs manage inventory, orders, and accounting in one place."
-        />
+        <title>{ABOUT_TITLE}</title>
+        <meta name="description" content={ABOUT_DESCRIPTION} />
+        <meta name="robots" content="index,follow" />
+        <link rel="canonical" href={ABOUT_URL} />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="StockFlow" />
+        <meta property="og:title" content={ABOUT_TITLE} />
+        <meta property="og:description" content={ABOUT_DESCRIPTION} />
+        <meta property="og:url" content={ABOUT_URL} />
       </Head>
       <div style={pageStyle}>
         {/* Mini Nav */}
         <nav style={navStyle}>
-          <Link href="/landing" style={logoStyle}>
+          <Link href="/" style={logoStyle}>
             ⬡ StockFlow
           </Link>
-          <Link href="/landing" style={ctaBtnStyle}>
+          <Link href="/" style={ctaBtnStyle}>
             Request a Demo
           </Link>
         </nav>
@@ -207,7 +216,7 @@ export default function About() {
             <p style={{ ...leadStyle, marginBottom: 28 }}>
               Join hundreds of businesses already running smarter with StockFlow.
             </p>
-            <Link href="/landing" style={{ ...ctaBtnStyle, fontSize: 15, padding: "12px 28px" }}>
+            <Link href="/" style={{ ...ctaBtnStyle, fontSize: 15, padding: "12px 28px" }}>
               Request a Demo →
             </Link>
           </motion.div>
@@ -216,7 +225,7 @@ export default function About() {
         {/* Footer Bar */}
         <div style={footerBarStyle}>
           © 2026 StockFlow &nbsp;·&nbsp;{" "}
-          <Link href="/landing" style={{ color: "#6366f1", textDecoration: "none" }}>
+          <Link href="/" style={{ color: "#6366f1", textDecoration: "none" }}>
             Back to Home
           </Link>
         </div>

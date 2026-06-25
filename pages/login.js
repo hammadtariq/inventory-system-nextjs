@@ -19,7 +19,7 @@ const Login = () => {
   const router = useRouter();
 
   useEffect(() => {
-    router.prefetch("/");
+    router.prefetch("/dashboard");
   }, [router]);
 
   const onFinish = (values) => {
@@ -28,7 +28,7 @@ const Login = () => {
       .then((data) => {
         setUserAccess(data.user);
         message.success("User logged in successfully");
-        router.replace(data.user?.role === "SUPER_ADMIN" ? "/organizations" : "/");
+        router.replace(data.user?.role === "SUPER_ADMIN" ? "/organizations" : "/dashboard");
       })
       .catch((err) => {
         message.error("Login failed. Please check your credentials.");

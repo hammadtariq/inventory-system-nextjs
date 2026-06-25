@@ -2,6 +2,11 @@ import Head from "next/head";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
+const PRIVACY_URL = "https://www.treesols.com/privacy";
+const PRIVACY_TITLE = "Privacy Policy - StockFlow";
+const PRIVACY_DESCRIPTION =
+  "Learn how StockFlow collects, uses, stores, and protects data for its inventory management platform.";
+
 const pageStyle = {
   background: "linear-gradient(160deg, #f0f4ff 0%, #faf5ff 45%, #f0fdf4 100%)",
   minHeight: "100vh",
@@ -107,7 +112,7 @@ const SECTIONS = [
   {
     title: "Introduction",
     content:
-      'StockFlow ("we", "us", or "our") operates the StockFlow inventory management platform accessible at stockflow.app. This Privacy Policy explains how we collect, use, store, and protect your personal data when you use our services. By using StockFlow, you agree to the practices described in this policy.',
+      'StockFlow ("we", "us", or "our") operates the StockFlow inventory management platform accessible at treesols.com. This Privacy Policy explains how we collect, use, store, and protect your personal data when you use our services. By using StockFlow, you agree to the practices described in this policy.',
   },
   {
     title: "Information We Collect",
@@ -132,7 +137,7 @@ const SECTIONS = [
   {
     title: "Your Rights (GDPR)",
     content:
-      "If you are located in the European Economic Area or another jurisdiction with applicable privacy laws, you have the following rights: the right to access a copy of your personal data; the right to correct inaccurate data; the right to request deletion of your data (subject to legal retention requirements); the right to restrict or object to processing; the right to data portability. To exercise any of these rights, contact us at privacy@stockflow.app. We will respond within 30 days.",
+      "If you are located in the European Economic Area or another jurisdiction with applicable privacy laws, you have the following rights: the right to access a copy of your personal data; the right to correct inaccurate data; the right to request deletion of your data (subject to legal retention requirements); the right to restrict or object to processing; the right to data portability. To exercise any of these rights, contact us at privacy@treesols.com. We will respond within 30 days.",
   },
   {
     title: "Data Retention",
@@ -152,7 +157,7 @@ const SECTIONS = [
   {
     title: "Contact",
     content:
-      "For privacy-related inquiries, data access requests, or to report a concern, please contact our Privacy Team at privacy@stockflow.app. We aim to respond to all inquiries within 5 business days.",
+      "For privacy-related inquiries, data access requests, or to report a concern, please contact our Privacy Team at privacy@treesols.com. We aim to respond to all inquiries within 5 business days.",
   },
 ];
 
@@ -160,19 +165,23 @@ export default function Privacy() {
   return (
     <>
       <Head>
-        <title>Privacy Policy — StockFlow</title>
-        <meta
-          name="description"
-          content="Learn how StockFlow collects, uses, and protects your data. GDPR-compliant privacy policy."
-        />
+        <title>{PRIVACY_TITLE}</title>
+        <meta name="description" content={PRIVACY_DESCRIPTION} />
+        <meta name="robots" content="index,follow" />
+        <link rel="canonical" href={PRIVACY_URL} />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="StockFlow" />
+        <meta property="og:title" content={PRIVACY_TITLE} />
+        <meta property="og:description" content={PRIVACY_DESCRIPTION} />
+        <meta property="og:url" content={PRIVACY_URL} />
       </Head>
       <div style={pageStyle}>
         {/* Mini Nav */}
         <nav style={navStyle}>
-          <Link href="/landing" style={logoStyle}>
+          <Link href="/" style={logoStyle}>
             ⬡ StockFlow
           </Link>
-          <Link href="/landing" style={ctaBtnStyle}>
+          <Link href="/" style={ctaBtnStyle}>
             Back to Home
           </Link>
         </nav>
@@ -211,7 +220,7 @@ export default function Privacy() {
         {/* Footer Bar */}
         <div style={footerBarStyle}>
           © 2026 StockFlow &nbsp;·&nbsp;{" "}
-          <Link href="/landing" style={{ color: "#6366f1", textDecoration: "none" }}>
+          <Link href="/" style={{ color: "#6366f1", textDecoration: "none" }}>
             Back to Home
           </Link>
           &nbsp;·&nbsp;{" "}

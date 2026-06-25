@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /$
+Allow: /about
+Allow: /privacy
+Allow: /terms
+Allow: /inventory-management-software
+Allow: /inventory-accounting-software
+Allow: /inventory-software-south-asia
+Allow: /llms.txt
+Disallow: /
+
+Sitemap: https://www.treesols.com/sitemap.xml
