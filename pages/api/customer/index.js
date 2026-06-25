@@ -1,8 +1,10 @@
 import nextConnect from "next-connect";
 import Joi from "joi";
+import { UniqueConstraintError } from "sequelize";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { DEFAULT_ROWS_LIMIT } from "@/utils/api.util";
+import TenantContext from "@/lib/tenant-context";
 
 const dbConnect = db.dbConnect;
 
@@ -14,7 +16,7 @@ const apiSchema = Joi.object({
   address: Joi.string().trim().min(10),
 });
 
-const customerRegistration = async (req, res) => {
+export const customerRegistration = async (req, res) => {
   console.log("Create Customer Request Start");
 
   const { error, value } = apiSchema.validate(req.body);
@@ -24,15 +26,19 @@ const customerRegistration = async (req, res) => {
 
   try {
     await dbConnect();
-    const customer = await db.Customer.findOne({ where: { email: value.email } });
+    const organizationId = TenantContext.assertGet();
+    const customer = await db.Customer.findOne({
+      where: { email: value.email, organizationId },
+    });
 
     // if user already exist
     if (customer) {
-      return res.status(409).send({ message: "Customer already exist" });
+      return res.status(409).send({ message: `Customer "${value.email}" already exists in this organization.` });
     }
 
     await db.Customer.create({
       ...value,
+      organizationId,
     });
     console.log("Create Customer Request End");
 
@@ -42,12 +48,15 @@ const customerRegistration = async (req, res) => {
     });
   } catch (error) {
     console.log("Create Customer Request Error:", error);
+    if (error instanceof UniqueConstraintError || error?.name === "SequelizeUniqueConstraintError") {
+      return res.status(409).send({ message: `Customer "${value.email}" already exists in this organization.` });
+    }
 
     return res.status(500).send({ message: error.toString() });
   }
 };
 
-const getAllCustomers = async (req, res) => {
+export const getAllCustomers = async (req, res) => {
   console.log("Get all Customer Request Start");
   const { limit, offset, attributes = [] } = req.query;
   const options = {};
@@ -59,7 +68,12 @@ const getAllCustomers = async (req, res) => {
 
   try {
     await dbConnect();
-    const customers = await db.Customer.findAndCountAll({ ...options, order: [["updatedAt", "DESC"]] });
+    const organizationId = TenantContext.assertGet();
+    const customers = await db.Customer.findAndCountAll({
+      ...options,
+      where: { ...(options.where || {}), organizationId },
+      order: [["updatedAt", "DESC"]],
+    });
     console.log("Get all Customer Request End");
     return res.send(customers);
   } catch (error) {

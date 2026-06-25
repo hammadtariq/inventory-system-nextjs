@@ -2,6 +2,7 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { cleanItemName } from "@/utils/api.util";
+import TenantContext from "@/lib/tenant-context";
 
 const Op = db.Sequelize.Op;
 
@@ -10,9 +11,10 @@ const searchPurchaseReport = async (req, res) => {
 
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
 
     // Build the `where` clause for the purchase query
-    const whereClause = {};
+    const whereClause = { organizationId };
     if (dateRangeStart && dateRangeEnd) {
       whereClause.purchaseDate = {
         [Op.between]: [new Date(dateRangeStart), new Date(dateRangeEnd)],
@@ -66,6 +68,7 @@ const searchPurchaseReport = async (req, res) => {
     const companies = await db.Company.findAll({
       where: {
         id: Array.from(companyIds),
+        organizationId,
       },
     });
 

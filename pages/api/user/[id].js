@@ -1,18 +1,22 @@
 import Joi from "joi";
 import nextConnect from "next-connect";
+import { UniqueConstraintError } from "sequelize";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import TenantContext from "@/lib/tenant-context";
 
 // api schema for all routes for this file only
 const apiSchema = Joi.object({
   firstName: Joi.string().min(3).trim(),
   lastName: Joi.string().min(3).trim(),
   email: Joi.string().email().trim(),
+  role: Joi.string().valid("ADMIN", "EDITOR", "SUPER_ADMIN"),
+  status: Joi.string().valid("ACTIVE", "INVITED", "DISABLED"),
   id: Joi.number().required(),
 });
 
-const getUser = async (req, res) => {
+export const getUser = async (req, res) => {
   console.log("Get user Request Start");
   // validate api fields
   const { error, value } = apiSchema.validate({ id: req.query.id });
@@ -25,7 +29,9 @@ const getUser = async (req, res) => {
   try {
     // if user id and api fields are valid then connect database
     await db.dbConnect();
-    const user = await db.User.findByPk(value.id, {
+    const organizationId = TenantContext.assertGet();
+    const user = await db.User.findOne({
+      where: { id: value.id, organizationId },
       attributes: { exclude: ["password"] },
     });
 
@@ -42,7 +48,7 @@ const getUser = async (req, res) => {
   }
 };
 
-const updateUser = async (req, res) => {
+export const updateUser = async (req, res) => {
   // validate api fields
   console.log("update user Request Start");
 
@@ -59,8 +65,10 @@ const updateUser = async (req, res) => {
   try {
     // if user id and api fields are valid then connect database
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
 
-    const user = await db.User.findByPk(value.id, {
+    const user = await db.User.findOne({
+      where: { id: value.id, organizationId },
       attributes: { exclude: ["password"] },
     });
 
@@ -71,10 +79,21 @@ const updateUser = async (req, res) => {
 
     // if req.body is empty
     if (!Object.keys(req.body).length) {
-      res.status(400).send({
+      return res.status(400).send({
         message: "Please provide at least one field",
-        allowedFields: ["fisrtName", "lastName", "email"],
+        allowedFields: ["firstName", "lastName", "email", "role", "status"],
       });
+    }
+
+    if (value.email && value.email !== user.email) {
+      const existingUser = await db.User.findOne({
+        where: { email: value.email },
+        tenantBypass: true,
+      });
+
+      if (existingUser && existingUser.id !== user.id) {
+        return res.status(409).send({ message: "A user with this email already exists." });
+      }
     }
 
     // update user
@@ -88,11 +107,14 @@ const updateUser = async (req, res) => {
     });
   } catch (error) {
     console.log("update user Request Error:", error);
+    if (error instanceof UniqueConstraintError || error?.name === "SequelizeUniqueConstraintError") {
+      return res.status(409).send({ message: "A user with this email already exists." });
+    }
     return res.status(500).send({ success: false, error });
   }
 };
 
-const deleteUser = async (req, res) => {
+export const deleteUser = async (req, res) => {
   console.log("delete user Request Start");
   // validate api fields
   const { error, value } = apiSchema.validate({
@@ -103,9 +125,14 @@ const deleteUser = async (req, res) => {
     return res.status(400).send({ message: error.toString() });
   }
 
+  if (Number(value.id) === req.user.id) {
+    return res.status(403).send({ message: "You cannot delete your own account" });
+  }
+
   try {
     await db.dbConnect();
-    const user = await db.User.findByPk(value.id);
+    const organizationId = TenantContext.assertGet();
+    const user = await db.User.findOne({ where: { id: value.id, organizationId } });
 
     // if user not found
     if (!user) {
@@ -113,7 +140,7 @@ const deleteUser = async (req, res) => {
     }
 
     // delete user
-    await db.User.destroy({ where: { id: value.id } });
+    await db.User.destroy({ where: { id: value.id, organizationId } });
     console.log("delete user Request End");
 
     return res.send({

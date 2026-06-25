@@ -3,6 +3,7 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { createLedgerPayment } from "@/lib/ledger";
+import TenantContext from "@/lib/tenant-context";
 
 const apiSchema = Joi.object({
   companyId: Joi.number(),
@@ -27,6 +28,7 @@ const createPayment = async (req, res) => {
 
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
     const {
       totalAmount,
       reference,
@@ -40,11 +42,22 @@ const createPayment = async (req, res) => {
       dueDate,
     } = value;
 
+    if (companyId) {
+      const company = await db.Company.findOne({ where: { id: companyId, organizationId } });
+      if (!company) return res.status(404).send({ message: "company not found" });
+    }
+
+    if (customerId) {
+      const customer = await db.Customer.findOne({ where: { id: customerId, organizationId } });
+      if (!customer) return res.status(404).send({ message: "customer not found" });
+    }
+
     if (chequeId && dueDate) {
       await db.Cheque.create({
         chequeId,
         dueDate,
         status: "PENDING",
+        organizationId,
       });
     }
 

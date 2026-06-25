@@ -1,17 +1,37 @@
 import Joi from "joi";
-import Iron from "@hapi/iron";
 import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { compareHash } from "@/lib/bcrypt";
-import { setTokenCookie, MAX_AGE } from "@/lib/auth-cookies";
-
-const TOKEN_SECRET = process.env.TOKEN_SECRET;
+import { setLoginSession } from "@/lib/org-onboarding";
 
 const apiSchema = Joi.object({
   email: Joi.string().email().trim().required(),
   password: Joi.string().min(8).trim().required(),
 });
+
+export const ensureUserOrganization = async (user) => {
+  if (user.organizationId) {
+    const organization = await db.Organization.findByPk(user.organizationId);
+    return organization;
+  }
+
+  const [organization] = await db.Organization.findOrCreate({
+    where: { slug: "default" },
+    defaults: {
+      name: "Default",
+      plan: "STARTER",
+      status: "ACTIVE",
+      maxUsers: 5,
+    },
+    tenantBypass: true,
+  });
+
+  await user.update({ organizationId: organization.id }, { tenantBypass: true });
+  user.organizationId = organization.id;
+
+  return organization;
+};
 
 const login = async (req, res) => {
   console.log("Login Request Start");
@@ -25,10 +45,21 @@ const login = async (req, res) => {
   try {
     await db.dbConnect();
 
-    const user = await db.User.findOne({ where: { email: value.email } });
+    const user = await db.User.findOne({
+      where: { email: value.email },
+      tenantBypass: true,
+    });
 
     if (!user) {
       return res.status(404).send({ message: "User not found" });
+    }
+
+    if (user.status === "INVITED") {
+      return res.status(403).send({ message: "Please accept your invite before logging in." });
+    }
+
+    if (user.status === "DISABLED") {
+      return res.status(403).send({ message: "User account disabled." });
     }
 
     const isMatchPassword = await compareHash(value.password, user.password);
@@ -37,25 +68,17 @@ const login = async (req, res) => {
       return res.status(401).send({ message: "Invalid password" });
     }
 
-    const tokenWithouPassword = {
-      user: {
-        id: user.id,
-        uuid: user.uuid,
-        fisrtName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-        createdAt: user.createdAt,
-        updatedAt: user.createdAt,
-      },
-      token: {
-        maxAge: new Date(Date.now() + MAX_AGE * 1000),
-      },
-    };
+    const organization = await ensureUserOrganization(user);
 
-    const sealedToken = await Iron.seal(tokenWithouPassword, TOKEN_SECRET, Iron.defaults);
+    if (!organization) {
+      return res.status(401).send({ message: "Organization not found" });
+    }
 
-    setTokenCookie(res, sealedToken);
+    if (organization.status !== "ACTIVE") {
+      return res.status(403).send({ message: "Organization suspended" });
+    }
+
+    const sealedToken = await setLoginSession(res, { user, organization });
     console.log("Login Request End");
 
     return res.send({
@@ -66,6 +89,9 @@ const login = async (req, res) => {
         lastName: user.lastName,
         email: user.email,
         role: user.role,
+        organizationId: user.organizationId,
+        organizationUuid: organization.uuid,
+        organizationSlug: organization.slug,
       },
     });
   } catch (error) {

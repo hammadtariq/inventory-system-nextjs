@@ -106,12 +106,18 @@ const LedgerDetailsContent = ({ id, type }) => {
       title: "Payment Type",
       dataIndex: "paymentType",
       key: "paymentType",
+      width: 170,
+      render: (text) => {
+        if (text === "INVENTORY_RETURN") return "INVENTORY REFUND";
+        if (text === "REFUND") return "AMOUNT REFUND";
+        return text;
+      },
     },
     {
       title: "Invoice Number",
       dataIndex: "invoiceNumber",
       key: "invoiceNumber",
-      render: (text, _data) =>
+      render: (_, _data) =>
         _data.invoiceNumber && _data.transactionId ? (
           <NextLink
             href={`/${_data.spendType === SPEND_TYPE.CREDIT ? "sales" : "purchase"}/${_data.transactionId}?type=view`}
@@ -126,30 +132,30 @@ const LedgerDetailsContent = ({ id, type }) => {
     {
       title: "Debit Amount (Rs)",
       dataIndex: "amount",
-      key: "amount",
+      key: "debitAmount",
       render: (text, _data) => {
-        return _data.spendType === SPEND_TYPE.DEBIT ? comaSeparatedValues(text.toFixed(2)) : "";
+        // INVENTORY_RETURN always goes on debit side; REFUND always on credit — handle both old and new entries
+        if (_data.paymentType === "REFUND") return "";
+        if (_data.paymentType === "INVENTORY_RETURN") return comaSeparatedValues(Number(text).toFixed(2));
+        return _data.spendType === SPEND_TYPE.DEBIT ? comaSeparatedValues(Number(text).toFixed(2)) : "";
       },
     },
     {
       title: "Credit Amount (Rs)",
       dataIndex: "amount",
-      key: "amount",
+      key: "creditAmount",
       render: (text, _data) => {
-        return _data.spendType === SPEND_TYPE.CREDIT ? comaSeparatedValues(text.toFixed(2)) : "";
+        // REFUND always goes on credit side regardless of stored spendType (handles legacy DEBIT entries)
+        if (_data.paymentType === "REFUND") return comaSeparatedValues(Number(text).toFixed(2));
+        if (_data.paymentType === "INVENTORY_RETURN") return "";
+        return _data.spendType === SPEND_TYPE.CREDIT ? comaSeparatedValues(Number(text).toFixed(2)) : "";
       },
     },
     {
       title: "Balance",
-      dataIndex: "totalBalance",
-      key: "totalBalance",
-      render: (text, _data) => {
-        if (type === "company") {
-          return _data.companyTotal ? comaSeparatedValues(_data.companyTotal.toFixed(2)) : comaSeparatedValues(text);
-        } else {
-          return _data.customerTotal ? comaSeparatedValues(_data.customerTotal.toFixed(2)) : comaSeparatedValues(text);
-        }
-      },
+      dataIndex: "runningBalance",
+      key: "runningBalance",
+      render: (text) => comaSeparatedValues(Number(text).toFixed(2)),
     },
   ];
 

@@ -48,3 +48,8 @@ export const editorPermissions = {
 
   cheques_approve: false,
 };
+
+export const superAdminPermissions = {
+  ...adminPermissions,
+  organization_manage: true,
+};

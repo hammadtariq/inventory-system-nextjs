@@ -1,5 +1,5 @@
 "use client";
-import { Layout, Avatar, Dropdown, Menu, message } from "antd";
+import { Layout, Avatar, Dropdown, message } from "antd";
 import {
   MenuUnfoldOutlined,
   MenuFoldOutlined,
@@ -14,8 +14,10 @@ import {
   DollarCircleOutlined,
   SettingOutlined,
   LogoutOutlined,
+  UserAddOutlined,
+  ApartmentOutlined,
 } from "@ant-design/icons";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import AppMenuItems from "./menuItems";
 import Link from "next/link";
@@ -26,7 +28,7 @@ import StorageUtils from "@/utils/storage.util";
 
 const { Sider } = Layout;
 
-const items = [
+const baseItems = [
   { id: "1", title: "Overview", url: "/", icon: <DashboardOutlined /> },
   { id: "2", title: "Customers", url: "/customers", icon: <UserOutlined /> },
   { id: "3", title: "Company", url: "/company", icon: <TeamOutlined /> },
@@ -41,12 +43,26 @@ const items = [
   { id: "10", title: "Cheques", url: "/cheques", icon: <DollarCircleOutlined /> },
 ];
 
+const adminItems = [{ id: "13", title: "Users", url: "/users", icon: <UserAddOutlined /> }];
+const superAdminItems = [{ id: "14", title: "Organizations", url: "/organizations", icon: <ApartmentOutlined /> }];
+
 export default function AppNavbar(props = {}) {
   const { collapsed = false, onCollapseChange = () => {} } = props;
 
   const router = useRouter();
   const [isSelected, setIsSelected] = useState();
   const user = StorageUtils.getItem("user");
+  const items = useMemo(() => {
+    if (user?.role === "SUPER_ADMIN") {
+      return [...baseItems, ...adminItems, ...superAdminItems];
+    }
+
+    if (user?.role === "ADMIN") {
+      return [...baseItems, ...adminItems];
+    }
+
+    return baseItems;
+  }, [user?.role]);
   const onClickHandler = (url, id) => {
     setIsSelected(id);
     router.push(url);
@@ -57,10 +73,9 @@ export default function AppNavbar(props = {}) {
     const baseRoute = `/${router.pathname.split("/")[1] || ""}`;
     const activeItem = items.find((item) => item.url === baseRoute);
     setIsSelected(activeItem?.id || items[0].id);
-  }, [router.pathname]);
+  }, [items, router.pathname]);
 
   const [dropdownVisible, setDropdownVisible] = useState(false);
-
   const onLogout = async () => {
     try {
       const data = await logoutUser();

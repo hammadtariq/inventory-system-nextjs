@@ -2,11 +2,18 @@ import { createSale } from "@/pages/api/sales/index"; // Adjust the import path 
 import db from "@/lib/postgres";
 import { STATUS } from "@/utils/api.util";
 import { createMocks } from "node-mocks-http"; // Import from node-mocks-http
+import TenantContext from "@/lib/tenant-context";
 
 jest.mock("@/lib/postgres", () => ({
   dbConnect: jest.fn(),
   Sale: {
     create: jest.fn(),
+  },
+  Customer: {
+    findOne: jest.fn(),
+  },
+  Inventory: {
+    findOne: jest.fn(),
   },
 }));
 
@@ -43,8 +50,10 @@ describe("createSale API", () => {
 
     db.Sale.create.mockResolvedValue(true); // Mocking a successful creation of sale
     db.dbConnect.mockResolvedValue(true); // Mock successful DB connection
+    db.Customer.findOne.mockResolvedValue({ id: 123 });
+    db.Inventory.findOne.mockResolvedValue({ id: 101 });
 
-    await createSale(req, res);
+    await TenantContext.run(23, async () => createSale(req, res));
 
     // Assert that the response status code is 200 and Sale.create was called with correct data
     expect(res.statusCode).toBe(200);
@@ -67,6 +76,7 @@ describe("createSale API", () => {
         },
       ],
       status: STATUS.PENDING,
+      organizationId: 23,
     });
   });
 
@@ -91,7 +101,7 @@ describe("createSale API", () => {
       ],
     };
 
-    await createSale(req, res);
+    await TenantContext.run(23, async () => createSale(req, res));
 
     // Assert that validation fails and the response status code is 400
     expect(res.statusCode).toBe(400);
@@ -121,8 +131,10 @@ describe("createSale API", () => {
 
     db.Sale.create.mockRejectedValue(new Error("Database error")); // Simulate a DB error
     db.dbConnect.mockResolvedValue(true); // Mock successful DB connection
+    db.Customer.findOne.mockResolvedValue({ id: 123 });
+    db.Inventory.findOne.mockResolvedValue({ id: 101 });
 
-    await createSale(req, res);
+    await TenantContext.run(23, async () => createSale(req, res));
 
     // Assert that a 500 status code is returned for database error
     expect(res.statusCode).toBe(500);

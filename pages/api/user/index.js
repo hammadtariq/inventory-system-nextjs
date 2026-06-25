@@ -2,24 +2,29 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import { DEFAULT_ROWS_LIMIT } from "@/utils/api.util";
+import TenantContext from "@/lib/tenant-context";
 
-const getAllUsers = async (req, res) => {
+export const getAllUsers = async (req, res) => {
   console.log("get all users Request Start");
+  if (!["ADMIN", "SUPER_ADMIN"].includes(req.user.role)) {
+    return res.status(403).send({ message: "Operation not permitted." });
+  }
+
   const { limit, offset } = req.query;
   const pagination = {};
   pagination.limit = limit ? limit : DEFAULT_ROWS_LIMIT;
   pagination.offset = offset ? offset : 0;
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
     const users = await db.User.findAndCountAll({
       ...pagination,
+      where: { organizationId },
       attributes: { exclude: ["password"] },
       order: [["updatedAt", "DESC"]],
     });
 
-    if (!users.length) {
-      return res.send({ message: "No user found" });
-    }
     console.log("get all users Request End");
 
     return res.send(users);

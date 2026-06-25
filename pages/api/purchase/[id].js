@@ -5,6 +5,7 @@ import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { STATUS, EDITABLE_STATUS } from "@/utils/api.util";
 import { calculateDifferences } from "@/utils/calculateDifferences.util";
+import TenantContext from "@/lib/tenant-context";
 
 const inventorySchema = Joi.object().keys({
   itemName: Joi.string().min(3).trim().lowercase(),
@@ -38,8 +39,9 @@ const getPurchaseOrder = async (req, res) => {
   }
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
     const { id } = value;
-    const purchase = await db.Purchase.findByPk(id, { include: [db.Company] });
+    const purchase = await db.Purchase.findOne({ where: { id, organizationId }, include: [db.Company] });
 
     if (!purchase) {
       return res.status(404).send({ message: "purchase order not exist" });
@@ -70,10 +72,11 @@ const updatePurchaseOrder = async (req, res) => {
   try {
     // Establish database connection
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
 
     // Find the purchase order by ID
     const { id } = value;
-    const purchase = await db.Purchase.findByPk(id);
+    const purchase = await db.Purchase.findOne({ where: { id, organizationId } });
 
     if (!purchase) {
       console.error(`Purchase Order with ID ${id} does not exist.`);
@@ -88,6 +91,11 @@ const updatePurchaseOrder = async (req, res) => {
     const clonePurchase = value;
     delete clonePurchase.id;
     const newRevisionNo = (purchaseObj.revisionNo || 0) + 1;
+
+    if (value.companyId) {
+      const company = await db.Company.findOne({ where: { id: value.companyId, organizationId } });
+      if (!company) return res.status(404).send({ message: "company not found" });
+    }
 
     // Check status for editing
     if (!EDITABLE_STATUS.includes(purchaseObj.status)) {

@@ -116,6 +116,45 @@ describe("calculateDifferences (realistic structure)", () => {
     expect(diff).toEqual({ purchasedProducts: [{ id: 1 }] }); // or skip empty object if you want that in your implementation
   });
 
+  it("should compare purchasedProducts by id instead of array position", () => {
+    const oldData = {
+      purchasedProducts: [
+        { id: 1, noOfBales: 10 },
+        { id: 2, noOfBales: 5 },
+      ],
+    };
+    const newData = {
+      purchasedProducts: [
+        { id: 2, noOfBales: 7 },
+        { id: 1, noOfBales: 10 },
+      ],
+    };
+
+    const diff = calculateDifferences(newData, oldData);
+
+    expect(diff).toEqual({
+      purchasedProducts: [{ noOfBales: 2, id: 2 }, { id: 1 }],
+    });
+  });
+
+  it("should emit negative inventory deltas for removed purchasedProducts", () => {
+    const oldData = {
+      purchasedProducts: [
+        { id: 1, itemName: "Cotton", companyId: 9, noOfBales: 10, baleWeightLbs: 200 },
+        { id: 2, itemName: "Linen", companyId: 9, noOfBales: 5, baleWeightKgs: 90 },
+      ],
+    };
+    const newData = {
+      purchasedProducts: [{ id: 1, itemName: "Cotton", companyId: 9, noOfBales: 10, baleWeightLbs: 200 }],
+    };
+
+    const diff = calculateDifferences(newData, oldData);
+
+    expect(diff).toEqual({
+      purchasedProducts: [{ id: 1 }, { id: 2, itemName: "Linen", companyId: 9, noOfBales: -5, baleWeightKgs: -90 }],
+    });
+  });
+
   it("should compute multiple differences and revision-eligible fields", () => {
     const oldData = {
       companyId: 1,

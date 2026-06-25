@@ -5,6 +5,8 @@ import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { SPEND_TYPE, STATUS } from "@/utils/api.util";
 import { balanceQuery } from "@/utils/query.utils";
+import TenantContext from "@/lib/tenant-context";
+import { createTenantTransaction } from "@/lib/tenant-transaction";
 
 const apiSchema = Joi.object({
   id: Joi.number().required(),
@@ -34,31 +36,40 @@ const handler = async (req, res) => {
 };
 
 const approvePurchaseOrder = async (id, user) => {
-  if (user.role !== "ADMIN") {
+  if (!["ADMIN", "SUPER_ADMIN"].includes(user.role)) {
     return { status: 403, body: { message: "Operation not permitted." } };
   }
 
-  const t = await db.sequelize.transaction();
+  let t;
   try {
     await db.dbConnect();
+    const tenantTransaction = await createTenantTransaction();
+    t = tenantTransaction.transaction;
+    const { organizationId } = tenantTransaction;
 
-    const purchase = await db.Purchase.findByPk(id, {
+    const purchase = await db.Purchase.findOne({
+      where: { id, organizationId },
       include: [db.Company],
       transaction: t,
+      ...getLockOption(t, db.Purchase),
     });
 
     if (!purchase) {
+      await t.rollback();
       return { status: 404, body: { message: "Purchase order does not exist" } };
     }
 
     if (purchase.status === STATUS.APPROVED) {
+      await t.rollback();
       return { status: 400, body: { message: "Purchase order already approved" } };
     }
 
     const { purchasedProducts, purchaseDate, companyId, totalAmount, invoiceNumber, revisionDetails, revisionNo } =
       purchase;
 
-    const productsToUse = revisionNo ? revisionDetails.purchasedProducts : purchasedProducts;
+    const productsToUse = revisionNo
+      ? buildRevisionInventoryAdjustments(revisionDetails, purchasedProducts || [])
+      : purchasedProducts;
     const updatedInventory = await updateInventory(productsToUse, companyId, t);
     const updatedPurchaseOrder = await purchase.update({ status: STATUS.APPROVED }, { transaction: t });
     const updatedLedger = await updateLedger(revisionNo, {
@@ -81,7 +92,7 @@ const approvePurchaseOrder = async (id, user) => {
       },
     };
   } catch (error) {
-    await t.rollback();
+    if (t) await t.rollback();
     return { status: 500, body: { message: error.message } };
   }
 };
@@ -89,10 +100,16 @@ const approvePurchaseOrder = async (id, user) => {
 // Consolidated Inventory Update
 const updateInventory = async (products, companyId, transaction) => {
   const results = [];
+  const organizationId = TenantContext.assertGet();
+
   for (const product of products) {
     const { id, noOfBales, baleWeightKgs, baleWeightLbs, ratePerLbs, ratePerKgs, ratePerBale } = product;
 
-    let inventory = await db.Inventory.findOne({ where: { id, companyId }, transaction });
+    let inventory = await db.Inventory.findOne({
+      where: { id, companyId, organizationId },
+      transaction,
+      ...getLockOption(transaction),
+    });
     if (inventory) {
       await inventory.increment({ onHand: noOfBales || 0, noOfBales: noOfBales || 0 }, { transaction });
 
@@ -122,21 +139,23 @@ const updateInventory = async (products, companyId, transaction) => {
       );
     } else {
       inventory = await db.Inventory.create(
-        { ...product, companyId, onHand: noOfBales || 0, baleWeightKgs, baleWeightLbs },
+        { ...product, companyId, onHand: noOfBales || 0, baleWeightKgs, baleWeightLbs, organizationId },
         { transaction }
       );
     }
-    results.push(inventory); // ✅ collect updated inventory
+    results.push(inventory);
   }
   return results;
 };
 
 // Ledger Update Logic
 const updateLedger = async (revisionNo, { companyId, transactionId, totalAmount, purchaseDate, invoiceNumber, t }) => {
+  const organizationId = TenantContext.assertGet();
+
   if (revisionNo !== 0) {
     // === Ledger Revision ===
     const ledger = await db.Ledger.findOne({
-      where: { companyId, transactionId },
+      where: { companyId, transactionId, organizationId },
       transaction: t,
     });
 
@@ -169,6 +188,7 @@ const updateLedger = async (revisionNo, { companyId, transactionId, totalAmount,
       {
         where: {
           companyId,
+          organizationId,
           paymentDate: { [db.Sequelize.Op.gt]: purchaseDate },
         },
         transaction: t,
@@ -190,11 +210,64 @@ const updateLedger = async (revisionNo, { companyId, transactionId, totalAmount,
       invoiceNumber,
       paymentDate: purchaseDate,
       totalBalance,
+      organizationId,
     },
     { transaction: t }
   );
   return ledger;
 };
 
-export { handler, approvePurchaseOrder, updateInventory, updateLedger }; // 👈 add this export so it can be available to import in test file
+const getLockOption = (transaction, model) => {
+  if (!transaction?.LOCK?.UPDATE) return {};
+
+  return model ? { lock: { level: transaction.LOCK.UPDATE, of: model } } : { lock: transaction.LOCK.UPDATE };
+};
+
+const buildRevisionInventoryAdjustments = (revisionDetails, originalProducts) => {
+  const revisionProducts = revisionDetails?.purchasedProducts || [];
+  const usesDeltaValues = Array.isArray(revisionDetails?.previousPurchasedProducts);
+
+  return hydrateRevisedProducts(revisionProducts, originalProducts, usesDeltaValues);
+};
+
+const buildStockValue = (product, field, usesDeltaValues) => {
+  if (!usesDeltaValues) {
+    return product[field];
+  }
+
+  if (!Object.prototype.hasOwnProperty.call(product, field)) {
+    return field === "noOfBales" ? 0 : undefined;
+  }
+
+  return product[field];
+};
+
+const hydrateRevisedProducts = (revisionProducts, originalProducts, usesDeltaValues = false) => {
+  return revisionProducts.map((product) => {
+    const productId = Number(product.id);
+    const productCompanyId = product.companyId != null ? Number(product.companyId) : null;
+    const originalProduct =
+      originalProducts.find(
+        (item) =>
+          Number(item.id) === productId &&
+          (productCompanyId === null || item.companyId == null || Number(item.companyId) === productCompanyId)
+      ) || originalProducts.find((item) => Number(item.id) === productId);
+
+    if (!originalProduct) {
+      return product;
+    }
+
+    return {
+      ...originalProduct,
+      ...product,
+      itemName: product.itemName ?? originalProduct.itemName,
+      companyId: product.companyId ?? originalProduct.companyId,
+      noOfBales: buildStockValue(product, "noOfBales", usesDeltaValues),
+      baleWeightKgs: buildStockValue(product, "baleWeightKgs", usesDeltaValues),
+      baleWeightLbs: buildStockValue(product, "baleWeightLbs", usesDeltaValues),
+    };
+  });
+};
+
+export { handler, approvePurchaseOrder, updateInventory, updateLedger };
 export default nextConnect().use(auth).put(handler);

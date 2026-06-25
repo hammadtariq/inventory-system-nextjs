@@ -1,22 +1,32 @@
 import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import TenantContext from "@/lib/tenant-context";
 
 const graphTablesCount = async (req, res) => {
   try {
     await db.dbConnect();
-    const customerCount = await db.sequelize.query("SELECT COUNT(*) FROM customers", {
+    const organizationId = TenantContext.assertGet();
+    const queryOptions = {
       type: db.Sequelize.QueryTypes.SELECT,
-    });
-    const companyCount = await db.sequelize.query("SELECT COUNT(*) FROM companies", {
-      type: db.Sequelize.QueryTypes.SELECT,
-    });
-    const inventoryCount = await db.sequelize.query("SELECT COUNT(*) FROM inventories", {
-      type: db.Sequelize.QueryTypes.SELECT,
-    });
-    const chequeCount = await db.sequelize.query("SELECT COUNT(*) FROM cheques", {
-      type: db.Sequelize.QueryTypes.SELECT,
-    });
+      replacements: { organizationId },
+    };
+    const customerCount = await db.sequelize.query(
+      `SELECT COUNT(*) FROM customers WHERE "organizationId" = :organizationId`,
+      queryOptions
+    );
+    const companyCount = await db.sequelize.query(
+      `SELECT COUNT(*) FROM companies WHERE "organizationId" = :organizationId`,
+      queryOptions
+    );
+    const inventoryCount = await db.sequelize.query(
+      `SELECT COUNT(*) FROM inventories WHERE "organizationId" = :organizationId`,
+      queryOptions
+    );
+    const chequeCount = await db.sequelize.query(
+      `SELECT COUNT(*) FROM cheques WHERE "organizationId" = :organizationId`,
+      queryOptions
+    );
 
     const counts = {
       customers: customerCount[0].count,

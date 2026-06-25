@@ -48,6 +48,8 @@ const AddEditCompany = ({ company }) => {
     }
   };
 
+  const canSubmit = company ? canEdit : canCreate;
+
   return (
     <Form form={form} layout="vertical" name="nest-messages" onFinish={onFinish} validateMessages={VALIDATE_MESSAGE}>
       <Form.Item
@@ -99,7 +101,7 @@ const AddEditCompany = ({ company }) => {
       </Form.Item>
       <Form.Item className="action-btn">
         <AppBackButton />
-        <Button type="primary" htmlType="submit" loading={loading} disabled={!canCreate || !canEdit}>
+        <Button type="primary" htmlType="submit" loading={loading} disabled={!canSubmit}>
           {company ? "Update" : "Create"}
         </Button>
       </Form.Item>
