@@ -18,7 +18,12 @@ function Nav({ onDemoClick }) {
   return (
     <nav className={styles.nav}>
       <a href="#hero" className={styles.logo}>
-        ⬡ StockFlow
+        <img
+          src="/only-shape-no-bg.png"
+          alt="StockFlow logo"
+          style={{ height: 28, width: 28, marginRight: 8, verticalAlign: "middle" }}
+        />
+        StockFlow
       </a>
       <div className={styles.navLinks}>
         <a href="#features">Features</a>
@@ -504,7 +509,12 @@ function Footer({ onDemoClick }) {
       <div className={styles.footerGrid}>
         <div>
           <a href="#hero" className={styles.logo} style={{ fontSize: 18 }}>
-            ⬡ StockFlow
+            <img
+              src="/only-shape-no-bg.png"
+              alt="StockFlow logo"
+              style={{ height: 22, width: 22, marginRight: 6, verticalAlign: "middle" }}
+            />
+            StockFlow
           </a>
           <p className={styles.footerBrandText}>
             Modern inventory management for growing businesses across South Asia.
@@ -555,7 +565,17 @@ function Footer({ onDemoClick }) {
       </div>
       <div className={styles.footerBottom}>
         <span>© 2026 StockFlow. All rights reserved.</span>
-        <span>Built for SMBs in South Asia 🌍</span>
+        <span>
+          Built for SMBs in South Asia 🌍 &nbsp;·&nbsp; Powered by{" "}
+          <a
+            href="https://truerefinedsolutions.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.footerTrsLink}
+          >
+            TRS
+          </a>
+        </span>
       </div>
     </footer>
   );
