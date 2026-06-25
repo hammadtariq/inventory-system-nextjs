@@ -3,7 +3,7 @@ import path from "path";
 
 describe("landing page SEO/GEO metadata", () => {
   it("defines canonical, social, and structured data metadata", () => {
-    const source = fs.readFileSync(path.join(process.cwd(), "pages", "landing.js"), "utf8");
+    const source = fs.readFileSync(path.join(process.cwd(), "pages", "index.js"), "utf8");
 
     expect(source).toContain('rel="canonical"');
     expect(source).toContain('property="og:title"');

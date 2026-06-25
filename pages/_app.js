@@ -12,7 +12,7 @@ const setPermission = () => {
 };
 
 const indexablePublicRoutes = [
-  "/landing",
+  "/",
   "/about",
   "/privacy",
   "/terms",

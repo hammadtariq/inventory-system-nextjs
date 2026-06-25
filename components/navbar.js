@@ -132,7 +132,7 @@ export default function AppNavbar(props = {}) {
           paddingTop: collapsed ? "10px" : "10px",
         }}
       >
-        <Link href="/" passHref>
+        <Link href="/dashboard" passHref>
           <div
             onClick={() => onClickHandler(items[0].url, items[0].id)}
             style={{

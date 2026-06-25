@@ -2,7 +2,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
-const ABOUT_URL = "https://stockflow.app/about";
+const ABOUT_URL = "https://www.treesols.com/about";
 const ABOUT_TITLE = "About StockFlow - Inventory Software for South Asian SMBs";
 const ABOUT_DESCRIPTION =
   "Learn how StockFlow helps South Asian SMBs manage inventory, purchases, sales, ledgers, and reporting in one place.";
@@ -140,10 +140,10 @@ export default function About() {
       <div style={pageStyle}>
         {/* Mini Nav */}
         <nav style={navStyle}>
-          <Link href="/landing" style={logoStyle}>
+          <Link href="/" style={logoStyle}>
             ⬡ StockFlow
           </Link>
-          <Link href="/landing" style={ctaBtnStyle}>
+          <Link href="/" style={ctaBtnStyle}>
             Request a Demo
           </Link>
         </nav>
@@ -216,7 +216,7 @@ export default function About() {
             <p style={{ ...leadStyle, marginBottom: 28 }}>
               Join hundreds of businesses already running smarter with StockFlow.
             </p>
-            <Link href="/landing" style={{ ...ctaBtnStyle, fontSize: 15, padding: "12px 28px" }}>
+            <Link href="/" style={{ ...ctaBtnStyle, fontSize: 15, padding: "12px 28px" }}>
               Request a Demo →
             </Link>
           </motion.div>
@@ -225,7 +225,7 @@ export default function About() {
         {/* Footer Bar */}
         <div style={footerBarStyle}>
           © 2026 StockFlow &nbsp;·&nbsp;{" "}
-          <Link href="/landing" style={{ color: "#6366f1", textDecoration: "none" }}>
+          <Link href="/" style={{ color: "#6366f1", textDecoration: "none" }}>
             Back to Home
           </Link>
         </div>

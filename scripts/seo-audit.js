@@ -1,10 +1,10 @@
 const fs = require("fs");
 const path = require("path");
 
-const siteUrl = "https://stockflow.app";
+const siteUrl = "https://www.treesols.com";
 
 const indexablePages = [
-  { path: "/landing", file: "pages/landing.js", type: "landing" },
+  { path: "/", file: "pages/index.js", type: "landing" },
   { path: "/about", file: "pages/about.js", type: "supporting" },
   { path: "/privacy", file: "pages/privacy.js", type: "supporting" },
   { path: "/terms", file: "pages/terms.js", type: "supporting" },
@@ -58,7 +58,7 @@ function auditSeoState({ cwd = process.cwd() } = {}) {
   const sitemap = read(cwd, "public/sitemap.xml");
   const llms = read(cwd, "public/llms.txt");
   const protectedRoutes = read(cwd, "components/protectedRoutes.js");
-  const landing = read(cwd, "pages/landing.js");
+  const landing = read(cwd, "pages/index.js");
 
   if (!robots.includes(`Sitemap: ${siteUrl}/sitemap.xml`)) {
     addGap(gaps, "critical", "crawlability", "/robots.txt", "robots.txt must advertise the canonical sitemap.");

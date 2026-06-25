@@ -7,7 +7,7 @@ describe("priority query pages", () => {
   it("maps inventory management software queries to an answer-ready page", () => {
     const page = read("pages/inventory-management-software.js");
     const protectedRoutes = read("components/protectedRoutes.js");
-    const landing = read("pages/landing.js");
+    const landing = read("pages/index.js");
     const sitemap = read("public/sitemap.xml");
     const robots = read("public/robots.txt");
 
@@ -19,14 +19,14 @@ describe("priority query pages", () => {
     expect(page).toContain("https://www.ifrs.org/issued-standards/list-of-standards/ias-2-inventories/");
     expect(protectedRoutes).toContain('"/inventory-management-software"');
     expect(landing).toContain('href="/inventory-management-software"');
-    expect(sitemap).toContain("<loc>https://stockflow.app/inventory-management-software</loc>");
+    expect(sitemap).toContain("<loc>https://www.treesols.com/inventory-management-software</loc>");
     expect(robots).toContain("Allow: /inventory-management-software");
   });
 
   it("maps inventory accounting software queries to an answer-ready page", () => {
     const page = read("pages/inventory-accounting-software.js");
     const protectedRoutes = read("components/protectedRoutes.js");
-    const landing = read("pages/landing.js");
+    const landing = read("pages/index.js");
     const sitemap = read("public/sitemap.xml");
     const robots = read("public/robots.txt");
 
@@ -40,14 +40,14 @@ describe("priority query pages", () => {
     expect(page).toContain("https://www.ifrs.org/issued-standards/list-of-standards/ias-2-inventories/");
     expect(protectedRoutes).toContain('"/inventory-accounting-software"');
     expect(landing).toContain('href="/inventory-accounting-software"');
-    expect(sitemap).toContain("<loc>https://stockflow.app/inventory-accounting-software</loc>");
+    expect(sitemap).toContain("<loc>https://www.treesols.com/inventory-accounting-software</loc>");
     expect(robots).toContain("Allow: /inventory-accounting-software");
   });
 
   it("maps South Asia SMB inventory software queries to an answer-ready page", () => {
     const page = read("pages/inventory-software-south-asia.js");
     const protectedRoutes = read("components/protectedRoutes.js");
-    const landing = read("pages/landing.js");
+    const landing = read("pages/index.js");
     const sitemap = read("public/sitemap.xml");
     const robots = read("public/robots.txt");
 
@@ -64,7 +64,7 @@ describe("priority query pages", () => {
     );
     expect(protectedRoutes).toContain('"/inventory-software-south-asia"');
     expect(landing).toContain('href="/inventory-software-south-asia"');
-    expect(sitemap).toContain("<loc>https://stockflow.app/inventory-software-south-asia</loc>");
+    expect(sitemap).toContain("<loc>https://www.treesols.com/inventory-software-south-asia</loc>");
     expect(robots).toContain("Allow: /inventory-software-south-asia");
   });
 });

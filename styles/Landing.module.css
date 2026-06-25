@@ -73,6 +73,33 @@
   color: #6366f1;
 }
 
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.navLoginBtn {
+  background: transparent;
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6366f1;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  font-family: inherit;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.navLoginBtn:hover {
+  background: rgba(99, 102, 241, 0.06);
+  border-color: #6366f1;
+}
+
 .navCta {
   background: linear-gradient(135deg, #6366f1, #7c3aed);
   color: #fff;

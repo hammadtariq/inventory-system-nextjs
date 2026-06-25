@@ -4,9 +4,9 @@ import Spinner from "./spinner";
 import { to } from "@/utils/to.util";
 
 const publicRoutes = new Set([
+  "/",
   "/login",
   "/accept-invite",
-  "/landing",
   "/about",
   "/privacy",
   "/terms",

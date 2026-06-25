@@ -9,7 +9,7 @@ jest.mock("@/hooks/login", () => ({
 describe("ProtectedRoutes", () => {
   it("renders public route content on the initial server render", () => {
     const html = renderToStaticMarkup(
-      <ProtectedRoutes router={{ pathname: "/landing" }}>
+      <ProtectedRoutes router={{ pathname: "/" }}>
         <main>StockFlow landing content</main>
       </ProtectedRoutes>
     );

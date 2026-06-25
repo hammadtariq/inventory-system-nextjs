@@ -8,30 +8,30 @@ describe("SEO discovery files", () => {
     const robots = readPublicFile("robots.txt");
 
     expect(robots).toContain("User-agent: *");
-    expect(robots).toContain("Allow: /landing");
+    expect(robots).toContain("Allow: /");
     expect(robots).toContain("Allow: /llms.txt");
-    expect(robots).toContain("Sitemap: https://stockflow.app/sitemap.xml");
+    expect(robots).toContain("Sitemap: https://www.treesols.com/sitemap.xml");
   });
 
   it("lists indexable public pages in sitemap.xml", () => {
     const sitemap = readPublicFile("sitemap.xml");
 
-    expect(sitemap).toContain("<loc>https://stockflow.app/landing</loc>");
-    expect(sitemap).toContain("<loc>https://stockflow.app/about</loc>");
-    expect(sitemap).toContain("<loc>https://stockflow.app/inventory-management-software</loc>");
-    expect(sitemap).toContain("<loc>https://stockflow.app/inventory-accounting-software</loc>");
-    expect(sitemap).toContain("<loc>https://stockflow.app/inventory-software-south-asia</loc>");
-    expect(sitemap).toContain("<loc>https://stockflow.app/privacy</loc>");
-    expect(sitemap).toContain("<loc>https://stockflow.app/terms</loc>");
+    expect(sitemap).toContain("<loc>https://www.treesols.com/</loc>");
+    expect(sitemap).toContain("<loc>https://www.treesols.com/about</loc>");
+    expect(sitemap).toContain("<loc>https://www.treesols.com/inventory-management-software</loc>");
+    expect(sitemap).toContain("<loc>https://www.treesols.com/inventory-accounting-software</loc>");
+    expect(sitemap).toContain("<loc>https://www.treesols.com/inventory-software-south-asia</loc>");
+    expect(sitemap).toContain("<loc>https://www.treesols.com/privacy</loc>");
+    expect(sitemap).toContain("<loc>https://www.treesols.com/terms</loc>");
   });
 
   it("exposes llms.txt with answer-ready pages and source context", () => {
     const llms = readPublicFile("llms.txt");
 
     expect(llms).toContain("# StockFlow");
-    expect(llms).toContain("https://stockflow.app/inventory-management-software");
-    expect(llms).toContain("https://stockflow.app/inventory-accounting-software");
-    expect(llms).toContain("https://stockflow.app/inventory-software-south-asia");
+    expect(llms).toContain("https://www.treesols.com/inventory-management-software");
+    expect(llms).toContain("https://www.treesols.com/inventory-accounting-software");
+    expect(llms).toContain("https://www.treesols.com/inventory-software-south-asia");
     expect(llms).toContain("https://www.irs.gov/publications/p334");
     expect(llms).toContain("https://www.adb.org/publications/series/asia-small-medium-sized-enterprise-monitor");
   });

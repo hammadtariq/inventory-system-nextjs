@@ -1,5 +1,5 @@
 User-agent: *
-Allow: /landing
+Allow: /$
 Allow: /about
 Allow: /privacy
 Allow: /terms
@@ -9,4 +9,4 @@ Allow: /inventory-software-south-asia
 Allow: /llms.txt
 Disallow: /
 
-Sitemap: https://stockflow.app/sitemap.xml
+Sitemap: https://www.treesols.com/sitemap.xml

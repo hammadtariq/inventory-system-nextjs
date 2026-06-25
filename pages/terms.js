@@ -2,7 +2,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
-const TERMS_URL = "https://stockflow.app/terms";
+const TERMS_URL = "https://www.treesols.com/terms";
 const TERMS_TITLE = "Terms of Service - StockFlow";
 const TERMS_DESCRIPTION = "Read the terms governing use of the StockFlow inventory management and accounting platform.";
 
@@ -121,7 +121,7 @@ const SECTIONS = [
   {
     title: "Account Registration",
     content:
-      "You must provide accurate, complete, and current information when creating an account. You are solely responsible for maintaining the confidentiality of your login credentials and for all activity that occurs under your account. Notify us immediately at legal@stockflow.app if you suspect unauthorized access. Each subscription covers one business entity unless you are enrolled in a multi-company plan (Gold or Platinum). Creating multiple accounts to circumvent plan limits is prohibited.",
+      "You must provide accurate, complete, and current information when creating an account. You are solely responsible for maintaining the confidentiality of your login credentials and for all activity that occurs under your account. Notify us immediately at legal@treesols.com if you suspect unauthorized access. Each subscription covers one business entity unless you are enrolled in a multi-company plan (Gold or Platinum). Creating multiple accounts to circumvent plan limits is prohibited.",
   },
   {
     title: "Subscription and Billing",
@@ -161,7 +161,7 @@ const SECTIONS = [
   {
     title: "Contact",
     content:
-      "For questions about these Terms of Service, legal notices, or compliance matters, please contact our Legal Team at legal@stockflow.app. We aim to respond to all inquiries within 5 business days.",
+      "For questions about these Terms of Service, legal notices, or compliance matters, please contact our Legal Team at legal@treesols.com. We aim to respond to all inquiries within 5 business days.",
   },
 ];
 
@@ -182,10 +182,10 @@ export default function Terms() {
       <div style={pageStyle}>
         {/* Mini Nav */}
         <nav style={navStyle}>
-          <Link href="/landing" style={logoStyle}>
+          <Link href="/" style={logoStyle}>
             ⬡ StockFlow
           </Link>
-          <Link href="/landing" style={ctaBtnStyle}>
+          <Link href="/" style={ctaBtnStyle}>
             Back to Home
           </Link>
         </nav>
@@ -224,7 +224,7 @@ export default function Terms() {
         {/* Footer Bar */}
         <div style={footerBarStyle}>
           © 2026 StockFlow &nbsp;·&nbsp;{" "}
-          <Link href="/landing" style={{ color: "#6366f1", textDecoration: "none" }}>
+          <Link href="/" style={{ color: "#6366f1", textDecoration: "none" }}>
             Back to Home
           </Link>
           &nbsp;·&nbsp;{" "}

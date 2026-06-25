@@ -1,7 +1,7 @@
 import Head from "next/head";
 import Link from "next/link";
 
-const PAGE_URL = "https://stockflow.app/inventory-software-south-asia";
+const PAGE_URL = "https://www.treesols.com/inventory-software-south-asia";
 const PAGE_TITLE = "Inventory Software for South Asian SMBs — StockFlow";
 const PAGE_DESCRIPTION =
   "Inventory software for South Asian SMBs should connect stock, purchases, sales, customer dues, supplier payables, reports, and exports in one workflow.";
@@ -61,7 +61,7 @@ const structuredData = [
       name: "StockFlow",
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web",
-      url: "https://stockflow.app/landing",
+      url: "https://www.treesols.com/",
       description:
         "StockFlow connects inventory, purchases, sales, customer and supplier ledgers, reports, exports, and multi-company workflows for SMBs.",
       areaServed: "South Asia",
@@ -181,11 +181,11 @@ export default function InventorySoftwareSouthAsia() {
       </Head>
       <div style={pageStyle}>
         <nav style={navStyle}>
-          <Link href="/landing" style={{ color: "#3730a3", fontSize: 20, fontWeight: 800, textDecoration: "none" }}>
+          <Link href="/" style={{ color: "#3730a3", fontSize: 20, fontWeight: 800, textDecoration: "none" }}>
             StockFlow
           </Link>
           <Link
-            href="/landing"
+            href="/"
             style={{
               background: "#4f46e5",
               color: "#fff",

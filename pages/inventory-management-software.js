@@ -1,7 +1,7 @@
 import Head from "next/head";
 import Link from "next/link";
 
-const PAGE_URL = "https://stockflow.app/inventory-management-software";
+const PAGE_URL = "https://www.treesols.com/inventory-management-software";
 const PAGE_TITLE = "Inventory Management Software for SMBs — StockFlow";
 const PAGE_DESCRIPTION =
   "Inventory management software helps SMBs track stock, purchases, sales, accounting entries, and reports in one connected workflow.";
@@ -61,7 +61,7 @@ const structuredData = [
       name: "StockFlow",
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web",
-      url: "https://stockflow.app/landing",
+      url: "https://www.treesols.com/",
       description:
         "StockFlow connects inventory tracking, purchases, sales, ledgers, reporting, and exports for growing SMBs.",
     },
@@ -197,10 +197,10 @@ export default function InventoryManagementSoftware() {
       </Head>
       <div style={pageStyle}>
         <nav style={navStyle}>
-          <Link href="/landing" style={logoStyle}>
+          <Link href="/" style={logoStyle}>
             StockFlow
           </Link>
-          <Link href="/landing" style={ctaStyle}>
+          <Link href="/" style={ctaStyle}>
             Request a Demo
           </Link>
         </nav>
