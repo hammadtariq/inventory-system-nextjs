@@ -3,6 +3,7 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import { requireRole, onError } from "@/lib/authz";
 import { STATUS } from "@/utils/api.util";
 import TenantContext from "@/lib/tenant-context";
 
@@ -19,9 +20,7 @@ const cancelPurchaseOrder = async (req, res) => {
   if (error && error && Object.keys(error).length) {
     return res.status(400).send({ message: error.toString() });
   }
-  if (!["ADMIN", "SUPER_ADMIN"].includes(req.user.role)) {
-    return res.status(400).send({ message: "Operation not permitted." });
-  }
+  requireRole("ADMIN", "SUPER_ADMIN")(req.user);
   try {
     await db.dbConnect();
     const organizationId = TenantContext.assertGet();
@@ -40,4 +39,4 @@ const cancelPurchaseOrder = async (req, res) => {
   }
 };
 
-export default nextConnect().use(auth).put(cancelPurchaseOrder);
+export default nextConnect({ onError }).use(auth).put(cancelPurchaseOrder);

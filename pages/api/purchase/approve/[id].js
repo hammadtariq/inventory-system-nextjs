@@ -3,6 +3,7 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import { requireRole, AuthzError, onError } from "@/lib/authz";
 import { SPEND_TYPE, STATUS } from "@/utils/api.util";
 import { balanceQuery } from "@/utils/query.utils";
 import TenantContext from "@/lib/tenant-context";
@@ -36,8 +37,11 @@ const handler = async (req, res) => {
 };
 
 const approvePurchaseOrder = async (id, user) => {
-  if (!["ADMIN", "SUPER_ADMIN"].includes(user.role)) {
-    return { status: 403, body: { message: "Operation not permitted." } };
+  try {
+    requireRole("ADMIN", "SUPER_ADMIN")(user);
+  } catch (err) {
+    if (err instanceof AuthzError) return { status: err.status, body: { message: err.message } };
+    throw err;
   }
 
   let t;
@@ -270,4 +274,4 @@ const hydrateRevisedProducts = (revisionProducts, originalProducts, usesDeltaVal
 };
 
 export { handler, approvePurchaseOrder, updateInventory, updateLedger };
-export default nextConnect().use(auth).put(handler);
+export default nextConnect({ onError }).use(auth).put(handler);

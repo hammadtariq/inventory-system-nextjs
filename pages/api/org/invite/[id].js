@@ -4,6 +4,7 @@ import { UniqueConstraintError } from "sequelize";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import { requireRole, onError } from "@/lib/authz";
 import TenantContext from "@/lib/tenant-context";
 import { buildInviteUrl, createInviteToken, getInviteExpiry, hashInviteToken } from "@/lib/org-onboarding";
 import { sendInviteEmail } from "@/lib/invite-email";
@@ -14,10 +15,7 @@ const apiSchema = Joi.object({
 });
 
 export const resendInvite = async (req, res) => {
-  if (!["ADMIN", "SUPER_ADMIN"].includes(req.user.role)) {
-    return res.status(403).send({ message: "Operation not permitted." });
-  }
-
+  requireRole("ADMIN", "SUPER_ADMIN")(req.user);
   const { error, value } = apiSchema.validate({ id: req.query.id, sendEmail: req.body?.sendEmail });
   if (error && Object.keys(error).length) {
     return res.status(400).send({ message: error.toString() });
@@ -90,4 +88,4 @@ export const resendInvite = async (req, res) => {
   }
 };
 
-export default nextConnect().use(auth).post(resendInvite);
+export default nextConnect({ onError }).use(auth).post(resendInvite);
