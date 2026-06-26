@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Alert, Row, Col, Popconfirm } from "antd";
+import { Alert, Popconfirm } from "antd";
 import dayjs from "dayjs";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
@@ -157,23 +157,20 @@ const PurchaseOrders = () => {
   if (error) return <Alert message={error} type="error" />;
   return (
     <>
-      <AppTitle level={2}>
+      <AppTitle
+        level={2}
+        action={<AppCreateButton url="/purchase/create" />}
+        toolbar={
+          <SearchInput
+            valueKey="companyName"
+            handleSearch={handleSearch}
+            handleSelect={handleSelect}
+            placeholder="search company"
+          />
+        }
+      >
         Purchase Order List
-        <Row justify="space-between">
-          <Col>
-            <SearchInput
-              valueKey="companyName"
-              handleSearch={handleSearch}
-              handleSelect={handleSelect}
-              placeholder="search company"
-            />
-          </Col>
-          <Col>
-            <AppCreateButton url="/purchase/create" />
-          </Col>
-        </Row>
       </AppTitle>
-      <br />
       <AppTable
         isLoading={isLoading}
         rowKey={"id"}

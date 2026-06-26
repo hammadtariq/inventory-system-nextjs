@@ -1,0 +1,13 @@
+.createButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 116px;
+}
+
+@media (max-width: 992px) {
+  .createButton {
+    width: 100%;
+    min-height: 44px;
+  }
+}

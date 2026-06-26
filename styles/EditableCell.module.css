@@ -46,3 +46,17 @@
 .centerAlign {
   text-align: center;
 }
+
+@media (max-width: 992px) {
+  .companyLabel {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .labelWidth {
+    width: auto;
+    font-size: 14px;
+  }
+}

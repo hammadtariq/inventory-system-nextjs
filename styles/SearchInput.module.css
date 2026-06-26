@@ -4,8 +4,32 @@
   gap: 0.25rem;
 }
 .inputWrap {
-  width: 300px;
+  width: min(420px, 100%);
+  max-width: 100%;
 }
 .value2Color {
   color: #6e6e6e;
+}
+
+@media (max-width: 992px) {
+  .inputWrap {
+    display: flex;
+    width: 100%;
+  }
+
+  .inputWrap :global(.ant-select) {
+    flex: 1 1 auto;
+    width: auto !important;
+    min-width: 0;
+  }
+
+  .inputWrap :global(.ant-select-selector) {
+    min-width: 0;
+  }
+
+  .inputWrap :global(.ant-btn) {
+    width: 56px !important;
+    flex: 0 0 56px;
+    padding-inline: 0;
+  }
 }
