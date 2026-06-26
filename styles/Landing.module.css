@@ -169,6 +169,7 @@
   z-index: 99;
   display: flex;
   flex-direction: column;
+  animation: menuFadeIn 0.12s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .mobileLink {
@@ -218,12 +219,17 @@
   font-family: inherit;
   cursor: pointer;
   text-decoration: none;
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
   white-space: nowrap;
 }
 
 .btnPrimary:hover {
   background: var(--accent-hover);
+}
+
+.btnPrimary:active {
+  transform: scale(0.97);
+  transition: transform 80ms ease-out;
 }
 
 .btnPrimary:focus-visible {
@@ -245,12 +251,17 @@
   font-family: inherit;
   cursor: pointer;
   text-decoration: none;
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
   white-space: nowrap;
 }
 
 .btnPrimaryLg:hover {
   background: var(--accent-hover);
+}
+
+.btnPrimaryLg:active {
+  transform: scale(0.97);
+  transition: transform 80ms ease-out;
 }
 
 .btnPrimaryLg:focus-visible {
@@ -417,6 +428,7 @@
   height: 6px;
   border-radius: 50%;
   background: var(--accent-hero);
+  animation: livePulse 2s ease-in-out infinite;
 }
 
 .previewBody {
@@ -563,8 +575,10 @@
   transition: background 0.15s ease;
 }
 
-.featureBlock:hover {
-  background: var(--bg-surface);
+@media (hover: hover) and (pointer: fine) {
+  .featureBlock:hover {
+    background: var(--bg-surface);
+  }
 }
 
 .featureTitle {
@@ -742,12 +756,17 @@
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
-  transition: border-color 0.15s ease, color 0.15s ease;
+  transition: border-color 0.15s ease, color 0.15s ease, transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .planBtnOutline:hover {
   border-color: var(--ink-3);
   color: var(--ink-1);
+}
+
+.planBtnOutline:active {
+  transform: scale(0.97);
+  transition: transform 80ms ease-out;
 }
 
 .planBtnOutline:focus-visible {
@@ -767,11 +786,16 @@
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .planBtnFill:hover {
   background: var(--accent-hover);
+}
+
+.planBtnFill:active {
+  transform: scale(0.97);
+  transition: transform 80ms ease-out;
 }
 
 .planBtnFill:focus-visible {
@@ -958,7 +982,7 @@
   width: 18px;
   height: 18px;
   color: var(--ink-3);
-  transition: transform 0.22s ease;
+  transition: transform 220ms ease-in-out;
 }
 
 .faqChevronOpen {
@@ -968,11 +992,12 @@
 .faqBody {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 0.28s ease;
+  transition: grid-template-rows 180ms ease-in-out;
 }
 
 .faqBodyOpen {
   grid-template-rows: 1fr;
+  transition: grid-template-rows 240ms ease-out;
 }
 
 .faqBodyInner {
@@ -1253,11 +1278,16 @@
   cursor: pointer;
   font-family: inherit;
   margin-top: 8px;
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .formSubmit:hover {
   background: var(--accent-hover);
+}
+
+.formSubmit:active {
+  transform: scale(0.97);
+  transition: transform 80ms ease-out;
 }
 
 .formSubmit:focus-visible {
@@ -1284,6 +1314,27 @@
     transform: translateY(36px);
   }
   to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes livePulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes menuFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
     transform: translateY(0);
   }
 }
@@ -1383,5 +1434,10 @@
   .formSelect,
   .formSubmit {
     transition: none;
+  }
+
+  .previewLiveDot,
+  .mobileMenu {
+    animation: none;
   }
 }
