@@ -3,6 +3,9 @@
 # Superpowers brainstorm sessions
 .superpowers/
 
+.claude/skills/impeccable/*
+.github/skills/impeccable/*
+
 # dependencies
 /node_modules
 /.pnp

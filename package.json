@@ -5,7 +5,7 @@
     "node": "22.x"
   },
   "scripts": {
-    "dev": "node --max-old-space-size=8192 ./node_modules/next/dist/bin/next",
+    "dev": "next dev --webpack",
     "build": "next build --webpack",
     "build:test": "next build --webpack && jest --watchman=false",
     "db:migrate": "node scripts/run-migrations.js",
