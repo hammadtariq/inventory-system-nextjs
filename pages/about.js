@@ -7,9 +7,9 @@ import PublicFooter from "@/components/PublicFooter";
 import PublicDemoModal from "@/components/PublicDemoModal";
 
 const ABOUT_URL = "https://www.treesols.com/about";
-const ABOUT_TITLE = "About StockFlow - Inventory Software for South Asian SMBs";
+const ABOUT_TITLE = "About TSO by TRS - Inventory Software for South Asian SMBs";
 const ABOUT_DESCRIPTION =
-  "Learn how StockFlow helps South Asian SMBs manage inventory, purchases, sales, ledgers, and reporting in one place.";
+  "Learn how TSO by TRS helps South Asian SMBs manage inventory, purchases, sales, ledgers, and reporting in one place.";
 
 const VALUE_PROPS = [
   {
@@ -44,7 +44,7 @@ export default function About() {
         <meta name="robots" content="index,follow" />
         <link rel="canonical" href={ABOUT_URL} />
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="StockFlow" />
+        <meta property="og:site_name" content="TSO by TRS" />
         <meta property="og:title" content={ABOUT_TITLE} />
         <meta property="og:description" content={ABOUT_DESCRIPTION} />
         <meta property="og:url" content={ABOUT_URL} />
@@ -75,10 +75,10 @@ export default function About() {
                 maxWidth: 680,
               }}
             >
-              StockFlow is an all-in-one inventory and operations platform built specifically for South Asian SMBs. We
-              believe that growing businesses deserve the same powerful tools as large enterprises — without the
-              enterprise price tag or complexity. From tracking stock levels to reconciling payments, StockFlow handles
-              the operational heavy lifting so you can focus on what matters: running your business.
+              TSO is an all-in-one inventory and operations platform built specifically for South Asian SMBs. We believe
+              that growing businesses deserve the same powerful tools as large enterprises — without the enterprise
+              price tag or complexity. From tracking stock levels to reconciling payments, TSO handles the operational
+              heavy lifting so you can focus on what matters: running your business.
             </p>
           </motion.div>
 
@@ -105,12 +105,13 @@ export default function About() {
               >
                 <p
                   style={{
-                    fontSize: 13,
+                    fontFamily: '"Bricolage Grotesque", sans-serif',
+                    fontSize: 15,
                     fontWeight: 700,
-                    color: "var(--accent)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.06em",
+                    color: "var(--ink-1)",
+                    letterSpacing: "-0.015em",
                     marginBottom: 8,
+                    marginTop: 0,
                   }}
                 >
                   {title}
@@ -144,7 +145,7 @@ export default function About() {
               Ready to see it in action?
             </h2>
             <p style={{ fontSize: 16, color: "var(--ink-2)", lineHeight: 1.65, marginBottom: 28 }}>
-              Join hundreds of businesses already running smarter with StockFlow.
+              Join hundreds of businesses already running smarter with TSO by TRS.
             </p>
             <button className={styles.btnPrimaryLg} onClick={openDemo}>
               Request a demo →

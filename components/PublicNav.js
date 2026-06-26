@@ -31,7 +31,7 @@ export default function PublicNav({ onDemoClick, alwaysLight = false, hrefPrefix
           height={30}
           className={styles.navLogoImg}
         />
-        StockFlow
+        TSO
       </Link>
       <ul className={styles.navLinks} role="list">
         <li>
@@ -74,14 +74,19 @@ export default function PublicNav({ onDemoClick, alwaysLight = false, hrefPrefix
       </button>
       {mobileOpen && (
         <div id="mobile-nav" className={styles.mobileMenu}>
-          {["features", "pricing", "testimonials", "faq"].map((id) => (
+          {[
+            { id: "features", label: "Features" },
+            { id: "pricing", label: "Pricing" },
+            { id: "testimonials", label: "Testimonials" },
+            { id: "faq", label: "FAQ" },
+          ].map(({ id, label }) => (
             <Link
               key={id}
               href={`${hrefPrefix}#${id}`}
               className={styles.mobileLink}
               onClick={() => setMobileOpen(false)}
             >
-              {id.charAt(0).toUpperCase() + id.slice(1)}
+              {label}
             </Link>
           ))}
           <div className={styles.mobileDivider} />

@@ -7,7 +7,7 @@ import PublicFooter from "@/components/PublicFooter";
 import PublicDemoModal from "@/components/PublicDemoModal";
 
 const PAGE_URL = "https://www.treesols.com/inventory-software-south-asia";
-const PAGE_TITLE = "Inventory Software for South Asian SMBs — StockFlow";
+const PAGE_TITLE = "Inventory Software for South Asian SMBs — TSO by TRS";
 const PAGE_DESCRIPTION =
   "Inventory software for South Asian SMBs should connect stock, purchases, sales, customer dues, supplier payables, reports, and exports in one workflow.";
 
@@ -44,8 +44,8 @@ const faqs = [
     a: "Many South Asian SMBs run lean teams, relationship-based supplier and customer workflows, and frequent payment follow-ups. Software should make dues, stock movement, and ledgers visible without forcing teams into complex enterprise systems.",
   },
   {
-    q: "Is StockFlow built for South Asian SMB operations?",
-    a: "Yes. StockFlow is designed around inventory, purchases, sales, customer and supplier ledgers, reports, exports, and multi-company workflows for growing SMBs across South Asia.",
+    q: "Is TSO built for South Asian SMB operations?",
+    a: "Yes. TSO is designed around inventory, purchases, sales, customer and supplier ledgers, reports, exports, and multi-company workflows for growing SMBs across South Asia.",
   },
   {
     q: "What is the first workflow to digitize?",
@@ -76,12 +76,12 @@ const structuredData = [
     about: ["Inventory software South Asia", "SMB inventory management", "Inventory accounting software"],
     mainEntity: {
       "@type": "SoftwareApplication",
-      name: "StockFlow",
+      name: "TSO",
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web",
       url: "https://www.treesols.com/",
       description:
-        "StockFlow connects inventory, purchases, sales, customer and supplier ledgers, reports, exports, and multi-company workflows for SMBs.",
+        "TSO connects inventory, purchases, sales, customer and supplier ledgers, reports, exports, and multi-company workflows for SMBs.",
       areaServed: "South Asia",
     },
   },
@@ -109,13 +109,13 @@ const h1Style = {
   fontSize: 46,
   lineHeight: 1.08,
   margin: "0 0 18px",
-  color: "#111827",
+  color: "var(--ink-1)",
 };
 
 const leadStyle = {
   fontSize: 19,
   lineHeight: 1.75,
-  color: "#475569",
+  color: "var(--ink-2)",
   maxWidth: 820,
 };
 
@@ -126,19 +126,19 @@ const sectionStyle = {
 const h2Style = {
   fontSize: 27,
   margin: "0 0 16px",
-  color: "#111827",
+  color: "var(--ink-1)",
 };
 
 const h3Style = {
   fontSize: 17,
   margin: "0 0 8px",
-  color: "#1e1b4b",
+  color: "var(--ink-1)",
 };
 
 const pStyle = {
   fontSize: 15,
   lineHeight: 1.75,
-  color: "#334155",
+  color: "var(--ink-2)",
   margin: 0,
 };
 
@@ -149,8 +149,8 @@ const gridStyle = {
 };
 
 const cardStyle = {
-  background: "rgba(255,255,255,0.76)",
-  border: "1px solid rgba(148,163,184,0.24)",
+  background: "var(--bg-surface)",
+  border: "1px solid var(--border)",
   borderRadius: 8,
   padding: "22px",
 };
@@ -159,7 +159,7 @@ const listStyle = {
   display: "grid",
   gap: 12,
   paddingLeft: 20,
-  color: "#334155",
+  color: "var(--ink-2)",
   lineHeight: 1.7,
 };
 
@@ -180,7 +180,7 @@ export default function InventorySoftwareSouthAsia() {
         <meta name="robots" content="index,follow" />
         <link rel="canonical" href={PAGE_URL} />
         <meta property="og:type" content="article" />
-        <meta property="og:site_name" content="StockFlow" />
+        <meta property="og:site_name" content="TSO by TRS" />
         <meta property="og:title" content={PAGE_TITLE} />
         <meta property="og:description" content={PAGE_DESCRIPTION} />
         <meta property="og:url" content={PAGE_URL} />
@@ -192,7 +192,7 @@ export default function InventorySoftwareSouthAsia() {
       <div className={styles.page}>
         <PublicNav onDemoClick={openDemo} alwaysLight hrefPrefix="/" />
         <main style={containerStyle}>
-          <p style={{ ...pStyle, color: "#4f46e5", fontWeight: 800, marginBottom: 12 }}>South Asia SMB guide</p>
+          <p style={{ ...pStyle, color: "var(--accent)", fontWeight: 800, marginBottom: 12 }}>South Asia SMB guide</p>
           <h1 style={h1Style}>Inventory software for South Asian SMBs</h1>
           <p style={leadStyle}>
             Inventory software for South Asian SMBs should fit how growing distributors, wholesalers, retailers, and
@@ -210,7 +210,7 @@ export default function InventorySoftwareSouthAsia() {
           </section>
 
           <section style={sectionStyle}>
-            <h2 style={h2Style}>Regional workflows StockFlow supports</h2>
+            <h2 style={h2Style}>Regional workflows TSO supports</h2>
             <div style={gridStyle}>
               <div style={cardStyle}>
                 <h3 style={h3Style}>Customer and supplier dues</h3>
@@ -269,7 +269,7 @@ export default function InventorySoftwareSouthAsia() {
             <ul style={listStyle}>
               {sources.map(({ name, href, note }) => (
                 <li key={href}>
-                  <a href={href} rel="nofollow" style={{ color: "#4f46e5", fontWeight: 700 }}>
+                  <a href={href} rel="nofollow" style={{ color: "var(--accent)", fontWeight: 700 }}>
                     {name}
                   </a>
                   : {note}

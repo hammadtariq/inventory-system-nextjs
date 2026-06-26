@@ -24,7 +24,7 @@ describe("priority query pages", () => {
     expectInternalLink(page, "/inventory-accounting-software");
     expectInternalLink(page, "/inventory-software-south-asia");
     expect(protectedRoutes).toContain('"/inventory-management-software"');
-    expect(landing).toContain('href="/inventory-management-software"');
+    expectInternalLink(landing, "/inventory-management-software");
     expect(sitemap).toContain("<loc>https://www.treesols.com/inventory-management-software</loc>");
     expect(robots).toContain("Allow: /inventory-management-software");
   });
@@ -47,7 +47,7 @@ describe("priority query pages", () => {
     expectInternalLink(page, "/inventory-management-software");
     expectInternalLink(page, "/inventory-software-south-asia");
     expect(protectedRoutes).toContain('"/inventory-accounting-software"');
-    expect(landing).toContain('href="/inventory-accounting-software"');
+    expectInternalLink(landing, "/inventory-accounting-software");
     expect(sitemap).toContain("<loc>https://www.treesols.com/inventory-accounting-software</loc>");
     expect(robots).toContain("Allow: /inventory-accounting-software");
   });
@@ -73,7 +73,7 @@ describe("priority query pages", () => {
     expectInternalLink(page, "/inventory-management-software");
     expectInternalLink(page, "/inventory-accounting-software");
     expect(protectedRoutes).toContain('"/inventory-software-south-asia"');
-    expect(landing).toContain('href="/inventory-software-south-asia"');
+    expectInternalLink(landing, "/inventory-software-south-asia");
     expect(sitemap).toContain("<loc>https://www.treesols.com/inventory-software-south-asia</loc>");
     expect(robots).toContain("Allow: /inventory-software-south-asia");
   });

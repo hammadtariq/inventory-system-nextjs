@@ -64,7 +64,7 @@ function HeroPreview() {
               <span className={styles.previewDot} />
               <span className={styles.previewDot} />
             </div>
-            <span className={styles.previewTitle}>StockFlow · Inventory</span>
+            <span className={styles.previewTitle}>TSO · Inventory</span>
           </div>
           <div className={styles.previewLive}>
             <span className={styles.previewLiveDot} />
@@ -165,6 +165,24 @@ const FEATURES = [
   },
 ];
 
+const PRIORITY_GUIDES = [
+  {
+    href: "/inventory-management-software",
+    title: "Inventory management software",
+    desc: "Understand how SMBs track stock, purchases, sales, costs, reports, and exports in one workflow.",
+  },
+  {
+    href: "/inventory-accounting-software",
+    title: "Inventory accounting software",
+    desc: "See how inventory connects with dues, payments, ledgers, receivables, payables, and cash flow.",
+  },
+  {
+    href: "/inventory-software-south-asia",
+    title: "Inventory software for South Asian SMBs",
+    desc: "Compare the workflows distributors, retailers, wholesalers, and trading teams need across South Asia.",
+  },
+];
+
 function Features() {
   const rm = useReducedMotion();
   return (
@@ -177,7 +195,7 @@ function Features() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.4 }}
         >
-          <h2 className={styles.sectionHeading}>What StockFlow handles</h2>
+          <h2 className={styles.sectionHeading}>What TSO handles</h2>
           <p className={styles.sectionSubLeft}>
             From the purchase order to the bank reconciliation. Everything your accountant wants to see, always up to
             date.
@@ -199,6 +217,123 @@ function Features() {
             </motion.div>
           ))}
         </div>
+      </div>
+    </section>
+  );
+}
+
+function Guides() {
+  const rm = useReducedMotion();
+  return (
+    <section className={styles.section} id="guides">
+      <div className={styles.inner}>
+        <motion.div
+          className={styles.featuresHead}
+          variants={fadeUp}
+          initial={rm ? false : "hidden"}
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.4 }}
+        >
+          <h2 className={styles.sectionHeading}>Explore the inventory guides</h2>
+          <p className={styles.sectionSubLeft}>
+            Answer-ready pages for the buying questions teams ask before choosing an inventory and accounting system.
+          </p>
+        </motion.div>
+        <div className={styles.guidesGrid}>
+          {PRIORITY_GUIDES.map(({ href, title, desc }, i) => (
+            <motion.div
+              key={href}
+              variants={fadeUp}
+              initial={rm ? false : "hidden"}
+              whileInView="visible"
+              custom={i}
+              viewport={{ once: true, amount: 0.2 }}
+            >
+              <Link href={href} className={styles.guideCard}>
+                <h3 className={styles.guideTitle}>{title}</h3>
+                <p className={styles.guideDesc}>{desc}</p>
+                <span className={styles.guideArrow}>Read guide →</span>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── HOW IT WORKS ── */
+const STEPS = [
+  {
+    step: "1",
+    title: "Create a purchase order",
+    desc: "Add products, quantities, and supplier. Route for approval if needed. Every order is logged against your inventory immediately.",
+  },
+  {
+    step: "2",
+    title: "Stock updates automatically",
+    desc: "Every approved purchase and sale adjusts your live inventory counts. No manual entries, no month-end reconciliation surprises.",
+  },
+  {
+    step: "3",
+    title: "Ledger posts instantly",
+    desc: "Each transaction generates the matching double-entry. Payables, receivables, and trial balance stay current without extra work.",
+  },
+];
+
+const BUILT_FOR = ["Wholesale distributors", "Garment & textile traders", "Import/export businesses", "Retail chains"];
+
+function HowItWorks() {
+  const rm = useReducedMotion();
+  return (
+    <section className={styles.section} id="how-it-works">
+      <div className={styles.inner}>
+        <motion.div
+          className={styles.featuresHead}
+          variants={fadeUp}
+          initial={rm ? false : "hidden"}
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.4 }}
+        >
+          <h2 className={styles.sectionHeading}>From order to ledger in minutes</h2>
+          <p className={styles.sectionSubLeft}>
+            Every step is connected. A purchase updates stock; stock changes post to the ledger — automatically.
+          </p>
+        </motion.div>
+        <div className={styles.howItWorksFlow}>
+          {STEPS.map(({ step, title, desc }, i) => (
+            <motion.div
+              key={step}
+              className={styles.howItWorksStep}
+              variants={fadeUp}
+              initial={rm ? false : "hidden"}
+              whileInView="visible"
+              custom={i}
+              viewport={{ once: true, amount: 0.2 }}
+            >
+              <div className={styles.howItWorksNum} aria-hidden="true">
+                {step}
+              </div>
+              <h3 className={styles.howItWorksTitle}>{title}</h3>
+              <p className={styles.howItWorksDesc}>{desc}</p>
+            </motion.div>
+          ))}
+        </div>
+        <motion.div
+          className={styles.builtForStrip}
+          variants={fadeUp}
+          initial={rm ? false : "hidden"}
+          whileInView="visible"
+          custom={3}
+          viewport={{ once: true, amount: 0.5 }}
+        >
+          <span className={styles.builtForIntro}>Built for</span>
+          {BUILT_FOR.map((label) => (
+            <span key={label} className={styles.builtForPill}>
+              {label}
+            </span>
+          ))}
+        </motion.div>
       </div>
     </section>
   );
@@ -358,8 +493,8 @@ function Testimonials() {
               &ldquo;
             </span>
             <blockquote className={styles.testimonialQuoteFeatured}>
-              StockFlow saved us 15 hours a week on reconciliation. GST compliance used to be a Friday nightmare — now
-              it takes twenty minutes. Our accountant actually approved the switch.
+              TSO saved us 15 hours a week on reconciliation. GST compliance used to be a Friday nightmare — now it
+              takes twenty minutes. Our accountant actually approved the switch.
             </blockquote>
             <div className={styles.testimonialAuthor}>
               <div className={styles.testimonialAvatar} aria-hidden="true">
@@ -425,6 +560,29 @@ function Testimonials() {
   );
 }
 
+/* ── SOFT CTA ── */
+function SoftCta({ onDemoClick }) {
+  const rm = useReducedMotion();
+  return (
+    <div className={styles.midCtaBar}>
+      <motion.div
+        className={styles.midCtaBarInner}
+        variants={fadeUp}
+        initial={rm ? false : "hidden"}
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.5 }}
+      >
+        <p className={styles.midCtaText}>
+          Hundreds of growing businesses across South Asia already replaced their spreadsheets with StockFlow.
+        </p>
+        <button className={styles.btnPrimary} onClick={onDemoClick}>
+          Request a demo →
+        </button>
+      </motion.div>
+    </div>
+  );
+}
+
 /* ── FAQ ── */
 const ChevronIcon = ({ className }) => (
   <svg className={className} viewBox="0 0 18 18" fill="none" aria-hidden="true">
@@ -463,7 +621,7 @@ const FAQS = [
 
 function Faq({ openFaq, setOpenFaq }) {
   return (
-    <section className={styles.section} id="faq">
+    <section className={`${styles.section} ${styles.sectionAlt}`} id="faq">
       <div className={styles.inner}>
         <h2 className={styles.sectionHeading}>Common questions</h2>
         <div className={styles.faqList}>
@@ -512,7 +670,7 @@ function FinalCta({ onDemoClick }) {
     >
       <h2 className={styles.finalCtaHeading}>See it working in your business.</h2>
       <p className={styles.finalCtaSub}>
-        Join hundreds of businesses across South Asia that replaced their spreadsheets with StockFlow.
+        Join hundreds of businesses across South Asia that replaced their spreadsheets with TSO.
       </p>
       <button className={styles.btnPrimaryLg} onClick={onDemoClick}>
         Request a demo →
@@ -523,9 +681,9 @@ function FinalCta({ onDemoClick }) {
 
 /* ── SEO ── */
 const LANDING_URL = "https://www.treesols.com/";
-const LANDING_TITLE = "StockFlow — Inventory Management for Modern Businesses";
+const LANDING_TITLE = "TSO by TRS — Inventory Management for Modern Businesses";
 const LANDING_DESCRIPTION =
-  "StockFlow brings real-time inventory tracking, integrated accounting, and smart order management for SMBs.";
+  "TSO by TRS brings real-time inventory tracking, integrated accounting, and smart order management for SMBs.";
 
 const PLANS_FOR_SCHEMA = PLANS.map((p) => ({
   "@type": "Offer",
@@ -540,7 +698,7 @@ const landingStructuredData = [
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    name: "StockFlow",
+    name: "TSO",
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
     url: LANDING_URL,
@@ -550,7 +708,7 @@ const landingStructuredData = [
   {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "StockFlow",
+    name: "TSO by TRS",
     url: "https://www.treesols.com",
     description: "Inventory, accounting, purchasing, sales, ledger, and reporting software for growing SMBs.",
   },
@@ -594,7 +752,7 @@ export default function Landing() {
         <meta name="robots" content="index,follow" />
         <link rel="canonical" href={LANDING_URL} />
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="StockFlow" />
+        <meta property="og:site_name" content="TSO by TRS" />
         <meta property="og:title" content={LANDING_TITLE} />
         <meta property="og:description" content={LANDING_DESCRIPTION} />
         <meta property="og:url" content={LANDING_URL} />
@@ -612,9 +770,12 @@ export default function Landing() {
         <PublicNav onDemoClick={openDemo} />
         <main>
           <Hero onDemoClick={openDemo} />
+          <HowItWorks />
           <Features />
-          <Pricing onDemoClick={openDemo} />
+          <Guides />
           <Testimonials />
+          <SoftCta onDemoClick={openDemo} />
+          <Pricing onDemoClick={openDemo} />
           <Faq openFaq={openFaq} setOpenFaq={setOpenFaq} />
           <FinalCta onDemoClick={openDemo} />
         </main>

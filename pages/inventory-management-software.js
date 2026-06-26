@@ -7,7 +7,7 @@ import PublicFooter from "@/components/PublicFooter";
 import PublicDemoModal from "@/components/PublicDemoModal";
 
 const PAGE_URL = "https://www.treesols.com/inventory-management-software";
-const PAGE_TITLE = "Inventory Management Software for SMBs — StockFlow";
+const PAGE_TITLE = "Inventory Management Software for SMBs — TSO by TRS";
 const PAGE_DESCRIPTION =
   "Inventory management software helps SMBs track stock, purchases, sales, accounting entries, and reports in one connected workflow.";
 
@@ -48,8 +48,8 @@ const faqs = [
     a: "Inventory and accounting connect through purchase costs, sales revenue, receivables, payables, customer ledgers, supplier ledgers, and stock valuation. A connected system reduces duplicate entry and makes profitability easier to review.",
   },
   {
-    q: "Is StockFlow built for inventory and accounting together?",
-    a: "Yes. StockFlow combines inventory, purchases, sales, ledger workflows, customer and supplier balances, reporting, and exports for SMBs that need operational and accounting visibility in one web app.",
+    q: "Is TSO built for inventory and accounting together?",
+    a: "Yes. TSO combines inventory, purchases, sales, ledger workflows, customer and supplier balances, reporting, and exports for SMBs that need operational and accounting visibility in one web app.",
   },
 ];
 
@@ -76,12 +76,12 @@ const structuredData = [
     about: ["Inventory management software", "Inventory accounting", "Small business stock control"],
     mainEntity: {
       "@type": "SoftwareApplication",
-      name: "StockFlow",
+      name: "TSO",
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web",
       url: "https://www.treesols.com/",
       description:
-        "StockFlow connects inventory tracking, purchases, sales, ledgers, reporting, and exports for growing SMBs.",
+        "TSO connects inventory tracking, purchases, sales, ledgers, reporting, and exports for growing SMBs.",
     },
   },
   {
@@ -108,13 +108,13 @@ const h1Style = {
   fontSize: 46,
   lineHeight: 1.08,
   margin: "0 0 18px",
-  color: "#111827",
+  color: "var(--ink-1)",
 };
 
 const leadStyle = {
   fontSize: 19,
   lineHeight: 1.75,
-  color: "#475569",
+  color: "var(--ink-2)",
   maxWidth: 780,
 };
 
@@ -129,8 +129,8 @@ const cardGridStyle = {
 };
 
 const cardStyle = {
-  background: "rgba(255,255,255,0.76)",
-  border: "1px solid rgba(148,163,184,0.24)",
+  background: "var(--bg-surface)",
+  border: "1px solid var(--border)",
   borderRadius: 8,
   padding: "22px",
 };
@@ -138,19 +138,19 @@ const cardStyle = {
 const h2Style = {
   fontSize: 27,
   margin: "0 0 16px",
-  color: "#111827",
+  color: "var(--ink-1)",
 };
 
 const h3Style = {
   fontSize: 17,
   margin: "0 0 8px",
-  color: "#1e1b4b",
+  color: "var(--ink-1)",
 };
 
 const pStyle = {
   fontSize: 15,
   lineHeight: 1.75,
-  color: "#334155",
+  color: "var(--ink-2)",
   margin: 0,
 };
 
@@ -158,7 +158,7 @@ const listStyle = {
   display: "grid",
   gap: 12,
   paddingLeft: 20,
-  color: "#334155",
+  color: "var(--ink-2)",
   lineHeight: 1.7,
 };
 
@@ -179,7 +179,7 @@ export default function InventoryManagementSoftware() {
         <meta name="robots" content="index,follow" />
         <link rel="canonical" href={PAGE_URL} />
         <meta property="og:type" content="article" />
-        <meta property="og:site_name" content="StockFlow" />
+        <meta property="og:site_name" content="TSO by TRS" />
         <meta property="og:title" content={PAGE_TITLE} />
         <meta property="og:description" content={PAGE_DESCRIPTION} />
         <meta property="og:url" content={PAGE_URL} />
@@ -191,12 +191,14 @@ export default function InventoryManagementSoftware() {
       <div className={styles.page}>
         <PublicNav onDemoClick={openDemo} alwaysLight hrefPrefix="/" />
         <main style={containerStyle}>
-          <p style={{ ...pStyle, color: "#4f46e5", fontWeight: 800, marginBottom: 12 }}>Inventory software guide</p>
+          <p style={{ ...pStyle, color: "var(--accent)", fontWeight: 800, marginBottom: 12 }}>
+            Inventory software guide
+          </p>
           <h1 style={h1Style}>Inventory management software for small and growing businesses</h1>
           <p style={leadStyle}>
             Inventory management software helps SMBs know what is in stock, what is committed to customers, what needs
-            to be reordered, and how purchases and sales affect cash flow. StockFlow is built for teams that want
-            inventory, accounting, ledgers, reports, and exports in one workflow instead of scattered spreadsheets.
+            to be reordered, and how purchases and sales affect cash flow. TSO is built for teams that want inventory,
+            accounting, ledgers, reports, and exports in one workflow instead of scattered spreadsheets.
           </p>
 
           <section style={sectionStyle}>
@@ -209,7 +211,7 @@ export default function InventoryManagementSoftware() {
           </section>
 
           <section style={sectionStyle}>
-            <h2 style={h2Style}>When StockFlow is a fit</h2>
+            <h2 style={h2Style}>When TSO is a fit</h2>
             <div style={cardGridStyle}>
               <div style={cardStyle}>
                 <h3 style={h3Style}>Inventory and orders</h3>
@@ -266,7 +268,7 @@ export default function InventoryManagementSoftware() {
             <ul style={listStyle}>
               {sources.map(({ name, href, note }) => (
                 <li key={href}>
-                  <a href={href} rel="nofollow" style={{ color: "#4f46e5", fontWeight: 700 }}>
+                  <a href={href} rel="nofollow" style={{ color: "var(--accent)", fontWeight: 700 }}>
                     {name}
                   </a>
                   : {note}

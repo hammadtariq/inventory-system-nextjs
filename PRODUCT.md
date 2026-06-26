@@ -6,15 +6,15 @@ brand
 
 ## Users
 
-**Landing page (founders / decision-makers):** Small business owners in South Asia — Pakistan, India, Bangladesh — who are currently tracking inventory in spreadsheets or aging ERP software. They are evaluating StockFlow to replace a painful status quo. They need to feel confident in 30 seconds that this is serious, trustworthy software that won't embarrass them in front of their accountant.
+**Landing page (founders / decision-makers):** Small business owners in South Asia — Pakistan, India, Bangladesh — who are currently tracking inventory in spreadsheets or aging ERP software. They are evaluating TSO to replace a painful status quo. They need to feel confident in 30 seconds that this is serious, trustworthy software that won't embarrass them in front of their accountant.
 
 **App UI (ops + finance managers):** Operations leads and finance managers who use the product daily. They are doing purchase orders, reconciling ledger entries, checking stock levels, and generating reports. Their context is a desktop browser during business hours. Speed and clarity matter more than polish — they want to get in, do the task, get out.
 
 ## Product Purpose
 
-StockFlow is an inventory management and accounting platform for growing SMBs in South Asia. It replaces the spreadsheet + manual-ledger workflow with real-time stock tracking, purchase order approvals, an integrated double-entry ledger, cheque tracking, multi-company support, and reporting. The goal is to make a business owner feel like they have a finance team without hiring one.
+TSO is an inventory management and accounting platform for growing SMBs in South Asia. It replaces the spreadsheet + manual-ledger workflow with real-time stock tracking, purchase order approvals, an integrated double-entry ledger, cheque tracking, multi-company support, and reporting. The goal is to make a business owner feel like they have a finance team without hiring one.
 
-Success looks like: a founder in Lahore who used to spend Fridays reconciling spreadsheets now spends 20 minutes on StockFlow and has confidence in their numbers.
+Success looks like: a founder in Lahore who used to spend Fridays reconciling spreadsheets now spends 20 minutes on TSO and has confidence in their numbers.
 
 ## Brand Personality
 
@@ -36,7 +36,7 @@ Success looks like: a founder in Lahore who used to spend Fridays reconciling sp
 ## Design Principles
 
 1. **Trust through clarity** — every screen should make the user feel informed, not overwhelmed. If something is unclear, simplify it rather than decorating around it.
-2. **Restraint is the brand** — the current landing page overuses glass, gradients, and animation. StockFlow's visual confidence comes from typography and whitespace, not effects.
+2. **Restraint is the brand** — the current landing page overuses glass, gradients, and animation. TSO's visual confidence comes from typography and whitespace, not effects.
 3. **Show capability, don't claim it** — avoid superlatives ("world-class", "powerful") in copy and in design. Let the actual feature list and UX prove it.
 4. **South Asia context is a feature** — PKR amounts, local business roles (proprietor, accounts manager), regional compliance (GST, tax treatment) make this software feel built-for-us, not localized-for-us.
 5. **App screens earn their density** — the dashboard and data tables can be information-dense; that's expected in a business tool. The landing page earns attention with breathing room and hierarchy.

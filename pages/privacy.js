@@ -7,15 +7,15 @@ import PublicFooter from "@/components/PublicFooter";
 import PublicDemoModal from "@/components/PublicDemoModal";
 
 const PRIVACY_URL = "https://www.treesols.com/privacy";
-const PRIVACY_TITLE = "Privacy Policy - StockFlow";
+const PRIVACY_TITLE = "Privacy Policy - TSO by TRS";
 const PRIVACY_DESCRIPTION =
-  "Learn how StockFlow collects, uses, stores, and protects data for its inventory management platform.";
+  "Learn how TSO by TRS collects, uses, stores, and protects data for its inventory management platform.";
 
 const SECTIONS = [
   {
     title: "Introduction",
     content:
-      'StockFlow ("we", "us", or "our") operates the StockFlow inventory management platform accessible at treesols.com. This Privacy Policy explains how we collect, use, store, and protect your personal data when you use our services. By using StockFlow, you agree to the practices described in this policy.',
+      'TSO by TRS ("we", "us", or "our") operates the TSO by TRS inventory management platform accessible at treesols.com. This Privacy Policy explains how we collect, use, store, and protect your personal data when you use our services. By using TSO by TRS, you agree to the practices described in this policy.',
   },
   {
     title: "Information We Collect",
@@ -25,7 +25,7 @@ const SECTIONS = [
   {
     title: "How We Use Your Information",
     content:
-      "We use your information to: provide, maintain, and improve the StockFlow service; send transactional and account-related emails (invoices, password resets, security alerts); respond to support requests and resolve issues; analyze usage patterns to guide product development; comply with legal obligations and enforce our Terms of Service.",
+      "We use your information to: provide, maintain, and improve the TSO by TRS service; send transactional and account-related emails (invoices, password resets, security alerts); respond to support requests and resolve issues; analyze usage patterns to guide product development; comply with legal obligations and enforce our Terms of Service.",
   },
   {
     title: "Data Storage and Security",
@@ -35,7 +35,7 @@ const SECTIONS = [
   {
     title: "Data Sharing",
     content:
-      "We do not sell, rent, or trade your personal data to third parties. We may share data with trusted service providers (such as cloud hosting and payment processors) who process data on our behalf under data processing agreements that comply with applicable privacy laws. We may disclose data if required by law, court order, or to protect the rights and safety of StockFlow and its users.",
+      "We do not sell, rent, or trade your personal data to third parties. We may share data with trusted service providers (such as cloud hosting and payment processors) who process data on our behalf under data processing agreements that comply with applicable privacy laws. We may disclose data if required by law, court order, or to protect the rights and safety of TSO by TRS and its users.",
   },
   {
     title: "Your Rights (GDPR)",
@@ -82,7 +82,7 @@ export default function Privacy() {
         <meta name="robots" content="index,follow" />
         <link rel="canonical" href={PRIVACY_URL} />
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="StockFlow" />
+        <meta property="og:site_name" content="TSO by TRS" />
         <meta property="og:title" content={PRIVACY_TITLE} />
         <meta property="og:description" content={PRIVACY_DESCRIPTION} />
         <meta property="og:url" content={PRIVACY_URL} />
@@ -105,7 +105,7 @@ export default function Privacy() {
               Privacy Policy
             </h1>
             <p style={{ fontSize: 16, color: "var(--ink-2)", lineHeight: 1.7, marginBottom: 48 }}>
-              Effective date: January 1, 2026. This policy describes how StockFlow collects, uses, and safeguards your
+              Effective date: January 1, 2026. This policy describes how TSO by TRS collects, uses, and safeguards your
               personal information.
             </p>
           </motion.div>

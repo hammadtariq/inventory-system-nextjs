@@ -108,7 +108,7 @@ function auditSeoState({ cwd = process.cwd() } = {}) {
     const source = read(cwd, page.file);
     const missingText = query.requiredText.filter((text) => !source.includes(text));
 
-    if (!landing.includes(`href="${query.path}"`)) {
+    if (!hasInternalLink(landing, query.path)) {
       addGap(gaps, "high", "internal-links", query.path, `Landing page does not link to ${query.query}.`);
     }
 

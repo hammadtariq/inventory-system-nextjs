@@ -16,7 +16,7 @@ export default function PublicFooter({ onDemoClick }) {
                 height={26}
                 className={styles.footerLogoImg}
               />
-              StockFlow
+              TSO
             </Link>
             <p className={styles.footerBrandText}>
               Inventory management and accounting for growing businesses across South Asia.
@@ -66,7 +66,7 @@ export default function PublicFooter({ onDemoClick }) {
           </div>
         </div>
         <div className={styles.footerBottom}>
-          <span>© 2026 StockFlow. All rights reserved.</span>
+          <span>© 2026 TSO by TRS. All rights reserved.</span>
           <span>
             Built for SMBs in South Asia &nbsp;·&nbsp; Powered by{" "}
             <a
