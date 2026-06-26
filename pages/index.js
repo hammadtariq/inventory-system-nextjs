@@ -1,80 +1,21 @@
 import { useState, useEffect, useRef } from "react";
 import Head from "next/head";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import styles from "@/styles/Landing.module.css";
+import PublicNav from "@/components/PublicNav";
+import PublicFooter from "@/components/PublicFooter";
+import PublicDemoModal from "@/components/PublicDemoModal";
 
-/* ── NAV ── */
-function Nav({ onDemoClick }) {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  return (
-    <nav className={styles.nav} aria-label="Main navigation">
-      <a href="#hero" className={styles.navLogo}>
-        <img
-          src="/only-shape-no-bg.png"
-          alt=""
-          aria-hidden="true"
-          width={30}
-          height={30}
-          className={styles.navLogoImg}
-        />
-        StockFlow
-      </a>
-      <ul className={styles.navLinks} role="list">
-        <li>
-          <a href="#features">Features</a>
-        </li>
-        <li>
-          <a href="#pricing">Pricing</a>
-        </li>
-        <li>
-          <a href="#testimonials">Testimonials</a>
-        </li>
-        <li>
-          <a href="#faq">FAQ</a>
-        </li>
-      </ul>
-      <div className={styles.navActions}>
-        <Link href="/login" className={styles.navLogin}>
-          Log in
-        </Link>
-        <button className={styles.btnPrimary} onClick={onDemoClick}>
-          Request a demo
-        </button>
-      </div>
-      <button
-        className={styles.navMobileBtn}
-        onClick={() => setMobileOpen((v) => !v)}
-        aria-expanded={mobileOpen}
-        aria-controls="mobile-nav"
-        aria-label={mobileOpen ? "Close menu" : "Open menu"}
-      >
-        {mobileOpen ? (
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-            <path d="M2 2L16 16M16 2L2 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-        ) : (
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-            <path d="M2 4h14M2 9h14M2 14h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-        )}
-      </button>
-      {mobileOpen && (
-        <div id="mobile-nav" className={styles.mobileMenu}>
-          {["features", "pricing", "testimonials", "faq"].map((id) => (
-            <a key={id} href={`#${id}`} className={styles.mobileLink} onClick={() => setMobileOpen(false)}>
-              {id.charAt(0).toUpperCase() + id.slice(1)}
-            </a>
-          ))}
-          <div className={styles.mobileDivider} />
-          <Link href="/login" className={styles.mobileLink}>
-            Log in
-          </Link>
-        </div>
-      )}
-    </nav>
-  );
-}
+/* Shared scroll-reveal variant. custom prop = stagger index */
+const fadeUp = {
+  hidden: { opacity: 0, y: 22 },
+  visible: (i = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.55, delay: i * 0.07, ease: [0.16, 1, 0.3, 1] },
+  }),
+};
 
 /* ── HERO PREVIEW ── */
 const PREVIEW_ROWS = [
@@ -225,22 +166,37 @@ const FEATURES = [
 ];
 
 function Features() {
+  const rm = useReducedMotion();
   return (
     <section className={`${styles.section} ${styles.sectionAlt}`} id="features">
       <div className={styles.inner}>
-        <div className={styles.featuresHead}>
+        <motion.div
+          className={styles.featuresHead}
+          variants={fadeUp}
+          initial={rm ? false : "hidden"}
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.4 }}
+        >
           <h2 className={styles.sectionHeading}>What StockFlow handles</h2>
           <p className={styles.sectionSubLeft}>
             From the purchase order to the bank reconciliation. Everything your accountant wants to see, always up to
             date.
           </p>
-        </div>
+        </motion.div>
         <div className={styles.featuresGrid}>
-          {FEATURES.map(({ title, desc }) => (
-            <div key={title} className={styles.featureBlock}>
+          {FEATURES.map(({ title, desc }, i) => (
+            <motion.div
+              key={title}
+              className={styles.featureBlock}
+              variants={fadeUp}
+              initial={rm ? false : "hidden"}
+              whileInView="visible"
+              custom={i}
+              viewport={{ once: true, amount: 0.2 }}
+            >
               <h3 className={styles.featureTitle}>{title}</h3>
               <p className={styles.featureDesc}>{desc}</p>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -314,18 +270,33 @@ const PLANS = [
 ];
 
 function Pricing({ onDemoClick }) {
+  const rm = useReducedMotion();
   return (
     <section className={styles.section} id="pricing">
       <div className={styles.inner}>
-        <div className={`${styles.pricingHead}`}>
+        <motion.div
+          className={`${styles.pricingHead}`}
+          variants={fadeUp}
+          initial={rm ? false : "hidden"}
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.4 }}
+        >
           <h2 className={styles.sectionHeading}>Simple, honest pricing</h2>
           <p className={styles.sectionSubLeft}>
             No hidden fees. Switch or cancel anytime. Longer commitments save you money.
           </p>
-        </div>
+        </motion.div>
         <div className={styles.pricingGrid}>
-          {PLANS.map((plan) => (
-            <div key={plan.name} className={plan.featured ? styles.planCardFeatured : styles.planCard}>
+          {PLANS.map((plan, i) => (
+            <motion.div
+              key={plan.name}
+              className={plan.featured ? styles.planCardFeatured : styles.planCard}
+              variants={fadeUp}
+              initial={rm ? false : "hidden"}
+              whileInView="visible"
+              custom={i}
+              viewport={{ once: true, amount: 0.15 }}
+            >
               <div className={styles.planHeader}>
                 <span className={styles.planName}>{plan.name}</span>
                 {plan.badge && <span className={styles.planBadge}>{plan.badge}</span>}
@@ -350,7 +321,7 @@ function Pricing({ onDemoClick }) {
               <button className={styles[plan.btnClass]} onClick={onDemoClick}>
                 {plan.btnLabel}
               </button>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -360,14 +331,29 @@ function Pricing({ onDemoClick }) {
 
 /* ── TESTIMONIALS ── */
 function Testimonials() {
+  const rm = useReducedMotion();
   return (
     <section className={`${styles.section} ${styles.sectionAlt}`} id="testimonials">
       <div className={styles.inner}>
-        <h2 className={styles.sectionHeading} style={{ marginBottom: 40 }}>
+        <motion.h2
+          className={styles.sectionHeading}
+          style={{ marginBottom: 40 }}
+          variants={fadeUp}
+          initial={rm ? false : "hidden"}
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.5 }}
+        >
           Trusted by businesses across South Asia
-        </h2>
+        </motion.h2>
         <div className={styles.testimonialsGrid}>
-          <div className={styles.testimonialFeatured}>
+          <motion.div
+            className={styles.testimonialFeatured}
+            variants={fadeUp}
+            initial={rm ? false : "hidden"}
+            whileInView="visible"
+            custom={0}
+            viewport={{ once: true, amount: 0.2 }}
+          >
             <span className={styles.testimonialMark} aria-hidden="true">
               &ldquo;
             </span>
@@ -384,10 +370,17 @@ function Testimonials() {
                 <div className={styles.testimonialRole}>Finance Manager, Karachi</div>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           <div className={styles.testimonialStack}>
-            <div className={styles.testimonialMinor}>
+            <motion.div
+              className={styles.testimonialMinor}
+              variants={fadeUp}
+              initial={rm ? false : "hidden"}
+              whileInView="visible"
+              custom={1}
+              viewport={{ once: true, amount: 0.2 }}
+            >
               <blockquote className={styles.testimonialQuoteMinor}>
                 &ldquo;We cut inventory holding costs by 20% in the first quarter. Having live stock levels meant we
                 stopped over-ordering every month.&rdquo;
@@ -401,9 +394,16 @@ function Testimonials() {
                   <div className={styles.testimonialRoleMinor}>Operations Lead, Lahore</div>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            <div className={styles.testimonialMinor}>
+            <motion.div
+              className={styles.testimonialMinor}
+              variants={fadeUp}
+              initial={rm ? false : "hidden"}
+              whileInView="visible"
+              custom={2}
+              viewport={{ once: true, amount: 0.2 }}
+            >
               <blockquote className={styles.testimonialQuoteMinor}>
                 &ldquo;As a founder wearing every hat, StockFlow gives me a clean picture of the business in five
                 minutes. I used to need an hour with the spreadsheets.&rdquo;
@@ -417,7 +417,7 @@ function Testimonials() {
                   <div className={styles.testimonialRoleMinor}>Founder, Islamabad</div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
@@ -501,8 +501,15 @@ function Faq({ openFaq, setOpenFaq }) {
 
 /* ── FINAL CTA ── */
 function FinalCta({ onDemoClick }) {
+  const rm = useReducedMotion();
   return (
-    <section className={styles.finalCta}>
+    <motion.section
+      className={styles.finalCta}
+      variants={fadeUp}
+      initial={rm ? false : "hidden"}
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.4 }}
+    >
       <h2 className={styles.finalCtaHeading}>See it working in your business.</h2>
       <p className={styles.finalCtaSub}>
         Join hundreds of businesses across South Asia that replaced their spreadsheets with StockFlow.
@@ -510,224 +517,7 @@ function FinalCta({ onDemoClick }) {
       <button className={styles.btnPrimaryLg} onClick={onDemoClick}>
         Request a demo →
       </button>
-    </section>
-  );
-}
-
-/* ── FOOTER ── */
-function Footer({ onDemoClick }) {
-  return (
-    <footer className={styles.footer}>
-      <div className={styles.footerInner}>
-        <div className={styles.footerGrid}>
-          <div>
-            <a href="#hero" className={styles.footerLogo}>
-              <img
-                src="/only-shape-no-bg.png"
-                alt=""
-                aria-hidden="true"
-                width={26}
-                height={26}
-                className={styles.footerLogoImg}
-              />
-              StockFlow
-            </a>
-            <p className={styles.footerBrandText}>
-              Inventory management and accounting for growing businesses across South Asia.
-            </p>
-          </div>
-          <div>
-            <p className={styles.footerColHeading}>Product</p>
-            <a href="#features" className={styles.footerLink}>
-              Features
-            </a>
-            <a href="#pricing" className={styles.footerLink}>
-              Pricing
-            </a>
-            <a href="#testimonials" className={styles.footerLink}>
-              Testimonials
-            </a>
-            <a href="#faq" className={styles.footerLink}>
-              FAQ
-            </a>
-            <Link href="/inventory-management-software" className={styles.footerLink}>
-              Inventory Guide
-            </Link>
-            <Link href="/inventory-accounting-software" className={styles.footerLink}>
-              Accounting Guide
-            </Link>
-            <Link href="/inventory-software-south-asia" className={styles.footerLink}>
-              South Asia SMB Guide
-            </Link>
-          </div>
-          <div>
-            <p className={styles.footerColHeading}>Company</p>
-            <Link href="/about" className={styles.footerLink}>
-              About
-            </Link>
-            <button className={styles.footerLinkBtn} onClick={onDemoClick}>
-              Contact us
-            </button>
-          </div>
-          <div>
-            <p className={styles.footerColHeading}>Legal</p>
-            <Link href="/privacy" className={styles.footerLink}>
-              Privacy Policy
-            </Link>
-            <Link href="/terms" className={styles.footerLink}>
-              Terms of Service
-            </Link>
-          </div>
-        </div>
-        <div className={styles.footerBottom}>
-          <span>© 2026 StockFlow. All rights reserved.</span>
-          <span>
-            Built for SMBs in South Asia &nbsp;·&nbsp; Powered by{" "}
-            <a
-              href="https://truerefinedsolutions.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.footerExternalLink}
-            >
-              TRS
-            </a>
-          </span>
-        </div>
-      </div>
-    </footer>
-  );
-}
-
-/* ── DEMO MODAL ── */
-function DemoModal({ open, onClose, triggerRef }) {
-  const modalRef = useRef(null);
-
-  useEffect(() => {
-    if (!open || !modalRef.current) return;
-
-    const focusable = [
-      ...modalRef.current.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'),
-    ];
-    focusable[0]?.focus();
-
-    function trapTab(e) {
-      if (e.key !== "Tab" || !focusable.length) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    }
-
-    document.addEventListener("keydown", trapTab);
-    return () => {
-      document.removeEventListener("keydown", trapTab);
-      triggerRef?.current?.focus();
-    };
-  }, [open, triggerRef]);
-
-  function handleOverlayClick(e) {
-    if (e.target === e.currentTarget) onClose();
-  }
-
-  function handleSubmit(e) {
-    e.preventDefault();
-    onClose();
-  }
-
-  return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          className={styles.modalOverlay}
-          onClick={handleOverlayClick}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.18 }}
-        >
-          <motion.div
-            ref={modalRef}
-            className={styles.modal}
-            initial={{ opacity: 0, scale: 0.96, y: 12 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 12 }}
-            transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="modal-heading"
-          >
-            <button className={styles.modalClose} onClick={onClose} aria-label="Close dialog">
-              ✕
-            </button>
-            <h2 className={styles.modalHeading} id="modal-heading">
-              Request a demo
-            </h2>
-            <p className={styles.modalSub}>We will reach out within 24 hours to schedule your walkthrough.</p>
-            <form onSubmit={handleSubmit}>
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel} htmlFor="demo-name">
-                  Full name
-                </label>
-                <input
-                  id="demo-name"
-                  className={styles.formInput}
-                  type="text"
-                  placeholder="Your name"
-                  required
-                  autoComplete="name"
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel} htmlFor="demo-email">
-                  Business email
-                </label>
-                <input
-                  id="demo-email"
-                  className={styles.formInput}
-                  type="email"
-                  placeholder="you@company.com"
-                  required
-                  autoComplete="email"
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel} htmlFor="demo-company">
-                  Company name
-                </label>
-                <input
-                  id="demo-company"
-                  className={styles.formInput}
-                  type="text"
-                  placeholder="Your company"
-                  required
-                  autoComplete="organization"
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel} htmlFor="demo-size">
-                  Team size
-                </label>
-                <select id="demo-size" className={styles.formSelect} required>
-                  <option value="">Select team size</option>
-                  <option value="1-10">1–10 employees</option>
-                  <option value="11-50">11–50 employees</option>
-                  <option value="51-200">51–200 employees</option>
-                  <option value="200+">200+ employees</option>
-                </select>
-              </div>
-              <button type="submit" className={styles.formSubmit}>
-                Submit request →
-              </button>
-            </form>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    </motion.section>
   );
 }
 
@@ -811,13 +601,6 @@ export default function Landing() {
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content={LANDING_TITLE} />
         <meta name="twitter:description" content={LANDING_DESCRIPTION} />
-        {/* Fonts */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -826,7 +609,7 @@ export default function Landing() {
         />
       </Head>
       <div className={styles.page}>
-        <Nav onDemoClick={openDemo} />
+        <PublicNav onDemoClick={openDemo} />
         <main>
           <Hero onDemoClick={openDemo} />
           <Features />
@@ -835,8 +618,8 @@ export default function Landing() {
           <Faq openFaq={openFaq} setOpenFaq={setOpenFaq} />
           <FinalCta onDemoClick={openDemo} />
         </main>
-        <Footer onDemoClick={openDemo} />
-        <DemoModal open={modalOpen} onClose={closeDemo} triggerRef={demoTriggerRef} />
+        <PublicFooter onDemoClick={openDemo} />
+        <PublicDemoModal open={modalOpen} onClose={closeDemo} triggerRef={demoTriggerRef} />
       </div>
     </>
   );

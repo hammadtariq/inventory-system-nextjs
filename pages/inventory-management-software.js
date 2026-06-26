@@ -1,5 +1,10 @@
+import { useState, useRef } from "react";
 import Head from "next/head";
 import Link from "next/link";
+import styles from "@/styles/Landing.module.css";
+import PublicNav from "@/components/PublicNav";
+import PublicFooter from "@/components/PublicFooter";
+import PublicDemoModal from "@/components/PublicDemoModal";
 
 const PAGE_URL = "https://www.treesols.com/inventory-management-software";
 const PAGE_TITLE = "Inventory Management Software for SMBs — StockFlow";
@@ -93,43 +98,10 @@ const structuredData = [
   },
 ];
 
-const pageStyle = {
-  background: "linear-gradient(160deg, #f8fafc 0%, #eef2ff 48%, #f0fdf4 100%)",
-  minHeight: "100vh",
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-  color: "#172554",
-};
-
-const navStyle = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  padding: "18px 60px",
-  background: "rgba(255,255,255,0.78)",
-  borderBottom: "1px solid rgba(148,163,184,0.25)",
-};
-
-const logoStyle = {
-  fontSize: 20,
-  fontWeight: 800,
-  color: "#3730a3",
-  textDecoration: "none",
-};
-
-const ctaStyle = {
-  background: "#4f46e5",
-  color: "#fff",
-  borderRadius: 8,
-  padding: "10px 18px",
-  fontSize: 14,
-  fontWeight: 700,
-  textDecoration: "none",
-};
-
 const containerStyle = {
   maxWidth: 980,
   margin: "0 auto",
-  padding: "64px 24px 96px",
+  padding: "clamp(88px, 10vw, 120px) 24px 96px",
 };
 
 const h1Style = {
@@ -191,6 +163,14 @@ const listStyle = {
 };
 
 export default function InventoryManagementSoftware() {
+  const [modalOpen, setModalOpen] = useState(false);
+  const demoTriggerRef = useRef(null);
+  const openDemo = () => {
+    demoTriggerRef.current = document.activeElement;
+    setModalOpen(true);
+  };
+  const closeDemo = () => setModalOpen(false);
+
   return (
     <>
       <Head>
@@ -208,15 +188,8 @@ export default function InventoryManagementSoftware() {
         <meta name="twitter:description" content={PAGE_DESCRIPTION} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       </Head>
-      <div style={pageStyle}>
-        <nav style={navStyle}>
-          <Link href="/" style={logoStyle}>
-            StockFlow
-          </Link>
-          <Link href="/" style={ctaStyle}>
-            Request a Demo
-          </Link>
-        </nav>
+      <div className={styles.page}>
+        <PublicNav onDemoClick={openDemo} alwaysLight hrefPrefix="/" />
         <main style={containerStyle}>
           <p style={{ ...pStyle, color: "#4f46e5", fontWeight: 800, marginBottom: 12 }}>Inventory software guide</p>
           <h1 style={h1Style}>Inventory management software for small and growing businesses</h1>
@@ -302,6 +275,8 @@ export default function InventoryManagementSoftware() {
             </ul>
           </section>
         </main>
+        <PublicFooter onDemoClick={openDemo} />
+        <PublicDemoModal open={modalOpen} onClose={closeDemo} triggerRef={demoTriggerRef} />
       </div>
     </>
   );
