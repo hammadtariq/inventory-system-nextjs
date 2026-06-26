@@ -5,6 +5,7 @@
 
 .claude/skills/impeccable/*
 .github/skills/impeccable/*
+.impeccable/*
 
 # dependencies
 /node_modules

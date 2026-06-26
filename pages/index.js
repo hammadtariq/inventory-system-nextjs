@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import Head from "next/head";
+import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 import styles from "@/styles/Landing.module.css";
 import PublicNav from "@/components/PublicNav";
@@ -17,117 +18,116 @@ const fadeUp = {
   }),
 };
 
-const PREVIEW_ROWS = [
-  {
-    area: "Inventory",
-    activity: "Stock availability",
-    signal: "Product movement is up 18%",
-    owner: "Warehouse",
-    status: "Live",
-    statusClass: "statusIn",
-  },
-  {
-    area: "Purchases",
-    activity: "Supplier records",
-    signal: "3 orders pending review",
-    owner: "Procurement",
-    status: "Review",
-    statusClass: "statusLow",
-  },
-  {
-    area: "Sales",
-    activity: "Customer invoices",
-    signal: "Outgoing stock synced",
-    owner: "Sales team",
-    status: "Updated",
-    statusClass: "statusIn",
-  },
-  {
-    area: "Ledgers",
-    activity: "Business records",
-    signal: "Reports ready for export",
-    owner: "Finance",
-    status: "Ready",
-    statusClass: "statusIn",
-  },
+const PREVIEW_ITEMS = [
+  { name: "Khaddar Fabric", qty: "640 m", price: "₨380 / m", value: "₨2,43,200", status: "In Stock", badge: "in" },
+  { name: "Lawn Shirting", qty: "480 m", price: "₨550 / m", value: "₨2,64,000", status: "In Stock", badge: "in" },
+  { name: "Chiffon Dupatta", qty: "14 pcs", price: "₨1,200 / pc", value: "₨16,800", status: "Low Stock", badge: "low" },
+  { name: "Polyester Blend", qty: "0 m", price: "₨310 / m", value: "—", status: "Out of Stock", badge: "out" },
 ];
 
 function HeroPreview() {
   return (
-    <div className={styles.heroPreview} aria-hidden="true">
-      <div className={styles.previewWindow}>
-        <div className={styles.previewBar}>
-          <div className={styles.previewBarLeft}>
-            <div className={styles.previewDots}>
-              <span className={styles.previewDot} />
-              <span className={styles.previewDot} />
-              <span className={styles.previewDot} />
-            </div>
-            <span className={styles.previewTitle}>TSO operations dashboard</span>
-          </div>
-          <div className={styles.previewLive}>
-            <span className={styles.previewLiveDot} />
-            Connected
-          </div>
+    <div className={styles.previewWindow}>
+      <div className={styles.previewBar}>
+        <div className={styles.previewDots} aria-hidden="true">
+          <span className={styles.previewDot} />
+          <span className={styles.previewDot} />
+          <span className={styles.previewDot} />
         </div>
-        <div className={styles.previewBody}>
-          <table className={styles.previewTable}>
-            <thead>
-              <tr>
-                <th scope="col">Module</th>
-                <th scope="col">Workflow</th>
-                <th scope="col">Insight</th>
-                <th scope="col">Team</th>
-                <th scope="col">Status</th>
+        <span className={styles.previewTitle}>TSO · Inventory</span>
+        <span className={styles.previewLive}>● Live</span>
+      </div>
+      <div className={styles.previewTableWrap}>
+        <table className={styles.previewTable}>
+          <thead className={styles.previewThead}>
+            <tr>
+              <th>Product</th>
+              <th>Qty</th>
+              <th>Unit Price</th>
+              <th>Stock Value</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody className={styles.previewTbody}>
+            {PREVIEW_ITEMS.map(({ name, qty, price, value, status, badge }) => (
+              <tr key={name}>
+                <td className={styles.previewTd}>{name}</td>
+                <td className={styles.previewTdMuted}>{qty}</td>
+                <td className={styles.previewTd}>{price}</td>
+                <td className={styles.previewTd}>{value}</td>
+                <td className={styles.previewTd}>
+                  <span
+                    className={`${styles.previewBadge} ${
+                      badge === "in"
+                        ? styles.previewBadgeIn
+                        : badge === "low"
+                        ? styles.previewBadgeLow
+                        : styles.previewBadgeOut
+                    }`}
+                  >
+                    {status}
+                  </span>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {PREVIEW_ROWS.map(({ area, activity, signal, owner, status, statusClass }) => (
-                <tr key={area}>
-                  <td>{area}</td>
-                  <td>{activity}</td>
-                  <td>{signal}</td>
-                  <td>{owner}</td>
-                  <td className={styles[statusClass]}>{status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className={styles.previewFooter}>
-          <span>
-            Platform: <span className={styles.previewFooterAccent}>Inventory, warehouse, sales, ledger, reports</span>
-          </span>
-          <span>AI insights available</span>
-          <span>Subscription-ready SaaS</span>
-        </div>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className={styles.previewFooter}>
+        Total stock value: ₨5,24,000 · 3 purchase orders pending · Last updated: just now
       </div>
     </div>
   );
 }
 
 function Hero({ onDemoClick }) {
+  const rm = useReducedMotion();
+
   return (
     <section className={styles.hero} id="hero">
+      <div className={styles.heroAmbient} aria-hidden="true" />
       <div className={styles.heroInner}>
-        <div className={styles.heroText}>
-          <h1 className={styles.heroHeading}>
-            Run Inventory, Warehouse, Sales & Business Operations from One Platform
-          </h1>
-          <p className={styles.heroSub}>
-            TSO helps Asian businesses replace scattered spreadsheets with one connected SaaS platform for inventory,
-            purchases, sales, warehouses, ledgers, reports, and AI-powered insights.
-          </p>
-          <div className={styles.heroCtaRow}>
+        <motion.div className={styles.heroText}>
+          <motion.h1
+            className={styles.heroHeading}
+            initial={rm ? false : { opacity: 0, y: 24, filter: "blur(5px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            transition={{ duration: 0.65, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          >
+            Your business, running on real numbers.
+          </motion.h1>
+          <motion.p
+            className={styles.heroSub}
+            initial={rm ? false : { opacity: 0, y: 20, filter: "blur(4px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            transition={{ duration: 0.6, delay: 0.26, ease: [0.16, 1, 0.3, 1] }}
+          >
+            Real-time inventory, purchase order approvals, and an integrated double-entry ledger — built for growing
+            businesses in Pakistan, India, and Bangladesh.
+          </motion.p>
+          <motion.div
+            className={styles.heroCtaRow}
+            initial={rm ? false : { opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, delay: 0.42, ease: [0.16, 1, 0.3, 1] }}
+          >
             <button className={styles.btnPrimaryLg} onClick={onDemoClick}>
               Request a Demo
             </button>
             <a href="#pricing" className={styles.btnOutlineDark}>
               See Pricing
             </a>
-          </div>
-        </div>
-        <HeroPreview />
+          </motion.div>
+        </motion.div>
+
+        <motion.div
+          className={styles.heroPreview}
+          initial={rm ? false : { opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.75, delay: 0.45, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <HeroPreview />
+        </motion.div>
       </div>
     </section>
   );
@@ -176,9 +176,6 @@ function ProblemSection() {
               custom={i}
               viewport={{ once: true, amount: 0.2 }}
             >
-              <div className={styles.howItWorksNum} aria-hidden="true">
-                {String(i + 1).padStart(2, "0")}
-              </div>
               <h3 className={styles.howItWorksTitle}>{title}</h3>
               <p className={styles.howItWorksDesc}>{desc}</p>
             </motion.div>
@@ -201,7 +198,6 @@ function SolutionSection() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.35 }}
         >
-          <p className={styles.panelKicker}>TSO business operations SaaS</p>
           <h2 className={styles.sectionHeading}>A connected SaaS platform for daily business operations across Asia</h2>
           <p className={styles.sectionSubLeft}>
             A business operations platform for inventory, warehouse, sales, purchase, ledger, reporting, and AI-powered
@@ -329,20 +325,41 @@ function AiInsights() {
   const rm = useReducedMotion();
   return (
     <section className={styles.section} id="ai-insights">
-      <div className={styles.inner}>
+      <div className={`${styles.inner} ${styles.aiShowcase}`}>
         <motion.div
-          className={styles.solutionPanel}
+          className={styles.aiCopy}
           variants={fadeUp}
           initial={rm ? false : "hidden"}
           whileInView="visible"
           viewport={{ once: true, amount: 0.35 }}
         >
           <p className={styles.panelKicker}>AI inventory assistant</p>
-          <h2 className={styles.sectionHeading}>AI-Powered Insights for Better Business Decisions</h2>
+          <h2 className={styles.sectionHeading}>Ask your inventory data directly</h2>
           <p className={styles.sectionSubLeft}>
-            TSO includes an AI assistant that helps business owners understand inventory movement, identify useful
-            patterns, review stock performance, and make more informed operational decisions.
+            The assistant turns sales, purchase, customer, and margin questions into clear answers business owners can
+            act on.
           </p>
+          <ul className={styles.aiList} role="list">
+            <li>Find top customers by revenue and last purchase date.</li>
+            <li>Review sales, purchases, margins, and stock movement.</li>
+            <li>Get plain-language summaries from operational records.</li>
+          </ul>
+        </motion.div>
+        <motion.div
+          className={styles.aiPreview}
+          variants={fadeUp}
+          initial={rm ? false : "hidden"}
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.25 }}
+        >
+          <Image
+            src="/landing/inventory-ai-assistant-preview.png"
+            alt="TSO AI assistant answering inventory, customer revenue, and sales summary questions"
+            width={1500}
+            height={1125}
+            sizes="(max-width: 768px) 100vw, 54vw"
+            className={styles.aiPreviewImage}
+          />
         </motion.div>
       </div>
     </section>
@@ -437,34 +454,58 @@ const CheckIcon = () => (
 
 const PLANS = [
   {
-    name: "Starter",
-    billing: "For small teams starting with cleaner operations",
-    total: "Demo",
-    period: "",
-    desc: "Start with core inventory, purchase, sales, and reporting workflows.",
+    name: "Monthly",
+    billing: "Flexible — no long-term commitment",
+    price: "$40",
+    period: "/month",
+    perMonth: null,
+    savings: null,
+    desc: "Full platform access. Cancel or switch billing anytime.",
     featured: false,
     badge: null,
-    features: ["Inventory and warehouse records", "Purchase and sales tracking", "Basic ledgers and reports"],
+    features: [
+      "Inventory and warehouse records",
+      "Purchase and sales tracking",
+      "Customer and supplier records",
+      "Ledger management and reports",
+      "AI-powered business insights",
+    ],
   },
   {
-    name: "Growth",
-    billing: "For growing businesses managing daily stock movement",
-    total: "Demo",
-    period: "",
-    desc: "Add deeper operational visibility for teams that need faster follow-up.",
+    name: "Quarterly",
+    billing: "Billed every 3 months",
+    price: "$100",
+    period: "/quarter",
+    perMonth: "≈ $33 / month",
+    savings: "Save 17%",
+    desc: "Same full access at a lower effective monthly rate.",
     featured: true,
     badge: "Popular",
-    features: ["Everything in Starter", "Customer and supplier activity", "AI-powered business insights"],
+    features: [
+      "Inventory and warehouse records",
+      "Purchase and sales tracking",
+      "Customer and supplier records",
+      "Ledger management and reports",
+      "AI-powered business insights",
+    ],
   },
   {
-    name: "Scale",
-    billing: "For multi-team businesses with broader workflows",
-    total: "Custom",
-    period: "",
-    desc: "Support advanced operations, onboarding, and future business modules.",
+    name: "Annual",
+    billing: "Billed once per year",
+    price: "$350",
+    period: "/year",
+    perMonth: "≈ $29 / month",
+    savings: "Save 27%",
+    desc: "Best rate — pay once, use TSO all year.",
     featured: false,
-    badge: null,
-    features: ["Everything in Growth", "Advanced reporting workflows", "Priority onboarding support"],
+    badge: "Best value",
+    features: [
+      "Inventory and warehouse records",
+      "Purchase and sales tracking",
+      "Customer and supplier records",
+      "Ledger management and reports",
+      "AI-powered business insights",
+    ],
   },
 ];
 
@@ -480,10 +521,10 @@ function Pricing({ onDemoClick }) {
           whileInView="visible"
           viewport={{ once: true, amount: 0.4 }}
         >
-          <h2 className={styles.sectionHeading}>Choose the TSO subscription that fits your operations</h2>
+          <h2 className={styles.sectionHeading}>Simple, transparent pricing</h2>
           <p className={styles.sectionSubLeft}>
-            Request a demo to see the workflows, confirm the right plan, and understand subscription options for your
-            business size.
+            All billing periods include full platform access — inventory, purchases, sales, ledger, reports, and AI
+            insights. Pay monthly for flexibility or save up to 27% by paying upfront.
           </p>
         </motion.div>
         <div className={styles.pricingGrid}>
@@ -503,9 +544,11 @@ function Pricing({ onDemoClick }) {
               </div>
               <p className={styles.planBilling}>{plan.billing}</p>
               <div className={styles.planPrice}>
-                <span className={styles.planPriceAmt}>{plan.total}</span>
+                <span className={styles.planPriceAmt}>{plan.price}</span>
                 {plan.period && <span className={styles.planPricePeriod}>{plan.period}</span>}
               </div>
+              {plan.perMonth && <p className={styles.planPerMonth}>{plan.perMonth}</p>}
+              {plan.savings && <span className={styles.planSavings}>{plan.savings}</span>}
               <p className={styles.planDesc}>{plan.desc}</p>
               <div className={styles.planDivider} />
               <ul className={styles.planFeatures} role="list">
