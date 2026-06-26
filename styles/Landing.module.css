@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════
    STOCKFLOW LANDING  —  Complete CSS
    Track: Restraint. Reference: Stripe philosophy.
-   Accent: Forest green. Fonts: Bricolage + Manrope.
+   Accent: Professional blue. Fonts: Bricolage + Manrope.
 ═══════════════════════════════════════════════════════ */
 
 /* ── DESIGN TOKENS ── */
@@ -9,12 +9,12 @@
   --ink-1: oklch(0.13 0.02 255);
   --ink-2: oklch(0.34 0.025 255);
   --ink-3: oklch(0.44 0.018 255); /* passes 4.5:1 on --bg-body */
-  --accent: oklch(0.42 0.155 152); /* deep forest green */
-  --accent-hover: oklch(0.35 0.145 152);
+  --accent: oklch(0.48 0.19 255); /* professional blue ~#2563eb */
+  --accent-hover: oklch(0.41 0.19 255);
   --accent-fg: #fff;
-  --accent-hero: oklch(0.7 0.2 152); /* lighter green for dark bg */
-  --accent-muted: oklch(0.94 0.06 152);
-  --accent-muted-fg: oklch(0.26 0.12 152);
+  --accent-hero: oklch(0.68 0.17 255); /* blue-400 for dark bg */
+  --accent-muted: oklch(0.94 0.04 255);
+  --accent-muted-fg: oklch(0.28 0.12 255);
   --hero-bg: oklch(0.14 0.03 252);
   --hero-surface: oklch(0.21 0.034 252);
   --hero-deep: oklch(0.18 0.032 252);
@@ -29,10 +29,10 @@
   --overlay-shadow: oklch(0.1 0.02 255 / 0.18);
   --status-warn: oklch(0.8 0.18 70);
   --status-danger: oklch(0.65 0.2 25);
-  --bg-body: oklch(0.99 0.005 155);
-  --bg-surface: oklch(0.97 0.008 155);
-  --border: oklch(0.89 0.008 155);
-  --border-mid: oklch(0.8 0.012 240);
+  --bg-body: oklch(0.99 0.003 255);
+  --bg-surface: oklch(0.97 0.005 255);
+  --border: oklch(0.89 0.006 255);
+  --border-mid: oklch(0.8 0.012 255);
 
   background: var(--bg-body);
   color: var(--ink-1);
