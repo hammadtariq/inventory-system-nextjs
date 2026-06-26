@@ -1,14 +1,36 @@
 import { useState, useEffect, useRef } from "react";
 import Head from "next/head";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion, useScroll, useMotionValueEvent } from "framer-motion";
 import styles from "@/styles/Landing.module.css";
+
+/* Shared scroll-reveal variant. custom prop = stagger index */
+const fadeUp = {
+  hidden: { opacity: 0, y: 22 },
+  visible: (i = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.55, delay: i * 0.07, ease: [0.16, 1, 0.3, 1] },
+  }),
+};
 
 /* ── NAV ── */
 function Nav({ onDemoClick }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [condensed, setCondensed] = useState(false);
+  const [lightMode, setLightMode] = useState(false);
+  const { scrollY } = useScroll();
+
+  useMotionValueEvent(scrollY, "change", (v) => {
+    setCondensed(v > 24); // pill shape morphs immediately
+    setLightMode(v > 460); // light colors only after hero exits viewport
+  });
+
   return (
-    <nav className={styles.nav} aria-label="Main navigation">
+    <nav
+      className={`${styles.nav}${condensed ? ` ${styles.navCondensed}` : ""}${lightMode ? ` ${styles.navLight}` : ""}`}
+      aria-label="Main navigation"
+    >
       <a href="#hero" className={styles.navLogo}>
         <img
           src="/only-shape-no-bg.png"
@@ -225,22 +247,37 @@ const FEATURES = [
 ];
 
 function Features() {
+  const rm = useReducedMotion();
   return (
     <section className={`${styles.section} ${styles.sectionAlt}`} id="features">
       <div className={styles.inner}>
-        <div className={styles.featuresHead}>
+        <motion.div
+          className={styles.featuresHead}
+          variants={fadeUp}
+          initial={rm ? false : "hidden"}
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.4 }}
+        >
           <h2 className={styles.sectionHeading}>What StockFlow handles</h2>
           <p className={styles.sectionSubLeft}>
             From the purchase order to the bank reconciliation. Everything your accountant wants to see, always up to
             date.
           </p>
-        </div>
+        </motion.div>
         <div className={styles.featuresGrid}>
-          {FEATURES.map(({ title, desc }) => (
-            <div key={title} className={styles.featureBlock}>
+          {FEATURES.map(({ title, desc }, i) => (
+            <motion.div
+              key={title}
+              className={styles.featureBlock}
+              variants={fadeUp}
+              initial={rm ? false : "hidden"}
+              whileInView="visible"
+              custom={i}
+              viewport={{ once: true, amount: 0.2 }}
+            >
               <h3 className={styles.featureTitle}>{title}</h3>
               <p className={styles.featureDesc}>{desc}</p>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -314,18 +351,33 @@ const PLANS = [
 ];
 
 function Pricing({ onDemoClick }) {
+  const rm = useReducedMotion();
   return (
     <section className={styles.section} id="pricing">
       <div className={styles.inner}>
-        <div className={`${styles.pricingHead}`}>
+        <motion.div
+          className={`${styles.pricingHead}`}
+          variants={fadeUp}
+          initial={rm ? false : "hidden"}
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.4 }}
+        >
           <h2 className={styles.sectionHeading}>Simple, honest pricing</h2>
           <p className={styles.sectionSubLeft}>
             No hidden fees. Switch or cancel anytime. Longer commitments save you money.
           </p>
-        </div>
+        </motion.div>
         <div className={styles.pricingGrid}>
-          {PLANS.map((plan) => (
-            <div key={plan.name} className={plan.featured ? styles.planCardFeatured : styles.planCard}>
+          {PLANS.map((plan, i) => (
+            <motion.div
+              key={plan.name}
+              className={plan.featured ? styles.planCardFeatured : styles.planCard}
+              variants={fadeUp}
+              initial={rm ? false : "hidden"}
+              whileInView="visible"
+              custom={i}
+              viewport={{ once: true, amount: 0.15 }}
+            >
               <div className={styles.planHeader}>
                 <span className={styles.planName}>{plan.name}</span>
                 {plan.badge && <span className={styles.planBadge}>{plan.badge}</span>}
@@ -350,7 +402,7 @@ function Pricing({ onDemoClick }) {
               <button className={styles[plan.btnClass]} onClick={onDemoClick}>
                 {plan.btnLabel}
               </button>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -360,14 +412,29 @@ function Pricing({ onDemoClick }) {
 
 /* ── TESTIMONIALS ── */
 function Testimonials() {
+  const rm = useReducedMotion();
   return (
     <section className={`${styles.section} ${styles.sectionAlt}`} id="testimonials">
       <div className={styles.inner}>
-        <h2 className={styles.sectionHeading} style={{ marginBottom: 40 }}>
+        <motion.h2
+          className={styles.sectionHeading}
+          style={{ marginBottom: 40 }}
+          variants={fadeUp}
+          initial={rm ? false : "hidden"}
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.5 }}
+        >
           Trusted by businesses across South Asia
-        </h2>
+        </motion.h2>
         <div className={styles.testimonialsGrid}>
-          <div className={styles.testimonialFeatured}>
+          <motion.div
+            className={styles.testimonialFeatured}
+            variants={fadeUp}
+            initial={rm ? false : "hidden"}
+            whileInView="visible"
+            custom={0}
+            viewport={{ once: true, amount: 0.2 }}
+          >
             <span className={styles.testimonialMark} aria-hidden="true">
               &ldquo;
             </span>
@@ -384,10 +451,17 @@ function Testimonials() {
                 <div className={styles.testimonialRole}>Finance Manager, Karachi</div>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           <div className={styles.testimonialStack}>
-            <div className={styles.testimonialMinor}>
+            <motion.div
+              className={styles.testimonialMinor}
+              variants={fadeUp}
+              initial={rm ? false : "hidden"}
+              whileInView="visible"
+              custom={1}
+              viewport={{ once: true, amount: 0.2 }}
+            >
               <blockquote className={styles.testimonialQuoteMinor}>
                 &ldquo;We cut inventory holding costs by 20% in the first quarter. Having live stock levels meant we
                 stopped over-ordering every month.&rdquo;
@@ -401,9 +475,16 @@ function Testimonials() {
                   <div className={styles.testimonialRoleMinor}>Operations Lead, Lahore</div>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            <div className={styles.testimonialMinor}>
+            <motion.div
+              className={styles.testimonialMinor}
+              variants={fadeUp}
+              initial={rm ? false : "hidden"}
+              whileInView="visible"
+              custom={2}
+              viewport={{ once: true, amount: 0.2 }}
+            >
               <blockquote className={styles.testimonialQuoteMinor}>
                 &ldquo;As a founder wearing every hat, StockFlow gives me a clean picture of the business in five
                 minutes. I used to need an hour with the spreadsheets.&rdquo;
@@ -417,7 +498,7 @@ function Testimonials() {
                   <div className={styles.testimonialRoleMinor}>Founder, Islamabad</div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
@@ -501,8 +582,15 @@ function Faq({ openFaq, setOpenFaq }) {
 
 /* ── FINAL CTA ── */
 function FinalCta({ onDemoClick }) {
+  const rm = useReducedMotion();
   return (
-    <section className={styles.finalCta}>
+    <motion.section
+      className={styles.finalCta}
+      variants={fadeUp}
+      initial={rm ? false : "hidden"}
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.4 }}
+    >
       <h2 className={styles.finalCtaHeading}>See it working in your business.</h2>
       <p className={styles.finalCtaSub}>
         Join hundreds of businesses across South Asia that replaced their spreadsheets with StockFlow.
@@ -510,7 +598,7 @@ function FinalCta({ onDemoClick }) {
       <button className={styles.btnPrimaryLg} onClick={onDemoClick}>
         Request a demo →
       </button>
-    </section>
+    </motion.section>
   );
 }
 
