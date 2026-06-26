@@ -8,77 +8,43 @@ import PublicFooter from "@/components/PublicFooter";
 import PublicDemoModal from "@/components/PublicDemoModal";
 
 const TRUE_REFINED_URL = "https://truerefinedsolutions.com";
+const EASE_OUT = [0.16, 1, 0.3, 1];
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 22 },
+  hidden: { opacity: 0, transform: "translateY(22px)" },
   visible: (i = 0) => ({
     opacity: 1,
-    y: 0,
-    transition: { duration: 0.55, delay: i * 0.07, ease: [0.16, 1, 0.3, 1] },
+    transform: "translateY(0)",
+    transition: { duration: 0.5, delay: i * 0.06, ease: EASE_OUT },
   }),
 };
 
-const PREVIEW_ITEMS = [
-  { name: "Khaddar Fabric", qty: "640 m", price: "₨380 / m", value: "₨2,43,200", status: "In Stock", badge: "in" },
-  { name: "Lawn Shirting", qty: "480 m", price: "₨550 / m", value: "₨2,64,000", status: "In Stock", badge: "in" },
-  { name: "Chiffon Dupatta", qty: "14 pcs", price: "₨1,200 / pc", value: "₨16,800", status: "Low Stock", badge: "low" },
-  { name: "Polyester Blend", qty: "0 m", price: "₨310 / m", value: "—", status: "Out of Stock", badge: "out" },
-];
+const fadeInLeft = {
+  hidden: { opacity: 0, transform: "translateX(-20px)" },
+  visible: (i = 0) => ({
+    opacity: 1,
+    transform: "translateX(0)",
+    transition: { duration: 0.5, delay: i * 0.06, ease: EASE_OUT },
+  }),
+};
 
-function HeroPreview() {
-  return (
-    <div className={styles.previewWindow}>
-      <div className={styles.previewBar}>
-        <div className={styles.previewDots} aria-hidden="true">
-          <span className={styles.previewDot} />
-          <span className={styles.previewDot} />
-          <span className={styles.previewDot} />
-        </div>
-        <span className={styles.previewTitle}>TSO · Inventory</span>
-        <span className={styles.previewLive}>● Live</span>
-      </div>
-      <div className={styles.previewTableWrap}>
-        <table className={styles.previewTable}>
-          <thead className={styles.previewThead}>
-            <tr>
-              <th>Product</th>
-              <th>Qty</th>
-              <th>Unit Price</th>
-              <th>Stock Value</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody className={styles.previewTbody}>
-            {PREVIEW_ITEMS.map(({ name, qty, price, value, status, badge }) => (
-              <tr key={name}>
-                <td className={styles.previewTd}>{name}</td>
-                <td className={styles.previewTdMuted}>{qty}</td>
-                <td className={styles.previewTd}>{price}</td>
-                <td className={styles.previewTd}>{value}</td>
-                <td className={styles.previewTd}>
-                  <span
-                    className={`${styles.previewBadge} ${
-                      badge === "in"
-                        ? styles.previewBadgeIn
-                        : badge === "low"
-                        ? styles.previewBadgeLow
-                        : styles.previewBadgeOut
-                    }`}
-                  >
-                    {status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <div className={styles.previewFooter}>
-        Total stock value: ₨5,24,000 · 3 purchase orders pending · Last updated: just now
-      </div>
-    </div>
-  );
-}
+const fadeInRight = {
+  hidden: { opacity: 0, transform: "translateX(20px)" },
+  visible: {
+    opacity: 1,
+    transform: "translateX(0)",
+    transition: { duration: 0.54, ease: EASE_OUT },
+  },
+};
+
+const scaleReveal = {
+  hidden: { opacity: 0, transform: "scale(0.97) translateY(10px)" },
+  visible: (i = 0) => ({
+    opacity: 1,
+    transform: "scale(1) translateY(0)",
+    transition: { duration: 0.42, delay: i * 0.055, ease: EASE_OUT },
+  }),
+};
 
 function Hero({ onDemoClick }) {
   const rm = useReducedMotion();
@@ -86,30 +52,44 @@ function Hero({ onDemoClick }) {
   return (
     <section className={styles.hero} id="hero">
       <div className={styles.heroAmbient} aria-hidden="true" />
+      <div className={styles.heroGridGlow} aria-hidden="true" />
       <div className={styles.heroInner}>
-        <motion.div className={styles.heroText}>
+        <motion.div
+          className={styles.heroText}
+          initial={rm ? false : { opacity: 0, transform: "translateY(18px)" }}
+          animate={{ opacity: 1, transform: "translateY(0)" }}
+          transition={{ duration: 0.48, ease: EASE_OUT }}
+        >
+          <motion.div
+            className={styles.heroPill}
+            initial={rm ? false : { opacity: 0, transform: "translateY(10px)" }}
+            animate={{ opacity: 1, transform: "translateY(0)" }}
+            transition={{ duration: 0.42, delay: 0.04, ease: EASE_OUT }}
+          >
+            <span className={styles.heroPillBadge}>TSO</span>
+            <span>Inventory, sales, ledger, and reports</span>
+          </motion.div>
           <motion.h1
             className={styles.heroHeading}
-            initial={rm ? false : { opacity: 0, y: 24, filter: "blur(5px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            transition={{ duration: 0.65, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            initial={rm ? false : { opacity: 0, transform: "translateY(22px)", filter: "blur(5px)" }}
+            animate={{ opacity: 1, transform: "translateY(0)", filter: "blur(0px)" }}
+            transition={{ duration: 0.56, delay: 0.1, ease: EASE_OUT }}
           >
-            Your business, running on real numbers.
+            Inventory, sales, and ledgers in one clear view.
           </motion.h1>
           <motion.p
             className={styles.heroSub}
-            initial={rm ? false : { opacity: 0, y: 20, filter: "blur(4px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            transition={{ duration: 0.6, delay: 0.26, ease: [0.16, 1, 0.3, 1] }}
+            initial={rm ? false : { opacity: 0, transform: "translateY(18px)", filter: "blur(4px)" }}
+            animate={{ opacity: 1, transform: "translateY(0)", filter: "blur(0px)" }}
+            transition={{ duration: 0.52, delay: 0.18, ease: EASE_OUT }}
           >
-            Real-time inventory, purchase order approvals, and an integrated double-entry ledger — built for growing
-            businesses in Pakistan, India, and Bangladesh.
+            TSO helps Asian SMBs track stock, purchases, sales, and reports from one connected SaaS platform.
           </motion.p>
           <motion.div
             className={styles.heroCtaRow}
-            initial={rm ? false : { opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.42, ease: [0.16, 1, 0.3, 1] }}
+            initial={rm ? false : { opacity: 0, transform: "translateY(12px)" }}
+            animate={{ opacity: 1, transform: "translateY(0)" }}
+            transition={{ duration: 0.46, delay: 0.28, ease: EASE_OUT }}
           >
             <button className={styles.btnPrimaryLg} onClick={onDemoClick}>
               Request a Demo
@@ -122,11 +102,21 @@ function Hero({ onDemoClick }) {
 
         <motion.div
           className={styles.heroPreview}
-          initial={rm ? false : { opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.75, delay: 0.45, ease: [0.16, 1, 0.3, 1] }}
+          initial={rm ? false : { opacity: 0, transform: "translateY(34px)" }}
+          animate={{ opacity: 1, transform: "translateY(0)" }}
+          transition={{ duration: 0.62, delay: 0.34, ease: EASE_OUT }}
         >
-          <HeroPreview />
+          <div className={styles.heroMediaFrame}>
+            <Image
+              src="/landing/inventory-dashboard-preview.png"
+              alt="TSO dashboard showing inventory value, sales, purchases, and stock activity"
+              width={1500}
+              height={1125}
+              priority
+              sizes="(max-width: 768px) 96vw, 58vw"
+              className={styles.heroMediaImage}
+            />
+          </div>
         </motion.div>
       </div>
     </section>
@@ -166,18 +156,20 @@ function ProblemSection() {
             reports without rebuilding the same picture manually every day.
           </p>
         </motion.div>
-        <div className={styles.howItWorksFlow}>
+        <div className={styles.problemGrid}>
           {PROBLEMS.map(({ title, desc }, i) => (
             <motion.div
               key={title}
-              variants={fadeUp}
+              className={styles.problemItem}
+              variants={fadeInLeft}
               initial={rm ? false : "hidden"}
               whileInView="visible"
               custom={i}
               viewport={{ once: true, amount: 0.2 }}
             >
-              <h3 className={styles.howItWorksTitle}>{title}</h3>
-              <p className={styles.howItWorksDesc}>{desc}</p>
+              <span className={styles.problemNumber}>{`0${i + 1}`}</span>
+              <h3 className={styles.problemTitle}>{title}</h3>
+              <p className={styles.problemDesc}>{desc}</p>
             </motion.div>
           ))}
         </div>
@@ -186,24 +178,46 @@ function ProblemSection() {
   );
 }
 
-function SolutionSection() {
+const STATS = [
+  {
+    value: "6",
+    label: "Connected modules",
+    sub: "Inventory, Warehouse, Purchase, Sales, Ledger, and Reports — all in one platform.",
+  },
+  {
+    value: "Live",
+    label: "Stock visibility",
+    sub: "Every purchase and sale updates your inventory records in real time.",
+  },
+  {
+    value: "AI",
+    label: "Business insights",
+    sub: "Ask plain-language questions about inventory, sales, and business margins.",
+  },
+];
+
+function StatsBar() {
   const rm = useReducedMotion();
   return (
     <section className={`${styles.section} ${styles.sectionAlt}`}>
       <div className={styles.inner}>
-        <motion.div
-          className={styles.solutionPanel}
-          variants={fadeUp}
-          initial={rm ? false : "hidden"}
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.35 }}
-        >
-          <h2 className={styles.sectionHeading}>A connected SaaS platform for daily business operations across Asia</h2>
-          <p className={styles.sectionSubLeft}>
-            A business operations platform for inventory, warehouse, sales, purchase, ledger, reporting, and AI-powered
-            insights. TSO brings these workflows into one SaaS product for Asian markets.
-          </p>
-        </motion.div>
+        <div className={styles.statsGrid}>
+          {STATS.map(({ value, label, sub }, i) => (
+            <motion.div
+              key={label}
+              className={styles.statItem}
+              variants={fadeUp}
+              initial={rm ? false : "hidden"}
+              whileInView="visible"
+              custom={i}
+              viewport={{ once: true, amount: 0.3 }}
+            >
+              <span className={styles.statValue}>{value}</span>
+              <span className={styles.statLabel}>{label}</span>
+              <p className={styles.statSub}>{sub}</p>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -259,7 +273,7 @@ function Features() {
             <motion.div
               key={title}
               className={styles.featureBlock}
-              variants={fadeUp}
+              variants={scaleReveal}
               initial={rm ? false : "hidden"}
               whileInView="visible"
               custom={i}
@@ -328,7 +342,7 @@ function AiInsights() {
       <div className={`${styles.inner} ${styles.aiShowcase}`}>
         <motion.div
           className={styles.aiCopy}
-          variants={fadeUp}
+          variants={fadeInLeft}
           initial={rm ? false : "hidden"}
           whileInView="visible"
           viewport={{ once: true, amount: 0.35 }}
@@ -347,7 +361,7 @@ function AiInsights() {
         </motion.div>
         <motion.div
           className={styles.aiPreview}
-          variants={fadeUp}
+          variants={fadeInRight}
           initial={rm ? false : "hidden"}
           whileInView="visible"
           viewport={{ once: true, amount: 0.25 }}
@@ -455,7 +469,7 @@ const CheckIcon = () => (
 const PLANS = [
   {
     name: "Monthly",
-    billing: "Flexible — no long-term commitment",
+    billing: "Flexible, no long-term commitment",
     price: "$40",
     period: "/month",
     perMonth: null,
@@ -496,7 +510,7 @@ const PLANS = [
     period: "/year",
     perMonth: "≈ $29 / month",
     savings: "Save 27%",
-    desc: "Best rate — pay once, use TSO all year.",
+    desc: "Best rate. Pay once, use TSO all year.",
     featured: false,
     badge: "Best value",
     features: [
@@ -523,7 +537,7 @@ function Pricing({ onDemoClick }) {
         >
           <h2 className={styles.sectionHeading}>Simple, transparent pricing</h2>
           <p className={styles.sectionSubLeft}>
-            All billing periods include full platform access — inventory, purchases, sales, ledger, reports, and AI
+            All billing periods include full platform access: inventory, purchases, sales, ledger, reports, and AI
             insights. Pay monthly for flexibility or save up to 27% by paying upfront.
           </p>
         </motion.div>
@@ -762,7 +776,7 @@ export default function Landing() {
         <main>
           <Hero onDemoClick={openDemo} />
           <ProblemSection />
-          <SolutionSection />
+          <StatsBar />
           <Features />
           <UseCases />
           <AiInsights />

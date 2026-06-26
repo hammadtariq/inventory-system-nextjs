@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useRef } from "react";
 import { useScroll, useMotionValueEvent } from "framer-motion";
 import Link from "next/link";
 import styles from "@/styles/Landing.module.css";
@@ -8,11 +9,24 @@ export default function PublicNav({ onDemoClick, alwaysLight = false, hrefPrefix
   const [mobileOpen, setMobileOpen] = useState(false);
   const [condensed, setCondensed] = useState(false);
   const [lightMode, setLightMode] = useState(alwaysLight);
+  const condensedRef = useRef(false);
+  const lightModeRef = useRef(alwaysLight);
   const { scrollY } = useScroll();
 
   useMotionValueEvent(scrollY, "change", (v) => {
-    setCondensed(v > 24);
-    if (!alwaysLight) setLightMode(v > 460);
+    const nextCondensed = v > 24;
+    if (condensedRef.current !== nextCondensed) {
+      condensedRef.current = nextCondensed;
+      setCondensed(nextCondensed);
+    }
+
+    if (!alwaysLight) {
+      const nextLightMode = v > 460;
+      if (lightModeRef.current !== nextLightMode) {
+        lightModeRef.current = nextLightMode;
+        setLightMode(nextLightMode);
+      }
+    }
   });
 
   const isLight = alwaysLight || lightMode;
