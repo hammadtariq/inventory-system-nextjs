@@ -35,13 +35,16 @@ export default function PublicNav({ onDemoClick, alwaysLight = false, hrefPrefix
       </Link>
       <ul className={styles.navLinks} role="list">
         <li>
+          <Link href={`${hrefPrefix}#product`}>Product</Link>
+        </li>
+        <li>
           <Link href={`${hrefPrefix}#features`}>Features</Link>
         </li>
         <li>
-          <Link href={`${hrefPrefix}#pricing`}>Pricing</Link>
+          <Link href={`${hrefPrefix}#use-cases`}>Use Cases</Link>
         </li>
         <li>
-          <Link href={`${hrefPrefix}#testimonials`}>Testimonials</Link>
+          <Link href={`${hrefPrefix}#pricing`}>Pricing</Link>
         </li>
         <li>
           <Link href={`${hrefPrefix}#faq`}>FAQ</Link>
@@ -75,9 +78,10 @@ export default function PublicNav({ onDemoClick, alwaysLight = false, hrefPrefix
       {mobileOpen && (
         <div id="mobile-nav" className={styles.mobileMenu}>
           {[
+            { id: "product", label: "Product" },
             { id: "features", label: "Features" },
+            { id: "use-cases", label: "Use Cases" },
             { id: "pricing", label: "Pricing" },
-            { id: "testimonials", label: "Testimonials" },
             { id: "faq", label: "FAQ" },
           ].map(({ id, label }) => (
             <Link

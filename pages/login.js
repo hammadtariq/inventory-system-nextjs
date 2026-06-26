@@ -16,9 +16,9 @@ const setUserAccess = (user) => {
 };
 
 const FEATURE_BULLETS = [
-  "Real-time stock tracking across locations",
-  "Double-entry ledger with cheque tracking",
-  "Purchase orders, approvals, and reconciliation",
+  "Inventory, warehouse, purchase, and sales workflows",
+  "Ledgers, reports, and operational records",
+  "AI-powered insights for daily business decisions",
 ];
 
 const antTheme = {
@@ -55,7 +55,7 @@ const Login = () => {
   return (
     <>
       <Head>
-        <title>Sign in - StockFlow</title>
+        <title>Sign in - TSO</title>
       </Head>
 
       <div className={styles.loginContainer}>
@@ -64,11 +64,11 @@ const Login = () => {
           <div className={styles.leftInner}>
             <Link href="/" className={styles.brandMark}>
               <img src="/only-shape-no-bg.png" alt="" width={32} height={32} className={styles.logoIcon} />
-              <span className={styles.brandName}>StockFlow</span>
+              <span className={styles.brandName}>TSO</span>
             </Link>
 
             <div className={styles.leftBody}>
-              <p className={styles.leftTagline}>Inventory and accounts for growing businesses.</p>
+              <p className={styles.leftTagline}>Business operations SaaS for Asian teams by True Refined Solutions.</p>
               <ul className={styles.featureList}>
                 {FEATURE_BULLETS.map((bullet) => (
                   <li key={bullet} className={styles.featureItem}>
@@ -87,7 +87,7 @@ const Login = () => {
               </ul>
             </div>
 
-            <p className={styles.leftFooter}>Trusted by businesses across Pakistan, India, and Bangladesh.</p>
+            <p className={styles.leftFooter}>Built and maintained by True Refined Solutions.</p>
           </div>
         </div>
 
@@ -101,19 +101,13 @@ const Login = () => {
           <div className={styles.formWrapper}>
             {/* Mobile-only logo */}
             <Link href="/" className={styles.mobileLogoRow}>
-              <img
-                src="/only-shape-no-bg.png"
-                alt="StockFlow"
-                width={28}
-                height={28}
-                className={styles.mobileLogoIcon}
-              />
-              <span className={styles.mobileLogoName}>StockFlow</span>
+              <img src="/only-shape-no-bg.png" alt="TSO" width={28} height={28} className={styles.mobileLogoIcon} />
+              <span className={styles.mobileLogoName}>TSO</span>
             </Link>
 
             <div className={styles.formHeader}>
               <h1 className={styles.formTitle}>Welcome back</h1>
-              <p className={styles.formSubtitle}>Sign in to your StockFlow account.</p>
+              <p className={styles.formSubtitle}>Sign in to your TSO account.</p>
             </div>
 
             <ConfigProvider theme={antTheme}>

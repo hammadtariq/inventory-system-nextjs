@@ -7,9 +7,9 @@ import PublicFooter from "@/components/PublicFooter";
 import PublicDemoModal from "@/components/PublicDemoModal";
 
 const PAGE_URL = "https://www.treesols.com/inventory-software-south-asia";
-const PAGE_TITLE = "Inventory Software for South Asian SMBs — TSO by TRS";
+const PAGE_TITLE = "Inventory Software for Asian SMBs - TSO by True Refined Solutions";
 const PAGE_DESCRIPTION =
-  "Inventory software for South Asian SMBs should connect stock, purchases, sales, customer dues, supplier payables, reports, and exports in one workflow.";
+  "TSO by True Refined Solutions is inventory and business operations SaaS for Asian SMBs that need connected stock, purchases, sales, ledgers, reports, and AI insights.";
 
 const sources = [
   {
@@ -36,16 +36,16 @@ const sources = [
 
 const faqs = [
   {
-    q: "What should South Asian SMBs look for in inventory software?",
-    a: "South Asian SMBs should look for inventory software that tracks purchases, sales, stock on hand, customer dues, supplier payables, payments, ledgers, reports, exports, and team access controls in one system.",
+    q: "What should Asian SMBs look for in inventory software?",
+    a: "Asian SMBs should look for SaaS inventory software that tracks purchases, sales, stock on hand, customer dues, supplier payables, payments, ledgers, reports, exports, AI-powered insights, and team access controls in one system.",
   },
   {
     q: "Why does regional workflow matter?",
-    a: "Many South Asian SMBs run lean teams, relationship-based supplier and customer workflows, and frequent payment follow-ups. Software should make dues, stock movement, and ledgers visible without forcing teams into complex enterprise systems.",
+    a: "Many Asian SMBs run lean teams, relationship-based supplier and customer workflows, and frequent payment follow-ups. Software should make dues, stock movement, and ledgers visible without forcing teams into complex enterprise systems.",
   },
   {
-    q: "Is TSO built for South Asian SMB operations?",
-    a: "Yes. TSO is designed around inventory, purchases, sales, customer and supplier ledgers, reports, exports, and multi-company workflows for growing SMBs across South Asia.",
+    q: "Is TSO built for Asian SMB operations?",
+    a: "Yes. TSO by True Refined Solutions is designed as business operations SaaS for Asian SMBs, with inventory, purchases, sales, customer and supplier ledgers, reports, AI-powered insights, exports, and multi-company workflows.",
   },
   {
     q: "What is the first workflow to digitize?",
@@ -73,7 +73,7 @@ const structuredData = [
     name: PAGE_TITLE,
     url: PAGE_URL,
     description: PAGE_DESCRIPTION,
-    about: ["Inventory software South Asia", "SMB inventory management", "Inventory accounting software"],
+    about: ["Inventory software Asia", "SMB inventory management", "Business operations SaaS"],
     mainEntity: {
       "@type": "SoftwareApplication",
       name: "TSO",
@@ -81,8 +81,8 @@ const structuredData = [
       operatingSystem: "Web",
       url: "https://www.treesols.com/",
       description:
-        "TSO connects inventory, purchases, sales, customer and supplier ledgers, reports, exports, and multi-company workflows for SMBs.",
-      areaServed: "South Asia",
+        "TSO by True Refined Solutions connects inventory, purchases, sales, customer and supplier ledgers, reports, AI-powered insights, exports, and multi-company workflows for Asian SMBs.",
+      areaServed: "Asia",
     },
   },
   {
@@ -180,7 +180,7 @@ export default function InventorySoftwareSouthAsia() {
         <meta name="robots" content="index,follow" />
         <link rel="canonical" href={PAGE_URL} />
         <meta property="og:type" content="article" />
-        <meta property="og:site_name" content="TSO by TRS" />
+        <meta property="og:site_name" content="TSO by True Refined Solutions" />
         <meta property="og:title" content={PAGE_TITLE} />
         <meta property="og:description" content={PAGE_DESCRIPTION} />
         <meta property="og:url" content={PAGE_URL} />
@@ -192,16 +192,16 @@ export default function InventorySoftwareSouthAsia() {
       <div className={styles.page}>
         <PublicNav onDemoClick={openDemo} alwaysLight hrefPrefix="/" />
         <main style={containerStyle}>
-          <p style={{ ...pStyle, color: "var(--accent)", fontWeight: 800, marginBottom: 12 }}>South Asia SMB guide</p>
-          <h1 style={h1Style}>Inventory software for South Asian SMBs</h1>
+          <p style={{ ...pStyle, color: "var(--accent)", fontWeight: 800, marginBottom: 12 }}>Asia SMB guide</p>
+          <h1 style={h1Style}>Inventory software for Asian SMBs</h1>
           <p style={leadStyle}>
-            Inventory software for South Asian SMBs should fit how growing distributors, wholesalers, retailers, and
-            trading businesses actually operate: frequent purchases, customer credit, supplier payables, stock movement,
-            multi-company records, and exportable reports in one simple workflow.
+            Inventory software for Asian SMBs should fit how growing distributors, wholesalers, retailers, and trading
+            businesses actually operate: frequent purchases, customer credit, supplier payables, stock movement,
+            multi-company records, AI-powered insights, and exportable reports in one simple SaaS workflow.
           </p>
 
           <section style={sectionStyle}>
-            <h2 style={h2Style}>What should South Asian SMBs look for in inventory software?</h2>
+            <h2 style={h2Style}>What should Asian SMBs look for in inventory software?</h2>
             <p style={pStyle}>
               Look for a system that connects inventory with the financial reality of the business. Stock quantity alone
               is not enough. Teams need to know what stock is available, what customers owe, what suppliers are owed,

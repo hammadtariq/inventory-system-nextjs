@@ -7,22 +7,23 @@ import PublicFooter from "@/components/PublicFooter";
 import PublicDemoModal from "@/components/PublicDemoModal";
 
 const ABOUT_URL = "https://www.treesols.com/about";
-const ABOUT_TITLE = "About TSO by TRS - Inventory Software for South Asian SMBs";
+const TRUE_REFINED_URL = "https://truerefinedsolutions.com";
+const ABOUT_TITLE = "About TSO by True Refined Solutions";
 const ABOUT_DESCRIPTION =
-  "Learn how TSO by TRS helps South Asian SMBs manage inventory, purchases, sales, ledgers, and reporting in one place.";
+  "Learn how TSO by True Refined Solutions helps Asian businesses manage inventory, warehouse operations, purchases, sales, ledgers, reports, and AI-powered insights.";
 
 const VALUE_PROPS = [
   {
-    title: "Built for South Asia",
-    desc: "GST-ready, supports PKR and INR, and designed around how local businesses actually operate — from wholesale traders in Karachi to retail distributors in Mumbai.",
+    title: "A True Refined Solutions Product",
+    desc: "TSO is built, owned, and maintained by True Refined Solutions as a SaaS product platform for Asian business operations.",
   },
   {
-    title: "Everything in One Place",
-    desc: "Inventory, purchases, sales, ledger, and reporting — all connected. Stop juggling spreadsheets, separate accounting tools, and WhatsApp threads.",
+    title: "Operations in One Place",
+    desc: "Inventory, warehouse activity, purchases, sales, ledgers, reports, and AI-powered insights stay connected.",
   },
   {
-    title: "Simple Enough for Any Team",
-    desc: "No accountant or IT team required. Most businesses are fully operational within days, not months. Clean UI, sensible defaults, zero fluff.",
+    title: "Built for Future Modules",
+    desc: "The platform is positioned beyond stock control, with room for additional business modules as customer needs grow.",
   },
 ];
 
@@ -44,7 +45,7 @@ export default function About() {
         <meta name="robots" content="index,follow" />
         <link rel="canonical" href={ABOUT_URL} />
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="TSO by TRS" />
+        <meta property="og:site_name" content="TSO by True Refined Solutions" />
         <meta property="og:title" content={ABOUT_TITLE} />
         <meta property="og:description" content={ABOUT_DESCRIPTION} />
         <meta property="og:url" content={ABOUT_URL} />
@@ -64,7 +65,7 @@ export default function About() {
                 lineHeight: 1.1,
               }}
             >
-              Built for Businesses That Mean Business
+              About TSO by True Refined Solutions
             </h1>
             <p
               style={{
@@ -75,10 +76,9 @@ export default function About() {
                 maxWidth: 680,
               }}
             >
-              TSO is an all-in-one inventory and operations platform built specifically for South Asian SMBs. We believe
-              that growing businesses deserve the same powerful tools as large enterprises — without the enterprise
-              price tag or complexity. From tracking stock levels to reconciling payments, TSO handles the operational
-              heavy lifting so you can focus on what matters: running your business.
+              TSO is a SaaS business operations platform for Asian businesses managing inventory, warehouse operations,
+              purchases, sales, ledgers, reports, and AI-powered insights. It is designed and maintained by True Refined
+              Solutions, the software development company behind the product.
             </p>
           </motion.div>
 
@@ -142,14 +142,15 @@ export default function About() {
                 marginBottom: 12,
               }}
             >
-              Ready to see it in action?
+              Need a custom system for your business?
             </h2>
             <p style={{ fontSize: 16, color: "var(--ink-2)", lineHeight: 1.65, marginBottom: 28 }}>
-              Join hundreds of businesses already running smarter with TSO by TRS.
+              Work with True Refined Solutions for custom web apps, SaaS platforms, inventory systems, and AI-powered
+              business automation.
             </p>
-            <button className={styles.btnPrimaryLg} onClick={openDemo}>
-              Request a demo →
-            </button>
+            <a href={TRUE_REFINED_URL} target="_blank" rel="noopener noreferrer" className={styles.btnPrimaryLg}>
+              Work with True Refined Solutions
+            </a>
           </motion.div>
         </main>
 

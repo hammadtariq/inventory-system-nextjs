@@ -155,7 +155,7 @@
 .navLinks {
   display: flex;
   align-items: center;
-  gap: 36px;
+  gap: 22px;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -163,10 +163,11 @@
 
 .navLinks a {
   text-decoration: none;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--nav-sub);
   transition: color 0.3s ease;
+  white-space: nowrap;
 }
 
 .navLinks a:hover {
@@ -623,6 +624,19 @@
 .inner {
   max-width: 1100px;
   margin: 0 auto;
+}
+
+.solutionPanel {
+  max-width: 760px;
+}
+
+.panelKicker {
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin: 0 0 14px;
+  text-transform: uppercase;
 }
 
 /* ── FEATURES ── */
@@ -1274,6 +1288,14 @@
   margin-right: auto;
 }
 
+.finalCtaActions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 /* ── FOOTER ── */
 .footer {
   background: var(--bg-surface);
@@ -1322,7 +1344,7 @@
   font-size: 13px;
   color: var(--ink-3);
   line-height: 1.6;
-  max-width: 230px;
+  max-width: 360px;
   margin: 0;
 }
 
@@ -1586,7 +1608,7 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1060px) {
   .navLinks {
     display: none;
   }
@@ -1598,7 +1620,9 @@
   .navMobileBtn {
     display: flex;
   }
+}
 
+@media (max-width: 768px) {
   .heroHeading {
     font-size: 36px;
   }

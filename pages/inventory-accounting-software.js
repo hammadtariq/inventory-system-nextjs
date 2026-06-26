@@ -7,9 +7,9 @@ import PublicFooter from "@/components/PublicFooter";
 import PublicDemoModal from "@/components/PublicDemoModal";
 
 const PAGE_URL = "https://www.treesols.com/inventory-accounting-software";
-const PAGE_TITLE = "Inventory Accounting Software for SMBs — TSO by TRS";
+const PAGE_TITLE = "Inventory Accounting Software for Asian SMBs - TSO by True Refined Solutions";
 const PAGE_DESCRIPTION =
-  "Inventory accounting software connects stock movement, purchase costs, sales, dues, ledgers, and reports for SMB finance and operations teams.";
+  "TSO by True Refined Solutions connects stock movement, purchase costs, sales, dues, ledgers, reports, and AI-powered insights for Asian SMB teams.";
 
 const sources = [
   {
@@ -44,7 +44,7 @@ const faqs = [
   },
   {
     q: "How does TSO support inventory accounting?",
-    a: "TSO combines inventory, purchases, sales, payments, customer and supplier ledgers, dues, reports, and exports so teams can review operational movement and accounting impact from one app.",
+    a: "TSO combines inventory, purchases, sales, payments, customer and supplier ledgers, dues, reports, AI-powered insights, and exports so Asian teams can review operational movement and accounting impact from one SaaS app.",
   },
 ];
 
@@ -56,8 +56,8 @@ const relatedGuides = [
   },
   {
     href: "/inventory-software-south-asia",
-    title: "Inventory software for South Asian SMBs",
-    description: "See how regional SMB teams manage customer dues, supplier payables, and stock movement.",
+    title: "Inventory software for Asian SMBs",
+    description: "See how Asian SMB teams manage customer dues, supplier payables, and stock movement.",
   },
 ];
 
@@ -76,7 +76,7 @@ const structuredData = [
       operatingSystem: "Web",
       url: "https://www.treesols.com/",
       description:
-        "TSO connects inventory, purchases, sales, payments, ledgers, reports, and exports for SMB operations.",
+        "TSO by True Refined Solutions connects inventory, purchases, sales, payments, ledgers, reports, AI-powered insights, and exports for Asian SMB operations.",
     },
   },
   {
@@ -174,7 +174,7 @@ export default function InventoryAccountingSoftware() {
         <meta name="robots" content="index,follow" />
         <link rel="canonical" href={PAGE_URL} />
         <meta property="og:type" content="article" />
-        <meta property="og:site_name" content="TSO by TRS" />
+        <meta property="og:site_name" content="TSO by True Refined Solutions" />
         <meta property="og:title" content={PAGE_TITLE} />
         <meta property="og:description" content={PAGE_DESCRIPTION} />
         <meta property="og:url" content={PAGE_URL} />
@@ -189,11 +189,12 @@ export default function InventoryAccountingSoftware() {
           <p style={{ ...pStyle, color: "var(--accent)", fontWeight: 800, marginBottom: 12 }}>
             Inventory accounting guide
           </p>
-          <h1 style={h1Style}>Inventory accounting software for SMBs</h1>
+          <h1 style={h1Style}>Inventory accounting software for Asian SMBs</h1>
           <p style={leadStyle}>
             Inventory accounting software connects the operational side of stock with the financial side of the
-            business. For SMBs, that means purchases, sales, customer dues, supplier payables, payments, stock value,
-            ledgers, and exportable reports can be reviewed together instead of reconciled manually after the fact.
+            business. For Asian SMBs, that means purchases, sales, customer dues, supplier payables, payments, stock
+            value, ledgers, and exportable reports can be reviewed together instead of reconciled manually after the
+            fact.
           </p>
 
           <section style={sectionStyle}>

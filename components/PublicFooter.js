@@ -1,6 +1,8 @@
 import Link from "next/link";
 import styles from "@/styles/Landing.module.css";
 
+const TRUE_REFINED_URL = "https://truerefinedsolutions.com";
+
 export default function PublicFooter({ onDemoClick }) {
   return (
     <footer className={styles.footer}>
@@ -19,22 +21,24 @@ export default function PublicFooter({ onDemoClick }) {
               TSO
             </Link>
             <p className={styles.footerBrandText}>
-              Inventory management and accounting for growing businesses across South Asia.
+              TSO is a product by True Refined Solutions - a software development company specializing in custom web
+              apps, SaaS platforms, inventory systems, and AI-powered business automation. TSO is positioned as business
+              operations SaaS for Asian businesses.
             </p>
           </div>
           <div>
             <p className={styles.footerColHeading}>Product</p>
+            <Link href="/#product" className={styles.footerLink}>
+              Product
+            </Link>
             <Link href="/#features" className={styles.footerLink}>
               Features
             </Link>
-            <Link href="/#pricing" className={styles.footerLink}>
-              Pricing
+            <Link href="/#use-cases" className={styles.footerLink}>
+              Use Cases
             </Link>
-            <Link href="/#testimonials" className={styles.footerLink}>
-              Testimonials
-            </Link>
-            <Link href="/#faq" className={styles.footerLink}>
-              FAQ
+            <Link href="/#ai-insights" className={styles.footerLink}>
+              AI Insights
             </Link>
             <Link href="/inventory-management-software" className={styles.footerLink}>
               Inventory Guide
@@ -43,11 +47,17 @@ export default function PublicFooter({ onDemoClick }) {
               Accounting Guide
             </Link>
             <Link href="/inventory-software-south-asia" className={styles.footerLink}>
-              South Asia SMB Guide
+              Asia SMB Guide
             </Link>
           </div>
           <div>
-            <p className={styles.footerColHeading}>Company</p>
+            <p className={styles.footerColHeading}>True Refined Solutions</p>
+            <a href={TRUE_REFINED_URL} target="_blank" rel="noopener noreferrer" className={styles.footerLink}>
+              Custom software development by True Refined Solutions
+            </a>
+            <a href={TRUE_REFINED_URL} target="_blank" rel="noopener noreferrer" className={styles.footerLink}>
+              Work with True Refined Solutions
+            </a>
             <Link href="/about" className={styles.footerLink}>
               About
             </Link>
@@ -66,16 +76,11 @@ export default function PublicFooter({ onDemoClick }) {
           </div>
         </div>
         <div className={styles.footerBottom}>
-          <span>© 2026 TSO by TRS. All rights reserved.</span>
+          <span>© 2026 TSO by True Refined Solutions. All rights reserved.</span>
           <span>
-            Built for SMBs in South Asia &nbsp;·&nbsp; Powered by{" "}
-            <a
-              href="https://truerefinedsolutions.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.footerExternalLink}
-            >
-              TRS
+            Built and maintained by{" "}
+            <a href={TRUE_REFINED_URL} target="_blank" rel="noopener noreferrer" className={styles.footerExternalLink}>
+              True Refined Solutions
             </a>
           </span>
         </div>

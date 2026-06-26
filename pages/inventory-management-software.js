@@ -7,9 +7,9 @@ import PublicFooter from "@/components/PublicFooter";
 import PublicDemoModal from "@/components/PublicDemoModal";
 
 const PAGE_URL = "https://www.treesols.com/inventory-management-software";
-const PAGE_TITLE = "Inventory Management Software for SMBs — TSO by TRS";
+const PAGE_TITLE = "Inventory Management Software for Asian SMBs - TSO by True Refined Solutions";
 const PAGE_DESCRIPTION =
-  "Inventory management software helps SMBs track stock, purchases, sales, accounting entries, and reports in one connected workflow.";
+  "TSO by True Refined Solutions helps Asian SMBs track stock, purchases, sales, ledgers, reports, and AI-powered insights in one SaaS workflow.";
 
 const sources = [
   {
@@ -49,7 +49,7 @@ const faqs = [
   },
   {
     q: "Is TSO built for inventory and accounting together?",
-    a: "Yes. TSO combines inventory, purchases, sales, ledger workflows, customer and supplier balances, reporting, and exports for SMBs that need operational and accounting visibility in one web app.",
+    a: "Yes. TSO combines inventory, purchases, sales, ledger workflows, customer and supplier balances, reporting, AI-powered insights, and exports for Asian SMBs that need operational visibility in one SaaS platform.",
   },
 ];
 
@@ -61,8 +61,8 @@ const relatedGuides = [
   },
   {
     href: "/inventory-software-south-asia",
-    title: "Inventory software for South Asian SMBs",
-    description: "Compare the workflows South Asian distributors, wholesalers, and trading teams need most.",
+    title: "Inventory software for Asian SMBs",
+    description: "Compare the workflows Asian distributors, wholesalers, and trading teams need most.",
   },
 ];
 
@@ -81,7 +81,7 @@ const structuredData = [
       operatingSystem: "Web",
       url: "https://www.treesols.com/",
       description:
-        "TSO connects inventory tracking, purchases, sales, ledgers, reporting, and exports for growing SMBs.",
+        "TSO by True Refined Solutions connects inventory tracking, purchases, sales, ledgers, reporting, AI-powered insights, and exports for Asian SMBs.",
     },
   },
   {
@@ -179,7 +179,7 @@ export default function InventoryManagementSoftware() {
         <meta name="robots" content="index,follow" />
         <link rel="canonical" href={PAGE_URL} />
         <meta property="og:type" content="article" />
-        <meta property="og:site_name" content="TSO by TRS" />
+        <meta property="og:site_name" content="TSO by True Refined Solutions" />
         <meta property="og:title" content={PAGE_TITLE} />
         <meta property="og:description" content={PAGE_DESCRIPTION} />
         <meta property="og:url" content={PAGE_URL} />
@@ -194,11 +194,12 @@ export default function InventoryManagementSoftware() {
           <p style={{ ...pStyle, color: "var(--accent)", fontWeight: 800, marginBottom: 12 }}>
             Inventory software guide
           </p>
-          <h1 style={h1Style}>Inventory management software for small and growing businesses</h1>
+          <h1 style={h1Style}>Inventory management software for Asian SMBs</h1>
           <p style={leadStyle}>
             Inventory management software helps SMBs know what is in stock, what is committed to customers, what needs
-            to be reordered, and how purchases and sales affect cash flow. TSO is built for teams that want inventory,
-            accounting, ledgers, reports, and exports in one workflow instead of scattered spreadsheets.
+            to be reordered, and how purchases and sales affect cash flow. TSO by True Refined Solutions is built as
+            SaaS for Asian teams that want inventory, ledgers, reports, AI-powered insights, and exports in one workflow
+            instead of scattered spreadsheets.
           </p>
 
           <section style={sectionStyle}>
