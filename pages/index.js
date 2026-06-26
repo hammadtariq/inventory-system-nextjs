@@ -38,9 +38,9 @@ function Nav({ onDemoClick }) {
         <Link href="/login" className={styles.navLogin}>
           Log in
         </Link>
-        <motion.button className={styles.btnPrimary} onClick={onDemoClick} whileTap={{ scale: 0.97 }}>
+        <button className={styles.btnPrimary} onClick={onDemoClick}>
           Request a demo
-        </motion.button>
+        </button>
       </div>
       <button
         className={styles.navMobileBtn}
@@ -182,9 +182,9 @@ function Hero({ onDemoClick }) {
             businesses in Pakistan, India, and Bangladesh.
           </p>
           <div className={styles.heroCtaRow}>
-            <motion.button className={styles.btnPrimaryLg} onClick={onDemoClick} whileTap={{ scale: 0.97 }}>
+            <button className={styles.btnPrimaryLg} onClick={onDemoClick}>
               Request a demo →
-            </motion.button>
+            </button>
             <a href="#pricing" className={styles.btnOutlineDark}>
               See pricing
             </a>
@@ -347,9 +347,9 @@ function Pricing({ onDemoClick }) {
                   </li>
                 ))}
               </ul>
-              <motion.button className={styles[plan.btnClass]} onClick={onDemoClick} whileTap={{ scale: 0.97 }}>
+              <button className={styles[plan.btnClass]} onClick={onDemoClick}>
                 {plan.btnLabel}
-              </motion.button>
+              </button>
             </div>
           ))}
         </div>
@@ -507,9 +507,9 @@ function FinalCta({ onDemoClick }) {
       <p className={styles.finalCtaSub}>
         Join hundreds of businesses across South Asia that replaced their spreadsheets with StockFlow.
       </p>
-      <motion.button className={styles.btnPrimaryLg} onClick={onDemoClick} whileTap={{ scale: 0.97 }}>
+      <button className={styles.btnPrimaryLg} onClick={onDemoClick}>
         Request a demo →
-      </motion.button>
+      </button>
     </section>
   );
 }
@@ -656,7 +656,7 @@ function DemoModal({ open, onClose, triggerRef }) {
             initial={{ opacity: 0, scale: 0.96, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 12 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
+            transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-heading"
@@ -720,9 +720,9 @@ function DemoModal({ open, onClose, triggerRef }) {
                   <option value="200+">200+ employees</option>
                 </select>
               </div>
-              <motion.button type="submit" className={styles.formSubmit} whileTap={{ scale: 0.97 }}>
+              <button type="submit" className={styles.formSubmit}>
                 Submit request →
-              </motion.button>
+              </button>
             </form>
           </motion.div>
         </motion.div>
