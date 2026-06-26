@@ -1,409 +1,750 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Head from "next/head";
 import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
 import styles from "@/styles/Landing.module.css";
-import { motion, AnimatePresence } from "framer-motion";
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
-};
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.08 } },
-};
-
+/* ── NAV ── */
 function Nav({ onDemoClick }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
   return (
-    <nav className={styles.nav}>
-      <a href="#hero" className={styles.logo}>
+    <nav className={styles.nav} aria-label="Main navigation">
+      <a href="#hero" className={styles.navLogo}>
         <img
           src="/only-shape-no-bg.png"
-          alt="StockFlow logo"
-          style={{ height: 40, width: 40, marginRight: 2, verticalAlign: "middle" }}
+          alt=""
+          aria-hidden="true"
+          width={30}
+          height={30}
+          className={styles.navLogoImg}
         />
         StockFlow
       </a>
-      <div className={styles.navLinks}>
-        <a href="#features">Features</a>
-        <a href="#pricing">Pricing</a>
-        <a href="#testimonials">Testimonials</a>
-        <a href="#faq">FAQ</a>
-      </div>
+      <ul className={styles.navLinks} role="list">
+        <li>
+          <a href="#features">Features</a>
+        </li>
+        <li>
+          <a href="#pricing">Pricing</a>
+        </li>
+        <li>
+          <a href="#testimonials">Testimonials</a>
+        </li>
+        <li>
+          <a href="#faq">FAQ</a>
+        </li>
+      </ul>
       <div className={styles.navActions}>
-        <Link href="/login" className={styles.navLoginBtn}>
-          Login
+        <Link href="/login" className={styles.navLogin}>
+          Log in
         </Link>
-        <motion.button className={styles.navCta} onClick={onDemoClick} whileTap={{ scale: 0.97 }}>
-          Request a Demo
+        <motion.button className={styles.btnPrimary} onClick={onDemoClick} whileTap={{ scale: 0.97 }}>
+          Request a demo
         </motion.button>
       </div>
+      <button
+        className={styles.navMobileBtn}
+        onClick={() => setMobileOpen((v) => !v)}
+        aria-expanded={mobileOpen}
+        aria-controls="mobile-nav"
+        aria-label={mobileOpen ? "Close menu" : "Open menu"}
+      >
+        {mobileOpen ? (
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <path d="M2 2L16 16M16 2L2 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        ) : (
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <path d="M2 4h14M2 9h14M2 14h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        )}
+      </button>
+      {mobileOpen && (
+        <div id="mobile-nav" className={styles.mobileMenu}>
+          {["features", "pricing", "testimonials", "faq"].map((id) => (
+            <a key={id} href={`#${id}`} className={styles.mobileLink} onClick={() => setMobileOpen(false)}>
+              {id.charAt(0).toUpperCase() + id.slice(1)}
+            </a>
+          ))}
+          <div className={styles.mobileDivider} />
+          <Link href="/login" className={styles.mobileLink}>
+            Log in
+          </Link>
+        </div>
+      )}
     </nav>
   );
 }
 
-const STATS = [
-  { val: "₨12.4M", lbl: "Total Sales" },
-  { val: "₨8.1M", lbl: "Total Purchases" },
-  { val: "2,840", lbl: "Items in Stock" },
-  { val: "98.2%", lbl: "Order Accuracy" },
+/* ── HERO PREVIEW ── */
+const PREVIEW_ROWS = [
+  {
+    product: "Khaddar Fabric",
+    stock: "640 m",
+    value: "₨ 380/m",
+    total: "₨ 2,43,200",
+    status: "In Stock",
+    statusClass: "statusIn",
+  },
+  {
+    product: "Lawn Shirting",
+    stock: "480 m",
+    value: "₨ 550/m",
+    total: "₨ 2,64,000",
+    status: "In Stock",
+    statusClass: "statusIn",
+  },
+  {
+    product: "Chiffon Dupatta",
+    stock: "14 pcs",
+    value: "₨ 1,200/pc",
+    total: "₨ 16,800",
+    status: "Low Stock",
+    statusClass: "statusLow",
+  },
+  {
+    product: "Polyester Blend",
+    stock: "0 m",
+    value: "₨ 310/m",
+    total: "—",
+    status: "Out of Stock",
+    statusClass: "statusOut",
+  },
 ];
 
+function HeroPreview() {
+  return (
+    <div className={styles.heroPreview} aria-hidden="true">
+      <div className={styles.previewWindow}>
+        <div className={styles.previewBar}>
+          <div className={styles.previewBarLeft}>
+            <div className={styles.previewDots}>
+              <span className={styles.previewDot} />
+              <span className={styles.previewDot} />
+              <span className={styles.previewDot} />
+            </div>
+            <span className={styles.previewTitle}>StockFlow · Inventory</span>
+          </div>
+          <div className={styles.previewLive}>
+            <span className={styles.previewLiveDot} />
+            Live
+          </div>
+        </div>
+        <div className={styles.previewBody}>
+          <table className={styles.previewTable}>
+            <thead>
+              <tr>
+                <th scope="col">Product</th>
+                <th scope="col">In Stock</th>
+                <th scope="col">Unit Value</th>
+                <th scope="col">Total Value</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {PREVIEW_ROWS.map(({ product, stock, value, total, status, statusClass }) => (
+                <tr key={product}>
+                  <td>{product}</td>
+                  <td>{stock}</td>
+                  <td>{value}</td>
+                  <td>{total}</td>
+                  <td className={styles[statusClass]}>{status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className={styles.previewFooter}>
+          <span>
+            Total stock value: <span className={styles.previewFooterAccent}>₨ 5,24,000</span>
+          </span>
+          <span>3 purchase orders pending</span>
+          <span>Last updated: just now</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── HERO ── */
 function Hero({ onDemoClick }) {
   return (
     <section className={styles.hero} id="hero">
-      <motion.div variants={stagger} initial="hidden" animate="visible">
-        <motion.div variants={fadeUp} className={styles.heroBadge}>
-          ✦ Inventory Management for Modern Businesses
-        </motion.div>
-        <motion.h1 variants={fadeUp} className={styles.heroHeading}>
-          Run Your Inventory
-          <br />
-          <span className={styles.heroGradient}>Smarter, Faster,</span>
-          <br />
-          With Confidence.
-        </motion.h1>
-        <motion.p variants={fadeUp} className={styles.heroSub}>
-          StockFlow brings real-time inventory tracking, integrated accounting, and smart order management, all in one
-          clean dashboard.
-        </motion.p>
-        <motion.div variants={fadeUp} className={styles.heroCtaRow}>
-          <motion.button
-            className={styles.btnPrimary}
-            onClick={onDemoClick}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-          >
-            Request a Demo <span aria-hidden="true">→</span>
-          </motion.button>
-          <motion.a
-            href="#pricing"
-            className={styles.btnSecondary}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-          >
-            See Pricing
-          </motion.a>
-        </motion.div>
-        <motion.div variants={fadeUp} className={styles.heroCard}>
-          <div className={styles.heroCardHeader}>
-            <span className={`${styles.dot} ${styles.dotRed}`} aria-hidden="true" />
-            <span className={`${styles.dot} ${styles.dotYellow}`} aria-hidden="true" />
-            <span className={`${styles.dot} ${styles.dotGreen}`} aria-hidden="true" />
+      <div className={styles.heroInner}>
+        <div className={styles.heroText}>
+          <h1 className={styles.heroHeading}>
+            Your business,
+            <br />
+            running on real numbers.
+          </h1>
+          <p className={styles.heroSub}>
+            Real-time inventory, purchase order approvals, and an integrated double-entry ledger — built for growing
+            businesses in Pakistan, India, and Bangladesh.
+          </p>
+          <div className={styles.heroCtaRow}>
+            <motion.button className={styles.btnPrimaryLg} onClick={onDemoClick} whileTap={{ scale: 0.97 }}>
+              Request a demo →
+            </motion.button>
+            <a href="#pricing" className={styles.btnOutlineDark}>
+              See pricing
+            </a>
           </div>
-          <div className={styles.cardStats}>
-            {STATS.map(({ val, lbl }) => (
-              <div key={lbl} className={styles.statChip}>
-                <div className={styles.statVal}>{val}</div>
-                <div className={styles.statLbl}>{lbl}</div>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-      </motion.div>
+        </div>
+        <HeroPreview />
+      </div>
     </section>
   );
 }
 
+/* ── FEATURES ── */
 const FEATURES = [
   {
-    icon: "📦",
-    color: "iconPurple",
-    title: "Real-Time Inventory",
-    desc: "Live stock levels, product tracking, and smart allocation across all your locations.",
+    title: "Real-time inventory",
+    desc: "Live stock levels per product and location. Every purchase and sale updates your counts automatically — no manual entries, no discrepancies at month-end.",
   },
   {
-    icon: "🧾",
-    color: "iconViolet",
-    title: "Purchase Orders",
-    desc: "Supplier management, order approval workflows, and full purchase history at a glance.",
+    title: "Purchase orders and approvals",
+    desc: "Create orders, route them for approval, and track delivery against each line item. Full supplier history in one place.",
   },
   {
-    icon: "💰",
-    color: "iconGreen",
-    title: "Integrated Ledger",
-    desc: "Double-entry accounting built in, not bolted on. Payables, receivables, reconciliation.",
+    title: "Double-entry ledger",
+    desc: "Every transaction posts a proper ledger entry. Payables, receivables, and bank reconciliation are connected — not separate spreadsheets.",
   },
   {
-    icon: "📊",
-    color: "iconBlue",
-    title: "Reports and Analytics",
-    desc: "Sales vs purchases charts, top products, customer distribution, and export to CSV or Excel.",
+    title: "Cheque tracking",
+    desc: "Log issued and received cheques, track clearance status, and get alerts before maturity dates. Built for how business is done here.",
   },
   {
-    icon: "🏢",
-    color: "iconOrange",
-    title: "Multi-Company Support",
-    desc: "Manage multiple business entities from one dashboard with role-based access control.",
+    title: "Reports and export",
+    desc: "Sales vs. purchase analysis, top products by margin, customer distribution. Export to CSV or Excel with one click.",
   },
   {
-    icon: "🤖",
-    color: "iconPink",
-    title: "AI Assistant",
-    desc: "Ask your inventory questions in plain language. Get instant insights without digging through reports.",
+    title: "Multi-company support",
+    desc: "Run multiple business entities from a single account. Separate books, shared login, role-based access control per company.",
   },
 ];
 
 function Features() {
   return (
-    <section className={styles.section} id="features">
-      <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-        <p className={styles.sectionLabel}>What You Get</p>
-        <h2 className={styles.sectionHeading}>
-          Everything your business needs
-          <br />
-          in one place
-        </h2>
-        <p className={styles.sectionSub}>
-          From purchase orders to financial reconciliation, StockFlow handles the complexity so you can focus on growth.
-        </p>
-      </motion.div>
-      <motion.div
-        className={styles.featuresGrid}
-        variants={stagger}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-      >
-        {FEATURES.map(({ icon, color, title, desc }) => (
-          <motion.div
-            key={title}
-            className={styles.featureCard}
-            variants={fadeUp}
-            whileHover={{ y: -6, boxShadow: "0 12px 40px rgba(99,102,241,0.15)" }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-          >
-            <div className={`${styles.featureIcon} ${styles[color]}`}>{icon}</div>
-            <h3 className={styles.featureTitle}>{title}</h3>
-            <p className={styles.featureDesc}>{desc}</p>
-          </motion.div>
-        ))}
-      </motion.div>
-    </section>
-  );
-}
-
-const TESTIMONIALS = [
-  {
-    quote: "StockFlow saved us 15 hours a week on reconciliation. GST compliance is finally stress-free.",
-    name: "Ali Hassan",
-    role: "Finance Manager, Karachi",
-    initial: "A",
-    avatarClass: "avatarA",
-  },
-  {
-    quote: "We cut inventory costs by 20% in the first quarter. The real-time visibility is a game-changer.",
-    name: "Omar Shaikh",
-    role: "Operations Lead, Lahore",
-    initial: "O",
-    avatarClass: "avatarB",
-  },
-  {
-    quote: "As a founder wearing all hats, StockFlow lets me run the whole business from my phone.",
-    name: "Fatima Malik",
-    role: "Founder, Islamabad",
-    initial: "F",
-    avatarClass: "avatarC",
-  },
-];
-
-function Testimonials() {
-  return (
-    <section className={styles.section} id="testimonials">
-      <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-        <p className={styles.sectionLabel}>Customer Stories</p>
-        <h2 className={styles.sectionHeading}>
-          Trusted by businesses
-          <br />
-          across South Asia
-        </h2>
-      </motion.div>
-      <motion.div
-        className={styles.testimonialsGrid}
-        variants={stagger}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-      >
-        {TESTIMONIALS.map(({ quote, name, role, initial, avatarClass }) => (
-          <motion.div
-            key={name}
-            className={styles.testimonialCard}
-            variants={fadeUp}
-            whileHover={{ y: -4, boxShadow: "0 12px 40px rgba(0,0,0,0.1)" }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-          >
-            <div className={styles.stars}>★★★★★</div>
-            <p className={styles.testimonialQuote}>&ldquo;{quote}&rdquo;</p>
-            <div className={styles.author}>
-              <div className={`${styles.avatar} ${styles[avatarClass]}`}>{initial}</div>
-              <div>
-                <div className={styles.authorName}>{name}</div>
-                <div className={styles.authorRole}>{role}</div>
-              </div>
+    <section className={`${styles.section} ${styles.sectionAlt}`} id="features">
+      <div className={styles.inner}>
+        <div className={styles.featuresHead}>
+          <h2 className={styles.sectionHeading}>What StockFlow handles</h2>
+          <p className={styles.sectionSubLeft}>
+            From the purchase order to the bank reconciliation. Everything your accountant wants to see, always up to
+            date.
+          </p>
+        </div>
+        <div className={styles.featuresGrid}>
+          {FEATURES.map(({ title, desc }) => (
+            <div key={title} className={styles.featureBlock}>
+              <h3 className={styles.featureTitle}>{title}</h3>
+              <p className={styles.featureDesc}>{desc}</p>
             </div>
-          </motion.div>
-        ))}
-      </motion.div>
+          ))}
+        </div>
+      </div>
     </section>
   );
 }
+
+/* ── PRICING ── */
+const CheckIcon = () => (
+  <svg className={styles.planCheck} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <circle cx="8" cy="8" r="7.25" stroke="currentColor" strokeWidth="1.5" />
+    <path d="M5 8l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
 
 const PLANS = [
   {
-    tier: "🥈 Silver",
-    style: "planSilver",
-    tierClass: "planTier",
-    btnClass: "btnOutlinePlan",
-    btnLabel: "Get Started",
-    price: "$20",
+    name: "Silver",
+    billing: "Billed monthly",
+    total: "20",
+    monthly: null,
     period: "/mo",
-    desc: "Perfect for small teams getting started",
-    features: ["1 Company", "Up to 5 Users", "Inventory and Orders", "Basic Reports", "Email Support"],
+    desc: "For small teams getting started.",
+    featured: false,
+    btnLabel: "Get started",
+    btnClass: "planBtnOutline",
+    badge: null,
+    features: ["1 company", "Up to 5 users", "Inventory and orders", "Basic reports", "Email support"],
   },
   {
-    tier: "🥇 Gold",
-    style: "planGold",
-    tierClass: "planTierGold",
-    btnClass: "btnFillPlan",
-    btnLabel: "Request a Demo",
-    popular: true,
-    price: "$100",
+    name: "Gold",
+    billing: "Billed every 6 months",
+    total: "100",
+    monthly: "₨ equiv. $16.67/mo",
     period: "/6 mo",
-    desc: "Save 17%. Best for growing businesses.",
+    desc: "Save 17% vs. monthly.",
+    featured: true,
+    btnLabel: "Request a demo",
+    btnClass: "planBtnFill",
+    badge: "Most popular",
     features: [
-      "3 Companies",
-      "Up to 15 Users",
-      "Advanced Reporting",
-      "Ledger and Cheques",
-      "Priority Support",
-      "CSV and Excel Exports",
+      "3 companies",
+      "Up to 15 users",
+      "Inventory, orders and ledger",
+      "Cheque tracking",
+      "Advanced reporting",
+      "CSV and Excel export",
+      "Priority support",
     ],
   },
   {
-    tier: "💎 Platinum",
-    style: "planPlatinum",
-    tierClass: "planTier",
-    btnClass: "btnGhostPlan",
-    btnLabel: "Request a Demo",
-    price: "$150",
+    name: "Platinum",
+    billing: "Billed annually",
+    total: "150",
+    monthly: "₨ equiv. $12.50/mo",
     period: "/yr",
-    desc: "Best value. Save 38% annually.",
+    desc: "Best value — save 38%.",
+    featured: false,
+    btnLabel: "Request a demo",
+    btnClass: "planBtnOutline",
+    badge: "Best value",
     features: [
-      "Unlimited Companies",
-      "Unlimited Users",
-      "All Gold Features",
-      "AI Assistant",
-      "Dedicated Onboarding",
-      "99.9% SLA",
+      "Unlimited companies",
+      "Unlimited users",
+      "All Gold features",
+      "AI assistant",
+      "Dedicated onboarding",
+      "99.9% uptime SLA",
     ],
   },
 ];
 
-const TOGGLE_LABELS = ["Monthly", "6 Months", "Annual"];
-
 function Pricing({ onDemoClick }) {
-  const [active, setActive] = useState(0);
-
   return (
-    <motion.section
-      className={styles.section}
-      id="pricing"
-      variants={fadeUp}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true }}
-    >
-      <div className={styles.pricingBg}>
-        <p className={styles.sectionLabel}>Simple Pricing</p>
-        <h2 className={styles.sectionHeading}>
-          Choose the plan that fits
-          <br />
-          your business
-        </h2>
-        <p className={styles.sectionSub}>No hidden fees. Cancel anytime. Switch plans as you grow.</p>
-        <div className={styles.toggleWrap}>
-          <div className={styles.planToggle}>
-            {TOGGLE_LABELS.map((label, i) => (
-              <button
-                key={label}
-                className={`${styles.planToggleBtn} ${active === i ? styles.planToggleActive : ""}`}
-                onClick={() => setActive(i)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+    <section className={styles.section} id="pricing">
+      <div className={styles.inner}>
+        <div className={`${styles.pricingHead}`}>
+          <h2 className={styles.sectionHeading}>Simple, honest pricing</h2>
+          <p className={styles.sectionSubLeft}>
+            No hidden fees. Switch or cancel anytime. Longer commitments save you money.
+          </p>
         </div>
-        <motion.div
-          className={styles.pricingGrid}
-          variants={stagger}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
+        <div className={styles.pricingGrid}>
           {PLANS.map((plan) => (
-            <motion.div
-              key={plan.tier}
-              className={`${styles.planCard} ${styles[plan.style]}`}
-              variants={fadeUp}
-              whileHover={{ y: -6, boxShadow: "0 20px 50px rgba(99,102,241,0.18)" }}
-              transition={{ type: "spring", stiffness: 280, damping: 20 }}
-            >
-              {plan.popular && <div className={styles.popularBadge}>⭐ Most Popular</div>}
-              <p className={`${styles.planTier} ${styles[plan.tierClass] ?? ""}`}>{plan.tier}</p>
-              <div className={styles.planPrice}>
-                <sup className={styles.planPriceSup}>$</sup>
-                {plan.price.replace("$", "")}
-                <sub className={styles.planPriceSub}>{plan.period}</sub>
+            <div key={plan.name} className={plan.featured ? styles.planCardFeatured : styles.planCard}>
+              <div className={styles.planHeader}>
+                <span className={styles.planName}>{plan.name}</span>
+                {plan.badge && <span className={styles.planBadge}>{plan.badge}</span>}
               </div>
+              <p className={styles.planBilling}>{plan.billing}</p>
+              <div className={styles.planPrice}>
+                <span className={styles.planPriceCurrency}>$</span>
+                <span className={styles.planPriceAmt}>{plan.total}</span>
+                <span className={styles.planPricePeriod}>{plan.period}</span>
+              </div>
+              {plan.monthly && <p className={styles.planMonthly}>{plan.monthly}</p>}
               <p className={styles.planDesc}>{plan.desc}</p>
-              <ul className={styles.planFeatures}>
+              <div className={styles.planDivider} />
+              <ul className={styles.planFeatures} role="list">
                 {plan.features.map((f) => (
                   <li key={f} className={styles.planFeatureItem}>
-                    {f}
+                    <CheckIcon />
+                    <span>{f}</span>
                   </li>
                 ))}
               </ul>
-              <motion.button
-                className={`${styles.planBtn} ${styles[plan.btnClass]}`}
-                onClick={onDemoClick}
-                whileTap={{ scale: 0.97 }}
-              >
+              <motion.button className={styles[plan.btnClass]} onClick={onDemoClick} whileTap={{ scale: 0.97 }}>
                 {plan.btnLabel}
               </motion.button>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       </div>
-    </motion.section>
+    </section>
   );
 }
+
+/* ── TESTIMONIALS ── */
+function Testimonials() {
+  return (
+    <section className={`${styles.section} ${styles.sectionAlt}`} id="testimonials">
+      <div className={styles.inner}>
+        <h2 className={styles.sectionHeading} style={{ marginBottom: 40 }}>
+          Trusted by businesses across South Asia
+        </h2>
+        <div className={styles.testimonialsGrid}>
+          <div className={styles.testimonialFeatured}>
+            <span className={styles.testimonialMark} aria-hidden="true">
+              &ldquo;
+            </span>
+            <blockquote className={styles.testimonialQuoteFeatured}>
+              StockFlow saved us 15 hours a week on reconciliation. GST compliance used to be a Friday nightmare — now
+              it takes twenty minutes. Our accountant actually approved the switch.
+            </blockquote>
+            <div className={styles.testimonialAuthor}>
+              <div className={styles.testimonialAvatar} aria-hidden="true">
+                A
+              </div>
+              <div>
+                <div className={styles.testimonialName}>Ali Hassan</div>
+                <div className={styles.testimonialRole}>Finance Manager, Karachi</div>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.testimonialStack}>
+            <div className={styles.testimonialMinor}>
+              <blockquote className={styles.testimonialQuoteMinor}>
+                &ldquo;We cut inventory holding costs by 20% in the first quarter. Having live stock levels meant we
+                stopped over-ordering every month.&rdquo;
+              </blockquote>
+              <div className={styles.testimonialAuthorMinor}>
+                <div className={styles.testimonialAvatarMinor} aria-hidden="true">
+                  O
+                </div>
+                <div>
+                  <div className={styles.testimonialNameMinor}>Omar Shaikh</div>
+                  <div className={styles.testimonialRoleMinor}>Operations Lead, Lahore</div>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.testimonialMinor}>
+              <blockquote className={styles.testimonialQuoteMinor}>
+                &ldquo;As a founder wearing every hat, StockFlow gives me a clean picture of the business in five
+                minutes. I used to need an hour with the spreadsheets.&rdquo;
+              </blockquote>
+              <div className={styles.testimonialAuthorMinor}>
+                <div className={styles.testimonialAvatarMinor} aria-hidden="true">
+                  F
+                </div>
+                <div>
+                  <div className={styles.testimonialNameMinor}>Fatima Malik</div>
+                  <div className={styles.testimonialRoleMinor}>Founder, Islamabad</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── FAQ ── */
+const ChevronIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 18 18" fill="none" aria-hidden="true">
+    <path
+      d="M4.5 6.75L9 11.25L13.5 6.75"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
 
 const FAQS = [
   {
     q: "Can I manage multiple companies under one account?",
-    a: "Yes. Gold and Platinum plans support multiple business entities from a single dashboard, each with isolated data and user roles.",
+    a: "Yes. Gold and Platinum plans support multiple business entities from a single dashboard, each with isolated data, books, and user roles.",
+  },
+  {
+    q: "How does the double-entry ledger work?",
+    a: "Every transaction — purchase, sale, payment — automatically posts a corresponding ledger entry. You get a live trial balance, accounts payable, and accounts receivable without separate accounting software.",
+  },
+  {
+    q: "Is cheque tracking available on all plans?",
+    a: "Cheque tracking is available on Gold and Platinum plans. You can log issued and received cheques, track clearance status, and set alerts for maturity dates.",
   },
   {
     q: "How secure is my business data?",
-    a: "Your data is encrypted in transit and at rest. We follow OWASP security standards and conduct regular audits.",
+    a: "Data is encrypted in transit and at rest. We follow OWASP security standards, conduct regular audits, and maintain strict tenant isolation — your data is never shared across accounts.",
   },
   {
     q: "Can I cancel or switch plans anytime?",
-    a: "Absolutely. Upgrade, downgrade, or cancel at any time. No lock-in contracts, no cancellation fees.",
-  },
-  {
-    q: "How long does onboarding take?",
-    a: "Most businesses are up and running within a week. Platinum customers get dedicated onboarding support.",
+    a: "Yes. Upgrade, downgrade, or cancel at any time. There are no lock-in contracts or cancellation fees. Unused time on prepaid plans is credited to your account.",
   },
 ];
 
+function Faq({ openFaq, setOpenFaq }) {
+  return (
+    <section className={styles.section} id="faq">
+      <div className={styles.inner}>
+        <h2 className={styles.sectionHeading}>Common questions</h2>
+        <div className={styles.faqList}>
+          {FAQS.map(({ q, a }, i) => {
+            const isOpen = openFaq === q;
+            const btnId = `faq-btn-${i}`;
+            return (
+              <div key={q} className={styles.faqItem}>
+                <button
+                  id={btnId}
+                  className={styles.faqToggle}
+                  onClick={() => setOpenFaq(isOpen ? null : q)}
+                  aria-expanded={isOpen}
+                >
+                  <span className={styles.faqQuestion}>{q}</span>
+                  <ChevronIcon className={`${styles.faqChevron} ${isOpen ? styles.faqChevronOpen : ""}`} />
+                </button>
+                <div
+                  className={`${styles.faqBody} ${isOpen ? styles.faqBodyOpen : ""}`}
+                  role="region"
+                  aria-labelledby={btnId}
+                >
+                  <div className={styles.faqBodyInner}>
+                    <p className={styles.faqAnswer}>{a}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── FINAL CTA ── */
+function FinalCta({ onDemoClick }) {
+  return (
+    <section className={styles.finalCta}>
+      <h2 className={styles.finalCtaHeading}>See it working in your business.</h2>
+      <p className={styles.finalCtaSub}>
+        Join hundreds of businesses across South Asia that replaced their spreadsheets with StockFlow.
+      </p>
+      <motion.button className={styles.btnPrimaryLg} onClick={onDemoClick} whileTap={{ scale: 0.97 }}>
+        Request a demo →
+      </motion.button>
+    </section>
+  );
+}
+
+/* ── FOOTER ── */
+function Footer({ onDemoClick }) {
+  return (
+    <footer className={styles.footer}>
+      <div className={styles.footerInner}>
+        <div className={styles.footerGrid}>
+          <div>
+            <a href="#hero" className={styles.footerLogo}>
+              <img
+                src="/only-shape-no-bg.png"
+                alt=""
+                aria-hidden="true"
+                width={26}
+                height={26}
+                className={styles.footerLogoImg}
+              />
+              StockFlow
+            </a>
+            <p className={styles.footerBrandText}>
+              Inventory management and accounting for growing businesses across South Asia.
+            </p>
+          </div>
+          <div>
+            <p className={styles.footerColHeading}>Product</p>
+            <a href="#features" className={styles.footerLink}>
+              Features
+            </a>
+            <a href="#pricing" className={styles.footerLink}>
+              Pricing
+            </a>
+            <a href="#testimonials" className={styles.footerLink}>
+              Testimonials
+            </a>
+            <a href="#faq" className={styles.footerLink}>
+              FAQ
+            </a>
+            <Link href="/inventory-management-software" className={styles.footerLink}>
+              Inventory Guide
+            </Link>
+            <Link href="/inventory-accounting-software" className={styles.footerLink}>
+              Accounting Guide
+            </Link>
+            <Link href="/inventory-software-south-asia" className={styles.footerLink}>
+              South Asia SMB Guide
+            </Link>
+          </div>
+          <div>
+            <p className={styles.footerColHeading}>Company</p>
+            <Link href="/about" className={styles.footerLink}>
+              About
+            </Link>
+            <button className={styles.footerLinkBtn} onClick={onDemoClick}>
+              Contact us
+            </button>
+          </div>
+          <div>
+            <p className={styles.footerColHeading}>Legal</p>
+            <Link href="/privacy" className={styles.footerLink}>
+              Privacy Policy
+            </Link>
+            <Link href="/terms" className={styles.footerLink}>
+              Terms of Service
+            </Link>
+          </div>
+        </div>
+        <div className={styles.footerBottom}>
+          <span>© 2026 StockFlow. All rights reserved.</span>
+          <span>
+            Built for SMBs in South Asia &nbsp;·&nbsp; Powered by{" "}
+            <a
+              href="https://truerefinedsolutions.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.footerExternalLink}
+            >
+              TRS
+            </a>
+          </span>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+/* ── DEMO MODAL ── */
+function DemoModal({ open, onClose, triggerRef }) {
+  const modalRef = useRef(null);
+
+  useEffect(() => {
+    if (!open || !modalRef.current) return;
+
+    const focusable = [
+      ...modalRef.current.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'),
+    ];
+    focusable[0]?.focus();
+
+    function trapTab(e) {
+      if (e.key !== "Tab" || !focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", trapTab);
+    return () => {
+      document.removeEventListener("keydown", trapTab);
+      triggerRef?.current?.focus();
+    };
+  }, [open, triggerRef]);
+
+  function handleOverlayClick(e) {
+    if (e.target === e.currentTarget) onClose();
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    onClose();
+  }
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          className={styles.modalOverlay}
+          onClick={handleOverlayClick}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+        >
+          <motion.div
+            ref={modalRef}
+            className={styles.modal}
+            initial={{ opacity: 0, scale: 0.96, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 12 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-heading"
+          >
+            <button className={styles.modalClose} onClick={onClose} aria-label="Close dialog">
+              ✕
+            </button>
+            <h2 className={styles.modalHeading} id="modal-heading">
+              Request a demo
+            </h2>
+            <p className={styles.modalSub}>We will reach out within 24 hours to schedule your walkthrough.</p>
+            <form onSubmit={handleSubmit}>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel} htmlFor="demo-name">
+                  Full name
+                </label>
+                <input
+                  id="demo-name"
+                  className={styles.formInput}
+                  type="text"
+                  placeholder="Your name"
+                  required
+                  autoComplete="name"
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel} htmlFor="demo-email">
+                  Business email
+                </label>
+                <input
+                  id="demo-email"
+                  className={styles.formInput}
+                  type="email"
+                  placeholder="you@company.com"
+                  required
+                  autoComplete="email"
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel} htmlFor="demo-company">
+                  Company name
+                </label>
+                <input
+                  id="demo-company"
+                  className={styles.formInput}
+                  type="text"
+                  placeholder="Your company"
+                  required
+                  autoComplete="organization"
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel} htmlFor="demo-size">
+                  Team size
+                </label>
+                <select id="demo-size" className={styles.formSelect} required>
+                  <option value="">Select team size</option>
+                  <option value="1-10">1–10 employees</option>
+                  <option value="11-50">11–50 employees</option>
+                  <option value="51-200">51–200 employees</option>
+                  <option value="200+">200+ employees</option>
+                </select>
+              </div>
+              <motion.button type="submit" className={styles.formSubmit} whileTap={{ scale: 0.97 }}>
+                Submit request →
+              </motion.button>
+            </form>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+/* ── SEO ── */
 const LANDING_URL = "https://www.treesols.com/";
 const LANDING_TITLE = "StockFlow — Inventory Management for Modern Businesses";
 const LANDING_DESCRIPTION =
   "StockFlow brings real-time inventory tracking, integrated accounting, and smart order management for SMBs.";
+
+const PLANS_FOR_SCHEMA = PLANS.map((p) => ({
+  "@type": "Offer",
+  name: p.name,
+  price: p.total,
+  priceCurrency: "USD",
+  availability: "https://schema.org/InStock",
+  url: "https://www.treesols.com/#pricing",
+}));
 
 const landingStructuredData = [
   {
@@ -414,14 +755,7 @@ const landingStructuredData = [
     operatingSystem: "Web",
     url: LANDING_URL,
     description: LANDING_DESCRIPTION,
-    offers: PLANS.map((plan) => ({
-      "@type": "Offer",
-      name: plan.tier.replace(/[^\w\s]/g, "").trim(),
-      price: plan.price.replace("$", ""),
-      priceCurrency: "USD",
-      availability: "https://schema.org/InStock",
-      url: `https://www.treesols.com/#pricing`,
-    })),
+    offers: PLANS_FOR_SCHEMA,
   },
   {
     "@context": "https://schema.org",
@@ -436,232 +770,12 @@ const landingStructuredData = [
     mainEntity: FAQS.map(({ q, a }) => ({
       "@type": "Question",
       name: q,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: a,
-      },
+      acceptedAnswer: { "@type": "Answer", text: a },
     })),
   },
 ];
 
-function Faq({ openFaq, setOpenFaq }) {
-  return (
-    <motion.section
-      className={styles.section}
-      id="faq"
-      variants={fadeUp}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true }}
-    >
-      <p className={styles.sectionLabel}>FAQ</p>
-      <h2 className={styles.sectionHeading}>Common questions</h2>
-      <div className={styles.faqList}>
-        {FAQS.map(({ q, a }) => {
-          const isOpen = openFaq === q;
-          return (
-            <div key={q} className={styles.faqItem}>
-              <button className={styles.faqToggle} onClick={() => setOpenFaq(isOpen ? null : q)}>
-                <span className={styles.faqQuestion}>{q}</span>
-                <span className={`${styles.faqChevron} ${isOpen ? styles.faqChevronOpen : ""}`}>›</span>
-              </button>
-              <div className={`${styles.faqBody} ${isOpen ? styles.faqBodyOpen : ""}`}>
-                <p className={styles.faqAnswer}>{a}</p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </motion.section>
-  );
-}
-
-function FinalCta({ onDemoClick }) {
-  return (
-    <motion.div
-      className={styles.finalCta}
-      variants={fadeUp}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true }}
-    >
-      <h2 className={styles.finalCtaHeading}>
-        Ready to streamline
-        <br />
-        your inventory?
-      </h2>
-      <p className={styles.finalCtaSub}>Join hundreds of businesses already running smarter with StockFlow.</p>
-      <motion.button
-        className={styles.btnPrimaryLg}
-        onClick={onDemoClick}
-        whileHover={{ scale: 1.03 }}
-        whileTap={{ scale: 0.97 }}
-      >
-        Request a Demo <span aria-hidden="true">→</span>
-      </motion.button>
-    </motion.div>
-  );
-}
-
-function Footer({ onDemoClick }) {
-  return (
-    <footer className={styles.footer}>
-      <div className={styles.footerGrid}>
-        <div>
-          <a href="#hero" className={styles.logo} style={{ fontSize: 18 }}>
-            <img
-              src="/only-shape-no-bg.png"
-              alt="StockFlow logo"
-              style={{ height: 40, width: 40, marginRight: 2, verticalAlign: "middle" }}
-            />
-            StockFlow
-          </a>
-          <p className={styles.footerBrandText}>
-            Modern inventory management for growing businesses across South Asia.
-          </p>
-        </div>
-        <div>
-          <p className={styles.footerColHeading}>Product</p>
-          <a href="#features" className={styles.footerLink}>
-            Features
-          </a>
-          <a href="#pricing" className={styles.footerLink}>
-            Pricing
-          </a>
-          <a href="#testimonials" className={styles.footerLink}>
-            Testimonials
-          </a>
-          <a href="#faq" className={styles.footerLink}>
-            FAQ
-          </a>
-          <Link href="/inventory-management-software" className={styles.footerLink}>
-            Inventory Software Guide
-          </Link>
-          <Link href="/inventory-accounting-software" className={styles.footerLink}>
-            Inventory Accounting Guide
-          </Link>
-          <Link href="/inventory-software-south-asia" className={styles.footerLink}>
-            South Asia SMB Guide
-          </Link>
-        </div>
-        <div>
-          <p className={styles.footerColHeading}>Company</p>
-          <Link href="/about" className={styles.footerLink}>
-            About
-          </Link>
-          <button className={styles.footerLinkBtn} onClick={onDemoClick}>
-            Contact Us
-          </button>
-        </div>
-        <div>
-          <p className={styles.footerColHeading}>Legal</p>
-          <Link href="/privacy" className={styles.footerLink}>
-            Privacy Policy
-          </Link>
-          <Link href="/terms" className={styles.footerLink}>
-            Terms of Service
-          </Link>
-        </div>
-      </div>
-      <div className={styles.footerBottom}>
-        <span>© 2026 StockFlow. All rights reserved.</span>
-        <span>
-          Built for SMBs in South Asia 🌍 &nbsp;·&nbsp; Powered by{" "}
-          <a
-            href="https://truerefinedsolutions.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.footerTrsLink}
-          >
-            TRS
-          </a>
-        </span>
-      </div>
-    </footer>
-  );
-}
-
-function DemoModal({ open, onClose }) {
-  function handleOverlayClick(e) {
-    if (e.target === e.currentTarget) onClose();
-  }
-
-  function handleSubmit(e) {
-    e.preventDefault();
-    console.log("Demo request submitted");
-    onClose();
-  }
-
-  return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          className={`${styles.modalOverlay} ${styles.modalOverlayOpen}`}
-          onClick={handleOverlayClick}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <motion.div
-            className={styles.modal}
-            initial={{ opacity: 0, scale: 0.95, y: 16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 16 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-          >
-            <button className={styles.modalClose} onClick={onClose} aria-label="Close">
-              ✕
-            </button>
-            <h3 className={styles.modalHeading}>Request a Demo</h3>
-            <p className={styles.modalSub}>We will reach out within 24 hours to schedule your walkthrough.</p>
-            <form onSubmit={handleSubmit}>
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel} htmlFor="demo-name">
-                  Full Name
-                </label>
-                <input id="demo-name" className={styles.formInput} type="text" placeholder="Your name" required />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel} htmlFor="demo-email">
-                  Business Email
-                </label>
-                <input
-                  id="demo-email"
-                  className={styles.formInput}
-                  type="email"
-                  placeholder="you@company.com"
-                  required
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel} htmlFor="demo-company">
-                  Company Name
-                </label>
-                <input id="demo-company" className={styles.formInput} type="text" placeholder="Your company" required />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel} htmlFor="demo-size">
-                  Team Size
-                </label>
-                <select id="demo-size" className={styles.formSelect} required>
-                  <option>1 to 10 employees</option>
-                  <option>11 to 50 employees</option>
-                  <option>51 to 200 employees</option>
-                  <option>200+ employees</option>
-                </select>
-              </div>
-              <motion.button type="submit" className={styles.formSubmit} whileTap={{ scale: 0.97 }}>
-                Submit Request →
-              </motion.button>
-            </form>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}
-
+/* ── PAGE ── */
 export default function Landing() {
   const [modalOpen, setModalOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
@@ -673,6 +787,14 @@ export default function Landing() {
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, []);
+
+  const demoTriggerRef = useRef(null);
+
+  const openDemo = () => {
+    demoTriggerRef.current = document.activeElement;
+    setModalOpen(true);
+  };
+  const closeDemo = () => setModalOpen(false);
 
   return (
     <>
@@ -689,21 +811,32 @@ export default function Landing() {
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content={LANDING_TITLE} />
         <meta name="twitter:description" content={LANDING_DESCRIPTION} />
+        {/* Fonts */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(landingStructuredData) }}
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(landingStructuredData),
+          }}
         />
       </Head>
       <div className={styles.page}>
-        <Nav onDemoClick={() => setModalOpen(true)} />
-        <Hero onDemoClick={() => setModalOpen(true)} />
-        <Features />
-        <Pricing onDemoClick={() => setModalOpen(true)} />
-        <Testimonials />
-        <Faq openFaq={openFaq} setOpenFaq={setOpenFaq} />
-        <FinalCta onDemoClick={() => setModalOpen(true)} />
-        <Footer onDemoClick={() => setModalOpen(true)} />
-        <DemoModal open={modalOpen} onClose={() => setModalOpen(false)} />
+        <Nav onDemoClick={openDemo} />
+        <main>
+          <Hero onDemoClick={openDemo} />
+          <Features />
+          <Pricing onDemoClick={openDemo} />
+          <Testimonials />
+          <Faq openFaq={openFaq} setOpenFaq={setOpenFaq} />
+          <FinalCta onDemoClick={openDemo} />
+        </main>
+        <Footer onDemoClick={openDemo} />
+        <DemoModal open={modalOpen} onClose={closeDemo} triggerRef={demoTriggerRef} />
       </div>
     </>
   );
