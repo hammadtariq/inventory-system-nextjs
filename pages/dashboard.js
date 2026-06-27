@@ -198,7 +198,7 @@ export default function Home() {
                 colorField="type"
                 innerRadius={0.6}
                 height={260}
-                scale={{ color: { range: ["#7c3aed", "#4f46e5", "#a78bfa"] } }}
+                scale={{ color: { range: ["#16a34a", "#d97706", "#dc2626"] } }}
                 tooltip={{
                   items: [
                     {
@@ -228,7 +228,7 @@ export default function Home() {
                 colorField="type"
                 innerRadius={0.6}
                 height={260}
-                scale={{ color: { range: ["#059669", "#d1fae5"] } }}
+                scale={{ color: { range: ["#16a34a", "#d97706"] } }}
                 tooltip={{
                   items: [
                     {
