@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { AutoComplete, Button, Space } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
@@ -30,6 +30,14 @@ const searchResult = (results = [], valueKey = "", valueKey2 = "", type) =>
 const SearchInput = ({ handleSearch, handleSelect, valueKey, valueKey2, placeholder, type, defaultValue }) => {
   const [options, setOptions] = useState([]);
   const [inputValue, setInputValue] = useState(defaultValue || "");
+  // const containerRef = useRef(null);
+
+  // useEffect(() => {
+  //   const input = containerRef.current?.querySelector("input");
+  //   if (!input) return;
+  //   input.setAttribute("autocomplete", "off");
+  //   input.setAttribute("writingsuggestions", "false");
+  // }, []);
 
   useEffect(() => {
     setInputValue(defaultValue || "");
@@ -67,7 +75,7 @@ const SearchInput = ({ handleSearch, handleSelect, valueKey, valueKey2, placehol
   return (
     <Space.Compact size="large" className={styles.inputWrap}>
       <AutoComplete
-        popupMatchSelectWidth={500}
+        popupMatchSelectWidth
         style={{ width: "100%" }}
         options={options}
         onSelect={_handleSelect}
@@ -76,6 +84,7 @@ const SearchInput = ({ handleSearch, handleSelect, valueKey, valueKey2, placehol
         value={inputValue}
         placeholder={placeholder}
         allowClear
+        autoComplete="off"
       />
       <Button type="primary" icon={<SearchOutlined />} />
     </Space.Compact>

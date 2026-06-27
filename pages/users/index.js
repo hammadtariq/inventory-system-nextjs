@@ -251,28 +251,25 @@ const Users = () => {
         <title>Inventory System - Users</title>
       </Head>
 
-      <Space direction="vertical" size="middle" style={{ width: "100%" }}>
-        <AppTitle
-          level={2}
-          action={
-            <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
-              Invite user
-            </Button>
-          }
-        >
-          Users
-        </AppTitle>
+      <AppTitle
+        level={2}
+        action={
+          <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
+            Invite user
+          </Button>
+        }
+      >
+        Users
+      </AppTitle>
 
-        <AppTable
-          rowKey="id"
-          columns={columns}
-          dataSource={users}
-          isLoading={loading}
-          pagination={false}
-          className={styles.usersTable}
-          scroll={{ x: 760 }}
-        />
-      </Space>
+      <AppTable
+        rowKey="id"
+        columns={columns}
+        dataSource={users}
+        isLoading={loading}
+        pagination={false}
+        className={styles.usersTable}
+      />
 
       <Modal
         title={mode === "create" ? "Invite user" : "Edit user"}
