@@ -59,11 +59,11 @@ const Login = () => {
       </Head>
 
       <div className={styles.loginContainer}>
-        {/* Left panel - brand / feature summary */}
+        {/* Left panel - brand / feature summary (desktop only) */}
         <div className={styles.leftPanel} aria-hidden="true">
           <div className={styles.leftInner}>
             <Link href="/" className={styles.brandMark}>
-              <img src="/only-shape-no-bg.png" alt="" width={32} height={32} className={styles.logoIcon} />
+              <img src="/only-shape-no-bg.png" alt="" width={30} height={30} className={styles.logoImg} />
               <span className={styles.brandName}>TSO</span>
             </Link>
 
@@ -91,6 +91,12 @@ const Login = () => {
           </div>
         </div>
 
+        {/* Mobile header band — dark brand strip shown only on mobile */}
+        <Link href="/" className={styles.mobileHeader}>
+          <img src="/only-shape-no-bg.png" alt="" width={28} height={28} />
+          <span className={styles.mobileHeaderName}>TSO</span>
+        </Link>
+
         {/* Right panel - login form */}
         <motion.div
           className={styles.rightPanel}
@@ -99,12 +105,6 @@ const Login = () => {
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         >
           <div className={styles.formWrapper}>
-            {/* Mobile-only logo */}
-            <Link href="/" className={styles.mobileLogoRow}>
-              <img src="/only-shape-no-bg.png" alt="TSO" width={28} height={28} className={styles.mobileLogoIcon} />
-              <span className={styles.mobileLogoName}>TSO</span>
-            </Link>
-
             <div className={styles.formHeader}>
               <h1 className={styles.formTitle}>Welcome back</h1>
               <p className={styles.formSubtitle}>Sign in to your TSO account.</p>
