@@ -1,4 +1,4 @@
-import { Card, Col, Row, List, Spin } from "antd";
+import { Card, Col, Row, List, Skeleton, Spin } from "antd";
 import { ShoppingCartOutlined, CreditCardOutlined, ShopOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { Line, Pie, Column } from "@ant-design/charts";
 import { useEffect, useState } from "react";
@@ -25,31 +25,35 @@ const formatCurrency = (num) => {
 const STAT_CARDS = [
   {
     key: "totalSales",
-    title: "TOTAL SALES",
-    subtitle: "Overall Sales",
+    title: "Total Sales",
+    subtitle: "Overall revenue",
     icon: <ShoppingCartOutlined />,
-    gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    iconBg: "oklch(0.94 0.04 255)",
+    iconColor: "#2563eb",
   },
   {
     key: "totalSaleDue",
-    title: "TOTAL SALE DUE",
-    subtitle: "Pending Payments",
+    title: "Sale Due",
+    subtitle: "Pending receivables",
     icon: <CreditCardOutlined />,
-    gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+    iconBg: "#fffbeb",
+    iconColor: "#d97706",
   },
   {
     key: "totalPurchases",
-    title: "TOTAL PURCHASES",
-    subtitle: "Total Spending",
+    title: "Total Purchases",
+    subtitle: "Total spending",
     icon: <ShopOutlined />,
-    gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+    iconBg: "#f0fdf4",
+    iconColor: "#16a34a",
   },
   {
     key: "totalPurchaseDue",
-    title: "TOTAL PURCHASE DUE",
-    subtitle: "Outstanding Payables",
+    title: "Purchase Due",
+    subtitle: "Outstanding payables",
     icon: <ExclamationCircleOutlined />,
-    gradient: "linear-gradient(135deg, #f7971e 0%, #ffd200 100%)",
+    iconBg: "#fef2f2",
+    iconColor: "#dc2626",
   },
 ];
 
@@ -77,7 +81,7 @@ export default function Home() {
       .finally(() => setLoadingLists(false));
   }, []);
 
-  // Transform to flat array for multi-line chart
+  // Purchase series first in data, so range order is [purchase, sales]
   const lineChartData = chartsData
     ? [
         ...chartsData.salesVsPurchases.purchasesData.map((d) => ({
@@ -119,7 +123,7 @@ export default function Home() {
   const cardTitle = (title, subtitle) => (
     <div>
       <div style={{ fontWeight: 600, fontSize: 14 }}>{title}</div>
-      <div style={{ fontSize: 12, color: "#8c8c8c", fontWeight: 400 }}>{subtitle}</div>
+      <div style={{ fontSize: 12, color: "oklch(0.44 0.018 255)", fontWeight: 400 }}>{subtitle}</div>
     </div>
   );
 
@@ -128,22 +132,22 @@ export default function Home() {
       {/* Row 1 — Stat Cards */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         {STAT_CARDS.map((card) => (
-          <Col xs={24} sm={12} lg={6} key={card.key}>
-            <Card
-              bordered={false}
-              style={{ background: card.gradient, borderRadius: 12 }}
-              styles={{ body: { padding: "20px 24px" } }}
-            >
-              <Spin spinning={loadingCards}>
+          <Col xs={24} sm={12} lg={12} xl={6} key={card.key}>
+            <Card bordered={false} styles={{ body: { padding: "20px 24px" } }}>
+              {loadingCards ? (
+                <Skeleton active paragraph={{ rows: 2 }} title={{ width: "55%" }} />
+              ) : (
                 <div className={styles.statCard}>
-                  <div className={styles.statCardIcon}>{card.icon}</div>
+                  <div className={styles.statCardIcon} style={{ background: card.iconBg, color: card.iconColor }}>
+                    {card.icon}
+                  </div>
                   <div>
                     <div className={styles.statCardTitle}>{card.title}</div>
                     <div className={styles.statCardValue}>{formatCurrency(cards?.[card.key])}</div>
                     <div className={styles.statCardSubtitle}>{card.subtitle}</div>
                   </div>
                 </div>
-              </Spin>
+              )}
             </Card>
           </Col>
         ))}
@@ -163,6 +167,7 @@ export default function Home() {
                 yField="value"
                 colorField="type"
                 height={260}
+                scale={{ color: { range: ["#d97706", "#2563eb"] } }}
                 style={({ type }) => ({
                   lineWidth: 2,
                   lineDash: type === "Purchase" ? [4, 4] : undefined,
@@ -177,12 +182,7 @@ export default function Home() {
                   },
                 }}
                 tooltip={{
-                  items: [
-                    {
-                      channel: "y",
-                      valueFormatter: (val) => formatCurrency(val),
-                    },
-                  ],
+                  items: [{ channel: "y", valueFormatter: (val) => formatCurrency(val) }],
                 }}
                 legend={{ position: "bottom" }}
               />
@@ -190,7 +190,7 @@ export default function Home() {
           </Card>
         </Col>
         <Col xs={24} lg={10}>
-          <Card bordered={false} title={cardTitle("Sales (Paid/Due/Return)", "Sales Overview Paid, Due, and Returned")}>
+          <Card bordered={false} title={cardTitle("Sales Distribution", "Sales overview paid, due, and returned")}>
             <Spin spinning={loadingCharts}>
               <Pie
                 data={salesDonutData.length ? salesDonutData : [{ type: "No Data", value: 1 }]}
@@ -200,12 +200,7 @@ export default function Home() {
                 height={260}
                 scale={{ color: { range: ["#16a34a", "#d97706", "#dc2626"] } }}
                 tooltip={{
-                  items: [
-                    {
-                      channel: "y",
-                      valueFormatter: (val) => formatCurrency(val),
-                    },
-                  ],
+                  items: [{ channel: "y", valueFormatter: (val) => formatCurrency(val) }],
                 }}
                 legend={{ position: "bottom" }}
               />
@@ -217,10 +212,7 @@ export default function Home() {
       {/* Row 3 — Purchase donut + Company comparison */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} lg={10}>
-          <Card
-            bordered={false}
-            title={cardTitle("Purchase Distribution", "Purchase Overview Paid, Due, and Returned")}
-          >
+          <Card bordered={false} title={cardTitle("Purchase Distribution", "Purchase overview paid and remaining")}>
             <Spin spinning={loadingCharts}>
               <Pie
                 data={purchasePieData.length ? purchasePieData : [{ type: "No Data", value: 1 }]}
@@ -230,12 +222,7 @@ export default function Home() {
                 height={260}
                 scale={{ color: { range: ["#16a34a", "#d97706"] } }}
                 tooltip={{
-                  items: [
-                    {
-                      channel: "y",
-                      valueFormatter: (val) => formatCurrency(val),
-                    },
-                  ],
+                  items: [{ channel: "y", valueFormatter: (val) => formatCurrency(val) }],
                 }}
                 legend={{ position: "bottom" }}
               />
@@ -243,14 +230,14 @@ export default function Home() {
           </Card>
         </Col>
         <Col xs={24} lg={14}>
-          <Card bordered={false} title={cardTitle("Company Comparison", "Revenue and orders by company")}>
+          <Card bordered={false} title={cardTitle("Company Comparison", "Revenue by company")}>
             <Spin spinning={loadingCharts}>
               <Column
                 data={companiesData}
                 xField="label"
                 yField="total"
                 height={260}
-                style={{ fill: "#7c3aed", radius: 4 }}
+                style={{ fill: "#2563eb", radius: 4 }}
                 axis={{
                   y: {
                     labelFormatter: (val) => {
@@ -261,12 +248,7 @@ export default function Home() {
                   },
                 }}
                 tooltip={{
-                  items: [
-                    {
-                      channel: "y",
-                      valueFormatter: (val) => formatCurrency(val),
-                    },
-                  ],
+                  items: [{ channel: "y", valueFormatter: (val) => formatCurrency(val) }],
                 }}
               />
             </Spin>
@@ -277,15 +259,10 @@ export default function Home() {
       {/* Row 4 — Top Products + Top Customers */}
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={12}>
-          <Card
-            bordered={false}
-            title={
-              <span>
-                <span style={{ marginRight: 6 }}>Top</span>Selling Products
-              </span>
-            }
-          >
-            <Spin spinning={loadingLists}>
+          <Card bordered={false} title="Top Selling Products">
+            {loadingLists ? (
+              <Skeleton active paragraph={{ rows: 5 }} title={false} />
+            ) : (
               <List
                 dataSource={listsData?.products || []}
                 locale={{ emptyText: "No data" }}
@@ -298,19 +275,14 @@ export default function Home() {
                   </List.Item>
                 )}
               />
-            </Spin>
+            )}
           </Card>
         </Col>
         <Col xs={24} lg={12}>
-          <Card
-            bordered={false}
-            title={
-              <span>
-                <span style={{ marginRight: 6 }}>Top</span>Customers
-              </span>
-            }
-          >
-            <Spin spinning={loadingLists}>
+          <Card bordered={false} title="Top Customers">
+            {loadingLists ? (
+              <Skeleton active paragraph={{ rows: 5 }} title={false} />
+            ) : (
               <List
                 dataSource={listsData?.customers || []}
                 locale={{ emptyText: "No data" }}
@@ -320,7 +292,7 @@ export default function Home() {
                   </List.Item>
                 )}
               />
-            </Spin>
+            )}
           </Card>
         </Col>
       </Row>
