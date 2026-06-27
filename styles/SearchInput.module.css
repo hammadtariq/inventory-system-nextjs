@@ -1,35 +1,30 @@
+/*
+  AntD v6 AutoComplete renders the current value as a TEXT node directly inside
+  .ant-select-content alongside the Input.Search child. font-size: 0 collapses
+  the anonymous text node to 0px. AntD's own .ant-input-affix-wrapper-lg and
+  .ant-input-lg set explicit font-size via CSS variables so they are unaffected.
+*/
+.inputWrap :global(.ant-select-content) {
+  font-size: 0;
+}
+
 .listItem {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
 }
+
 .inputWrap {
   width: min(420px, 100%);
   max-width: 100%;
 }
+
 .value2Color {
   color: #6e6e6e;
 }
 
 @media (max-width: 992px) {
   .inputWrap {
-    display: flex;
     width: 100%;
-  }
-
-  .inputWrap :global(.ant-select) {
-    flex: 1 1 auto;
-    width: auto !important;
-    min-width: 0;
-  }
-
-  .inputWrap :global(.ant-select-selector) {
-    min-width: 0;
-  }
-
-  .inputWrap :global(.ant-btn) {
-    width: 56px !important;
-    flex: 0 0 56px;
-    padding-inline: 0;
   }
 }
