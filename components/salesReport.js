@@ -20,6 +20,9 @@ dayjs.extend(localeData);
 
 const { RangePicker } = DatePicker;
 const startToTodayDate = [dayjs().startOf("month"), dayjs().endOf("month")];
+const tableFooterKeys = ["totalAmount", "ratePerBale", "ratePerLbs", "ratePerKgs", "noOfBales"];
+
+const getFooterLabel = (key) => key.replace(/([A-Z])/g, " $1").toUpperCase();
 
 const columns = [
   { title: "Invoice NO", dataIndex: "invoiceNo", key: "invoiceNo" },
@@ -326,26 +329,17 @@ const SalesReport = () => {
         rowClassName={styles.editableRow}
         totalCount={updatedSales ? updatedSales.length : 0}
         footer={() => (
-          <div>
-            <Row gutter={16}>
-              <Col span={16} />
-              <Col span={8}>
-                {["totalAmount", "ratePerBale", "ratePerLbs", "ratePerKgs", "noOfBales"].map((key) => (
-                  <Row justify="end" key={key}>
-                    <Col span={12}>
-                      <strong>{key.replace(/([A-Z])/g, " $1").toUpperCase()}:</strong>
-                    </Col>
-                    <Col span={12}>
-                      <InputNumber
-                        value={comaSeparatedValues(total[key] || 0)}
-                        readOnly
-                        className={styles.inputNumberField}
-                      />
-                    </Col>
-                  </Row>
-                ))}
-              </Col>
-            </Row>
+          <div className={styles.tableFooterSummary}>
+            {tableFooterKeys.map((key) => (
+              <div className={styles.tableFooterItem} key={key}>
+                <strong>{getFooterLabel(key)}:</strong>
+                <InputNumber
+                  value={comaSeparatedValues(total[key] || 0)}
+                  readOnly
+                  className={styles.inputNumberField}
+                />
+              </div>
+            ))}
           </div>
         )}
       />

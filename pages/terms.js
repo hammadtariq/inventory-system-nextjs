@@ -7,19 +7,20 @@ import PublicFooter from "@/components/PublicFooter";
 import PublicDemoModal from "@/components/PublicDemoModal";
 
 const TERMS_URL = "https://www.treesols.com/terms";
-const TERMS_TITLE = "Terms of Service - StockFlow";
-const TERMS_DESCRIPTION = "Read the terms governing use of the StockFlow inventory management and accounting platform.";
+const TERMS_TITLE = "Terms of Service - TSO by True Refined Solutions";
+const TERMS_DESCRIPTION =
+  "Read the terms governing use of the TSO by True Refined Solutions business operations platform.";
 
 const SECTIONS = [
   {
     title: "Acceptance of Terms",
     content:
-      "By accessing or using the StockFlow platform, you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree with any part of these terms, you are prohibited from using the service. These terms apply to all users, including free trial users and paid subscribers.",
+      "By accessing or using the TSO platform by True Refined Solutions, you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree with any part of these terms, you are prohibited from using the service. These terms apply to all users, including free trial users and paid subscribers.",
   },
   {
     title: "Description of Service",
     content:
-      "StockFlow is a cloud-based inventory and accounting management platform designed for small and medium-sized businesses (SMBs). The service includes real-time inventory tracking, purchase order management, sales management, double-entry ledger accounting, reporting and analytics, and related features as described on our website. Features may be added, modified, or removed at our discretion.",
+      "TSO by True Refined Solutions is a cloud-based business operations platform designed for small and medium-sized businesses (SMBs). The service includes inventory management, warehouse operations, purchase management, sales management, ledger management, reporting, AI-powered insights, and related features as described on our website. Features may be added, modified, or removed at our discretion.",
   },
   {
     title: "Account Registration",
@@ -34,17 +35,17 @@ const SECTIONS = [
   {
     title: "Acceptable Use",
     content:
-      "You agree not to use StockFlow for any unlawful purpose or in violation of these terms. Prohibited activities include: attempting to gain unauthorized access to any part of the service or its infrastructure; uploading or transmitting malicious code, viruses, or any software intended to disrupt the service; reselling or sublicensing access to StockFlow without express written permission; scraping, crawling, or harvesting data from the platform in an automated manner; using the service to store or transmit content that is illegal, defamatory, or infringes third-party rights.",
+      "You agree not to use TSO for any unlawful purpose or in violation of these terms. Prohibited activities include: attempting to gain unauthorized access to any part of the service or its infrastructure; uploading or transmitting malicious code, viruses, or any software intended to disrupt the service; reselling or sublicensing access to TSO without express written permission; scraping, crawling, or harvesting data from the platform in an automated manner; using the service to store or transmit content that is illegal, defamatory, or infringes third-party rights.",
   },
   {
     title: "Intellectual Property",
     content:
-      "StockFlow, its name, logo, product design, underlying technology, and all associated content are the intellectual property of StockFlow and are protected by applicable copyright, trademark, and other laws. You are granted a limited, non-exclusive, non-transferable license to use the service for your internal business purposes. Your data — including inventory records, customer lists, and financial entries — remains your property at all times.",
+      "TSO, its name, logo, product design, underlying technology, and all associated content are the intellectual property of True Refined Solutions and are protected by applicable copyright, trademark, and other laws. You are granted a limited, non-exclusive, non-transferable license to use the service for your internal business purposes. Your data — including inventory records, customer lists, and financial entries — remains your property at all times.",
   },
   {
     title: "Data and Privacy",
     content:
-      "Your use of StockFlow involves the collection and processing of personal and business data. How we handle that data is governed by our Privacy Policy, which is incorporated by reference into these Terms of Service. By using the service, you consent to the data practices described in the Privacy Policy.",
+      "Your use of TSO involves the collection and processing of personal and business data. How we handle that data is governed by our Privacy Policy, which is incorporated by reference into these Terms of Service. By using the service, you consent to the data practices described in the Privacy Policy.",
   },
   {
     title: "Termination",
@@ -54,12 +55,12 @@ const SECTIONS = [
   {
     title: "Limitation of Liability",
     content:
-      "To the maximum extent permitted by applicable law, StockFlow shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including lost profits, loss of data, or business interruption arising from your use of or inability to use the service. In no event shall our aggregate liability exceed the total amount you paid to StockFlow in the three (3) months immediately preceding the event giving rise to the claim.",
+      "To the maximum extent permitted by applicable law, TSO by True Refined Solutions shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including lost profits, loss of data, or business interruption arising from your use of or inability to use the service. In no event shall our aggregate liability exceed the total amount you paid for TSO in the three (3) months immediately preceding the event giving rise to the claim.",
   },
   {
     title: "Governing Law",
     content:
-      "These Terms of Service are governed by and construed in accordance with the laws of Pakistan, without regard to conflict of law principles. Any disputes arising out of or relating to these terms or your use of StockFlow shall be resolved exclusively in the courts of Karachi, Pakistan. By using the service, you consent to the personal jurisdiction of such courts.",
+      "These Terms of Service are governed by and construed in accordance with the laws of Pakistan, without regard to conflict of law principles. Any disputes arising out of or relating to these terms or your use of TSO shall be resolved exclusively in the courts of Karachi, Pakistan. By using the service, you consent to the personal jurisdiction of such courts.",
   },
   {
     title: "Contact",
@@ -86,7 +87,7 @@ export default function Terms() {
         <meta name="robots" content="index,follow" />
         <link rel="canonical" href={TERMS_URL} />
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="StockFlow" />
+        <meta property="og:site_name" content="TSO by True Refined Solutions" />
         <meta property="og:title" content={TERMS_TITLE} />
         <meta property="og:description" content={TERMS_DESCRIPTION} />
         <meta property="og:url" content={TERMS_URL} />
@@ -109,8 +110,8 @@ export default function Terms() {
               Terms of Service
             </h1>
             <p style={{ fontSize: 16, color: "var(--ink-2)", lineHeight: 1.7, marginBottom: 48 }}>
-              Effective date: January 1, 2026. Please read these terms carefully before using StockFlow. They govern
-              your access to and use of the platform.
+              Effective date: January 1, 2026. Please read these terms carefully before using TSO by True Refined
+              Solutions. They govern your access to and use of the platform.
             </p>
           </motion.div>
 

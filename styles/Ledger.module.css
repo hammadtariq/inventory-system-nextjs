@@ -35,9 +35,48 @@
 .companySelection {
   text-align: right;
 }
+.headerActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.refundButton {
+  min-width: 168px;
+}
+.headerToolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+.headerSearch {
+  width: min(420px, 100%);
+}
+.headerSegment {
+  white-space: nowrap;
+}
 @media (max-width: 576px) {
   .companySelection {
     text-align: left;
+  }
+}
+@media (max-width: 992px) {
+  .headerActions,
+  .headerToolbar {
+    align-items: stretch;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .headerActions button,
+  .refundButton,
+  .headerSearch {
+    width: 100%;
+  }
+
+  .headerSegment {
+    white-space: normal;
   }
 }
 .marginTop {

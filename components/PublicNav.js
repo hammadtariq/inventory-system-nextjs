@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useRef } from "react";
 import { useScroll, useMotionValueEvent } from "framer-motion";
 import Link from "next/link";
 import styles from "@/styles/Landing.module.css";
@@ -8,11 +9,24 @@ export default function PublicNav({ onDemoClick, alwaysLight = false, hrefPrefix
   const [mobileOpen, setMobileOpen] = useState(false);
   const [condensed, setCondensed] = useState(false);
   const [lightMode, setLightMode] = useState(alwaysLight);
+  const condensedRef = useRef(false);
+  const lightModeRef = useRef(alwaysLight);
   const { scrollY } = useScroll();
 
   useMotionValueEvent(scrollY, "change", (v) => {
-    setCondensed(v > 24);
-    if (!alwaysLight) setLightMode(v > 460);
+    const nextCondensed = v > 24;
+    if (condensedRef.current !== nextCondensed) {
+      condensedRef.current = nextCondensed;
+      setCondensed(nextCondensed);
+    }
+
+    if (!alwaysLight) {
+      const nextLightMode = v > 460;
+      if (lightModeRef.current !== nextLightMode) {
+        lightModeRef.current = nextLightMode;
+        setLightMode(nextLightMode);
+      }
+    }
   });
 
   const isLight = alwaysLight || lightMode;
@@ -31,17 +45,20 @@ export default function PublicNav({ onDemoClick, alwaysLight = false, hrefPrefix
           height={30}
           className={styles.navLogoImg}
         />
-        StockFlow
+        TSO
       </Link>
       <ul className={styles.navLinks} role="list">
+        <li>
+          <Link href={`${hrefPrefix}#product`}>Product</Link>
+        </li>
         <li>
           <Link href={`${hrefPrefix}#features`}>Features</Link>
         </li>
         <li>
-          <Link href={`${hrefPrefix}#pricing`}>Pricing</Link>
+          <Link href={`${hrefPrefix}#use-cases`}>Use Cases</Link>
         </li>
         <li>
-          <Link href={`${hrefPrefix}#testimonials`}>Testimonials</Link>
+          <Link href={`${hrefPrefix}#pricing`}>Pricing</Link>
         </li>
         <li>
           <Link href={`${hrefPrefix}#faq`}>FAQ</Link>
@@ -74,14 +91,20 @@ export default function PublicNav({ onDemoClick, alwaysLight = false, hrefPrefix
       </button>
       {mobileOpen && (
         <div id="mobile-nav" className={styles.mobileMenu}>
-          {["features", "pricing", "testimonials", "faq"].map((id) => (
+          {[
+            { id: "product", label: "Product" },
+            { id: "features", label: "Features" },
+            { id: "use-cases", label: "Use Cases" },
+            { id: "pricing", label: "Pricing" },
+            { id: "faq", label: "FAQ" },
+          ].map(({ id, label }) => (
             <Link
               key={id}
               href={`${hrefPrefix}#${id}`}
               className={styles.mobileLink}
               onClick={() => setMobileOpen(false)}
             >
-              {id.charAt(0).toUpperCase() + id.slice(1)}
+              {label}
             </Link>
           ))}
           <div className={styles.mobileDivider} />

@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import { Alert, Popconfirm, Row, Col } from "antd";
+import { Alert, Popconfirm } from "antd";
 import dayjs from "dayjs";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
@@ -203,24 +203,21 @@ const Sales = () => {
   if (error) return <Alert message={error} type="error" />;
   return (
     <>
-      <AppTitle level={2}>
+      <AppTitle
+        level={2}
+        action={<AppCreateButton url="/sales/create" />}
+        toolbar={
+          <SearchInput
+            valueKey="firstName"
+            valueKey2="lastName"
+            handleSearch={handleSearch}
+            handleSelect={handleSelect}
+            placeholder="search customer"
+          />
+        }
+      >
         Sales List
-        <Row justify="space-between">
-          <Col>
-            <SearchInput
-              valueKey="firstName"
-              valueKey2="lastName"
-              handleSearch={handleSearch}
-              handleSelect={handleSelect}
-              placeholder="search customer"
-            />
-          </Col>
-          <Col>
-            <AppCreateButton url="/sales/create" />
-          </Col>
-        </Row>
       </AppTitle>
-      <br />
       <AppTable
         isLoading={isLoading}
         rowKey={"id"}

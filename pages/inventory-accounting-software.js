@@ -7,9 +7,9 @@ import PublicFooter from "@/components/PublicFooter";
 import PublicDemoModal from "@/components/PublicDemoModal";
 
 const PAGE_URL = "https://www.treesols.com/inventory-accounting-software";
-const PAGE_TITLE = "Inventory Accounting Software for SMBs — StockFlow";
+const PAGE_TITLE = "Inventory Accounting Software for Asian SMBs - TSO by True Refined Solutions";
 const PAGE_DESCRIPTION =
-  "Inventory accounting software connects stock movement, purchase costs, sales, dues, ledgers, and reports for SMB finance and operations teams.";
+  "TSO by True Refined Solutions connects stock movement, purchase costs, sales, dues, ledgers, reports, and AI-powered insights for Asian SMB teams.";
 
 const sources = [
   {
@@ -43,8 +43,8 @@ const faqs = [
     a: "SMBs should start with inventory on hand, purchase reports, sales reports, customer ledgers, supplier ledgers, dues, payments, and exportable summaries for review.",
   },
   {
-    q: "How does StockFlow support inventory accounting?",
-    a: "StockFlow combines inventory, purchases, sales, payments, customer and supplier ledgers, dues, reports, and exports so teams can review operational movement and accounting impact from one app.",
+    q: "How does TSO support inventory accounting?",
+    a: "TSO combines inventory, purchases, sales, payments, customer and supplier ledgers, dues, reports, AI-powered insights, and exports so Asian teams can review operational movement and accounting impact from one SaaS app.",
   },
 ];
 
@@ -56,8 +56,8 @@ const relatedGuides = [
   },
   {
     href: "/inventory-software-south-asia",
-    title: "Inventory software for South Asian SMBs",
-    description: "See how regional SMB teams manage customer dues, supplier payables, and stock movement.",
+    title: "Inventory software for Asian SMBs",
+    description: "See how Asian SMB teams manage customer dues, supplier payables, and stock movement.",
   },
 ];
 
@@ -71,12 +71,12 @@ const structuredData = [
     about: ["Inventory accounting software", "Inventory management", "Small business accounting"],
     mainEntity: {
       "@type": "SoftwareApplication",
-      name: "StockFlow",
+      name: "TSO",
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web",
       url: "https://www.treesols.com/",
       description:
-        "StockFlow connects inventory, purchases, sales, payments, ledgers, reports, and exports for SMB operations.",
+        "TSO by True Refined Solutions connects inventory, purchases, sales, payments, ledgers, reports, AI-powered insights, and exports for Asian SMB operations.",
     },
   },
   {
@@ -103,13 +103,13 @@ const h1Style = {
   fontSize: 46,
   lineHeight: 1.08,
   margin: "0 0 18px",
-  color: "#111827",
+  color: "var(--ink-1)",
 };
 
 const leadStyle = {
   fontSize: 19,
   lineHeight: 1.75,
-  color: "#475569",
+  color: "var(--ink-2)",
   maxWidth: 800,
 };
 
@@ -120,19 +120,19 @@ const sectionStyle = {
 const h2Style = {
   fontSize: 27,
   margin: "0 0 16px",
-  color: "#111827",
+  color: "var(--ink-1)",
 };
 
 const h3Style = {
   fontSize: 17,
   margin: "0 0 8px",
-  color: "#1e1b4b",
+  color: "var(--ink-1)",
 };
 
 const pStyle = {
   fontSize: 15,
   lineHeight: 1.75,
-  color: "#334155",
+  color: "var(--ink-2)",
   margin: 0,
 };
 
@@ -143,8 +143,8 @@ const cardGridStyle = {
 };
 
 const cardStyle = {
-  background: "rgba(255,255,255,0.76)",
-  border: "1px solid rgba(148,163,184,0.24)",
+  background: "var(--bg-surface)",
+  border: "1px solid var(--border)",
   borderRadius: 8,
   padding: "22px",
 };
@@ -153,7 +153,7 @@ const listStyle = {
   display: "grid",
   gap: 12,
   paddingLeft: 20,
-  color: "#334155",
+  color: "var(--ink-2)",
   lineHeight: 1.7,
 };
 
@@ -174,7 +174,7 @@ export default function InventoryAccountingSoftware() {
         <meta name="robots" content="index,follow" />
         <link rel="canonical" href={PAGE_URL} />
         <meta property="og:type" content="article" />
-        <meta property="og:site_name" content="StockFlow" />
+        <meta property="og:site_name" content="TSO by True Refined Solutions" />
         <meta property="og:title" content={PAGE_TITLE} />
         <meta property="og:description" content={PAGE_DESCRIPTION} />
         <meta property="og:url" content={PAGE_URL} />
@@ -186,12 +186,15 @@ export default function InventoryAccountingSoftware() {
       <div className={styles.page}>
         <PublicNav onDemoClick={openDemo} alwaysLight hrefPrefix="/" />
         <main style={containerStyle}>
-          <p style={{ ...pStyle, color: "#4f46e5", fontWeight: 800, marginBottom: 12 }}>Inventory accounting guide</p>
-          <h1 style={h1Style}>Inventory accounting software for SMBs</h1>
+          <p style={{ ...pStyle, color: "var(--accent)", fontWeight: 800, marginBottom: 12 }}>
+            Inventory accounting guide
+          </p>
+          <h1 style={h1Style}>Inventory accounting software for Asian SMBs</h1>
           <p style={leadStyle}>
             Inventory accounting software connects the operational side of stock with the financial side of the
-            business. For SMBs, that means purchases, sales, customer dues, supplier payables, payments, stock value,
-            ledgers, and exportable reports can be reviewed together instead of reconciled manually after the fact.
+            business. For Asian SMBs, that means purchases, sales, customer dues, supplier payables, payments, stock
+            value, ledgers, and exportable reports can be reviewed together instead of reconciled manually after the
+            fact.
           </p>
 
           <section style={sectionStyle}>
@@ -204,7 +207,7 @@ export default function InventoryAccountingSoftware() {
           </section>
 
           <section style={sectionStyle}>
-            <h2 style={h2Style}>What StockFlow connects</h2>
+            <h2 style={h2Style}>What TSO connects</h2>
             <div style={cardGridStyle}>
               <div style={cardStyle}>
                 <h3 style={h3Style}>Purchases and payable</h3>
@@ -265,7 +268,7 @@ export default function InventoryAccountingSoftware() {
             <ul style={listStyle}>
               {sources.map(({ name, href, note }) => (
                 <li key={href}>
-                  <a href={href} rel="nofollow" style={{ color: "#4f46e5", fontWeight: 700 }}>
+                  <a href={href} rel="nofollow" style={{ color: "var(--accent)", fontWeight: 700 }}>
                     {name}
                   </a>
                   : {note}

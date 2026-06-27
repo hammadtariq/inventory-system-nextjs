@@ -1,174 +1,147 @@
 import { useState, useEffect, useRef } from "react";
 import Head from "next/head";
-import Link from "next/link";
+import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 import styles from "@/styles/Landing.module.css";
 import PublicNav from "@/components/PublicNav";
 import PublicFooter from "@/components/PublicFooter";
 import PublicDemoModal from "@/components/PublicDemoModal";
 
-/* Shared scroll-reveal variant. custom prop = stagger index */
+const TRUE_REFINED_URL = "https://truerefinedsolutions.com";
+const EASE_OUT = [0.16, 1, 0.3, 1];
+
 const fadeUp = {
-  hidden: { opacity: 0, y: 22 },
+  hidden: { opacity: 0, transform: "translateY(22px)" },
   visible: (i = 0) => ({
     opacity: 1,
-    y: 0,
-    transition: { duration: 0.55, delay: i * 0.07, ease: [0.16, 1, 0.3, 1] },
+    transform: "translateY(0)",
+    transition: { duration: 0.5, delay: i * 0.06, ease: EASE_OUT },
   }),
 };
 
-/* ── HERO PREVIEW ── */
-const PREVIEW_ROWS = [
-  {
-    product: "Khaddar Fabric",
-    stock: "640 m",
-    value: "₨ 380/m",
-    total: "₨ 2,43,200",
-    status: "In Stock",
-    statusClass: "statusIn",
-  },
-  {
-    product: "Lawn Shirting",
-    stock: "480 m",
-    value: "₨ 550/m",
-    total: "₨ 2,64,000",
-    status: "In Stock",
-    statusClass: "statusIn",
-  },
-  {
-    product: "Chiffon Dupatta",
-    stock: "14 pcs",
-    value: "₨ 1,200/pc",
-    total: "₨ 16,800",
-    status: "Low Stock",
-    statusClass: "statusLow",
-  },
-  {
-    product: "Polyester Blend",
-    stock: "0 m",
-    value: "₨ 310/m",
-    total: "—",
-    status: "Out of Stock",
-    statusClass: "statusOut",
-  },
-];
+const fadeInLeft = {
+  hidden: { opacity: 0, transform: "translateX(-20px)" },
+  visible: (i = 0) => ({
+    opacity: 1,
+    transform: "translateX(0)",
+    transition: { duration: 0.5, delay: i * 0.06, ease: EASE_OUT },
+  }),
+};
 
-function HeroPreview() {
-  return (
-    <div className={styles.heroPreview} aria-hidden="true">
-      <div className={styles.previewWindow}>
-        <div className={styles.previewBar}>
-          <div className={styles.previewBarLeft}>
-            <div className={styles.previewDots}>
-              <span className={styles.previewDot} />
-              <span className={styles.previewDot} />
-              <span className={styles.previewDot} />
-            </div>
-            <span className={styles.previewTitle}>StockFlow · Inventory</span>
-          </div>
-          <div className={styles.previewLive}>
-            <span className={styles.previewLiveDot} />
-            Live
-          </div>
-        </div>
-        <div className={styles.previewBody}>
-          <table className={styles.previewTable}>
-            <thead>
-              <tr>
-                <th scope="col">Product</th>
-                <th scope="col">In Stock</th>
-                <th scope="col">Unit Value</th>
-                <th scope="col">Total Value</th>
-                <th scope="col">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {PREVIEW_ROWS.map(({ product, stock, value, total, status, statusClass }) => (
-                <tr key={product}>
-                  <td>{product}</td>
-                  <td>{stock}</td>
-                  <td>{value}</td>
-                  <td>{total}</td>
-                  <td className={styles[statusClass]}>{status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className={styles.previewFooter}>
-          <span>
-            Total stock value: <span className={styles.previewFooterAccent}>₨ 5,24,000</span>
-          </span>
-          <span>3 purchase orders pending</span>
-          <span>Last updated: just now</span>
-        </div>
-      </div>
-    </div>
-  );
-}
+const fadeInRight = {
+  hidden: { opacity: 0, transform: "translateX(20px)" },
+  visible: {
+    opacity: 1,
+    transform: "translateX(0)",
+    transition: { duration: 0.54, ease: EASE_OUT },
+  },
+};
 
-/* ── HERO ── */
+const scaleReveal = {
+  hidden: { opacity: 0, transform: "scale(0.97) translateY(10px)" },
+  visible: (i = 0) => ({
+    opacity: 1,
+    transform: "scale(1) translateY(0)",
+    transition: { duration: 0.42, delay: i * 0.055, ease: EASE_OUT },
+  }),
+};
+
 function Hero({ onDemoClick }) {
+  const rm = useReducedMotion();
+
   return (
     <section className={styles.hero} id="hero">
+      <div className={styles.heroAmbient} aria-hidden="true" />
+      <div className={styles.heroGridGlow} aria-hidden="true" />
       <div className={styles.heroInner}>
-        <div className={styles.heroText}>
-          <h1 className={styles.heroHeading}>
-            Your business,
-            <br />
-            running on real numbers.
-          </h1>
-          <p className={styles.heroSub}>
-            Real-time inventory, purchase order approvals, and an integrated double-entry ledger — built for growing
-            businesses in Pakistan, India, and Bangladesh.
-          </p>
-          <div className={styles.heroCtaRow}>
+        <motion.div
+          className={styles.heroText}
+          initial={rm ? false : { opacity: 0, transform: "translateY(18px)" }}
+          animate={{ opacity: 1, transform: "translateY(0)" }}
+          transition={{ duration: 0.48, ease: EASE_OUT }}
+        >
+          <motion.div
+            className={styles.heroPill}
+            initial={rm ? false : { opacity: 0, transform: "translateY(10px)" }}
+            animate={{ opacity: 1, transform: "translateY(0)" }}
+            transition={{ duration: 0.42, delay: 0.04, ease: EASE_OUT }}
+          >
+            <span className={styles.heroPillBadge}>TSO</span>
+            <span>Inventory, sales, ledger, and reports</span>
+          </motion.div>
+          <motion.h1
+            className={styles.heroHeading}
+            initial={rm ? false : { opacity: 0, transform: "translateY(22px)", filter: "blur(5px)" }}
+            animate={{ opacity: 1, transform: "translateY(0)", filter: "blur(0px)" }}
+            transition={{ duration: 0.56, delay: 0.1, ease: EASE_OUT }}
+          >
+            Inventory, sales, and ledgers in one clear view.
+          </motion.h1>
+          <motion.p
+            className={styles.heroSub}
+            initial={rm ? false : { opacity: 0, transform: "translateY(18px)", filter: "blur(4px)" }}
+            animate={{ opacity: 1, transform: "translateY(0)", filter: "blur(0px)" }}
+            transition={{ duration: 0.52, delay: 0.18, ease: EASE_OUT }}
+          >
+            TSO helps Asian SMBs track stock, purchases, sales, and reports from one connected SaaS platform.
+          </motion.p>
+          <motion.div
+            className={styles.heroCtaRow}
+            initial={rm ? false : { opacity: 0, transform: "translateY(12px)" }}
+            animate={{ opacity: 1, transform: "translateY(0)" }}
+            transition={{ duration: 0.46, delay: 0.28, ease: EASE_OUT }}
+          >
             <button className={styles.btnPrimaryLg} onClick={onDemoClick}>
-              Request a demo →
+              Request a Demo
             </button>
             <a href="#pricing" className={styles.btnOutlineDark}>
-              See pricing
+              See Pricing
             </a>
+          </motion.div>
+        </motion.div>
+
+        <motion.div
+          className={styles.heroPreview}
+          initial={rm ? false : { opacity: 0, transform: "translateY(34px)" }}
+          animate={{ opacity: 1, transform: "translateY(0)" }}
+          transition={{ duration: 0.62, delay: 0.34, ease: EASE_OUT }}
+        >
+          <div className={styles.heroMediaFrame}>
+            <Image
+              src="/landing/inventory-dashboard-preview.png"
+              alt="TSO dashboard showing inventory value, sales, purchases, and stock activity"
+              width={1500}
+              height={1125}
+              priority
+              sizes="(max-width: 768px) 96vw, 58vw"
+              className={styles.heroMediaImage}
+            />
           </div>
-        </div>
-        <HeroPreview />
+        </motion.div>
       </div>
     </section>
   );
 }
 
-/* ── FEATURES ── */
-const FEATURES = [
+const PROBLEMS = [
   {
-    title: "Real-time inventory",
-    desc: "Live stock levels per product and location. Every purchase and sale updates your counts automatically — no manual entries, no discrepancies at month-end.",
+    title: "Manual stock tracking gets messy",
+    desc: "Inventory changes quickly, and spreadsheets rarely keep up with real product availability or movement.",
   },
   {
-    title: "Purchase orders and approvals",
-    desc: "Create orders, route them for approval, and track delivery against each line item. Full supplier history in one place.",
+    title: "Purchases and sales are disconnected",
+    desc: "Teams lose time reconciling supplier records, customer activity, invoices, and outgoing stock across tools.",
   },
   {
-    title: "Double-entry ledger",
-    desc: "Every transaction posts a proper ledger entry. Payables, receivables, and bank reconciliation are connected — not separate spreadsheets.",
-  },
-  {
-    title: "Cheque tracking",
-    desc: "Log issued and received cheques, track clearance status, and get alerts before maturity dates. Built for how business is done here.",
-  },
-  {
-    title: "Reports and export",
-    desc: "Sales vs. purchase analysis, top products by margin, customer distribution. Export to CSV or Excel with one click.",
-  },
-  {
-    title: "Multi-company support",
-    desc: "Run multiple business entities from a single account. Separate books, shared login, role-based access control per company.",
+    title: "Reports and ledgers are scattered",
+    desc: "Business owners need clear operational records without chasing separate files, exports, and manual summaries.",
   },
 ];
 
-function Features() {
+function ProblemSection() {
   const rm = useReducedMotion();
   return (
-    <section className={`${styles.section} ${styles.sectionAlt}`} id="features">
+    <section className={styles.section} id="product">
       <div className={styles.inner}>
         <motion.div
           className={styles.featuresHead}
@@ -177,10 +150,122 @@ function Features() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.4 }}
         >
-          <h2 className={styles.sectionHeading}>What StockFlow handles</h2>
+          <h2 className={styles.sectionHeading}>When daily operations are split, decisions slow down</h2>
           <p className={styles.sectionSubLeft}>
-            From the purchase order to the bank reconciliation. Everything your accountant wants to see, always up to
-            date.
+            Asian businesses need reliable visibility into stock, warehouse work, purchasing, sales, ledgers, and
+            reports without rebuilding the same picture manually every day.
+          </p>
+        </motion.div>
+        <div className={styles.problemGrid}>
+          {PROBLEMS.map(({ title, desc }, i) => (
+            <motion.div
+              key={title}
+              className={styles.problemItem}
+              variants={fadeInLeft}
+              initial={rm ? false : "hidden"}
+              whileInView="visible"
+              custom={i}
+              viewport={{ once: true, amount: 0.2 }}
+            >
+              <span className={styles.problemNumber}>{`0${i + 1}`}</span>
+              <h3 className={styles.problemTitle}>{title}</h3>
+              <p className={styles.problemDesc}>{desc}</p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const STATS = [
+  {
+    value: "6",
+    label: "Connected modules",
+    sub: "Inventory, Warehouse, Purchase, Sales, Ledger, and Reports — all in one platform.",
+  },
+  {
+    value: "Live",
+    label: "Stock visibility",
+    sub: "Every purchase and sale updates your inventory records in real time.",
+  },
+  {
+    value: "AI",
+    label: "Business insights",
+    sub: "Ask plain-language questions about inventory, sales, and business margins.",
+  },
+];
+
+function StatsBar() {
+  const rm = useReducedMotion();
+  return (
+    <section className={`${styles.section} ${styles.sectionAlt}`}>
+      <div className={styles.inner}>
+        <div className={styles.statsGrid}>
+          {STATS.map(({ value, label, sub }, i) => (
+            <motion.div
+              key={label}
+              className={styles.statItem}
+              variants={fadeUp}
+              initial={rm ? false : "hidden"}
+              whileInView="visible"
+              custom={i}
+              viewport={{ once: true, amount: 0.3 }}
+            >
+              <span className={styles.statValue}>{value}</span>
+              <span className={styles.statLabel}>{label}</span>
+              <p className={styles.statSub}>{sub}</p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const FEATURES = [
+  {
+    title: "Inventory Management",
+    desc: "Track products, stock levels, availability, and movement across the business.",
+  },
+  {
+    title: "Warehouse Management",
+    desc: "Organize warehouse operations, stock movement, and product handling.",
+  },
+  {
+    title: "Purchase Management",
+    desc: "Manage purchasing records, supplier activity, and incoming stock.",
+  },
+  {
+    title: "Sales Management",
+    desc: "Track sales, customer activity, invoices, and outgoing stock.",
+  },
+  {
+    title: "Ledger & Reports",
+    desc: "View business records, ledgers, summaries, and operational reports.",
+  },
+  {
+    title: "AI Business Insights",
+    desc: "Use AI-powered assistance to understand inventory, sales, and business performance more clearly.",
+  },
+];
+
+function Features() {
+  const rm = useReducedMotion();
+  return (
+    <section className={styles.section} id="features">
+      <div className={styles.inner}>
+        <motion.div
+          className={styles.featuresHead}
+          variants={fadeUp}
+          initial={rm ? false : "hidden"}
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.4 }}
+        >
+          <h2 className={styles.sectionHeading}>Core features for inventory and business operations</h2>
+          <p className={styles.sectionSubLeft}>
+            A small business operations SaaS platform for the workflows Asian teams use every day, with room for future
+            business modules as operations grow.
           </p>
         </motion.div>
         <div className={styles.featuresGrid}>
@@ -188,7 +273,7 @@ function Features() {
             <motion.div
               key={title}
               className={styles.featureBlock}
-              variants={fadeUp}
+              variants={scaleReveal}
               initial={rm ? false : "hidden"}
               whileInView="visible"
               custom={i}
@@ -204,7 +289,176 @@ function Features() {
   );
 }
 
-/* ── PRICING ── */
+const USE_CASES = [
+  "Retail businesses",
+  "Wholesale businesses",
+  "Distribution companies",
+  "Warehouses",
+  "Trading businesses",
+  "Small and medium-sized businesses",
+];
+
+function UseCases() {
+  const rm = useReducedMotion();
+  return (
+    <section className={`${styles.section} ${styles.sectionAlt}`} id="use-cases">
+      <div className={styles.inner}>
+        <motion.div
+          className={styles.featuresHead}
+          variants={fadeUp}
+          initial={rm ? false : "hidden"}
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.4 }}
+        >
+          <h2 className={styles.sectionHeading}>Built for Asian businesses that move products and records daily</h2>
+          <p className={styles.sectionSubLeft}>
+            TSO supports Asian teams that need an inventory management platform, warehouse management system, purchase
+            and sales management system, and ledger management system working from the same operational source.
+          </p>
+        </motion.div>
+        <motion.div
+          className={styles.builtForStrip}
+          variants={fadeUp}
+          initial={rm ? false : "hidden"}
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.5 }}
+        >
+          <span className={styles.builtForIntro}>Use cases</span>
+          {USE_CASES.map((label) => (
+            <span key={label} className={styles.builtForPill}>
+              {label}
+            </span>
+          ))}
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+function AiInsights() {
+  const rm = useReducedMotion();
+  return (
+    <section className={styles.section} id="ai-insights">
+      <div className={`${styles.inner} ${styles.aiShowcase}`}>
+        <motion.div
+          className={styles.aiCopy}
+          variants={fadeInLeft}
+          initial={rm ? false : "hidden"}
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.35 }}
+        >
+          <p className={styles.panelKicker}>AI inventory assistant</p>
+          <h2 className={styles.sectionHeading}>Ask your inventory data directly</h2>
+          <p className={styles.sectionSubLeft}>
+            The assistant turns sales, purchase, customer, and margin questions into clear answers business owners can
+            act on.
+          </p>
+          <ul className={styles.aiList} role="list">
+            <li>Find top customers by revenue and last purchase date.</li>
+            <li>Review sales, purchases, margins, and stock movement.</li>
+            <li>Get plain-language summaries from operational records.</li>
+          </ul>
+        </motion.div>
+        <motion.div
+          className={styles.aiPreview}
+          variants={fadeInRight}
+          initial={rm ? false : "hidden"}
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.25 }}
+        >
+          <Image
+            src="/landing/inventory-ai-assistant-preview.png"
+            alt="TSO AI assistant answering inventory, customer revenue, and sales summary questions"
+            width={1500}
+            height={1125}
+            sizes="(max-width: 768px) 100vw, 54vw"
+            className={styles.aiPreviewImage}
+          />
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+const WHY_BUY = [
+  {
+    title: "Know what is in stock",
+    desc: "See product availability, movement, and warehouse activity without waiting for manual updates.",
+  },
+  {
+    title: "Connect purchases and sales",
+    desc: "Keep supplier activity, incoming stock, customer sales, invoices, and outgoing stock in one workflow.",
+  },
+  {
+    title: "Review cleaner business records",
+    desc: "Use ledgers, reports, summaries, and exports to understand daily operations more clearly.",
+  },
+  {
+    title: "Make faster owner decisions",
+    desc: "Use AI-powered insights to spot useful patterns in inventory, sales, and business performance.",
+  },
+];
+
+function WhyBuy() {
+  const rm = useReducedMotion();
+  return (
+    <section className={`${styles.section} ${styles.sectionAlt}`}>
+      <div className={styles.inner}>
+        <motion.div
+          className={styles.featuresHead}
+          variants={fadeUp}
+          initial={rm ? false : "hidden"}
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.4 }}
+        >
+          <h2 className={styles.sectionHeading}>Why businesses subscribe to TSO</h2>
+          <p className={styles.sectionSubLeft}>
+            TSO is built for owners and operations teams that need daily clarity, not another disconnected tool.
+          </p>
+        </motion.div>
+        <div className={styles.guidesGrid}>
+          {WHY_BUY.map(({ title, desc }, i) => (
+            <motion.div
+              key={title}
+              className={styles.guideCard}
+              variants={fadeUp}
+              initial={rm ? false : "hidden"}
+              whileInView="visible"
+              custom={i}
+              viewport={{ once: true, amount: 0.2 }}
+            >
+              <h3 className={styles.guideTitle}>{title}</h3>
+              <p className={styles.guideDesc}>{desc}</p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SoftCta({ onDemoClick }) {
+  const rm = useReducedMotion();
+  return (
+    <div className={styles.midCtaBar}>
+      <motion.div
+        className={styles.midCtaBarInner}
+        variants={fadeUp}
+        initial={rm ? false : "hidden"}
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.5 }}
+      >
+        <p className={styles.midCtaText}>
+          Ready to stop managing stock, sales, and reports from separate spreadsheets?
+        </p>
+        <button className={styles.btnPrimary} onClick={onDemoClick}>
+          Request a Demo
+        </button>
+      </motion.div>
+    </div>
+  );
+}
+
 const CheckIcon = () => (
   <svg className={styles.planCheck} viewBox="0 0 16 16" fill="none" aria-hidden="true">
     <circle cx="8" cy="8" r="7.25" stroke="currentColor" strokeWidth="1.5" />
@@ -214,57 +468,57 @@ const CheckIcon = () => (
 
 const PLANS = [
   {
-    name: "Silver",
-    billing: "Billed monthly",
-    total: "20",
-    monthly: null,
-    period: "/mo",
-    desc: "For small teams getting started.",
+    name: "Monthly",
+    billing: "Flexible, no long-term commitment",
+    price: "$40",
+    period: "/month",
+    perMonth: null,
+    savings: null,
+    desc: "Full platform access. Cancel or switch billing anytime.",
     featured: false,
-    btnLabel: "Get started",
-    btnClass: "planBtnOutline",
     badge: null,
-    features: ["1 company", "Up to 5 users", "Inventory and orders", "Basic reports", "Email support"],
-  },
-  {
-    name: "Gold",
-    billing: "Billed every 6 months",
-    total: "100",
-    monthly: "₨ equiv. $16.67/mo",
-    period: "/6 mo",
-    desc: "Save 17% vs. monthly.",
-    featured: true,
-    btnLabel: "Request a demo",
-    btnClass: "planBtnFill",
-    badge: "Most popular",
     features: [
-      "3 companies",
-      "Up to 15 users",
-      "Inventory, orders and ledger",
-      "Cheque tracking",
-      "Advanced reporting",
-      "CSV and Excel export",
-      "Priority support",
+      "Inventory and warehouse records",
+      "Purchase and sales tracking",
+      "Customer and supplier records",
+      "Ledger management and reports",
+      "AI-powered business insights",
     ],
   },
   {
-    name: "Platinum",
-    billing: "Billed annually",
-    total: "150",
-    monthly: "₨ equiv. $12.50/mo",
-    period: "/yr",
-    desc: "Best value — save 38%.",
+    name: "Quarterly",
+    billing: "Billed every 3 months",
+    price: "$100",
+    period: "/quarter",
+    perMonth: "≈ $33 / month",
+    savings: "Save 17%",
+    desc: "Same full access at a lower effective monthly rate.",
+    featured: true,
+    badge: "Popular",
+    features: [
+      "Inventory and warehouse records",
+      "Purchase and sales tracking",
+      "Customer and supplier records",
+      "Ledger management and reports",
+      "AI-powered business insights",
+    ],
+  },
+  {
+    name: "Annual",
+    billing: "Billed once per year",
+    price: "$350",
+    period: "/year",
+    perMonth: "≈ $29 / month",
+    savings: "Save 27%",
+    desc: "Best rate. Pay once, use TSO all year.",
     featured: false,
-    btnLabel: "Request a demo",
-    btnClass: "planBtnOutline",
     badge: "Best value",
     features: [
-      "Unlimited companies",
-      "Unlimited users",
-      "All Gold features",
-      "AI assistant",
-      "Dedicated onboarding",
-      "99.9% uptime SLA",
+      "Inventory and warehouse records",
+      "Purchase and sales tracking",
+      "Customer and supplier records",
+      "Ledger management and reports",
+      "AI-powered business insights",
     ],
   },
 ];
@@ -275,15 +529,16 @@ function Pricing({ onDemoClick }) {
     <section className={styles.section} id="pricing">
       <div className={styles.inner}>
         <motion.div
-          className={`${styles.pricingHead}`}
+          className={styles.pricingHead}
           variants={fadeUp}
           initial={rm ? false : "hidden"}
           whileInView="visible"
           viewport={{ once: true, amount: 0.4 }}
         >
-          <h2 className={styles.sectionHeading}>Simple, honest pricing</h2>
+          <h2 className={styles.sectionHeading}>Simple, transparent pricing</h2>
           <p className={styles.sectionSubLeft}>
-            No hidden fees. Switch or cancel anytime. Longer commitments save you money.
+            All billing periods include full platform access: inventory, purchases, sales, ledger, reports, and AI
+            insights. Pay monthly for flexibility or save up to 27% by paying upfront.
           </p>
         </motion.div>
         <div className={styles.pricingGrid}>
@@ -303,23 +558,23 @@ function Pricing({ onDemoClick }) {
               </div>
               <p className={styles.planBilling}>{plan.billing}</p>
               <div className={styles.planPrice}>
-                <span className={styles.planPriceCurrency}>$</span>
-                <span className={styles.planPriceAmt}>{plan.total}</span>
-                <span className={styles.planPricePeriod}>{plan.period}</span>
+                <span className={styles.planPriceAmt}>{plan.price}</span>
+                {plan.period && <span className={styles.planPricePeriod}>{plan.period}</span>}
               </div>
-              {plan.monthly && <p className={styles.planMonthly}>{plan.monthly}</p>}
+              {plan.perMonth && <p className={styles.planPerMonth}>{plan.perMonth}</p>}
+              {plan.savings && <span className={styles.planSavings}>{plan.savings}</span>}
               <p className={styles.planDesc}>{plan.desc}</p>
               <div className={styles.planDivider} />
               <ul className={styles.planFeatures} role="list">
-                {plan.features.map((f) => (
-                  <li key={f} className={styles.planFeatureItem}>
+                {plan.features.map((feature) => (
+                  <li key={feature} className={styles.planFeatureItem}>
                     <CheckIcon />
-                    <span>{f}</span>
+                    <span>{feature}</span>
                   </li>
                 ))}
               </ul>
-              <button className={styles[plan.btnClass]} onClick={onDemoClick}>
-                {plan.btnLabel}
+              <button className={plan.featured ? styles.planBtnFill : styles.planBtnOutline} onClick={onDemoClick}>
+                Request a Demo
               </button>
             </motion.div>
           ))}
@@ -329,103 +584,6 @@ function Pricing({ onDemoClick }) {
   );
 }
 
-/* ── TESTIMONIALS ── */
-function Testimonials() {
-  const rm = useReducedMotion();
-  return (
-    <section className={`${styles.section} ${styles.sectionAlt}`} id="testimonials">
-      <div className={styles.inner}>
-        <motion.h2
-          className={styles.sectionHeading}
-          style={{ marginBottom: 40 }}
-          variants={fadeUp}
-          initial={rm ? false : "hidden"}
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.5 }}
-        >
-          Trusted by businesses across South Asia
-        </motion.h2>
-        <div className={styles.testimonialsGrid}>
-          <motion.div
-            className={styles.testimonialFeatured}
-            variants={fadeUp}
-            initial={rm ? false : "hidden"}
-            whileInView="visible"
-            custom={0}
-            viewport={{ once: true, amount: 0.2 }}
-          >
-            <span className={styles.testimonialMark} aria-hidden="true">
-              &ldquo;
-            </span>
-            <blockquote className={styles.testimonialQuoteFeatured}>
-              StockFlow saved us 15 hours a week on reconciliation. GST compliance used to be a Friday nightmare — now
-              it takes twenty minutes. Our accountant actually approved the switch.
-            </blockquote>
-            <div className={styles.testimonialAuthor}>
-              <div className={styles.testimonialAvatar} aria-hidden="true">
-                A
-              </div>
-              <div>
-                <div className={styles.testimonialName}>Ali Hassan</div>
-                <div className={styles.testimonialRole}>Finance Manager, Karachi</div>
-              </div>
-            </div>
-          </motion.div>
-
-          <div className={styles.testimonialStack}>
-            <motion.div
-              className={styles.testimonialMinor}
-              variants={fadeUp}
-              initial={rm ? false : "hidden"}
-              whileInView="visible"
-              custom={1}
-              viewport={{ once: true, amount: 0.2 }}
-            >
-              <blockquote className={styles.testimonialQuoteMinor}>
-                &ldquo;We cut inventory holding costs by 20% in the first quarter. Having live stock levels meant we
-                stopped over-ordering every month.&rdquo;
-              </blockquote>
-              <div className={styles.testimonialAuthorMinor}>
-                <div className={styles.testimonialAvatarMinor} aria-hidden="true">
-                  O
-                </div>
-                <div>
-                  <div className={styles.testimonialNameMinor}>Omar Shaikh</div>
-                  <div className={styles.testimonialRoleMinor}>Operations Lead, Lahore</div>
-                </div>
-              </div>
-            </motion.div>
-
-            <motion.div
-              className={styles.testimonialMinor}
-              variants={fadeUp}
-              initial={rm ? false : "hidden"}
-              whileInView="visible"
-              custom={2}
-              viewport={{ once: true, amount: 0.2 }}
-            >
-              <blockquote className={styles.testimonialQuoteMinor}>
-                &ldquo;As a founder wearing every hat, StockFlow gives me a clean picture of the business in five
-                minutes. I used to need an hour with the spreadsheets.&rdquo;
-              </blockquote>
-              <div className={styles.testimonialAuthorMinor}>
-                <div className={styles.testimonialAvatarMinor} aria-hidden="true">
-                  F
-                </div>
-                <div>
-                  <div className={styles.testimonialNameMinor}>Fatima Malik</div>
-                  <div className={styles.testimonialRoleMinor}>Founder, Islamabad</div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── FAQ ── */
 const ChevronIcon = ({ className }) => (
   <svg className={className} viewBox="0 0 18 18" fill="none" aria-hidden="true">
     <path
@@ -440,24 +598,20 @@ const ChevronIcon = ({ className }) => (
 
 const FAQS = [
   {
-    q: "Can I manage multiple companies under one account?",
-    a: "Yes. Gold and Platinum plans support multiple business entities from a single dashboard, each with isolated data, books, and user roles.",
+    q: "What is TSO?",
+    a: "TSO is a SaaS business operations platform for Asian businesses managing inventory, warehouse operations, purchases, sales, ledgers, reports, and AI-powered insights.",
   },
   {
-    q: "How does the double-entry ledger work?",
-    a: "Every transaction — purchase, sale, payment — automatically posts a corresponding ledger entry. You get a live trial balance, accounts payable, and accounts receivable without separate accounting software.",
+    q: "Why should I buy a TSO subscription?",
+    a: "TSO helps teams replace disconnected spreadsheets with live stock visibility, connected purchase and sales records, cleaner ledgers, exportable reports, and AI-assisted business insights.",
   },
   {
-    q: "Is cheque tracking available on all plans?",
-    a: "Cheque tracking is available on Gold and Platinum plans. You can log issued and received cheques, track clearance status, and set alerts for maturity dates.",
+    q: "Can TSO support more than inventory?",
+    a: "Yes. TSO includes inventory management, warehouse management, purchase and sales management, ledger management, reporting, AI insights, and future business modules.",
   },
   {
-    q: "How secure is my business data?",
-    a: "Data is encrypted in transit and at rest. We follow OWASP security standards, conduct regular audits, and maintain strict tenant isolation — your data is never shared across accounts.",
-  },
-  {
-    q: "Can I cancel or switch plans anytime?",
-    a: "Yes. Upgrade, downgrade, or cancel at any time. There are no lock-in contracts or cancellation fees. Unused time on prepaid plans is credited to your account.",
+    q: "Who should use TSO?",
+    a: "TSO is suited for retail businesses, wholesale businesses, distribution companies, warehouses, trading businesses, and small or medium-sized businesses across Asia that need connected operational records.",
   },
 ];
 
@@ -499,7 +653,6 @@ function Faq({ openFaq, setOpenFaq }) {
   );
 }
 
-/* ── FINAL CTA ── */
 function FinalCta({ onDemoClick }) {
   const rm = useReducedMotion();
   return (
@@ -510,49 +663,56 @@ function FinalCta({ onDemoClick }) {
       whileInView="visible"
       viewport={{ once: true, amount: 0.4 }}
     >
-      <h2 className={styles.finalCtaHeading}>See it working in your business.</h2>
+      <h2 className={styles.finalCtaHeading}>Ready to manage your business operations from one platform?</h2>
       <p className={styles.finalCtaSub}>
-        Join hundreds of businesses across South Asia that replaced their spreadsheets with StockFlow.
+        See how TSO can help your team manage inventory, purchases, sales, reports, and AI insights from one place.
       </p>
-      <button className={styles.btnPrimaryLg} onClick={onDemoClick}>
-        Request a demo →
-      </button>
+      <div className={styles.finalCtaActions}>
+        <button className={styles.btnPrimaryLg} onClick={onDemoClick}>
+          Request a Demo
+        </button>
+        <a href="#pricing" className={styles.btnOutlineDark}>
+          See Pricing
+        </a>
+      </div>
     </motion.section>
   );
 }
 
-/* ── SEO ── */
 const LANDING_URL = "https://www.treesols.com/";
-const LANDING_TITLE = "StockFlow — Inventory Management for Modern Businesses";
+const LANDING_TITLE = "TSO - Business Operations SaaS for Asia";
 const LANDING_DESCRIPTION =
-  "StockFlow brings real-time inventory tracking, integrated accounting, and smart order management for SMBs.";
-
-const PLANS_FOR_SCHEMA = PLANS.map((p) => ({
-  "@type": "Offer",
-  name: p.name,
-  price: p.total,
-  priceCurrency: "USD",
-  availability: "https://schema.org/InStock",
-  url: "https://www.treesols.com/#pricing",
-}));
+  "TSO is a business operations SaaS platform for Asian businesses managing inventory, warehouse, sales, purchase, ledger, reporting, and AI-powered insights.";
 
 const landingStructuredData = [
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    name: "StockFlow",
+    name: "TSO",
+    alternateName: "TSO by True Refined Solutions",
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
     url: LANDING_URL,
+    creator: {
+      "@type": "Organization",
+      name: "True Refined Solutions",
+      url: TRUE_REFINED_URL,
+    },
     description: LANDING_DESCRIPTION,
-    offers: PLANS_FOR_SCHEMA,
   },
   {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "StockFlow",
-    url: "https://www.treesols.com",
-    description: "Inventory, accounting, purchasing, sales, ledger, and reporting software for growing SMBs.",
+    name: "True Refined Solutions",
+    url: TRUE_REFINED_URL,
+    makesOffer: {
+      "@type": "Offer",
+      itemOffered: {
+        "@type": "SoftwareApplication",
+        name: "TSO",
+        applicationCategory: "BusinessApplication",
+      },
+    },
   },
   {
     "@context": "https://schema.org",
@@ -565,7 +725,6 @@ const landingStructuredData = [
   },
 ];
 
-/* ── PAGE ── */
 export default function Landing() {
   const [modalOpen, setModalOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
@@ -591,10 +750,14 @@ export default function Landing() {
       <Head>
         <title>{LANDING_TITLE}</title>
         <meta name="description" content={LANDING_DESCRIPTION} />
+        <meta
+          name="keywords"
+          content="inventory management platform, warehouse management system, business operations software, purchase and sales management system, ledger management system, AI inventory assistant, inventory reporting software, small business operations platform, business operations SaaS Asia"
+        />
         <meta name="robots" content="index,follow" />
         <link rel="canonical" href={LANDING_URL} />
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="StockFlow" />
+        <meta property="og:site_name" content="TSO" />
         <meta property="og:title" content={LANDING_TITLE} />
         <meta property="og:description" content={LANDING_DESCRIPTION} />
         <meta property="og:url" content={LANDING_URL} />
@@ -612,9 +775,14 @@ export default function Landing() {
         <PublicNav onDemoClick={openDemo} />
         <main>
           <Hero onDemoClick={openDemo} />
+          <ProblemSection />
+          <StatsBar />
           <Features />
+          <UseCases />
+          <AiInsights />
+          <WhyBuy />
+          <SoftCta onDemoClick={openDemo} />
           <Pricing onDemoClick={openDemo} />
-          <Testimonials />
           <Faq openFaq={openFaq} setOpenFaq={setOpenFaq} />
           <FinalCta onDemoClick={openDemo} />
         </main>

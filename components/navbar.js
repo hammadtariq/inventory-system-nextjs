@@ -1,22 +1,6 @@
 "use client";
 import { Layout, Avatar, Dropdown, message } from "antd";
-import {
-  MenuUnfoldOutlined,
-  MenuFoldOutlined,
-  DashboardOutlined,
-  UserOutlined,
-  TeamOutlined,
-  UnorderedListOutlined,
-  FileOutlined,
-  ShopOutlined,
-  DatabaseOutlined,
-  FilePptOutlined,
-  DollarCircleOutlined,
-  SettingOutlined,
-  LogoutOutlined,
-  UserAddOutlined,
-  ApartmentOutlined,
-} from "@ant-design/icons";
+import { MenuUnfoldOutlined, MenuFoldOutlined, SettingOutlined, LogoutOutlined } from "@ant-design/icons";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import AppMenuItems from "./menuItems";
@@ -24,27 +8,11 @@ import Link from "next/link";
 import Image from "next/image";
 import Logo from "../public/logo.png";
 import { logoutUser } from "@/hooks/login";
+import { withNavigationIcons } from "./navigationIcons";
+import { getActiveNavigationItem, getNavigationItems } from "@/lib/navigation";
 import StorageUtils from "@/utils/storage.util";
 
 const { Sider } = Layout;
-
-const baseItems = [
-  { id: "1", title: "Overview", url: "/", icon: <DashboardOutlined /> },
-  { id: "2", title: "Customers", url: "/customers", icon: <UserOutlined /> },
-  { id: "3", title: "Company", url: "/company", icon: <TeamOutlined /> },
-  { id: "4", title: "Items List", url: "/items", icon: <UnorderedListOutlined /> },
-  { id: "5", title: "Purchase", url: "/purchase", icon: <FileOutlined /> },
-  { id: "6", title: "Inventory", url: "/inventory", icon: <ShopOutlined /> },
-  { id: "7", title: "Sales", url: "/sales", icon: <FileOutlined /> },
-  { id: "12", title: "Sale Returns", url: "/sale-returns", icon: <FileOutlined /> },
-  { id: "11", title: "Quotation", url: "/quotation/create", icon: <FilePptOutlined /> },
-  { id: "8", title: "Ledger", url: "/ledger", icon: <DatabaseOutlined /> },
-  { id: "9", title: "Reports", url: "/reports", icon: <FilePptOutlined /> },
-  { id: "10", title: "Cheques", url: "/cheques", icon: <DollarCircleOutlined /> },
-];
-
-const adminItems = [{ id: "13", title: "Users", url: "/users", icon: <UserAddOutlined /> }];
-const superAdminItems = [{ id: "14", title: "Organizations", url: "/organizations", icon: <ApartmentOutlined /> }];
 
 export default function AppNavbar(props = {}) {
   const { collapsed = false, onCollapseChange = () => {} } = props;
@@ -53,16 +21,9 @@ export default function AppNavbar(props = {}) {
   const [isSelected, setIsSelected] = useState();
   const user = StorageUtils.getItem("user");
   const items = useMemo(() => {
-    if (user?.role === "SUPER_ADMIN") {
-      return [...baseItems, ...adminItems, ...superAdminItems];
-    }
-
-    if (user?.role === "ADMIN") {
-      return [...baseItems, ...adminItems];
-    }
-
-    return baseItems;
+    return withNavigationIcons(getNavigationItems(user?.role));
   }, [user?.role]);
+
   const onClickHandler = (url, id) => {
     setIsSelected(id);
     router.push(url);
@@ -70,8 +31,7 @@ export default function AppNavbar(props = {}) {
   const initials = `${user?.fisrtName?.charAt(0).toUpperCase() || ""}${user?.lastName?.charAt(0).toUpperCase() || ""}`;
 
   useEffect(() => {
-    const baseRoute = `/${router.pathname.split("/")[1] || ""}`;
-    const activeItem = items.find((item) => item.url === baseRoute);
+    const activeItem = getActiveNavigationItem(items, router.pathname);
     setIsSelected(activeItem?.id || items[0].id);
   }, [items, router.pathname]);
 
