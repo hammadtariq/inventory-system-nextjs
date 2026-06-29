@@ -6,6 +6,8 @@ import { Layout as AntLayout } from "antd";
 import AppContent from "@/components/content";
 // import AppFooter from "@/components/footer";
 import AppSider from "@/components/appSider";
+import MobileDashboardNav from "@/components/mobileDashboardNav";
+import styles from "@/styles/DashboardNavigation.module.css";
 
 export default function Layout({ children }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -14,16 +16,12 @@ export default function Layout({ children }) {
     <>
       <Head>
         <title>Inventory System</title>
+        <meta name="robots" content="noindex,nofollow" />
       </Head>
       <AntLayout className="site-layout">
         <AppSider collapsed={collapsed} onCollapseChange={setCollapsed} />
-        <AntLayout
-          className="site-layout"
-          style={{
-            marginLeft: collapsed ? 60 : 250,
-            transition: "margin-left 0.2s ease-in-out",
-          }}
-        >
+        <MobileDashboardNav />
+        <AntLayout className={`${styles.dashboardShell}${collapsed ? ` ${styles.dashboardShellCollapsed}` : ""}`}>
           <AppContent>{children}</AppContent>
           {/* <AppFooter /> */}
         </AntLayout>

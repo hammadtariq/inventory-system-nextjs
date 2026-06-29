@@ -1,5 +1,6 @@
 .inputNumberField {
-  width: 100%;
+  width: 120px;
+  max-width: 100%;
 }
 
 .gap {
@@ -46,4 +47,49 @@
 
 .editableRow {
   cursor: default;
+}
+
+.tableFooterSummary {
+  display: grid;
+  gap: 10px;
+  justify-content: end;
+  margin-left: auto;
+  max-width: 460px;
+}
+
+.tableFooterItem {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) 120px;
+  align-items: center;
+  gap: 12px;
+}
+
+.tableFooterItem strong {
+  overflow-wrap: normal;
+  text-align: right;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .tableFooterSummary {
+    justify-content: stretch;
+    margin-left: 0;
+    max-width: none;
+    width: 100%;
+  }
+
+  .tableFooterItem {
+    grid-template-columns: minmax(0, 1fr) 92px;
+    gap: 10px;
+  }
+
+  .tableFooterItem strong {
+    overflow-wrap: break-word;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .inputNumberField {
+    width: 92px;
+  }
 }

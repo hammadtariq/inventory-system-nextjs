@@ -1,4 +1,4 @@
-import { Button, Form, Input, Modal, Select, Space, Table, Tag, Tooltip, Typography, message } from "antd";
+import { Button, Form, Input, Modal, Select, Space, Tag, Tooltip, message } from "antd";
 import {
   EditOutlined,
   DeleteOutlined,
@@ -10,6 +10,8 @@ import {
 import Head from "next/head";
 import { useEffect, useState } from "react";
 
+import AppTable from "@/components/table";
+import AppTitle from "@/components/title";
 import {
   deleteOrganizationUser,
   getOrganizationUsers,
@@ -17,6 +19,7 @@ import {
   resendOrganizationInvite,
   updateOrganizationUser,
 } from "@/hooks/org";
+import styles from "@/styles/Users.module.css";
 import StorageUtils from "@/utils/storage.util";
 
 const Users = () => {
@@ -163,27 +166,41 @@ const Users = () => {
       return <Tag color="default">Not pending</Tag>;
     }
 
-    const inviteUrl = inviteLinks[row.id];
-
     return (
       <Space direction="vertical" size={8} style={{ width: "100%" }}>
-        <Space wrap size={6}>
+        <div className={styles.inviteActions}>
           <Tooltip title="Copy invite link">
-            <Button size="small" icon={<LinkOutlined />} onClick={() => copyInviteLink(row)}>
+            <Button
+              size="small"
+              icon={<LinkOutlined />}
+              className={styles.inviteActionButton}
+              onClick={() => copyInviteLink(row)}
+            >
               Copy
             </Button>
           </Tooltip>
           <Tooltip title="Send the invite email again">
-            <Button size="small" icon={<MailOutlined />} onClick={() => resendInviteEmail(row)}>
+            <Button
+              size="small"
+              icon={<MailOutlined />}
+              className={styles.inviteActionButton}
+              onClick={() => resendInviteEmail(row)}
+            >
               Resend
             </Button>
           </Tooltip>
           <Tooltip title="Open the invite page">
-            <Button size="small" type="primary" icon={<ReloadOutlined />} onClick={() => openInviteLink(row)}>
+            <Button
+              size="small"
+              type="primary"
+              icon={<ReloadOutlined />}
+              className={styles.inviteActionButton}
+              onClick={() => openInviteLink(row)}
+            >
               Accept Invite
             </Button>
           </Tooltip>
-        </Space>
+        </div>
       </Space>
     );
   };
@@ -204,7 +221,7 @@ const Users = () => {
     },
     {
       title: "Invite Link",
-      width: 360,
+      width: 320,
       key: "inviteLink",
       render: (_, row) => renderInviteCell(row),
     },
@@ -212,14 +229,14 @@ const Users = () => {
       title: "Actions",
       key: "actions",
       render: (_, row) => (
-        <Space>
+        <div className={styles.rowActions}>
           <Button size="small" icon={<EditOutlined />} onClick={() => openEdit(row)}>
             Edit
           </Button>
           <Button size="small" danger icon={<DeleteOutlined />} onClick={() => removeUser(row)}>
             Delete
           </Button>
-        </Space>
+        </div>
       ),
     },
   ];
@@ -234,16 +251,25 @@ const Users = () => {
         <title>Inventory System - Users</title>
       </Head>
 
-      <Space direction="vertical" size="middle" style={{ width: "100%" }}>
-        <Space style={{ width: "100%", justifyContent: "space-between" }}>
-          <h2 style={{ margin: 0 }}>Users</h2>
+      <AppTitle
+        level={2}
+        action={
           <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
             Invite user
           </Button>
-        </Space>
+        }
+      >
+        Users
+      </AppTitle>
 
-        <Table rowKey="id" columns={columns} dataSource={users} loading={loading} pagination={false} />
-      </Space>
+      <AppTable
+        rowKey="id"
+        columns={columns}
+        dataSource={users}
+        isLoading={loading}
+        pagination={false}
+        className={styles.usersTable}
+      />
 
       <Modal
         title={mode === "create" ? "Invite user" : "Edit user"}

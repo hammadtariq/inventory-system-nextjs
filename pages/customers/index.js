@@ -123,9 +123,8 @@ export default function Customers() {
   if (error) return <Alert message={error.message} type="error" />;
   return (
     <>
-      <AppTitle level={2}>
+      <AppTitle level={2} action={<AppCreateButton url="/customers/create" />}>
         Customer List
-        <AppCreateButton url="/customers/create" />
       </AppTitle>
       <AppTable
         columns={columns}

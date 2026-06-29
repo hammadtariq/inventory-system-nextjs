@@ -1,6 +1,20 @@
 {
   "permissions": {
-    "allow": ["mcp__github__issue_read", "Bash(bash *)"]
+    "allow": [
+      "mcp__github__issue_read",
+      "Bash(bash *)",
+      "Bash(node /Users/hammad/workspace/inventory-system-nextjs/.claude/skills/impeccable/scripts/critique-storage.mjs trend pages-index-js 5)",
+      "Bash(rm /private/tmp/claude-501/-Users-hammad-workspace-inventory-system-nextjs/020b4937-9160-4099-8d6a-c4c4f29efbf0/scratchpad/critique-body.md)",
+      "Bash(node *)",
+      "Bash(npm install *)",
+      "Bash(npx playwright *)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(curl -s http://localhost:3000/__nextjs_original-stack-frame)",
+      "Bash(curl -s \"http://localhost:3000/_next/static/chunks/pages/index-\"*.js)",
+      "Bash(curl -s http://localhost:3000/api/health)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
+      "Bash(chromium-cli --version)"
+    ]
   },
   "enabledPlugins": {
     "frontend-design@claude-plugins-official": true

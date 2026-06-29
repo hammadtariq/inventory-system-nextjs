@@ -1,73 +1,250 @@
+/* ──────────────────────────────────────────────
+   LOGIN PAGE
+   Split-screen: dark navy left panel + white form right
+   Left panel color matches the app sidebar (#001529) exactly.
+────────────────────────────────────────────── */
+
+/* ── MAIN SPLIT LAYOUT ── */
+.loginContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: #ffffff;
+}
+
+@media (min-width: 768px) {
+  .loginContainer {
+    flex-direction: row;
+  }
+}
+
+/* ── MOBILE HEADER (brand band, mobile-only) ── */
+.mobileHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 56px;
+  padding: 0 1.5rem;
+  background: #001529;
+  text-decoration: none;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.mobileHeader:hover {
+  opacity: 0.85;
+}
+
+@media (min-width: 768px) {
+  .mobileHeader {
+    display: none;
+  }
+}
+
+.mobileHeaderName {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.015em;
+}
+
+/* ── LEFT PANEL ── */
+.leftPanel {
+  display: none;
+  width: 44%;
+  flex-shrink: 0;
+  background: url("/bg1.jpg") center center / cover no-repeat;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/*
+  Was oklch(0.14 0.03 252 / 0.82).
+  L=0.14 ≈ #242d3e — noticeably lighter than the app sidebar's #001529 (L≈0.085).
+  At 82% opacity, bg1.jpg bled through compounding the mismatch.
+  rgba(0, 21, 41, 0.93) is #001529 at near-opaque — matches the sidebar exactly.
+*/
+.leftPanel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 21, 41, 0.93);
+  z-index: 0;
+}
+
+@media (min-width: 768px) {
+  .leftPanel {
+    display: flex;
+  }
+}
+
+.leftInner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  padding: 2.5rem 3rem;
+}
+
+.brandMark {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.brandMark:hover {
+  opacity: 0.75;
+}
+
+/* logo.png is the same asset the sidebar uses — no filter needed */
+.logoImg {
+  display: block;
+  border-radius: 4px;
+}
+
+.brandName {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: -0.015em;
+}
+
+.leftBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2.5rem 0;
+}
+
+.leftTagline {
+  font-size: 1.625rem;
+  font-weight: 500;
+  color: #ffffff;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  margin: 0 0 2.25rem;
+  max-width: 28ch;
+}
+
+.featureList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.featureItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  font-size: 0.875rem;
+  color: oklch(0.73 0.025 255);
+  line-height: 1.55;
+}
+
+.checkIcon {
+  width: 16px;
+  height: 16px;
+  color: #60a5fa;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.leftFooter {
+  font-size: 0.8125rem;
+  color: oklch(0.5 0.018 255);
+  margin: 0;
+  line-height: 1.5;
+  padding-top: 0.5rem;
+  border-top: 1px solid oklch(0.24 0.033 252);
+}
+
+/* ── RIGHT PANEL ── */
+.rightPanel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1.5rem;
+  background: #ffffff;
+  overflow-y: auto;
+}
+
+@media (min-width: 768px) {
+  .rightPanel {
+    padding: 3rem 1.5rem;
+  }
+}
+
+.formWrapper {
+  width: 100%;
+  max-width: 380px;
+}
+
+.formHeader {
+  margin-bottom: 1.75rem;
+}
+
+.formTitle {
+  font-size: 1.625rem;
+  font-weight: 600;
+  color: oklch(0.13 0.02 255);
+  letter-spacing: -0.02em;
+  margin: 0 0 0.375rem;
+  line-height: 1.2;
+}
+
+.formSubtitle {
+  font-size: 0.875rem;
+  color: oklch(0.44 0.018 255);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ──────────────────────────────────────────────
+   REGISTER PAGE COMPAT (used by register.js)
+   Redesign register separately when needed.
+────────────────────────────────────────────── */
+
 .container {
-  background: url("/bg1.jpg") no-repeat center center fixed;
-  background-size: cover;
-  min-height: 100vh;
+  background: oklch(0.14 0.03 252);
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
 }
-.shape1,
-.shape2,
-.shape3 {
-  position: absolute;
-  border-radius: 50%;
-  opacity: 0.3;
-  z-index: 1;
-}
-.shape1 {
-  width: 120px;
-  height: 120px;
-  background: #6395ff;
-  top: 10%;
-  left: 10%;
-  filter: blur(40px);
-}
-.shape2 {
-  width: 160px;
-  height: 160px;
-  background: #6395ff;
-  top: 50%;
-  right: 10%;
-  filter: blur(30px);
-}
-.shape3 {
-  width: 100px;
-  height: 100px;
-  background: #6395ff;
-  bottom: 10%;
-  left: 30%;
-  filter: blur(30px);
-}
 
-/* Login Box */
 .loginBox {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(20px);
-  padding: 30px 30px;
-  border-radius: 20px;
-  width: 380px;
+  background: #ffffff;
+  padding: 2rem 2rem;
+  border-radius: 12px;
+  width: 400px;
   z-index: 10;
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.3);
-  color: white;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
 }
 
 .loginTitle {
   text-align: center;
-  font-size: 32px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 20px;
-  background: linear-gradient(135deg, #4fa3ff 0%, #2974ff 50%, #a78bfa 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  filter: drop-shadow(0 2px 8px rgba(41, 116, 255, 0.35));
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: oklch(0.13 0.02 255);
+  margin-bottom: 1.25rem;
 }
 
-/* Register page */
 .registerBox {
   width: 720px;
 }
@@ -76,4 +253,14 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   column-gap: 20px;
+}
+
+.shape1,
+.shape2,
+.shape3 {
+  display: none;
+}
+
+.input {
+  border-radius: 6px;
 }

@@ -1,8 +1,11 @@
 {
   "name": "inventory-system-nextjs",
   "private": true,
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
-    "dev": "node --max-old-space-size=8192 ./node_modules/next/dist/bin/next",
+    "dev": "next dev --webpack",
     "build": "next build --webpack",
     "build:test": "next build --webpack && jest --watchman=false",
     "db:migrate": "node scripts/run-migrations.js",
@@ -10,12 +13,14 @@
     "db:verify-rls": "node scripts/verify-rls.js",
     "db:verify-security": "node scripts/verify-security.js",
     "db:bootstrap-super-admin": "node scripts/bootstrap-super-admin.js",
+    "seo:audit": "node scripts/seo-audit.js",
     "test": "jest --watchman=false",
     "start": "next start",
     "lint": "eslint .",
     "lint-staged": "lint-staged",
     "prettier": "prettier --write .",
     "prettier:check": "prettier --check .",
+    "seo:indexnow": "node scripts/indexnow-submit.js",
     "prepare": "husky"
   },
   "dependencies": {

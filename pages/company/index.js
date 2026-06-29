@@ -104,9 +104,8 @@ const Company = () => {
   if (isLoading) return <Spinner />;
   return (
     <>
-      <AppTitle level={2}>
+      <AppTitle level={2} action={<AppCreateButton url="/company/create" />}>
         Company List
-        <AppCreateButton url="/company/create" />
       </AppTitle>
       <AppTable
         isLoading={isLoading}
