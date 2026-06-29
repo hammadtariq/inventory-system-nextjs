@@ -1,8 +1,9 @@
-import { Card, Col, Row, List, Skeleton, Spin } from "antd";
+import { Card, Col, Row, List, Skeleton, Spin, Select } from "antd";
 import { ShoppingCartOutlined, CreditCardOutlined, ShopOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { Line, Pie, Column } from "@ant-design/charts";
 import { useEffect, useState } from "react";
 import {
+  getAvailableYears,
   getDashboardCards,
   getSalesVsPurchases,
   getSalesDistribution,
@@ -58,6 +59,9 @@ const STAT_CARDS = [
 ];
 
 export default function Home() {
+  const currentYear = new Date().getFullYear();
+  const [year, setYear] = useState(currentYear);
+  const [availableYears, setAvailableYears] = useState([currentYear]);
   const [cards, setCards] = useState(null);
   const [chartsData, setChartsData] = useState(null);
   const [listsData, setListsData] = useState(null);
@@ -66,20 +70,37 @@ export default function Home() {
   const [loadingLists, setLoadingLists] = useState(true);
 
   useEffect(() => {
-    getDashboardCards()
+    getAvailableYears().then((years) => {
+      if (years && years.length > 0) {
+        setAvailableYears(years.includes(currentYear) ? years : [currentYear, ...years]);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    setLoadingCards(true);
+    setLoadingCharts(true);
+    setLoadingLists(true);
+
+    getDashboardCards(year)
       .then(setCards)
       .finally(() => setLoadingCards(false));
 
-    Promise.all([getSalesVsPurchases(), getSalesDistribution(), getPurchaseDistribution(), getCompanyComparison()])
+    Promise.all([
+      getSalesVsPurchases(year),
+      getSalesDistribution(year),
+      getPurchaseDistribution(year),
+      getCompanyComparison(year),
+    ])
       .then(([salesVsPurchases, salesDist, purchaseDist, companies]) => {
         setChartsData({ salesVsPurchases, salesDist, purchaseDist, companies });
       })
       .finally(() => setLoadingCharts(false));
 
-    Promise.all([getTopProducts(), getTopCustomers()])
+    Promise.all([getTopProducts(year), getTopCustomers(year)])
       .then(([products, customers]) => setListsData({ products, customers }))
       .finally(() => setLoadingLists(false));
-  }, []);
+  }, [year]);
 
   // Purchase series first in data, so range order is [purchase, sales]
   const lineChartData = chartsData
@@ -129,6 +150,18 @@ export default function Home() {
 
   return (
     <div className={styles.dashboard}>
+      {/* Year filter */}
+      <Row justify="end" style={{ marginBottom: 16 }}>
+        <Col>
+          <Select
+            value={year}
+            onChange={setYear}
+            style={{ width: 120 }}
+            options={availableYears.map((y) => ({ label: String(y), value: y }))}
+          />
+        </Col>
+      </Row>
+
       {/* Row 1 — Stat Cards */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         {STAT_CARDS.map((card) => (
