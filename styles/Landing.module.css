@@ -538,7 +538,7 @@
   min-width: 0;
   width: min(1060px, 100%);
   align-self: center;
-  margin-bottom: clamp(-80px, -8vw, -36px);
+  margin-bottom: 0;
 }
 
 .heroMediaFrame {
@@ -1590,7 +1590,7 @@
 
   .heroPreview {
     width: 112%;
-    margin-bottom: -30px;
+    margin-bottom: 0;
   }
 
   .heroMediaFrame {

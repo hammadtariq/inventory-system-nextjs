@@ -107,13 +107,12 @@ function Hero({ onDemoClick }) {
           transition={{ duration: 0.62, delay: 0.34, ease: EASE_OUT }}
         >
           <div className={styles.heroMediaFrame}>
-            <Image
-              src="/landing/inventory-dashboard-preview.png"
-              alt="TSO dashboard showing inventory value, sales, purchases, and stock activity"
-              width={1500}
-              height={1125}
-              priority
-              sizes="(max-width: 768px) 96vw, 58vw"
+            <video
+              src="/landing/inventory-dashboard.mov"
+              autoPlay
+              loop
+              muted
+              playsInline
               className={styles.heroMediaImage}
             />
           </div>
