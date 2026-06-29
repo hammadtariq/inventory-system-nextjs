@@ -31,7 +31,7 @@ const EditableCell = ({ dataIndex, title, inputType, editing, form, children, re
         <Form.Item
           name={[record.id, dataIndex]}
           initialValue={record[dataIndex]}
-          key={record.key}
+          key={record.id}
           style={{
             margin: 0,
           }}

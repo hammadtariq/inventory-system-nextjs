@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import Head from "next/head";
 import Image from "next/image";
-import { motion, useReducedMotion } from "framer-motion";
+import { LazyMotion, domAnimation, m, useReducedMotion } from "framer-motion";
 import styles from "@/styles/Landing.module.css";
 import PublicNav from "@/components/PublicNav";
 import PublicFooter from "@/components/PublicFooter";
 import PublicDemoModal from "@/components/PublicDemoModal";
+import { stringifyForHtml } from "@/lib/safe-json";
 
 const TRUE_REFINED_URL = "https://truerefinedsolutions.com";
 const EASE_OUT = [0.16, 1, 0.3, 1];
@@ -54,13 +55,13 @@ function Hero({ onDemoClick }) {
       <div className={styles.heroAmbient} aria-hidden="true" />
       <div className={styles.heroGridGlow} aria-hidden="true" />
       <div className={styles.heroInner}>
-        <motion.div
+        <m.div
           className={styles.heroText}
           initial={rm ? false : { opacity: 0, transform: "translateY(18px)" }}
           animate={{ opacity: 1, transform: "translateY(0)" }}
           transition={{ duration: 0.48, ease: EASE_OUT }}
         >
-          <motion.div
+          <m.div
             className={styles.heroPill}
             initial={rm ? false : { opacity: 0, transform: "translateY(10px)" }}
             animate={{ opacity: 1, transform: "translateY(0)" }}
@@ -68,39 +69,39 @@ function Hero({ onDemoClick }) {
           >
             <span className={styles.heroPillBadge}>TSO</span>
             <span>Inventory, sales, ledger, and reports</span>
-          </motion.div>
-          <motion.h1
+          </m.div>
+          <m.h1
             className={styles.heroHeading}
             initial={rm ? false : { opacity: 0, transform: "translateY(22px)", filter: "blur(5px)" }}
             animate={{ opacity: 1, transform: "translateY(0)", filter: "blur(0px)" }}
             transition={{ duration: 0.56, delay: 0.1, ease: EASE_OUT }}
           >
             Inventory, sales, and ledgers in one clear view.
-          </motion.h1>
-          <motion.p
+          </m.h1>
+          <m.p
             className={styles.heroSub}
             initial={rm ? false : { opacity: 0, transform: "translateY(18px)", filter: "blur(4px)" }}
             animate={{ opacity: 1, transform: "translateY(0)", filter: "blur(0px)" }}
             transition={{ duration: 0.52, delay: 0.18, ease: EASE_OUT }}
           >
             TSO helps Asian SMBs track stock, purchases, sales, and reports from one connected SaaS platform.
-          </motion.p>
-          <motion.div
+          </m.p>
+          <m.div
             className={styles.heroCtaRow}
             initial={rm ? false : { opacity: 0, transform: "translateY(12px)" }}
             animate={{ opacity: 1, transform: "translateY(0)" }}
             transition={{ duration: 0.46, delay: 0.28, ease: EASE_OUT }}
           >
-            <button className={styles.btnPrimaryLg} onClick={onDemoClick}>
+            <button type="button" className={styles.btnPrimaryLg} onClick={onDemoClick}>
               Request a Demo
             </button>
             <a href="#pricing" className={styles.btnOutlineDark}>
               See Pricing
             </a>
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
 
-        <motion.div
+        <m.div
           className={styles.heroPreview}
           initial={rm ? false : { opacity: 0, transform: "translateY(34px)" }}
           animate={{ opacity: 1, transform: "translateY(0)" }}
@@ -117,7 +118,7 @@ function Hero({ onDemoClick }) {
               className={styles.heroMediaImage}
             />
           </div>
-        </motion.div>
+        </m.div>
       </div>
     </section>
   );
@@ -143,7 +144,7 @@ function ProblemSection() {
   return (
     <section className={styles.section} id="product">
       <div className={styles.inner}>
-        <motion.div
+        <m.div
           className={styles.featuresHead}
           variants={fadeUp}
           initial={rm ? false : "hidden"}
@@ -155,10 +156,10 @@ function ProblemSection() {
             Asian businesses need reliable visibility into stock, warehouse work, purchasing, sales, ledgers, and
             reports without rebuilding the same picture manually every day.
           </p>
-        </motion.div>
+        </m.div>
         <div className={styles.problemGrid}>
           {PROBLEMS.map(({ title, desc }, i) => (
-            <motion.div
+            <m.div
               key={title}
               className={styles.problemItem}
               variants={fadeInLeft}
@@ -170,7 +171,7 @@ function ProblemSection() {
               <span className={styles.problemNumber}>{`0${i + 1}`}</span>
               <h3 className={styles.problemTitle}>{title}</h3>
               <p className={styles.problemDesc}>{desc}</p>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </div>
@@ -203,7 +204,7 @@ function StatsBar() {
       <div className={styles.inner}>
         <div className={styles.statsGrid}>
           {STATS.map(({ value, label, sub }, i) => (
-            <motion.div
+            <m.div
               key={label}
               className={styles.statItem}
               variants={fadeUp}
@@ -215,7 +216,7 @@ function StatsBar() {
               <span className={styles.statValue}>{value}</span>
               <span className={styles.statLabel}>{label}</span>
               <p className={styles.statSub}>{sub}</p>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </div>
@@ -255,7 +256,7 @@ function Features() {
   return (
     <section className={styles.section} id="features">
       <div className={styles.inner}>
-        <motion.div
+        <m.div
           className={styles.featuresHead}
           variants={fadeUp}
           initial={rm ? false : "hidden"}
@@ -267,10 +268,10 @@ function Features() {
             A small business operations SaaS platform for the workflows Asian teams use every day, with room for future
             business modules as operations grow.
           </p>
-        </motion.div>
+        </m.div>
         <div className={styles.featuresGrid}>
           {FEATURES.map(({ title, desc }, i) => (
-            <motion.div
+            <m.div
               key={title}
               className={styles.featureBlock}
               variants={scaleReveal}
@@ -281,7 +282,7 @@ function Features() {
             >
               <h3 className={styles.featureTitle}>{title}</h3>
               <p className={styles.featureDesc}>{desc}</p>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </div>
@@ -303,7 +304,7 @@ function UseCases() {
   return (
     <section className={`${styles.section} ${styles.sectionAlt}`} id="use-cases">
       <div className={styles.inner}>
-        <motion.div
+        <m.div
           className={styles.featuresHead}
           variants={fadeUp}
           initial={rm ? false : "hidden"}
@@ -315,8 +316,8 @@ function UseCases() {
             TSO supports Asian teams that need an inventory management platform, warehouse management system, purchase
             and sales management system, and ledger management system working from the same operational source.
           </p>
-        </motion.div>
-        <motion.div
+        </m.div>
+        <m.div
           className={styles.builtForStrip}
           variants={fadeUp}
           initial={rm ? false : "hidden"}
@@ -329,7 +330,7 @@ function UseCases() {
               {label}
             </span>
           ))}
-        </motion.div>
+        </m.div>
       </div>
     </section>
   );
@@ -340,7 +341,7 @@ function AiInsights() {
   return (
     <section className={styles.section} id="ai-insights">
       <div className={`${styles.inner} ${styles.aiShowcase}`}>
-        <motion.div
+        <m.div
           className={styles.aiCopy}
           variants={fadeInLeft}
           initial={rm ? false : "hidden"}
@@ -353,13 +354,13 @@ function AiInsights() {
             The assistant turns sales, purchase, customer, and margin questions into clear answers business owners can
             act on.
           </p>
-          <ul className={styles.aiList} role="list">
+          <ul className={styles.aiList}>
             <li>Find top customers by revenue and last purchase date.</li>
             <li>Review sales, purchases, margins, and stock movement.</li>
             <li>Get plain-language summaries from operational records.</li>
           </ul>
-        </motion.div>
-        <motion.div
+        </m.div>
+        <m.div
           className={styles.aiPreview}
           variants={fadeInRight}
           initial={rm ? false : "hidden"}
@@ -374,7 +375,7 @@ function AiInsights() {
             sizes="(max-width: 768px) 100vw, 54vw"
             className={styles.aiPreviewImage}
           />
-        </motion.div>
+        </m.div>
       </div>
     </section>
   );
@@ -404,7 +405,7 @@ function WhyBuy() {
   return (
     <section className={`${styles.section} ${styles.sectionAlt}`}>
       <div className={styles.inner}>
-        <motion.div
+        <m.div
           className={styles.featuresHead}
           variants={fadeUp}
           initial={rm ? false : "hidden"}
@@ -415,10 +416,10 @@ function WhyBuy() {
           <p className={styles.sectionSubLeft}>
             TSO is built for owners and operations teams that need daily clarity, not another disconnected tool.
           </p>
-        </motion.div>
+        </m.div>
         <div className={styles.guidesGrid}>
           {WHY_BUY.map(({ title, desc }, i) => (
-            <motion.div
+            <m.div
               key={title}
               className={styles.guideCard}
               variants={fadeUp}
@@ -429,7 +430,7 @@ function WhyBuy() {
             >
               <h3 className={styles.guideTitle}>{title}</h3>
               <p className={styles.guideDesc}>{desc}</p>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </div>
@@ -441,7 +442,7 @@ function SoftCta({ onDemoClick }) {
   const rm = useReducedMotion();
   return (
     <div className={styles.midCtaBar}>
-      <motion.div
+      <m.div
         className={styles.midCtaBarInner}
         variants={fadeUp}
         initial={rm ? false : "hidden"}
@@ -451,10 +452,10 @@ function SoftCta({ onDemoClick }) {
         <p className={styles.midCtaText}>
           Ready to stop managing stock, sales, and reports from separate spreadsheets?
         </p>
-        <button className={styles.btnPrimary} onClick={onDemoClick}>
+        <button type="button" className={styles.btnPrimary} onClick={onDemoClick}>
           Request a Demo
         </button>
-      </motion.div>
+      </m.div>
     </div>
   );
 }
@@ -528,7 +529,7 @@ function Pricing({ onDemoClick }) {
   return (
     <section className={styles.section} id="pricing">
       <div className={styles.inner}>
-        <motion.div
+        <m.div
           className={styles.pricingHead}
           variants={fadeUp}
           initial={rm ? false : "hidden"}
@@ -540,10 +541,10 @@ function Pricing({ onDemoClick }) {
             All billing periods include full platform access: inventory, purchases, sales, ledger, reports, and AI
             insights. Pay monthly for flexibility or save up to 27% by paying upfront.
           </p>
-        </motion.div>
+        </m.div>
         <div className={styles.pricingGrid}>
           {PLANS.map((plan, i) => (
-            <motion.div
+            <m.div
               key={plan.name}
               className={plan.featured ? styles.planCardFeatured : styles.planCard}
               variants={fadeUp}
@@ -565,7 +566,7 @@ function Pricing({ onDemoClick }) {
               {plan.savings && <span className={styles.planSavings}>{plan.savings}</span>}
               <p className={styles.planDesc}>{plan.desc}</p>
               <div className={styles.planDivider} />
-              <ul className={styles.planFeatures} role="list">
+              <ul className={styles.planFeatures}>
                 {plan.features.map((feature) => (
                   <li key={feature} className={styles.planFeatureItem}>
                     <CheckIcon />
@@ -573,10 +574,14 @@ function Pricing({ onDemoClick }) {
                   </li>
                 ))}
               </ul>
-              <button className={plan.featured ? styles.planBtnFill : styles.planBtnOutline} onClick={onDemoClick}>
+              <button
+                type="button"
+                className={plan.featured ? styles.planBtnFill : styles.planBtnOutline}
+                onClick={onDemoClick}
+              >
                 Request a Demo
               </button>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </div>
@@ -627,6 +632,7 @@ function Faq({ openFaq, setOpenFaq }) {
             return (
               <div key={q} className={styles.faqItem}>
                 <button
+                  type="button"
                   id={btnId}
                   className={styles.faqToggle}
                   onClick={() => setOpenFaq(isOpen ? null : q)}
@@ -635,15 +641,11 @@ function Faq({ openFaq, setOpenFaq }) {
                   <span className={styles.faqQuestion}>{q}</span>
                   <ChevronIcon className={`${styles.faqChevron} ${isOpen ? styles.faqChevronOpen : ""}`} />
                 </button>
-                <div
-                  className={`${styles.faqBody} ${isOpen ? styles.faqBodyOpen : ""}`}
-                  role="region"
-                  aria-labelledby={btnId}
-                >
+                <section className={`${styles.faqBody} ${isOpen ? styles.faqBodyOpen : ""}`} aria-labelledby={btnId}>
                   <div className={styles.faqBodyInner}>
                     <p className={styles.faqAnswer}>{a}</p>
                   </div>
-                </div>
+                </section>
               </div>
             );
           })}
@@ -656,7 +658,7 @@ function Faq({ openFaq, setOpenFaq }) {
 function FinalCta({ onDemoClick }) {
   const rm = useReducedMotion();
   return (
-    <motion.section
+    <m.section
       className={styles.finalCta}
       variants={fadeUp}
       initial={rm ? false : "hidden"}
@@ -668,14 +670,14 @@ function FinalCta({ onDemoClick }) {
         See how TSO can help your team manage inventory, purchases, sales, reports, and AI insights from one place.
       </p>
       <div className={styles.finalCtaActions}>
-        <button className={styles.btnPrimaryLg} onClick={onDemoClick}>
+        <button type="button" className={styles.btnPrimaryLg} onClick={onDemoClick}>
           Request a Demo
         </button>
         <a href="#pricing" className={styles.btnOutlineDark}>
           See Pricing
         </a>
       </div>
-    </motion.section>
+    </m.section>
   );
 }
 
@@ -764,28 +766,25 @@ export default function Landing() {
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content={LANDING_TITLE} />
         <meta name="twitter:description" content={LANDING_DESCRIPTION} />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(landingStructuredData),
-          }}
-        />
+        <script type="application/ld+json">{stringifyForHtml(landingStructuredData)}</script>
       </Head>
       <div className={styles.page}>
         <PublicNav onDemoClick={openDemo} />
-        <main>
-          <Hero onDemoClick={openDemo} />
-          <ProblemSection />
-          <StatsBar />
-          <Features />
-          <UseCases />
-          <AiInsights />
-          <WhyBuy />
-          <SoftCta onDemoClick={openDemo} />
-          <Pricing onDemoClick={openDemo} />
-          <Faq openFaq={openFaq} setOpenFaq={setOpenFaq} />
-          <FinalCta onDemoClick={openDemo} />
-        </main>
+        <LazyMotion features={domAnimation}>
+          <main>
+            <Hero onDemoClick={openDemo} />
+            <ProblemSection />
+            <StatsBar />
+            <Features />
+            <UseCases />
+            <AiInsights />
+            <WhyBuy />
+            <SoftCta onDemoClick={openDemo} />
+            <Pricing onDemoClick={openDemo} />
+            <Faq openFaq={openFaq} setOpenFaq={setOpenFaq} />
+            <FinalCta onDemoClick={openDemo} />
+          </main>
+        </LazyMotion>
         <PublicFooter onDemoClick={openDemo} />
         <PublicDemoModal open={modalOpen} onClose={closeDemo} triggerRef={demoTriggerRef} />
       </div>

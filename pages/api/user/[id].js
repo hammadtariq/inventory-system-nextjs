@@ -3,8 +3,11 @@ import nextConnect from "next-connect";
 import { UniqueConstraintError } from "sequelize";
 
 import db from "@/lib/postgres";
+import { pickDefinedFields } from "@/lib/request-fields";
 import { auth } from "@/middlewares/auth";
 import TenantContext from "@/lib/tenant-context";
+
+const updateFields = ["firstName", "lastName", "email", "role", "status"];
 
 // api schema for all routes for this file only
 const apiSchema = Joi.object({
@@ -52,10 +55,9 @@ export const updateUser = async (req, res) => {
   // validate api fields
   console.log("update user Request Start");
 
-  const { error, value } = apiSchema.validate({
-    ...req.body,
-    id: req.query.id,
-  });
+  const validateInput = pickDefinedFields(req.body, updateFields);
+  validateInput.id = req.query.id;
+  const { error, value } = apiSchema.validate(validateInput);
 
   //   if api fields errors
   if (error && Object.keys(error).length) {
@@ -81,7 +83,7 @@ export const updateUser = async (req, res) => {
     if (!Object.keys(req.body).length) {
       return res.status(400).send({
         message: "Please provide at least one field",
-        allowedFields: ["firstName", "lastName", "email", "role", "status"],
+        allowedFields: updateFields,
       });
     }
 
@@ -97,7 +99,8 @@ export const updateUser = async (req, res) => {
     }
 
     // update user
-    await user.update({ ...value });
+    const updateData = pickDefinedFields(value, updateFields);
+    await user.update(updateData);
     console.log("update user Request End");
 
     return res.send({

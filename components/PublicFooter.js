@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import styles from "@/styles/Landing.module.css";
 
 const TRUE_REFINED_URL = "https://truerefinedsolutions.com";
@@ -10,7 +11,7 @@ export default function PublicFooter({ onDemoClick }) {
         <div className={styles.footerGrid}>
           <div>
             <Link href="/#hero" className={styles.footerLogo}>
-              <img
+              <Image
                 src="/only-shape-no-bg.png"
                 alt=""
                 aria-hidden="true"
@@ -61,7 +62,7 @@ export default function PublicFooter({ onDemoClick }) {
             <Link href="/about" className={styles.footerLink}>
               About
             </Link>
-            <button className={styles.footerLinkBtn} onClick={onDemoClick}>
+            <button type="button" className={styles.footerLinkBtn} onClick={onDemoClick}>
               Contact us
             </button>
           </div>

@@ -2,8 +2,10 @@
 
 module.exports = {
   up: async (queryInterface) => {
-    const customers = await queryInterface.sequelize.query(`SELECT id from customers;`);
-    const companies = await queryInterface.sequelize.query(`SELECT id from companies;`);
+    const [customers, companies] = await Promise.all([
+      queryInterface.sequelize.query(`SELECT id from customers;`),
+      queryInterface.sequelize.query(`SELECT id from companies;`),
+    ]);
     const customersRows = customers[0];
     const companiesRows = companies[0];
     await queryInterface.bulkInsert(
@@ -82,7 +84,9 @@ module.exports = {
 
   down: async (queryInterface) => {
     await queryInterface.bulkDelete("sales", null, {});
-    await queryInterface.bulkDelete("customers", null, {});
-    await queryInterface.bulkDelete("companies", null, {});
+    await Promise.all([
+      queryInterface.bulkDelete("customers", null, {}),
+      queryInterface.bulkDelete("companies", null, {}),
+    ]);
   },
 };

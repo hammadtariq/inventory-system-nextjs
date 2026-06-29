@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import { Alert, Popconfirm } from "antd";
 import dayjs from "dayjs";
 import NextLink from "next/link";
@@ -19,17 +19,13 @@ const Sales = () => {
   const { sales, error, isLoading, paginationHandler, mutate } = useSales();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
-  const [updatedSales, setUpdatedSales] = useState("");
+  const [selectedSales, setSelectedSales] = useState(null);
   const searchInput = useRef(null);
   const router = useRouter();
   const canApprove = permissionsUtil.checkAuth({
     category: "sales",
     action: "approve",
   });
-
-  useEffect(() => {
-    setUpdatedSales(sales);
-  }, [sales]);
 
   // const expandedRowRender = (record) => {
   //   const columns = [
@@ -186,7 +182,7 @@ const Sales = () => {
 
   const handleSearch = async (value) => {
     if (!value) {
-      setUpdatedSales(sales);
+      setSelectedSales(null);
       return sales;
     } else {
       const searchResults = await searchSales(value);
@@ -196,9 +192,11 @@ const Sales = () => {
 
   const handleSelect = async (customerId) => {
     const newItems = await getAllSalesbyCustomer(customerId);
-    setUpdatedSales(newItems);
+    setSelectedSales(newItems);
     return newItems;
   };
+
+  const displayedSales = selectedSales ?? sales;
 
   if (error) return <Alert message={error} type="error" />;
   return (
@@ -224,8 +222,8 @@ const Sales = () => {
         className="components-table-demo-nested"
         columns={columns}
         // expandable={{ expandedRowRender: (record) => expandedRowRender(record) }}
-        dataSource={updatedSales ? updatedSales.rows : []}
-        totalCount={updatedSales ? updatedSales.count : 0}
+        dataSource={displayedSales ? displayedSales.rows : []}
+        totalCount={displayedSales ? displayedSales.count : 0}
         paginationHandler={paginationHandler}
       />
     </>

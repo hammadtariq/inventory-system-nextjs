@@ -3,14 +3,15 @@ import { useState } from "react";
 import { useRef } from "react";
 import { useScroll, useMotionValueEvent } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import styles from "@/styles/Landing.module.css";
 
 export default function PublicNav({ onDemoClick, alwaysLight = false, hrefPrefix = "" }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [condensed, setCondensed] = useState(false);
-  const [lightMode, setLightMode] = useState(alwaysLight);
+  const [lightMode, setLightMode] = useState(false);
   const condensedRef = useRef(false);
-  const lightModeRef = useRef(alwaysLight);
+  const lightModeRef = useRef(false);
   const { scrollY } = useScroll();
 
   useMotionValueEvent(scrollY, "change", (v) => {
@@ -37,7 +38,7 @@ export default function PublicNav({ onDemoClick, alwaysLight = false, hrefPrefix
       aria-label="Main navigation"
     >
       <Link href={`${hrefPrefix}#hero`} className={styles.navLogo}>
-        <img
+        <Image
           src="/only-shape-no-bg.png"
           alt=""
           aria-hidden="true"
@@ -47,7 +48,7 @@ export default function PublicNav({ onDemoClick, alwaysLight = false, hrefPrefix
         />
         TSO
       </Link>
-      <ul className={styles.navLinks} role="list">
+      <ul className={styles.navLinks}>
         <li>
           <Link href={`${hrefPrefix}#product`}>Product</Link>
         </li>
@@ -68,11 +69,12 @@ export default function PublicNav({ onDemoClick, alwaysLight = false, hrefPrefix
         <Link href="/login" className={styles.navLogin}>
           Log in
         </Link>
-        <button className={styles.btnPrimary} onClick={onDemoClick}>
+        <button type="button" className={styles.btnPrimary} onClick={onDemoClick}>
           Request a demo
         </button>
       </div>
       <button
+        type="button"
         className={styles.navMobileBtn}
         onClick={() => setMobileOpen((v) => !v)}
         aria-expanded={mobileOpen}

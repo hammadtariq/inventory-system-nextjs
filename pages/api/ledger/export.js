@@ -38,7 +38,7 @@ const exportLedger = async (req, res) => {
       labourCharge,
     }));
     // ✅ Step 1: Extract unique companyIds
-    const companyIds = [...new Set(soldProducts.map((item) => item.companyId).filter(Boolean))];
+    const companyIds = [...new Set(soldProducts.flatMap((item) => (item.companyId ? [item.companyId] : [])))];
 
     // ✅ Step 2: Fetch all related companies in one go
     const companies = await db.Company.findAll({

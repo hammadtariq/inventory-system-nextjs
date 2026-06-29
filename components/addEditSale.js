@@ -8,6 +8,7 @@ import DatePicker from "@/components/datePicker";
 import SelectCustomer from "@/components/selectCustomer";
 import UpdateSalesItems from "@/components/updateSaleItems";
 import { useInventoryAttributes } from "@/hooks/inventory";
+import { useClientNow } from "@/hooks/useClientNow";
 import { createSale, updateSale } from "@/hooks/sales";
 import { EDITABLE_STATUS } from "@/utils/api.util";
 import { DATE_FORMAT, PAGE_TYPE_VIEW, sumItemsPrice, VALIDATE_MESSAGE } from "@/utils/ui.util";
@@ -22,8 +23,9 @@ const AddEditSale = ({ sale, type = null }) => {
   const isCreate = !isView && !sale;
   const [loading, setLoading] = useState(false);
   const [customerId, setCustomerId] = useState(null);
-  const [editAll, setEditAll] = useState(false);
+  const [editAll, setEditAll] = useState(Boolean(isEdit));
   const [_laborCharge, setLaborCharge] = useState(0);
+  const currentTime = useClientNow();
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [updatedProducts, setUpdatedProducts] = useState([]);
   const { inventory, error, isLoading } = useInventoryAttributes(
@@ -45,14 +47,15 @@ const AddEditSale = ({ sale, type = null }) => {
       setLaborCharge(sale.laborCharge);
       setCustomerId(sale.customer.id);
     } else if (isEdit && inventory) {
-      setEditAll(true);
       const soldProductIds = sale.soldProducts.map((product) => product.id);
-      const selectedItems = inventory
-        .filter((item) => soldProductIds.includes(item.id))
-        .map((item) => {
-          const soldProduct = sale.soldProducts.find((product) => product.id === item.id);
-          return soldProduct ? { ...item, ...soldProduct } : item;
-        });
+      const soldProductIdSet = new Set(soldProductIds);
+      const soldProductsById = new Map(sale.soldProducts.map((product) => [product.id, product]));
+      const selectedItems = inventory.flatMap((item) => {
+        if (!soldProductIdSet.has(item.id)) return [];
+
+        const soldProduct = soldProductsById.get(item.id);
+        return [soldProduct ? { ...item, ...soldProduct } : item];
+      });
       setSelectedProducts(selectedItems);
       setUpdatedProducts(inventory);
       form.setFieldsValue({
@@ -172,7 +175,7 @@ const AddEditSale = ({ sale, type = null }) => {
             <Form.Item label="Sales Date" name="soldDate">
               <DatePicker
                 style={{ width: "100%" }}
-                disabledDate={(current) => current && current.valueOf() > Date.now()}
+                disabledDate={(current) => currentTime !== null && current && current.valueOf() > currentTime}
                 format={DATE_FORMAT}
                 disabled={isView}
               />

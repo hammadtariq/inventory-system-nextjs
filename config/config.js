@@ -7,7 +7,7 @@ const ssl = isRemote ? { require: true, rejectUnauthorized: false } : false;
 module.exports = {
   development: {
     username: process.env.POSTGRES_USER || "postgres",
-    password: process.env.POSTGRES_PASSWORD || "postgres",
+    password: process.env.POSTGRES_PASSWORD || null,
     database: process.env.POSTGRES_DB || "inventory-management-local",
     host: process.env.POSTGRES_HOST || "localhost",
     port: parseInt(process.env.POSTGRES_PORT || "5432", 10),

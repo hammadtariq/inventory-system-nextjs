@@ -39,25 +39,31 @@ export const createSale = async (req, res) => {
       return res.status(404).send({ message: "customer not found" });
     }
 
-    for (const product of value.soldProducts) {
-      const inventory = await db.Inventory.findOne({
-        where: {
-          id: product.id,
-          companyId: product.companyId,
-          organizationId,
-        },
-      });
+    await Promise.all(
+      value.soldProducts.map(async (product) => {
+        const inventory = await db.Inventory.findOne({
+          where: {
+            id: product.id,
+            companyId: product.companyId,
+            organizationId,
+          },
+        });
 
-      if (!inventory) {
-        return res.status(404).send({ message: `${product.itemName} not found in inventory` });
-      }
-    }
+        if (!inventory) {
+          throw new Error(`NOT_FOUND:${product.itemName} not found in inventory`);
+        }
+      })
+    );
 
     await db.Sale.create({ ...value, status: STATUS.PENDING, organizationId });
     console.log("Create sale order Request End");
     return res.send();
   } catch (error) {
     console.log("Create sale order Request Error:", error);
+
+    if (error.message.startsWith("NOT_FOUND:")) {
+      return res.status(404).send({ message: error.message.replace("NOT_FOUND:", "") });
+    }
 
     return res.status(500).send({ message: error.toString() });
   }

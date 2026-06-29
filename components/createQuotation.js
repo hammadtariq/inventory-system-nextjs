@@ -51,13 +51,14 @@ const CreateQuotation = () => {
     (ids) => {
       setIsSaved(false);
       setSelectedProductIds(ids);
-      const selectedItems = updatedProducts
-        .filter((item) => ids.includes(item.id))
-        .map((item) => {
-          const existing = selectedProducts.find((p) => p.id === item.id);
-          if (existing) return existing;
-          return { ...item, noOfBales: item.onHand ?? 0 };
-        });
+      const selectedProductIdSet = new Set(ids);
+      const selectedProductsById = new Map(selectedProducts.map((product) => [product.id, product]));
+      const selectedItems = updatedProducts.flatMap((item) => {
+        if (!selectedProductIdSet.has(item.id)) return [];
+
+        const existing = selectedProductsById.get(item.id);
+        return [existing || { ...item, noOfBales: item.onHand ?? 0 }];
+      });
       setSelectedProducts(selectedItems);
     },
     [updatedProducts, selectedProducts]

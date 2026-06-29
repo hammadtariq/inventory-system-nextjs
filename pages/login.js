@@ -1,9 +1,10 @@
 import { Form, Input, Button, ConfigProvider, message } from "antd";
 import Head from "next/head";
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { motion } from "framer-motion";
+import { LazyMotion, domAnimation, m } from "framer-motion";
 import styles from "./login.module.css";
 import AuthLayout from "@/components/authLayout";
 import { loginUser } from "@/hooks/login";
@@ -63,7 +64,7 @@ const Login = () => {
         <div className={styles.leftPanel} aria-hidden="true">
           <div className={styles.leftInner}>
             <Link href="/" className={styles.brandMark}>
-              <img src="/only-shape-no-bg.png" alt="" width={30} height={30} className={styles.logoImg} />
+              <Image src="/only-shape-no-bg.png" alt="" width={30} height={30} className={styles.logoImg} />
               <span className={styles.brandName}>TSO</span>
             </Link>
 
@@ -93,68 +94,70 @@ const Login = () => {
 
         {/* Mobile header band — dark brand strip shown only on mobile */}
         <Link href="/" className={styles.mobileHeader}>
-          <img src="/only-shape-no-bg.png" alt="" width={28} height={28} />
+          <Image src="/only-shape-no-bg.png" alt="" width={28} height={28} />
           <span className={styles.mobileHeaderName}>TSO</span>
         </Link>
 
         {/* Right panel - login form */}
-        <motion.div
-          className={styles.rightPanel}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <div className={styles.formWrapper}>
-            <div className={styles.formHeader}>
-              <h1 className={styles.formTitle}>Welcome back</h1>
-              <p className={styles.formSubtitle}>Sign in to your TSO account.</p>
-            </div>
+        <LazyMotion features={domAnimation}>
+          <m.div
+            className={styles.rightPanel}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <div className={styles.formWrapper}>
+              <div className={styles.formHeader}>
+                <h1 className={styles.formTitle}>Welcome back</h1>
+                <p className={styles.formSubtitle}>Sign in to your TSO account.</p>
+              </div>
 
-            <ConfigProvider theme={antTheme}>
-              <Form layout="vertical" onFinish={onFinish} size="large" requiredMark={false}>
-                <Form.Item
-                  name="email"
-                  label="Email"
-                  rules={[
-                    {
-                      type: "email",
-                      required: true,
-                      message: "Enter a valid email address",
-                    },
-                  ]}
-                >
-                  <Input placeholder="you@company.com" />
-                </Form.Item>
-
-                <Form.Item
-                  name="password"
-                  label="Password"
-                  rules={[
-                    {
-                      required: true,
-                      min: 8,
-                      message: "Password must be at least 8 characters",
-                    },
-                  ]}
-                >
-                  <Input.Password placeholder="Password" />
-                </Form.Item>
-
-                <Form.Item style={{ marginTop: 8, marginBottom: 0 }}>
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    block
-                    loading={loading}
-                    style={{ height: 42, fontWeight: 500 }}
+              <ConfigProvider theme={antTheme}>
+                <Form layout="vertical" onFinish={onFinish} size="large" requiredMark={false}>
+                  <Form.Item
+                    name="email"
+                    label="Email"
+                    rules={[
+                      {
+                        type: "email",
+                        required: true,
+                        message: "Enter a valid email address",
+                      },
+                    ]}
                   >
-                    Sign in
-                  </Button>
-                </Form.Item>
-              </Form>
-            </ConfigProvider>
-          </div>
-        </motion.div>
+                    <Input placeholder="you@company.com" />
+                  </Form.Item>
+
+                  <Form.Item
+                    name="password"
+                    label="Password"
+                    rules={[
+                      {
+                        required: true,
+                        min: 8,
+                        message: "Password must be at least 8 characters",
+                      },
+                    ]}
+                  >
+                    <Input.Password placeholder="Password" />
+                  </Form.Item>
+
+                  <Form.Item style={{ marginTop: 8, marginBottom: 0 }}>
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      block
+                      loading={loading}
+                      style={{ height: 42, fontWeight: 500 }}
+                    >
+                      Sign in
+                    </Button>
+                  </Form.Item>
+                </Form>
+              </ConfigProvider>
+            </div>
+          </m.div>
+        </LazyMotion>
       </div>
     </>
   );

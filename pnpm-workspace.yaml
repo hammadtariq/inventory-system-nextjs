@@ -1,6 +1,13 @@
 packages:
   - "."
 
+minimumReleaseAge: 10080
+
+trustPolicy: no-downgrade
+
+overrides:
+  semver: ^7.7.3
+
 ignoredBuiltDependencies:
   - core-js
   - less
@@ -11,3 +18,12 @@ onlyBuiltDependencies:
   - bcrypt
   - sharp
   - sqlite3
+
+allowBuilds:
+  bcrypt: true
+  core-js: false
+  pre-commit: false
+  sharp: true
+  spawn-sync: false
+  sqlite3: true
+  unrs-resolver: true

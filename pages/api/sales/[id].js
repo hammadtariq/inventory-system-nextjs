@@ -5,6 +5,9 @@ import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { EDITABLE_STATUS, STATUS } from "@/utils/api.util";
 import TenantContext from "@/lib/tenant-context";
+import { pickDefinedFields } from "@/lib/request-fields";
+
+const updateFields = ["customerId", "totalAmount", "laborCharge", "soldDate", "soldProducts"];
 
 const inventorySchema = Joi.object().keys({
   itemName: Joi.string().min(3).trim().lowercase(),
@@ -73,10 +76,9 @@ const getSale = async (req, res) => {
 
 const updateSaleOrder = async (req, res) => {
   console.log("Update sale order Request Start");
-  const { error, value } = apiSchema.validate({
-    ...req.body,
-    id: req.query.id,
-  });
+  const validateInput = pickDefinedFields(req.body, updateFields);
+  validateInput.id = req.query.id;
+  const { error, value } = apiSchema.validate(validateInput);
 
   if (error && error && Object.keys(error).length) {
     return res.status(400).send({ message: error.toString() });
@@ -100,7 +102,9 @@ const updateSaleOrder = async (req, res) => {
       if (!customer) return res.status(404).send({ message: "customer not found" });
     }
 
-    await sale.update({ ...value, status: STATUS.PENDING });
+    const updateData = pickDefinedFields(value, updateFields);
+    updateData.status = STATUS.PENDING;
+    await sale.update(updateData);
     console.log("Update sale order Request End");
     return res.send(sale);
   } catch (error) {

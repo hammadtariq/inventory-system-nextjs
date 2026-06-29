@@ -27,31 +27,26 @@ export const getReturnedQuantityMap = (saleReturns = []) => {
 };
 
 export const getReturnableProducts = (soldProducts = [], returnedMetricsMap = {}) =>
-  soldProducts
-    .map((product) => {
-      const key = getSaleReturnItemKey(product);
-      const soldQuantity = Number(product.noOfBales || 0);
-      const returnedMetrics = returnedMetricsMap[key] || {};
-      const alreadyReturnedQuantity = Number(returnedMetrics.noOfBales || 0);
-      const remainingQuantity = Math.max(soldQuantity - alreadyReturnedQuantity, 0);
-      const originalKgs = product.baleWeightKgs ?? null;
-      const originalLbs = product.baleWeightLbs ?? null;
-      const remainingKgs =
-        originalKgs === null
-          ? null
-          : Math.max(Number(originalKgs || 0) - Number(returnedMetrics.baleWeightKgs || 0), 0);
-      const remainingLbs =
-        originalLbs === null
-          ? null
-          : Math.max(Number(originalLbs || 0) - Number(returnedMetrics.baleWeightLbs || 0), 0);
+  soldProducts.flatMap((product) => {
+    const key = getSaleReturnItemKey(product);
+    const soldQuantity = Number(product.noOfBales || 0);
+    const returnedMetrics = returnedMetricsMap[key] || {};
+    const alreadyReturnedQuantity = Number(returnedMetrics.noOfBales || 0);
+    const remainingQuantity = Math.max(soldQuantity - alreadyReturnedQuantity, 0);
+    const originalKgs = product.baleWeightKgs ?? null;
+    const originalLbs = product.baleWeightLbs ?? null;
+    const remainingKgs =
+      originalKgs === null ? null : Math.max(Number(originalKgs || 0) - Number(returnedMetrics.baleWeightKgs || 0), 0);
+    const remainingLbs =
+      originalLbs === null ? null : Math.max(Number(originalLbs || 0) - Number(returnedMetrics.baleWeightLbs || 0), 0);
 
-      return {
-        ...product,
-        noOfBales: remainingQuantity,
-        baleWeightKgs: remainingKgs,
-        baleWeightLbs: remainingLbs,
-        onHand: remainingQuantity,
-        refundableQuantity: remainingQuantity,
-      };
-    })
-    .filter((product) => Number(product.refundableQuantity || 0) > 0);
+    const returnableProduct = {
+      ...product,
+      noOfBales: remainingQuantity,
+      baleWeightKgs: remainingKgs,
+      baleWeightLbs: remainingLbs,
+      onHand: remainingQuantity,
+      refundableQuantity: remainingQuantity,
+    };
+    return Number(returnableProduct.refundableQuantity || 0) > 0 ? [returnableProduct] : [];
+  });

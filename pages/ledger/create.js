@@ -14,6 +14,7 @@ import { VALIDATE_MESSAGE } from "@/utils/ui.util";
 
 import { createPayment } from "../../hooks/ledger";
 import { selectSearchFilter } from "@/utils/filter.util";
+import { useClientNow } from "@/hooks/useClientNow";
 
 const canCreate = permissionsUtil.checkAuth({
   category: "transaction",
@@ -25,6 +26,7 @@ const { Option } = Select;
 const CreateTransaction = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const currentTime = useClientNow();
   const [companyId, setCompanyId] = useState();
   const [customerId, setCustomerId] = useState();
 
@@ -225,7 +227,10 @@ const CreateTransaction = () => {
             },
           ]}
         >
-          <DatePicker style={{ width: "100%" }} disabledDate={(current) => current && current.valueOf() > Date.now()} />
+          <DatePicker
+            style={{ width: "100%" }}
+            disabledDate={(current) => currentTime !== null && current && current.valueOf() > currentTime}
+          />
         </Form.Item>
 
         <Form.Item

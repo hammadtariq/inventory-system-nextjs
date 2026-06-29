@@ -66,35 +66,37 @@ export const approveSaleOrder = async (id, t) => {
 
     const { soldProducts, soldDate, customerId, totalAmount } = sale;
 
-    for (const product of soldProducts) {
-      const { id, itemName, noOfBales, companyId, baleWeightKgs, baleWeightLbs } = product;
-      const inventory = await db.Inventory.findOne({
-        where: {
-          id,
-          companyId,
-          organizationId,
-          onHand: {
-            [db.Sequelize.Op.or]: {
-              [db.Sequelize.Op.gte]: noOfBales,
+    updatedInventories = await Promise.all(
+      soldProducts.map(async (product) => {
+        const { id, itemName, noOfBales, companyId, baleWeightKgs, baleWeightLbs } = product;
+        const inventory = await db.Inventory.findOne({
+          where: {
+            id,
+            companyId,
+            organizationId,
+            onHand: {
+              [db.Sequelize.Op.or]: {
+                [db.Sequelize.Op.gte]: noOfBales,
+              },
             },
           },
-        },
-        transaction,
-        ...getLockOption(transaction),
-      });
-      if (!inventory) throw new Error(`NOT_FOUND:"${itemName}" is out of stock`);
+          transaction,
+          ...getLockOption(transaction),
+        });
+        if (!inventory) throw new Error(`NOT_FOUND:"${itemName}" is out of stock`);
 
-      await inventory.decrement(
-        {
-          onHand: noOfBales,
-          baleWeightKgs,
-          baleWeightLbs,
-        },
-        { transaction }
-      );
-      await inventory.reload({ transaction });
-      updatedInventories.push(inventory);
-    }
+        await inventory.decrement(
+          {
+            onHand: noOfBales,
+            baleWeightKgs,
+            baleWeightLbs,
+          },
+          { transaction }
+        );
+        await inventory.reload({ transaction });
+        return inventory;
+      })
+    );
     await sale.update({ status: STATUS.APPROVED }, { transaction });
 
     const balance = await balanceQuery(customerId, "customer");

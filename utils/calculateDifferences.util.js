@@ -1,6 +1,7 @@
 // Algorithm for calculating the differences between old and new values
 export const calculateDifferences = (newData, oldData) => {
   const fieldsToCalculate = ["noOfBales", "baleWeightLbs", "baleWeightKgs"];
+  const fieldsToCalculateSet = new Set(fieldsToCalculate);
   const differences = {};
 
   for (const key in newData) {
@@ -16,7 +17,7 @@ export const calculateDifferences = (newData, oldData) => {
       differences[key] = calculateDifferences(newData[key], oldData[key]);
     } else if (newData[key] !== oldData[key]) {
       // Compute scalar differences
-      if (fieldsToCalculate.includes(key) && typeof newData[key] === "number" && typeof oldData[key] === "number") {
+      if (fieldsToCalculateSet.has(key) && typeof newData[key] === "number" && typeof oldData[key] === "number") {
         // For specific fields, calculate the difference
         differences[key] = newData[key] - oldData[key];
       } else {

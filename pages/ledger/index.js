@@ -29,16 +29,6 @@ const Ledger = () => {
   const [search, setSearch] = useState(initialSearch);
   const debouncedSearch = useDebouncedValue(search, 1200);
 
-  // keep URL in sync (no full reload)
-  useEffect(() => {
-    router.push(
-      { pathname: "/ledger", query: { type, ...(debouncedSearch ? { search: debouncedSearch } : {}) } },
-      undefined,
-      { shallow: true }
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   // hit the API with type + search
   const { transactions = [], totalBalance = 0, error, isLoading } = useLedger(type, debouncedSearch);
 
@@ -78,7 +68,7 @@ const Ledger = () => {
         Ledger
       </AppTitle>
 
-      <Row gutter={[15, 15]} align="space-between" style={{ marginBottom: 25 }}>
+      <Row gutter={[15, 15]} align="space-between" className={styles.summaryRow}>
         <Col sm={12} xs={24}>
           {transactions.length > 0 && (
             <div>
@@ -93,57 +83,22 @@ const Ledger = () => {
 
       {transactions.length > 0 ? (
         <Row gutter={[15, 15]}>
-          {transactions.map((item, index) => (
-            <Col xs={24} md={12} lg={6} key={index}>
-              <div
-                onClick={() => (window.location.href = `/ledger/${item.id}?type=${type}`)}
-                style={{
-                  cursor: "pointer",
-                  borderRadius: "20px",
-                  background: "#fff",
-                  padding: "24px",
-                  minHeight: "160px",
-                  boxShadow: "0 8px 24px rgba(173, 173, 173, 0.3)",
-                  transition: "transform 0.2s ease, box-shadow 0.3s ease",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
-                  textAlign: "center",
-                  margin: "20px 0 20px 0",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-4px)";
-                  e.currentTarget.style.boxShadow = "0 12px 32px rgba(99, 149, 255, 0.30)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "0 8px 24px rgba(173, 173, 173, 0.3)";
-                }}
+          {transactions.map((item) => (
+            <Col xs={24} md={12} lg={6} key={item.id}>
+              <button
+                type="button"
+                onClick={() => router.push(`/ledger/${item.id}?type=${type}`)}
+                className={styles.ledgerCard}
               >
-                <div
-                  style={{
-                    fontSize: "18px",
-                    fontWeight: "600",
-                    color: "black",
-                    padding: "12px",
-                    borderRadius: "10px",
-                    marginTop: "-50px",
-                    boxShadow: "0 4px 12px rgba(173, 173, 173, 0.2), 0 -4px 8px rgba(173, 173, 173, 0.1)",
-                    backgroundColor: "#fff",
-                  }}
-                >
-                  {item.name}
-                </div>
+                <div className={styles.ledgerCardTitle}>{item.name}</div>
 
-                <div style={{ height: "1px", backgroundColor: "#d4e2ffff", margin: "16px 0" }} />
+                <div className={styles.ledgerCardDivider} />
 
                 <div>
-                  <div style={{ fontSize: "14px", color: "#818181ff", marginBottom: "4px" }}>Total Balance</div>
-                  <div style={{ fontSize: "24px", fontWeight: "700", color: "#6395ff" }}>
-                    {comaSeparatedValues(Number(item.total).toFixed(2))}
-                  </div>
+                  <div className={styles.ledgerCardLabel}>Total Balance</div>
+                  <div className={styles.ledgerCardTotal}>{comaSeparatedValues(Number(item.total).toFixed(2))}</div>
                 </div>
-              </div>
+              </button>
             </Col>
           ))}
         </Row>

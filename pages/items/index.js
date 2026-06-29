@@ -22,7 +22,6 @@ const Items = () => {
   const [search, setSearch] = useState("");
   const { items, error, isLoading, pagination, paginationHandler, mutate } = useItems(search);
   const [searchText, setSearchText] = useState("");
-  const [updatedItemList, setUpdatedItemList] = useState();
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -32,10 +31,6 @@ const Items = () => {
       setSearch(router.query.companyId);
     }
   }, [router.isReady, router.query.companyId]);
-
-  useEffect(() => {
-    setUpdatedItemList(items);
-  }, [items]);
 
   const canDelete = permissionsUtil.checkAuth({
     category: "item",
@@ -221,8 +216,8 @@ const Items = () => {
             : {}
         }
         rowClassName={styles.editableRow}
-        dataSource={updatedItemList ? updatedItemList.rows : []}
-        totalCount={updatedItemList ? updatedItemList.count : 0}
+        dataSource={items ? items.rows : []}
+        totalCount={items ? items.count : 0}
         paginationHandler={paginationHandler}
         pagination={pagination}
       />

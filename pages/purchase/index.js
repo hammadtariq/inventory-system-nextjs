@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Alert, Popconfirm } from "antd";
 import dayjs from "dayjs";
 import NextLink from "next/link";
@@ -16,14 +16,9 @@ import { CheckOutlined, CloseOutlined, EditOutlined } from "@ant-design/icons";
 import { EDITABLE_STATUS } from "@/utils/api.util";
 
 const PurchaseOrders = () => {
-  const [updatedPurchase, setUpdatedPurchase] = useState();
   const [search, setSearch] = useState("");
   const router = useRouter();
   const { purchaseOrders, error, isLoading, pagination, paginationHandler, mutate } = usePurchaseOrders(search);
-
-  useEffect(() => {
-    setUpdatedPurchase(purchaseOrders);
-  }, [purchaseOrders]);
 
   const handleSearch = async (value) => {
     if (!value) {
@@ -177,8 +172,8 @@ const PurchaseOrders = () => {
         className="components-table-demo-nested"
         columns={columns}
         // expandable={{ expandedRowRender: (record) => expandedRowRender(record) }}
-        dataSource={updatedPurchase ? updatedPurchase.rows : []}
-        totalCount={updatedPurchase ? updatedPurchase.count : 0}
+        dataSource={purchaseOrders ? purchaseOrders.rows : []}
+        totalCount={purchaseOrders ? purchaseOrders.count : 0}
         paginationHandler={paginationHandler}
         pagination={pagination}
       />

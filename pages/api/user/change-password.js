@@ -4,6 +4,7 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { compareHash } from "@/lib/bcrypt";
+import { pickDefinedFields } from "@/lib/request-fields";
 import TenantContext from "@/lib/tenant-context";
 
 const apiSchema = Joi.object({
@@ -16,7 +17,7 @@ const changePassword = async (req, res) => {
   console.log("change password Request Start");
 
   // validate api fields
-  const { error, value } = apiSchema.validate({ ...req.body });
+  const { error, value } = apiSchema.validate(pickDefinedFields(req.body, ["id", "oldPassword", "newPassword"]));
 
   if (error && Object.keys(error).length) {
     return res.status(400).send({ message: error.toString() });

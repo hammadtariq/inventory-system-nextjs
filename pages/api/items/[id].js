@@ -2,9 +2,12 @@ import Joi from "joi";
 import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
+import { pickDefinedFields } from "@/lib/request-fields";
 import { auth } from "@/middlewares/auth";
 import TenantContext from "@/lib/tenant-context";
 import { createTenantTransaction } from "@/lib/tenant-transaction";
+
+const updateFields = ["itemName", "companyId", "ratePerLbs", "ratePerKgs", "ratePerBale", "type"];
 
 const apiSchema = Joi.object({
   companyId: Joi.number(),
@@ -19,10 +22,9 @@ const apiSchema = Joi.object({
 const updateItems = async (req, res) => {
   console.log("update items Request Start");
 
-  const { error, value } = apiSchema.validate({
-    ...req.body,
-    id: req.query.id,
-  });
+  const validateInput = pickDefinedFields(req.body, updateFields);
+  validateInput.id = req.query.id;
+  const { error, value } = apiSchema.validate(validateInput);
 
   if (error && Object.keys(error).length) {
     return res.status(400).send({ message: error.toString() });
@@ -55,14 +57,15 @@ const updateItems = async (req, res) => {
       await t.rollback();
       return res.status(400).send({
         message: "Please provide at least one field",
-        allowedFields: ["itemName", "companyId", "ratePerLbs", "ratePerKgs", "ratePerBale", "type"],
+        allowedFields: updateFields,
       });
     }
-    await item.update({ ...value }, { transaction: t });
+    const updateData = pickDefinedFields(value, updateFields);
+    await item.update(updateData, { transaction: t });
     console.log("update items Request End");
 
     if (inventoryItem) {
-      await inventoryItem.update({ ...value }, { transaction: t });
+      await inventoryItem.update(updateData, { transaction: t });
       console.log("update inventory Request End");
     }
     await t.commit();

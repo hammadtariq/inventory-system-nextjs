@@ -36,25 +36,27 @@ const searchSalesReport = async (req, res) => {
     });
 
     // Now filter soldProducts manually to include only matching items
-    const filteredSales = data.rows
-      .map((sale) => {
-        // Filter products based on company and item, if provided
-        const filteredProducts = sale.soldProducts.filter((product) => {
-          const matchCompany = companyId ? product.companyId === +companyId : true;
-          const cleanedItemName = itemName ? itemName.replace(/\s*\(.*?\)/, "").trim() : null;
-          const matchItem = cleanedItemName
-            ? product.itemName.toLowerCase().includes(cleanedItemName.toLowerCase())
-            : true;
-          return matchCompany && matchItem;
-        });
+    const filteredSales = data.rows.flatMap((sale) => {
+      // Filter products based on company and item, if provided
+      const filteredProducts = sale.soldProducts.filter((product) => {
+        const matchCompany = companyId ? product.companyId === +companyId : true;
+        const cleanedItemName = itemName ? itemName.replace(/\s*\(.*?\)/, "").trim() : null;
+        const matchItem = cleanedItemName
+          ? product.itemName.toLowerCase().includes(cleanedItemName.toLowerCase())
+          : true;
+        return matchCompany && matchItem;
+      });
 
-        // Return the sale with the filtered products, if there are matches
-        return {
-          ...sale.toJSON(), // Convert Sequelize instance to plain object
-          soldProducts: filteredProducts,
-        };
-      })
-      .filter((sale) => sale.soldProducts.length > 0); // Remove sales without matching soldProducts
+      // Return the sale with the filtered products, if there are matches
+      return filteredProducts.length
+        ? [
+            {
+              ...sale.toJSON(), // Convert Sequelize instance to plain object
+              soldProducts: filteredProducts,
+            },
+          ]
+        : [];
+    });
 
     // Extract company data from filtered products
     const companyIds = new Set();

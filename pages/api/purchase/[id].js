@@ -6,6 +6,17 @@ import { auth } from "@/middlewares/auth";
 import { STATUS, EDITABLE_STATUS } from "@/utils/api.util";
 import { calculateDifferences } from "@/utils/calculateDifferences.util";
 import TenantContext from "@/lib/tenant-context";
+import { pickDefinedFields } from "@/lib/request-fields";
+
+const updateFields = [
+  "companyId",
+  "totalAmount",
+  "surCharge",
+  "invoiceNumber",
+  "purchaseDate",
+  "purchasedProducts",
+  "baleType",
+];
 
 const inventorySchema = Joi.object().keys({
   itemName: Joi.string().min(3).trim().lowercase(),
@@ -59,10 +70,9 @@ const updatePurchaseOrder = async (req, res) => {
   console.log("===== Update Purchase Order Request Start =====");
 
   // Validate the incoming request
-  const { error, value } = apiSchema.validate({
-    ...req.body,
-    id: req.query.id,
-  });
+  const validateInput = pickDefinedFields(req.body, updateFields);
+  validateInput.id = req.query.id;
+  const { error, value } = apiSchema.validate(validateInput);
 
   if (error && Object.keys(error).length) {
     console.error("Validation Error:", JSON.stringify(error.details || error, null, 2));
@@ -88,8 +98,7 @@ const updatePurchaseOrder = async (req, res) => {
     // Log minimal purchase details for tracking
     console.log(`Purchase Order ${id} found with status: ${purchaseObj.status}`);
 
-    const clonePurchase = value;
-    delete clonePurchase.id;
+    const clonePurchase = pickDefinedFields(value, updateFields);
     const newRevisionNo = (purchaseObj.revisionNo || 0) + 1;
 
     if (value.companyId) {
@@ -120,7 +129,9 @@ const updatePurchaseOrder = async (req, res) => {
     const previousRevisionNo = purchaseObj?.revisionNo ?? 0;
     if (!previousRevisionNo) {
       console.log("===== Update Purchase Order Request End =====");
-      await purchase.update({ ...value, status: STATUS.PENDING });
+      const updateData = pickDefinedFields(value, updateFields);
+      updateData.status = STATUS.PENDING;
+      await purchase.update(updateData);
     }
     return res.send(purchase);
   } catch (error) {

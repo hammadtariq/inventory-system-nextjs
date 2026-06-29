@@ -2,10 +2,12 @@ import Joi from "joi";
 import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
+import { pickDefinedFields } from "@/lib/request-fields";
 import { auth } from "@/middlewares/auth";
 import TenantContext from "@/lib/tenant-context";
 
 const dbConnect = db.dbConnect;
+const updateFields = ["firstName", "lastName", "email", "phone", "address"];
 
 export const getCustomer = async (req, res) => {
   console.log("Get Customer Request Start");
@@ -41,10 +43,9 @@ export const editCustomer = async (req, res) => {
     id: Joi.number().required(),
   });
 
-  const { error, value } = apiSchema.validate({
-    ...req.body,
-    id: req.query.id,
-  });
+  const validateInput = pickDefinedFields(req.body, updateFields);
+  validateInput.id = req.query.id;
+  const { error, value } = apiSchema.validate(validateInput);
 
   if (error && Object.keys(error).length) {
     return res.status(400).send({ message: error.toString() });
@@ -59,7 +60,8 @@ export const editCustomer = async (req, res) => {
       return res.status(404).send({ message: "Customer not exist" });
     }
 
-    await customer.update({ ...value });
+    const updateData = pickDefinedFields(value, updateFields);
+    await customer.update(updateData);
 
     console.log("Edit Customer Request End");
 

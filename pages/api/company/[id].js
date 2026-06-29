@@ -3,8 +3,11 @@ import nextConnect from "next-connect";
 import { UniqueConstraintError } from "sequelize";
 
 import db from "@/lib/postgres";
+import { pickDefinedFields } from "@/lib/request-fields";
 import { auth } from "@/middlewares/auth";
 import TenantContext from "@/lib/tenant-context";
+
+const updateFields = ["companyName", "phone", "email", "address"];
 
 const apiSchema = Joi.object({
   companyName: Joi.string().min(3).trim(),
@@ -16,10 +19,9 @@ const apiSchema = Joi.object({
 
 const updateCompany = async (req, res) => {
   console.log("Update Company Request Start");
-  const { error, value } = apiSchema.validate({
-    ...req.body,
-    id: req.query.id,
-  });
+  const validateInput = pickDefinedFields(req.body, updateFields);
+  validateInput.id = req.query.id;
+  const { error, value } = apiSchema.validate(validateInput);
 
   if (error && Object.keys(error).length) {
     return res.status(400).send({ message: error.toString() });
@@ -36,7 +38,7 @@ const updateCompany = async (req, res) => {
     if (!Object.keys(req.body).length) {
       return res.status(400).send({
         message: "Please provide at least one field",
-        allowedFields: ["companyName", "phone", "email", "address"],
+        allowedFields: updateFields,
       });
     }
 
@@ -54,7 +56,8 @@ const updateCompany = async (req, res) => {
       }
     }
 
-    await company.update({ ...value });
+    const updateData = pickDefinedFields(value, updateFields);
+    await company.update(updateData);
     console.log("Update Company Request End");
     return res.send();
   } catch (error) {

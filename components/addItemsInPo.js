@@ -7,6 +7,9 @@ import AppTable from "@/components/table";
 import { useItemsByCompanyIdAndType } from "@/hooks/items";
 import styles from "@/styles/EditableCell.module.css";
 
+const EMPTY_ITEMS = [];
+const NOOP = () => {};
+
 export default function AddItemsInPo({
   companyId,
   type,
@@ -16,8 +19,8 @@ export default function AddItemsInPo({
   data,
   isEdit,
   viewOnly = false,
-  removedItems = [],
-  setRemovedItems = () => {},
+  removedItems = EMPTY_ITEMS,
+  setRemovedItems = NOOP,
 }) {
   const [editingKey, setEditingKey] = useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
@@ -32,7 +35,7 @@ export default function AddItemsInPo({
     }
   }, [isEdit, items, setData]);
 
-  const isEditing = useCallback((record) => editingKey.includes(record.key), [editingKey]);
+  const isEditing = useCallback((record) => editingKey.includes(record.id), [editingKey]);
 
   const edit = useCallback(
     (record) => {
@@ -52,10 +55,8 @@ export default function AddItemsInPo({
 
   useEffect(() => {
     if (editAll) {
-      data?.forEach((record) => {
-        edit(record);
-        setEditingKey((prev) => [...prev, record.key]);
-      });
+      data?.forEach(edit);
+      setEditingKey(data?.map((record) => record.id) ?? []);
     }
   }, [data, edit, editAll]);
 
@@ -94,26 +95,6 @@ export default function AddItemsInPo({
     setSelectedToRestore([]);
   }, [data, removedItems, selectedToRestore, setData, setRemovedItems]);
 
-  const save = useCallback(
-    async (key, row) => {
-      try {
-        const newData = [...data];
-        const index = newData.findIndex((item) => key === item.id);
-        if (index > -1) {
-          const item = newData[index];
-          newData.splice(index, 1, { ...item, ...row });
-          data = newData;
-        } else {
-          newData.push(row);
-          data = newData;
-        }
-      } catch (errInfo) {
-        console.log("Validate Failed:", errInfo);
-      }
-    },
-    [data]
-  );
-
   const saveAll = useCallback(async () => {
     try {
       const allValues = form.getFieldsValue();
@@ -139,15 +120,11 @@ export default function AddItemsInPo({
         Object.keys(allValues[id]).map((dataIndex) => [Number(id), dataIndex])
       );
 
-      const row = await form.validateFields(fieldsToValidate);
+      const rowsById = await form.validateFields(fieldsToValidate);
 
-      for (const key in row) {
-        if (Object.hasOwnProperty.call(row, key)) {
-          save(Number(key), row[key]);
-        }
-      }
-
-      const filledData = data.filter((item) => filledItemIds.has(String(item.id)));
+      const filledData = data.flatMap((item) =>
+        filledItemIds.has(String(item.id)) ? [{ ...item, ...rowsById[item.id] }] : []
+      );
       const emptyData = data.filter((item) => !filledItemIds.has(String(item.id)));
       setRemovedItems((prev) => [...prev, ...emptyData]);
       setData(filledData);
@@ -156,7 +133,7 @@ export default function AddItemsInPo({
     } catch (error) {
       console.log("Validate Failed:", error);
     }
-  }, [form, data, save, setData, setEditAll, setRemovedItems]);
+  }, [form, data, setData, setEditAll, setRemovedItems]);
 
   const handleSelectAll = useCallback(
     (e) => {

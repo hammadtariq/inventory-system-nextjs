@@ -38,19 +38,17 @@ const searchPurchaseReport = async (req, res) => {
 
     // Filter purchases based on companyId and itemName
     const cleanedItemName = cleanItemName(itemName);
-    const filteredPurchases = purchases.rows
-      .map((purchase) => {
-        const matchesCompany = companyId ? purchase.company?.id === +companyId : true;
-        const filteredProducts = purchase.purchasedProducts.filter((product) => {
-          const matchesItemName = cleanedItemName
-            ? product.itemName.toLowerCase().includes(cleanedItemName.toLowerCase())
-            : true;
-          return matchesCompany && matchesItemName;
-        });
+    const filteredPurchases = purchases.rows.flatMap((purchase) => {
+      const matchesCompany = companyId ? purchase.company?.id === +companyId : true;
+      const filteredProducts = purchase.purchasedProducts.filter((product) => {
+        const matchesItemName = cleanedItemName
+          ? product.itemName.toLowerCase().includes(cleanedItemName.toLowerCase())
+          : true;
+        return matchesCompany && matchesItemName;
+      });
 
-        return filteredProducts.length ? { ...purchase.toJSON(), purchasedProducts: filteredProducts } : null;
-      })
-      .filter(Boolean);
+      return filteredProducts.length ? [{ ...purchase.toJSON(), purchasedProducts: filteredProducts }] : [];
+    });
 
     if (!filteredPurchases.length) {
       return res.status(404).json({ message: "No purchases match the filtered criteria." });

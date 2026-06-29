@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import Head from "next/head";
-import { motion } from "framer-motion";
+import { LazyMotion, domAnimation, m } from "framer-motion";
 import styles from "@/styles/Landing.module.css";
 import PublicNav from "@/components/PublicNav";
 import PublicFooter from "@/components/PublicFooter";
@@ -95,56 +95,58 @@ export default function Terms() {
       <div className={styles.page}>
         <PublicNav onDemoClick={openDemo} alwaysLight hrefPrefix="/" />
 
-        <main style={{ maxWidth: 760, margin: "0 auto", padding: "clamp(80px, 10vw, 120px) 24px 100px" }}>
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <h1
-              style={{
-                fontFamily: '"Bricolage Grotesque", sans-serif',
-                fontSize: "clamp(28px, 4vw, 40px)",
-                fontWeight: 800,
-                letterSpacing: "-0.03em",
-                marginBottom: 16,
-                lineHeight: 1.1,
-              }}
-            >
-              Terms of Service
-            </h1>
-            <p style={{ fontSize: 16, color: "var(--ink-2)", lineHeight: 1.7, marginBottom: 48 }}>
-              Effective date: January 1, 2026. Please read these terms carefully before using TSO by True Refined
-              Solutions. They govern your access to and use of the platform.
-            </p>
-          </motion.div>
-
-          {SECTIONS.map(({ title, content }, i) => (
-            <motion.div
-              key={title}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.05 * i }}
-              style={{
-                background: "var(--bg-surface)",
-                border: "1px solid var(--border)",
-                borderRadius: 10,
-                padding: "24px 28px",
-                marginBottom: 12,
-              }}
-            >
-              <p
+        <LazyMotion features={domAnimation}>
+          <main style={{ maxWidth: 760, margin: "0 auto", padding: "clamp(80px, 10vw, 120px) 24px 100px" }}>
+            <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+              <h1
                 style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: "var(--ink-3)",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.08em",
-                  marginBottom: 8,
+                  fontFamily: "var(--font-bricolage), sans-serif",
+                  fontSize: "clamp(28px, 4vw, 40px)",
+                  fontWeight: 800,
+                  letterSpacing: "-0.03em",
+                  marginBottom: 16,
+                  lineHeight: 1.1,
                 }}
               >
-                {title}
+                Terms of Service
+              </h1>
+              <p style={{ fontSize: 16, color: "var(--ink-2)", lineHeight: 1.7, marginBottom: 48 }}>
+                Effective date: January 1, 2026. Please read these terms carefully before using TSO by True Refined
+                Solutions. They govern your access to and use of the platform.
               </p>
-              <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.75, margin: 0 }}>{content}</p>
-            </motion.div>
-          ))}
-        </main>
+            </m.div>
+
+            {SECTIONS.map(({ title, content }, i) => (
+              <m.div
+                key={title}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.05 * i }}
+                style={{
+                  background: "var(--bg-surface)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 10,
+                  padding: "24px 28px",
+                  marginBottom: 12,
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: "var(--ink-3)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    marginBottom: 8,
+                  }}
+                >
+                  {title}
+                </p>
+                <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.75, margin: 0 }}>{content}</p>
+              </m.div>
+            ))}
+          </main>
+        </LazyMotion>
 
         <PublicFooter onDemoClick={openDemo} />
         <PublicDemoModal open={modalOpen} onClose={closeDemo} triggerRef={demoTriggerRef} />

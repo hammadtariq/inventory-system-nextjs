@@ -5,6 +5,7 @@ import styles from "@/styles/Landing.module.css";
 import PublicNav from "@/components/PublicNav";
 import PublicFooter from "@/components/PublicFooter";
 import PublicDemoModal from "@/components/PublicDemoModal";
+import { stringifyForHtml } from "@/lib/safe-json";
 
 const PAGE_URL = "https://www.treesols.com/inventory-accounting-software";
 const PAGE_TITLE = "Inventory Accounting Software for Asian SMBs - TSO by True Refined Solutions";
@@ -181,7 +182,7 @@ export default function InventoryAccountingSoftware() {
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content={PAGE_TITLE} />
         <meta name="twitter:description" content={PAGE_DESCRIPTION} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+        <script type="application/ld+json">{stringifyForHtml(structuredData)}</script>
       </Head>
       <div className={styles.page}>
         <PublicNav onDemoClick={openDemo} alwaysLight hrefPrefix="/" />

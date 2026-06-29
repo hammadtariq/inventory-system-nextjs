@@ -25,7 +25,7 @@ export default function AppContent({ children }) {
       <Breadcrumb className={styles.breadcrumb}>
         {routes.map((item, index) => {
           return (
-            <Breadcrumb.Item key={`${index}`}>
+            <Breadcrumb.Item key={item.href}>
               <Link href={item.href}>{item.breadcrumb.toUpperCase()}</Link>
             </Breadcrumb.Item>
           );

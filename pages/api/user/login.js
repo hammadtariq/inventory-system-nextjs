@@ -4,6 +4,7 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { compareHash } from "@/lib/bcrypt";
 import { setLoginSession } from "@/lib/org-onboarding";
+import { pickDefinedFields } from "@/lib/request-fields";
 
 const apiSchema = Joi.object({
   email: Joi.string().email().trim().required(),
@@ -36,7 +37,7 @@ export const ensureUserOrganization = async (user) => {
 const login = async (req, res) => {
   console.log("Login Request Start");
 
-  const { error, value } = apiSchema.validate({ ...req.body });
+  const { error, value } = apiSchema.validate(pickDefinedFields(req.body, ["email", "password"]));
 
   if (error && Object.keys(error).length) {
     return res.status(400).send({ message: error.toString() });

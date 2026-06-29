@@ -5,6 +5,21 @@ import ProtectedRoutes from "@/components/protectedRoutes";
 import StorageUtils from "@/utils/storage.util";
 import PermissionUtil from "@/utils/permission.util";
 import { useEffect } from "react";
+import { Bricolage_Grotesque, Manrope } from "next/font/google";
+
+const bricolage = Bricolage_Grotesque({
+  subsets: ["latin"],
+  weight: ["400", "600", "700", "800"],
+  variable: "--font-bricolage",
+  display: "swap",
+});
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-manrope",
+  display: "swap",
+});
 
 const setPermission = () => {
   const user = StorageUtils.getItem("user");
@@ -29,7 +44,7 @@ export default function MyApp({ Component, pageProps, router }) {
   const shouldNoindex = !indexablePublicRoutes.includes(router.pathname);
 
   return (
-    <>
+    <div className={`${bricolage.variable} ${manrope.variable}`}>
       {shouldNoindex && (
         <Head>
           <meta name="robots" content="noindex,nofollow" />
@@ -38,6 +53,6 @@ export default function MyApp({ Component, pageProps, router }) {
       <ProtectedRoutes router={router}>
         <>{getLayout(<Component {...pageProps} router={router} />)}</>
       </ProtectedRoutes>
-    </>
+    </div>
   );
 }

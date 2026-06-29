@@ -11,6 +11,7 @@ import { logoutUser } from "@/hooks/login";
 import { withNavigationIcons } from "./navigationIcons";
 import { getActiveNavigationItem, getNavigationItems } from "@/lib/navigation";
 import StorageUtils from "@/utils/storage.util";
+import styles from "@/styles/Navbar.module.css";
 
 const { Sider } = Layout;
 
@@ -64,79 +65,21 @@ export default function AppNavbar(props = {}) {
   };
 
   return (
-    <Sider
-      collapsed={collapsed}
-      onCollapse={onCollapseChange}
-      collapsedWidth={60}
-      width={250}
-      style={{
-        height: "100vh",
-        position: "fixed",
-        left: 0,
-        top: 0,
-        bottom: 0,
-        background: "#001529",
-        zIndex: 1000,
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          flexDirection: collapsed ? "column" : "row",
-          alignItems: "center",
-          justifyContent: collapsed ? "center" : "space-between",
-          paddingTop: collapsed ? "15px" : "0px",
-          minHeight: "60px",
-          paddingLeft: "10px",
-          paddingRight: "10px",
-          paddingTop: collapsed ? "10px" : "10px",
-        }}
-      >
-        <Link href="/dashboard" passHref>
-          <div
-            onClick={() => onClickHandler(items[0].url, items[0].id)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              cursor: "pointer",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              padding: collapsed ? "10px 0 0 0" : "0px 10px 0px",
-            }}
-          >
-            <Image src={Logo} width={30} height={30} alt="Logo" />
-            <h2
-              style={{
-                fontWeight: "bold",
-                fontSize: "20px",
-                color: "#fff",
-                margin: 0,
-                paddingLeft: "8px",
-                lineHeight: "25px",
-              }}
-            >
-              {!collapsed && "VAST APPAREL"}
-            </h2>
-          </div>
+    <Sider collapsed={collapsed} onCollapse={onCollapseChange} collapsedWidth={60} width={250} className={styles.sider}>
+      <div className={collapsed ? styles.logoRowCollapsed : styles.logoRow}>
+        <Link
+          href="/dashboard"
+          onClick={() => onClickHandler(items[0].url, items[0].id)}
+          className={collapsed ? styles.logoLinkCollapsed : styles.logoLink}
+        >
+          <Image src={Logo} width={30} height={30} alt="Logo" />
+          <h2 className={styles.logoText}>{!collapsed && "VAST APPAREL"}</h2>
         </Link>
 
         <button
           type="button"
           onClick={() => onCollapseChange(!collapsed)}
-          style={{
-            color: "#fff",
-            backgroundColor: "#001529",
-            border: "none",
-            cursor: "pointer",
-            padding: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            height: "100%",
-            marginTop: collapsed ? "20px" : "0px",
-            marginRight: collapsed ? "5px" : "0px",
-          }}
+          className={collapsed ? styles.collapseButtonCollapsed : styles.collapseButton}
         >
           {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
         </button>
@@ -152,7 +95,7 @@ export default function AppNavbar(props = {}) {
         />
       </div>
 
-      <div style={{ bottom: 0, position: "absolute", width: "100%" }}>
+      <div className={styles.accountMenu}>
         <Dropdown
           menu={menuProps}
           trigger={["click"]}
@@ -160,15 +103,10 @@ export default function AppNavbar(props = {}) {
           onOpenChange={(open) => setDropdownVisible(open)}
           open={dropdownVisible}
         >
-          <div
+          <button
+            type="button"
             onClick={() => setDropdownVisible(!dropdownVisible)}
-            style={{
-              padding: collapsed ? "10px 1px 12px 12px" : "20px 20px",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              borderTop: "1px solid rgba(255, 255, 255, 0.1)",
-            }}
+            className={collapsed ? styles.accountButtonCollapsed : styles.accountButton}
           >
             <Avatar
               style={{
@@ -195,7 +133,7 @@ export default function AppNavbar(props = {}) {
                 <span style={{ fontSize: "12px", color: "#b9b9b9ff" }}>{user?.email}</span>
               </div>
             )}
-          </div>
+          </button>
         </Dropdown>
       </div>
     </Sider>

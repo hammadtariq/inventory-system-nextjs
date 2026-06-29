@@ -14,6 +14,27 @@ import Spinner from "@/components/spinner";
 import { useEffect, useState } from "react";
 const { RangePicker } = DatePicker;
 
+const LedgerTotalBalance = ({ exportLoading, menuProps, onRangeChange, totalBalance }) => (
+  <div className={styles.rowDirectionTableContainer}>
+    <Space>
+      <Dropdown menu={menuProps}>
+        <Button
+          type="primary"
+          icon={exportLoading ? <Spin size="small" /> : <DownloadOutlined />}
+          disabled={exportLoading}
+        >
+          {exportLoading ? "Exporting..." : "Export"}
+        </Button>
+      </Dropdown>
+      <RangePicker onChange={onRangeChange} />
+    </Space>
+    <Row>
+      <div className={styles.headingStyle}>Total Balance (RS):</div>
+      <div className={styles.contentStyle}>{`${totalBalance ? comaSeparatedValues(totalBalance.toFixed(2)) : 0}`}</div>
+    </Row>
+  </div>
+);
+
 const LedgerDetails = () => {
   const router = useRouter();
   const { id, type } = router.query;
@@ -167,38 +188,21 @@ const LedgerDetailsContent = ({ id, type }) => {
     });
   }
 
-  const renderTotalBalance = () => (
-    <div className={styles.rowDirectionTableContainer}>
-      <Space>
-        <Dropdown menu={menuProps}>
-          <Button
-            type="primary"
-            icon={exportLoading ? <Spin size="small" /> : <DownloadOutlined />}
-            disabled={exportLoading}
-          >
-            {exportLoading ? "Exporting..." : "Export"}
-          </Button>
-        </Dropdown>
-        <RangePicker
-          onChange={(dates) => {
-            setMonthKey({
-              startDate: dates?.[0]?.format("YYYY-MM-DD") || "",
-              endDate: dates?.[1]?.format("YYYY-MM-DD") || "",
-            });
-          }}
-        />
-      </Space>
-      <Row>
-        <div className={styles.headingStyle}>Total Balance (RS):</div>
-        <div className={styles.contentStyle}>{`${
-          totalBalance ? comaSeparatedValues(totalBalance.toFixed(2)) : 0
-        }`}</div>
-      </Row>
-    </div>
-  );
+  const handleRangeChange = (dates) => {
+    setMonthKey({
+      startDate: dates?.[0]?.format("YYYY-MM-DD") || "",
+      endDate: dates?.[1]?.format("YYYY-MM-DD") || "",
+    });
+  };
+
   return (
     <div style={{ overflowX: "auto" }}>
-      {renderTotalBalance()}
+      <LedgerTotalBalance
+        exportLoading={exportLoading}
+        menuProps={menuProps}
+        onRangeChange={handleRangeChange}
+        totalBalance={totalBalance}
+      />
       <AppTable
         loading={isLoading}
         rowKey="id"

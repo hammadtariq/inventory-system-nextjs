@@ -56,6 +56,54 @@
 .headerSegment {
   white-space: nowrap;
 }
+.summaryRow {
+  margin-bottom: 25px;
+}
+.ledgerCard {
+  cursor: pointer;
+  border-radius: 20px;
+  border: 0;
+  background: #fff;
+  padding: 24px;
+  width: 100%;
+  min-height: 160px;
+  box-shadow: 0 8px 24px rgba(173, 173, 173, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: center;
+  margin: 20px 0;
+}
+.ledgerCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(99, 149, 255, 0.3);
+}
+.ledgerCardTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: black;
+  padding: 12px;
+  border-radius: 10px;
+  margin-top: -50px;
+  box-shadow: 0 4px 12px rgba(173, 173, 173, 0.2), 0 -4px 8px rgba(173, 173, 173, 0.1);
+  background-color: #fff;
+}
+.ledgerCardDivider {
+  height: 1px;
+  background-color: #d4e2ff;
+  margin: 16px 0;
+}
+.ledgerCardLabel {
+  font-size: 14px;
+  color: #818181;
+  margin-bottom: 4px;
+}
+.ledgerCardTotal {
+  font-size: 24px;
+  font-weight: 700;
+  color: #6395ff;
+}
 @media (max-width: 576px) {
   .companySelection {
     text-align: left;

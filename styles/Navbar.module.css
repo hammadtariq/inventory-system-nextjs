@@ -32,6 +32,93 @@
 .barsMenu > span {
   display: block;
 }
+.sider {
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: #001529;
+  z-index: 1000;
+}
+.logoRow,
+.logoRowCollapsed {
+  display: flex;
+  align-items: center;
+  min-height: 60px;
+  padding: 10px 10px 0;
+}
+.logoRow {
+  flex-direction: row;
+  justify-content: space-between;
+}
+.logoRowCollapsed {
+  flex-direction: column;
+  justify-content: center;
+}
+.logoLink,
+.logoLinkCollapsed {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.logoLink {
+  padding: 0 10px;
+}
+.logoLinkCollapsed {
+  padding: 10px 0 0;
+}
+.logoText {
+  font-weight: bold;
+  font-size: 20px;
+  color: #fff;
+  margin: 0;
+  padding-left: 8px;
+  line-height: 25px;
+}
+.collapseButton,
+.collapseButtonCollapsed {
+  color: #fff;
+  background-color: #001529;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+.collapseButtonCollapsed {
+  margin-top: 20px;
+  margin-right: 5px;
+}
+.accountMenu {
+  bottom: 0;
+  position: absolute;
+  width: 100%;
+}
+.accountButton,
+.accountButtonCollapsed {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  border-right: 0;
+  border-bottom: 0;
+  border-left: 0;
+  background: transparent;
+  text-align: left;
+}
+.accountButton {
+  padding: 20px;
+}
+.accountButtonCollapsed {
+  padding: 10px 1px 12px 12px;
+}
 
 @media (max-width: 992px) {
   .barsMenu {

@@ -135,11 +135,12 @@ const createSaleReturn = async (req, res) => {
     });
 
     const returnedQuantityMap = getReturnedQuantityMap(priorReturns);
+    const soldProductsByKey = new Map(
+      (sale.soldProducts || []).map((soldProduct) => [getSaleReturnItemKey(soldProduct), soldProduct])
+    );
 
     for (const product of returnedProducts) {
-      const originalProduct = (sale.soldProducts || []).find(
-        (soldProduct) => soldProduct.id === product.id && soldProduct.companyId === product.companyId
-      );
+      const originalProduct = soldProductsByKey.get(getSaleReturnItemKey(product));
 
       if (!originalProduct) {
         throw new Error(`BAD_REQUEST:${product.itemName} does not belong to this sale`);

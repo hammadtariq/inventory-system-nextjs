@@ -2,8 +2,11 @@ import Joi from "joi";
 import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
+import { pickDefinedFields } from "@/lib/request-fields";
 import { auth } from "@/middlewares/auth";
 import TenantContext from "@/lib/tenant-context";
+
+const updateFields = ["itemName"];
 
 const apiSchema = Joi.object({
   id: Joi.number().required(),
@@ -13,10 +16,9 @@ const apiSchema = Joi.object({
 export const updateInventory = async (req, res) => {
   console.log("update inventory Request Start");
 
-  const { error, value } = apiSchema.validate({
-    ...req.body,
-    id: req.query.id,
-  });
+  const validateInput = pickDefinedFields(req.body, updateFields);
+  validateInput.id = req.query.id;
+  const { error, value } = apiSchema.validate(validateInput);
 
   if (error && Object.keys(error).length) {
     return res.status(400).send({ message: error.toString() });
@@ -30,19 +32,18 @@ export const updateInventory = async (req, res) => {
     if (!inventoryItem) {
       return res.status(404).send({ message: "inventory item not found" });
     }
-    const allowedFields = ["itemName"];
     const updateData = {};
 
-    for (const key of allowedFields) {
-      if (req.body[key]) {
-        updateData[key] = req.body[key];
+    for (const key of updateFields) {
+      if (value[key]) {
+        updateData[key] = value[key];
       }
     }
 
     if (!Object.keys(updateData).length) {
       return res.status(400).send({
         message: "No valid fields provided to update.",
-        allowedFields,
+        allowedFields: updateFields,
       });
     }
 

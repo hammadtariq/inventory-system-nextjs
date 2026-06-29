@@ -10,6 +10,7 @@ import AppBackButton from "@/components/backButton";
 import DatePicker from "@/components/datePicker";
 import SelectCompany from "@/components/selectCompany";
 import SelectItemList from "@/components/selectItemList";
+import { useClientNow } from "@/hooks/useClientNow";
 import { createPurchaseOrder, updatePurchaseOrder } from "@/hooks/purchase";
 import { EDITABLE_STATUS } from "@/utils/api.util";
 import { DATE_FORMAT, sumBundles, sumItemsPrice, VALIDATE_MESSAGE } from "@/utils/ui.util";
@@ -19,6 +20,7 @@ const AddEditPurchase = ({ purchase, type = null }) => {
   const router = useRouter();
   const [companyId, setCompanyId] = useState(null);
   const [_surCharge, setSurCharge] = useState(0);
+  const currentTime = useClientNow();
   const [editAll, setEditAll] = useState(false);
   const [selectedListType, setSelectedListType] = useState(null);
   const [data, setData] = useState([]);
@@ -190,7 +192,7 @@ const AddEditPurchase = ({ purchase, type = null }) => {
             <Form.Item label="PO Date" name="purchaseDate">
               <DatePicker
                 style={{ width: "100%" }}
-                disabledDate={(current) => current && current.valueOf() > Date.now()}
+                disabledDate={(current) => currentTime !== null && current && current.valueOf() > currentTime}
                 format={DATE_FORMAT}
                 // defaultValue={dayjs()}
                 disabled={isView || purchase?.status === "APPROVED"}

@@ -157,7 +157,7 @@ const Inventory = () => {
               <Row justify="end" gutter={[16, 16]}>
                 <Col>
                   <div className={styles.companyLabel}>
-                    <label className={styles.labelWidth}>Filter by :</label>
+                    <span className={styles.labelWidth}>Filter by :</span>
                     <SelectSearch
                       placeholder="Company Name"
                       onChange={(value) => handleChange(value)}
