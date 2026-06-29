@@ -2,7 +2,7 @@
   "name": "inventory-system-nextjs",
   "private": true,
   "engines": {
-    "node": "22.x"
+    "node": "24.x"
   },
   "scripts": {
     "dev": "next dev --webpack",

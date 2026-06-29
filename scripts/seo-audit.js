@@ -24,16 +24,16 @@ const priorityQueries = [
     path: "/inventory-accounting-software",
     requiredText: [
       "What is inventory accounting software?",
-      "Inventory accounting software for SMBs",
+      "Inventory accounting software for Asian SMBs",
       "Sources",
       "https://www.ifrs.org/issued-standards/list-of-standards/ias-2-inventories/",
     ],
   },
   {
-    query: "inventory software for South Asian SMBs",
+    query: "inventory software for Asian SMBs",
     path: "/inventory-software-south-asia",
     requiredText: [
-      "What should South Asian SMBs look for in inventory software?",
+      "What should Asian SMBs look for in inventory software?",
       "Sources",
       "https://www.adb.org/publications/series/asia-small-medium-sized-enterprise-monitor",
     ],

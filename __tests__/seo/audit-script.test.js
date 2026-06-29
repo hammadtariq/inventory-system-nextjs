@@ -26,7 +26,7 @@ describe("SEO audit script", () => {
           status: "pass",
         }),
         expect.objectContaining({
-          query: "inventory software for South Asian SMBs",
+          query: "inventory software for Asian SMBs",
           path: "/inventory-software-south-asia",
           status: "pass",
         }),

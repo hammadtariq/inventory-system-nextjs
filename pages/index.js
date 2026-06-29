@@ -107,13 +107,12 @@ function Hero({ onDemoClick }) {
           transition={{ duration: 0.62, delay: 0.34, ease: EASE_OUT }}
         >
           <div className={styles.heroMediaFrame}>
-            <Image
-              src="/landing/inventory-dashboard-preview.png"
-              alt="TSO dashboard showing inventory value, sales, purchases, and stock activity"
-              width={1500}
-              height={1125}
-              priority
-              sizes="(max-width: 768px) 96vw, 58vw"
+            <video
+              src="/landing/inventory-dashboard.mov"
+              autoPlay
+              loop
+              muted
+              playsInline
               className={styles.heroMediaImage}
             />
           </div>
@@ -384,14 +383,17 @@ const WHY_BUY = [
   {
     title: "Know what is in stock",
     desc: "See product availability, movement, and warehouse activity without waiting for manual updates.",
+    href: "/inventory-management-software",
   },
   {
     title: "Connect purchases and sales",
     desc: "Keep supplier activity, incoming stock, customer sales, invoices, and outgoing stock in one workflow.",
+    href: "/inventory-accounting-software",
   },
   {
     title: "Review cleaner business records",
     desc: "Use ledgers, reports, summaries, and exports to understand daily operations more clearly.",
+    href: "/inventory-software-south-asia",
   },
   {
     title: "Make faster owner decisions",
@@ -417,20 +419,25 @@ function WhyBuy() {
           </p>
         </motion.div>
         <div className={styles.guidesGrid}>
-          {WHY_BUY.map(({ title, desc }, i) => (
-            <motion.div
-              key={title}
-              className={styles.guideCard}
-              variants={fadeUp}
-              initial={rm ? false : "hidden"}
-              whileInView="visible"
-              custom={i}
-              viewport={{ once: true, amount: 0.2 }}
-            >
-              <h3 className={styles.guideTitle}>{title}</h3>
-              <p className={styles.guideDesc}>{desc}</p>
-            </motion.div>
-          ))}
+          {WHY_BUY.map(({ title, desc, href }, i) => {
+            const CardTag = href ? motion.a : motion.div;
+            return (
+              <CardTag
+                key={title}
+                href={href}
+                className={styles.guideCard}
+                variants={fadeUp}
+                initial={rm ? false : "hidden"}
+                whileInView="visible"
+                custom={i}
+                viewport={{ once: true, amount: 0.2 }}
+              >
+                <h3 className={styles.guideTitle}>{title}</h3>
+                <p className={styles.guideDesc}>{desc}</p>
+                {href ? <span className={styles.guideArrow}>Read guide</span> : null}
+              </CardTag>
+            );
+          })}
         </div>
       </div>
     </section>

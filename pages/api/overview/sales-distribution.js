@@ -1,16 +1,16 @@
 import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
-import { customerQuery } from "@/query/index";
 import TenantContext from "@/lib/tenant-context";
 
-const getSalesDistribution = async (req, res) => {
+export const getSalesDistribution = async (req, res) => {
   try {
     await db.dbConnect();
     const organizationId = TenantContext.assertGet();
+    const year = parseInt(req.query.year) || new Date().getFullYear();
     const queryOptions = {
       type: db.Sequelize.QueryTypes.SELECT,
-      replacements: { organizationId },
+      replacements: { organizationId, year },
     };
 
     const [paidResult, dueResult, returnResult] = await Promise.all([
@@ -19,17 +19,35 @@ const getSalesDistribution = async (req, res) => {
          FROM ledgers
          WHERE "customerId" IS NOT NULL
            AND "organizationId" = :organizationId
-           AND "paymentType" IN ('CASH', 'ONLINE', 'CHEQUE')`,
+           AND "paymentType" IN ('CASH', 'ONLINE', 'CHEQUE')
+           AND EXTRACT(YEAR FROM "createdAt") = :year`,
         queryOptions
       ),
       db.sequelize.query(
-        `SELECT COALESCE(SUM(t.total), 0) as total FROM (${customerQuery}) t WHERE t.total > 0`,
+        `SELECT COALESCE(SUM(t.total), 0) as total FROM (
+          SELECT c."id",
+            SUM(CASE
+              WHEN l."paymentType" = 'REFUND' THEN -l.amount
+              WHEN l."paymentType" IN ('CASH', 'ONLINE', 'CHEQUE') THEN l.amount
+              WHEN l."paymentType" = 'INVENTORY_RETURN' THEN l.amount
+              WHEN l."spendType" = 'DEBIT' THEN l.amount
+              WHEN l."spendType" = 'CREDIT' THEN -l.amount
+              ELSE 0
+            END) AS total
+          FROM ledgers l
+          INNER JOIN customers c ON l."customerId" = c.id
+          WHERE l."organizationId" = :organizationId
+            AND c."organizationId" = :organizationId
+            AND EXTRACT(YEAR FROM l."createdAt") = :year
+          GROUP BY c."id"
+        ) t WHERE t.total > 0`,
         queryOptions
       ),
       db.sequelize.query(
         `SELECT COALESCE(SUM("totalAmount"), 0) as total
          FROM "saleReturns"
-         WHERE "organizationId" = :organizationId`,
+         WHERE "organizationId" = :organizationId
+           AND EXTRACT(YEAR FROM "createdAt") = :year`,
         queryOptions
       ),
     ]);
