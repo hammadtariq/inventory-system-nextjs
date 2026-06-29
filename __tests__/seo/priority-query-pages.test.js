@@ -37,7 +37,7 @@ describe("priority query pages", () => {
     const robots = read("public/robots.txt");
 
     expect(page).toContain("What is inventory accounting software?");
-    expect(page).toContain("Inventory accounting software for SMBs");
+    expect(page).toContain("Inventory accounting software for Asian SMBs");
     expect(page).toContain('rel="canonical"');
     expect(page).toContain('"@type": "FAQPage"');
     expect(page).toContain('"@type": "SoftwareApplication"');
@@ -52,15 +52,15 @@ describe("priority query pages", () => {
     expect(robots).toContain("Allow: /inventory-accounting-software");
   });
 
-  it("maps South Asia SMB inventory software queries to an answer-ready page", () => {
+  it("maps Asian SMB inventory software queries to an answer-ready page", () => {
     const page = read("pages/inventory-software-south-asia.js");
     const protectedRoutes = read("components/protectedRoutes.js");
     const landing = read("pages/index.js");
     const sitemap = read("public/sitemap.xml");
     const robots = read("public/robots.txt");
 
-    expect(page).toContain("Inventory software for South Asian SMBs");
-    expect(page).toContain("What should South Asian SMBs look for in inventory software?");
+    expect(page).toContain("Inventory software for Asian SMBs");
+    expect(page).toContain("What should Asian SMBs look for in inventory software?");
     expect(page).toContain('rel="canonical"');
     expect(page).toContain('"@type": "FAQPage"');
     expect(page).toContain('"@type": "SoftwareApplication"');

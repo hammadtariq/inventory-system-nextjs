@@ -28,7 +28,7 @@ describe("SEO discovery files", () => {
   it("exposes llms.txt with answer-ready pages and source context", () => {
     const llms = readPublicFile("llms.txt");
 
-    expect(llms).toContain("# StockFlow");
+    expect(llms).toContain("# TSO by True Refined Solutions");
     expect(llms).toContain("https://www.treesols.com/inventory-management-software");
     expect(llms).toContain("https://www.treesols.com/inventory-accounting-software");
     expect(llms).toContain("https://www.treesols.com/inventory-software-south-asia");
