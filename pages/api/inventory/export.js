@@ -91,7 +91,7 @@ export const fetchInventoryData = async (filters, organizationId) => {
     return await Promise.all([
       db.Inventory.findAndCountAll({
         where: {
-          [db.Sequelize.Op.and]: [{ organizationId }, ...filters],
+          [db.Sequelize.Op.and]: [{ organizationId }, { onHand: { [db.Sequelize.Op.gt]: 0 } }, ...filters],
         },
         include: [db.Company],
         order: [["itemName", "ASC"]],
@@ -129,7 +129,7 @@ const formatInventoryData = (rows, typeOf) => {
       itemName: item.itemName || "-",
       companyName: item.company?.companyName || "-",
       onHand: item.onHand || 0,
-      company: item.company.companyName,
+      company: item.company?.companyName || "-",
       totalBales: item.total || 0,
       ...(item.baleWeightKgs !== undefined && { kgs: formatNumber(item.baleWeightKgs) }),
       ...(item.baleWeightLbs !== undefined && { lbs: formatNumber(item.baleWeightLbs) }),
