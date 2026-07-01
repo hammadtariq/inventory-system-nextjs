@@ -33,14 +33,15 @@ const currencyFormatter = new Intl.NumberFormat("en-PK", {
 
 const PaymentRequests = ({ currentUser }) => {
   const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
+  const [activeTab, setActiveTab] = useState(isSuperAdmin ? "public" : "tenant");
   const [status, setStatus] = useState("PENDING");
-  const { requests, isLoading, mutate, paginationHandler } = usePaymentRequests(status);
+  const { requests, isLoading, mutate, paginationHandler } = usePaymentRequests(status, activeTab === "tenant");
   const {
     requests: publicRequests,
     isLoading: publicLoading,
     mutate: mutatePublicRequests,
     paginationHandler: publicPaginationHandler,
-  } = usePublicPaymentRequests(status, isSuperAdmin);
+  } = usePublicPaymentRequests(status, isSuperAdmin && activeTab === "public");
   const [reviewing, setReviewing] = useState(null);
   const [reviewingPublic, setReviewingPublic] = useState(null);
   const [reviewStatus, setReviewStatus] = useState(null);
@@ -248,6 +249,8 @@ const PaymentRequests = ({ currentUser }) => {
       </Space>
 
       <Tabs
+        activeKey={activeTab}
+        onChange={setActiveTab}
         items={[
           ...(isSuperAdmin
             ? [
