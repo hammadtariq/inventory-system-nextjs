@@ -2,15 +2,13 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import { requireRole, onError } from "@/lib/authz";
 import { DEFAULT_ROWS_LIMIT } from "@/utils/api.util";
 import TenantContext from "@/lib/tenant-context";
 
 export const getAllUsers = async (req, res) => {
   console.log("get all users Request Start");
-  if (!["ADMIN", "SUPER_ADMIN"].includes(req.user.role)) {
-    return res.status(403).send({ message: "Operation not permitted." });
-  }
-
+  requireRole("ADMIN", "SUPER_ADMIN")(req.user);
   const { limit, offset } = req.query;
   const pagination = {};
   pagination.limit = limit ? limit : DEFAULT_ROWS_LIMIT;
@@ -34,4 +32,4 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-export default nextConnect().use(auth).get(getAllUsers);
+export default nextConnect({ onError }).use(auth).get(getAllUsers);
