@@ -172,3 +172,9 @@ grant all privileges on database "inventory-management-local" to postgres;
 ```
 
 pg_restore -U postgres -d inventory-management-local -v ~/Documents/inventory\ backups/inventory_backup_25_06_25
+
+## Take backup from Supabase
+
+```
+/opt/homebrew/opt/postgresql@17/bin/pg_dump postgresql://postgres.rbkipyssjjpenpohpiyl:[password]@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres -f backup-01-07-26.sql
+```
