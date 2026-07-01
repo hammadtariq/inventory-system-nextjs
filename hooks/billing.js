@@ -33,7 +33,9 @@ export const usePaymentRequests = (status, enabled = true) => {
   const [pagination, setPagination] = useState({ limit: DEFAULT_PAGE_LIMIT, offset: 0 });
   const queryStatus = status ? `&status=${status}` : "";
   const { data, error, mutate } = useSWR(
-    enabled ? `/api/admin/payments?limit=${pagination.limit}&offset=${pagination.offset}${queryStatus}` : null,
+    enabled
+      ? `/api/admin/public-payment-requests?limit=${pagination.limit}&offset=${pagination.offset}${queryStatus}`
+      : null,
     get
   );
 
@@ -83,7 +85,7 @@ export const createInvoice = async (data) => post("/api/billing/invoices", data)
 
 export const submitPaymentProof = async (invoiceId, data) => post(`/api/billing/invoices/${invoiceId}/proof`, data);
 
-export const reviewPaymentRequest = async (proofId, data) => put(`/api/admin/payments/${proofId}`, data);
+export const reviewPaymentRequest = async (proofId, data) => put(`/api/admin/public-payment-requests/${proofId}`, data);
 
 export const reviewPublicPaymentRequest = async (requestId, data) =>
   put(`/api/admin/public-payment-requests/${requestId}`, data);
