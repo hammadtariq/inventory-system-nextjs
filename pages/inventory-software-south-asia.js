@@ -99,70 +99,6 @@ const structuredData = [
   },
 ];
 
-const containerStyle = {
-  maxWidth: 980,
-  margin: "0 auto",
-  padding: "clamp(88px, 10vw, 120px) 24px 96px",
-};
-
-const h1Style = {
-  fontSize: 46,
-  lineHeight: 1.08,
-  margin: "0 0 18px",
-  color: "var(--ink-1)",
-};
-
-const leadStyle = {
-  fontSize: 19,
-  lineHeight: 1.75,
-  color: "var(--ink-2)",
-  maxWidth: 820,
-};
-
-const sectionStyle = {
-  marginTop: 44,
-};
-
-const h2Style = {
-  fontSize: 27,
-  margin: "0 0 16px",
-  color: "var(--ink-1)",
-};
-
-const h3Style = {
-  fontSize: 17,
-  margin: "0 0 8px",
-  color: "var(--ink-1)",
-};
-
-const pStyle = {
-  fontSize: 15,
-  lineHeight: 1.75,
-  color: "var(--ink-2)",
-  margin: 0,
-};
-
-const gridStyle = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
-  gap: 16,
-};
-
-const cardStyle = {
-  background: "var(--bg-surface)",
-  border: "1px solid var(--border)",
-  borderRadius: 8,
-  padding: "22px",
-};
-
-const listStyle = {
-  display: "grid",
-  gap: 12,
-  paddingLeft: 20,
-  color: "var(--ink-2)",
-  lineHeight: 1.7,
-};
-
 export default function InventorySoftwareSouthAsia() {
   const [modalOpen, setModalOpen] = useState(false);
   const demoTriggerRef = useRef(null);
@@ -191,47 +127,53 @@ export default function InventorySoftwareSouthAsia() {
       </Head>
       <div className={styles.page}>
         <PublicNav onDemoClick={openDemo} alwaysLight hrefPrefix="/" />
-        <main style={containerStyle}>
-          <p style={{ ...pStyle, color: "var(--accent)", fontWeight: 800, marginBottom: 12 }}>Asia SMB guide</p>
-          <h1 style={h1Style}>Inventory software for Asian SMBs</h1>
-          <p style={leadStyle}>
-            Inventory software for Asian SMBs should fit how growing distributors, wholesalers, retailers, and trading
-            businesses actually operate: frequent purchases, customer credit, supplier payables, stock movement,
-            multi-company records, AI-powered insights, and exportable reports in one simple SaaS workflow.
-          </p>
+        <main className={styles.publicArticle}>
+          <div className={styles.publicArticleHero}>
+            <p className={styles.publicKicker}>Asia SMB guide</p>
+            <h1 className={styles.publicArticleTitle}>Inventory software for Asian SMBs</h1>
+            <p className={styles.publicArticleLead}>
+              Inventory software for Asian SMBs should fit how growing distributors, wholesalers, retailers, and trading
+              businesses actually operate: frequent purchases, customer credit, supplier payables, stock movement,
+              multi-company records, AI-powered insights, and exportable reports in one simple SaaS workflow.
+            </p>
+          </div>
 
-          <section style={sectionStyle}>
-            <h2 style={h2Style}>What should Asian SMBs look for in inventory software?</h2>
-            <p style={pStyle}>
+          <section className={styles.publicArticleSection}>
+            <h2 className={styles.publicArticleH2}>What should Asian SMBs look for in inventory software?</h2>
+            <p className={styles.publicArticleText}>
               Look for a system that connects inventory with the financial reality of the business. Stock quantity alone
               is not enough. Teams need to know what stock is available, what customers owe, what suppliers are owed,
               which orders are pending, and which reports can be exported for review.
             </p>
           </section>
 
-          <section style={sectionStyle}>
-            <h2 style={h2Style}>Regional workflows TSO supports</h2>
-            <div style={gridStyle}>
-              <div style={cardStyle}>
-                <h3 style={h3Style}>Customer and supplier dues</h3>
-                <p style={pStyle}>Track receivables, payables, payment records, and ledger history alongside stock.</p>
+          <section className={styles.publicArticleSection}>
+            <h2 className={styles.publicArticleH2}>Regional workflows TSO supports</h2>
+            <div className={styles.publicArticleGrid}>
+              <div className={styles.publicArticleCard}>
+                <h3 className={styles.publicArticleH3}>Customer and supplier dues</h3>
+                <p className={styles.publicArticleText}>
+                  Track receivables, payables, payment records, and ledger history alongside stock.
+                </p>
               </div>
-              <div style={cardStyle}>
-                <h3 style={h3Style}>Multi-company operations</h3>
-                <p style={pStyle}>
+              <div className={styles.publicArticleCard}>
+                <h3 className={styles.publicArticleH3}>Multi-company operations</h3>
+                <p className={styles.publicArticleText}>
                   Support businesses that manage multiple companies or trading entities from one app.
                 </p>
               </div>
-              <div style={cardStyle}>
-                <h3 style={h3Style}>Exportable reporting</h3>
-                <p style={pStyle}>Generate inventory, purchase, sales, customer, supplier, and ledger exports.</p>
+              <div className={styles.publicArticleCard}>
+                <h3 className={styles.publicArticleH3}>Exportable reporting</h3>
+                <p className={styles.publicArticleText}>
+                  Generate inventory, purchase, sales, customer, supplier, and ledger exports.
+                </p>
               </div>
             </div>
           </section>
 
-          <section style={sectionStyle}>
-            <h2 style={h2Style}>Answer-ready buyer checklist</h2>
-            <ul style={listStyle}>
+          <section className={styles.publicArticleSection}>
+            <h2 className={styles.publicArticleH2}>Answer-ready buyer checklist</h2>
+            <ul className={styles.publicArticleList}>
               <li>Does the app connect purchases, sales, returns, payments, ledgers, and stock on hand?</li>
               <li>Can owners see customer dues and supplier payables without rebuilding spreadsheets?</li>
               <li>Does it support multiple companies, users, and role-based access?</li>
@@ -240,36 +182,36 @@ export default function InventorySoftwareSouthAsia() {
             </ul>
           </section>
 
-          <section style={sectionStyle}>
-            <h2 style={h2Style}>Frequently asked questions</h2>
-            <div style={gridStyle}>
+          <section className={styles.publicArticleSection}>
+            <h2 className={styles.publicArticleH2}>Frequently asked questions</h2>
+            <div className={styles.publicArticleGrid}>
               {faqs.map(({ q, a }) => (
-                <div key={q} style={cardStyle}>
-                  <h3 style={h3Style}>{q}</h3>
-                  <p style={pStyle}>{a}</p>
+                <div key={q} className={styles.publicArticleCard}>
+                  <h3 className={styles.publicArticleH3}>{q}</h3>
+                  <p className={styles.publicArticleText}>{a}</p>
                 </div>
               ))}
             </div>
           </section>
 
-          <section style={sectionStyle}>
-            <h2 style={h2Style}>Related guides</h2>
-            <div style={gridStyle}>
+          <section className={styles.publicArticleSection}>
+            <h2 className={styles.publicArticleH2}>Related guides</h2>
+            <div className={styles.publicArticleGrid}>
               {relatedGuides.map(({ href, title, description }) => (
-                <Link key={href} href={href} style={{ ...cardStyle, display: "block", textDecoration: "none" }}>
-                  <h3 style={h3Style}>{title}</h3>
-                  <p style={pStyle}>{description}</p>
+                <Link key={href} href={href} className={styles.publicArticleCardLink}>
+                  <h3 className={styles.publicArticleH3}>{title}</h3>
+                  <p className={styles.publicArticleText}>{description}</p>
                 </Link>
               ))}
             </div>
           </section>
 
-          <section style={sectionStyle}>
-            <h2 style={h2Style}>Sources</h2>
-            <ul style={listStyle}>
+          <section className={styles.publicArticleSection}>
+            <h2 className={styles.publicArticleH2}>Sources</h2>
+            <ul className={styles.publicArticleList}>
               {sources.map(({ name, href, note }) => (
                 <li key={href}>
-                  <a href={href} rel="nofollow" style={{ color: "var(--accent)", fontWeight: 700 }}>
+                  <a href={href} rel="nofollow" className={styles.publicSourceLink}>
                     {name}
                   </a>
                   : {note}

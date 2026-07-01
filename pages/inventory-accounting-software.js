@@ -93,70 +93,6 @@ const structuredData = [
   },
 ];
 
-const containerStyle = {
-  maxWidth: 980,
-  margin: "0 auto",
-  padding: "clamp(88px, 10vw, 120px) 24px 96px",
-};
-
-const h1Style = {
-  fontSize: 46,
-  lineHeight: 1.08,
-  margin: "0 0 18px",
-  color: "var(--ink-1)",
-};
-
-const leadStyle = {
-  fontSize: 19,
-  lineHeight: 1.75,
-  color: "var(--ink-2)",
-  maxWidth: 800,
-};
-
-const sectionStyle = {
-  marginTop: 44,
-};
-
-const h2Style = {
-  fontSize: 27,
-  margin: "0 0 16px",
-  color: "var(--ink-1)",
-};
-
-const h3Style = {
-  fontSize: 17,
-  margin: "0 0 8px",
-  color: "var(--ink-1)",
-};
-
-const pStyle = {
-  fontSize: 15,
-  lineHeight: 1.75,
-  color: "var(--ink-2)",
-  margin: 0,
-};
-
-const cardGridStyle = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
-  gap: 16,
-};
-
-const cardStyle = {
-  background: "var(--bg-surface)",
-  border: "1px solid var(--border)",
-  borderRadius: 8,
-  padding: "22px",
-};
-
-const listStyle = {
-  display: "grid",
-  gap: 12,
-  paddingLeft: 20,
-  color: "var(--ink-2)",
-  lineHeight: 1.7,
-};
-
 export default function InventoryAccountingSoftware() {
   const [modalOpen, setModalOpen] = useState(false);
   const demoTriggerRef = useRef(null);
@@ -185,52 +121,54 @@ export default function InventoryAccountingSoftware() {
       </Head>
       <div className={styles.page}>
         <PublicNav onDemoClick={openDemo} alwaysLight hrefPrefix="/" />
-        <main style={containerStyle}>
-          <p style={{ ...pStyle, color: "var(--accent)", fontWeight: 800, marginBottom: 12 }}>
-            Inventory accounting guide
-          </p>
-          <h1 style={h1Style}>Inventory accounting software for Asian SMBs</h1>
-          <p style={leadStyle}>
-            Inventory accounting software connects the operational side of stock with the financial side of the
-            business. For Asian SMBs, that means purchases, sales, customer dues, supplier payables, payments, stock
-            value, ledgers, and exportable reports can be reviewed together instead of reconciled manually after the
-            fact.
-          </p>
+        <main className={styles.publicArticle}>
+          <div className={styles.publicArticleHero}>
+            <p className={styles.publicKicker}>Inventory accounting guide</p>
+            <h1 className={styles.publicArticleTitle}>Inventory accounting software for Asian SMBs</h1>
+            <p className={styles.publicArticleLead}>
+              Inventory accounting software connects the operational side of stock with the financial side of the
+              business. For Asian SMBs, that means purchases, sales, customer dues, supplier payables, payments, stock
+              value, ledgers, and exportable reports can be reviewed together instead of reconciled manually after the
+              fact.
+            </p>
+          </div>
 
-          <section style={sectionStyle}>
-            <h2 style={h2Style}>What is inventory accounting software?</h2>
-            <p style={pStyle}>
+          <section className={styles.publicArticleSection}>
+            <h2 className={styles.publicArticleH2}>What is inventory accounting software?</h2>
+            <p className={styles.publicArticleText}>
               It is a system that records stock movement and the accounting impact of that movement. A practical SMB
               setup should show what came in, what went out, what each movement cost, what customers owe, what suppliers
               are owed, and which reports can be exported for review.
             </p>
           </section>
 
-          <section style={sectionStyle}>
-            <h2 style={h2Style}>What TSO connects</h2>
-            <div style={cardGridStyle}>
-              <div style={cardStyle}>
-                <h3 style={h3Style}>Purchases and payable</h3>
-                <p style={pStyle}>
+          <section className={styles.publicArticleSection}>
+            <h2 className={styles.publicArticleH2}>What TSO connects</h2>
+            <div className={styles.publicArticleGrid}>
+              <div className={styles.publicArticleCard}>
+                <h3 className={styles.publicArticleH3}>Purchases and payable</h3>
+                <p className={styles.publicArticleText}>
                   Track supplier purchases, payment status, purchase dues, and supplier ledger history.
                 </p>
               </div>
-              <div style={cardStyle}>
-                <h3 style={h3Style}>Sales and receivable</h3>
-                <p style={pStyle}>Connect customer sales, returns, payments, customer balances, and sales reports.</p>
+              <div className={styles.publicArticleCard}>
+                <h3 className={styles.publicArticleH3}>Sales and receivable</h3>
+                <p className={styles.publicArticleText}>
+                  Connect customer sales, returns, payments, customer balances, and sales reports.
+                </p>
               </div>
-              <div style={cardStyle}>
-                <h3 style={h3Style}>Inventory and reports</h3>
-                <p style={pStyle}>
+              <div className={styles.publicArticleCard}>
+                <h3 className={styles.publicArticleH3}>Inventory and reports</h3>
+                <p className={styles.publicArticleText}>
                   Review on-hand stock, item movement, inventory exports, and operational dashboards.
                 </p>
               </div>
             </div>
           </section>
 
-          <section style={sectionStyle}>
-            <h2 style={h2Style}>Buyer checklist</h2>
-            <ul style={listStyle}>
+          <section className={styles.publicArticleSection}>
+            <h2 className={styles.publicArticleH2}>Buyer checklist</h2>
+            <ul className={styles.publicArticleList}>
               <li>Can purchase entries update supplier balances and inventory records?</li>
               <li>Can sales entries update customer balances and stock movement?</li>
               <li>Can payment records be reviewed from customer and supplier ledgers?</li>
@@ -239,36 +177,36 @@ export default function InventoryAccountingSoftware() {
             </ul>
           </section>
 
-          <section style={sectionStyle}>
-            <h2 style={h2Style}>Frequently asked questions</h2>
-            <div style={cardGridStyle}>
+          <section className={styles.publicArticleSection}>
+            <h2 className={styles.publicArticleH2}>Frequently asked questions</h2>
+            <div className={styles.publicArticleGrid}>
               {faqs.map(({ q, a }) => (
-                <div key={q} style={cardStyle}>
-                  <h3 style={h3Style}>{q}</h3>
-                  <p style={pStyle}>{a}</p>
+                <div key={q} className={styles.publicArticleCard}>
+                  <h3 className={styles.publicArticleH3}>{q}</h3>
+                  <p className={styles.publicArticleText}>{a}</p>
                 </div>
               ))}
             </div>
           </section>
 
-          <section style={sectionStyle}>
-            <h2 style={h2Style}>Related guides</h2>
-            <div style={cardGridStyle}>
+          <section className={styles.publicArticleSection}>
+            <h2 className={styles.publicArticleH2}>Related guides</h2>
+            <div className={styles.publicArticleGrid}>
               {relatedGuides.map(({ href, title, description }) => (
-                <Link key={href} href={href} style={{ ...cardStyle, display: "block", textDecoration: "none" }}>
-                  <h3 style={h3Style}>{title}</h3>
-                  <p style={pStyle}>{description}</p>
+                <Link key={href} href={href} className={styles.publicArticleCardLink}>
+                  <h3 className={styles.publicArticleH3}>{title}</h3>
+                  <p className={styles.publicArticleText}>{description}</p>
                 </Link>
               ))}
             </div>
           </section>
 
-          <section style={sectionStyle}>
-            <h2 style={h2Style}>Sources</h2>
-            <ul style={listStyle}>
+          <section className={styles.publicArticleSection}>
+            <h2 className={styles.publicArticleH2}>Sources</h2>
+            <ul className={styles.publicArticleList}>
               {sources.map(({ name, href, note }) => (
                 <li key={href}>
-                  <a href={href} rel="nofollow" style={{ color: "var(--accent)", fontWeight: 700 }}>
+                  <a href={href} rel="nofollow" className={styles.publicSourceLink}>
                     {name}
                   </a>
                   : {note}

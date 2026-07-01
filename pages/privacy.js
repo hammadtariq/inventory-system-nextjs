@@ -90,55 +90,32 @@ export default function Privacy() {
       <div className={styles.page}>
         <PublicNav onDemoClick={openDemo} alwaysLight hrefPrefix="/" />
 
-        <main style={{ maxWidth: 760, margin: "0 auto", padding: "clamp(80px, 10vw, 120px) 24px 100px" }}>
+        <main className={styles.publicArticleNarrow}>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <h1
-              style={{
-                fontFamily: '"Bricolage Grotesque", sans-serif',
-                fontSize: "clamp(28px, 4vw, 40px)",
-                fontWeight: 800,
-                letterSpacing: "-0.03em",
-                marginBottom: 16,
-                lineHeight: 1.1,
-              }}
-            >
-              Privacy Policy
-            </h1>
-            <p style={{ fontSize: 16, color: "var(--ink-2)", lineHeight: 1.7, marginBottom: 48 }}>
-              Effective date: January 1, 2026. This policy describes how TSO by True Refined Solutions collects, uses,
-              and safeguards your personal information.
-            </p>
+            <div className={styles.publicArticleHero}>
+              <p className={styles.publicKicker}>Legal</p>
+              <h1 className={styles.publicArticleTitle}>Privacy Policy</h1>
+              <p className={styles.publicArticleLead}>
+                Effective date: January 1, 2026. This policy describes how TSO by True Refined Solutions collects, uses,
+                and safeguards your personal information.
+              </p>
+            </div>
           </motion.div>
 
-          {SECTIONS.map(({ title, content }, i) => (
-            <motion.div
-              key={title}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.05 * i }}
-              style={{
-                background: "var(--bg-surface)",
-                border: "1px solid var(--border)",
-                borderRadius: 10,
-                padding: "24px 28px",
-                marginBottom: 12,
-              }}
-            >
-              <p
-                style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: "var(--ink-3)",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.08em",
-                  marginBottom: 8,
-                }}
+          <div className={styles.legalList}>
+            {SECTIONS.map(({ title, content }, i) => (
+              <motion.section
+                key={title}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.05 * i }}
+                className={styles.legalCard}
               >
-                {title}
-              </p>
-              <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.75, margin: 0 }}>{content}</p>
-            </motion.div>
-          ))}
+                <h2 className={styles.legalCardTitle}>{title}</h2>
+                <p className={styles.publicArticleText}>{content}</p>
+              </motion.section>
+            ))}
+          </div>
         </main>
 
         <PublicFooter onDemoClick={openDemo} />
