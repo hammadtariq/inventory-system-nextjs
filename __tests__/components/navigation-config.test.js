@@ -22,7 +22,6 @@ describe("navigation config", () => {
       "Ledger",
       "Reports",
       "Cheques",
-      "Billing",
     ]);
   });
 
