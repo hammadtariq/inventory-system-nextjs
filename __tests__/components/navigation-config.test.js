@@ -22,6 +22,7 @@ describe("navigation config", () => {
       "Ledger",
       "Reports",
       "Cheques",
+      "Billing",
     ]);
   });
 
@@ -29,6 +30,7 @@ describe("navigation config", () => {
     const items = getNavigationItems("ADMIN");
 
     expect(items.map((item) => item.title)).toContain("Users");
+    expect(items.map((item) => item.title)).toContain("Payments");
     expect(items.map((item) => item.title)).not.toContain("Organizations");
   });
 

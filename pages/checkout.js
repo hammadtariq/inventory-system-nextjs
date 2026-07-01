@@ -1,8 +1,9 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
-import { Alert, Button, Form, Input, Upload, message } from "antd";
+import { Alert, Button, DatePicker, Form, Input, InputNumber, Upload, message } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
 
 import PublicFooter from "@/components/PublicFooter";
 import PublicDemoModal from "@/components/PublicDemoModal";
@@ -74,6 +75,9 @@ export default function Checkout() {
         email: values.email,
         phone: values.phone,
         referenceNumber: values.referenceNumber,
+        senderAccountNumber: values.senderAccountNumber,
+        amountPaid: values.amountPaid,
+        paidAt: values.paidAt.toISOString(),
         proofImage,
         proofFileName: file.name,
         proofMimeType: file.type,
@@ -155,6 +159,7 @@ export default function Checkout() {
                   onFinish={submitPaymentProof}
                   requiredMark={false}
                   className={styles.checkoutForm}
+                  initialValues={{ paidAt: dayjs() }}
                 >
                   <Form.Item name="businessName" label="Business name" rules={[{ required: true, min: 2 }]}>
                     <Input />
@@ -178,6 +183,30 @@ export default function Checkout() {
                     rules={[{ required: true, min: 2 }]}
                   >
                     <Input />
+                  </Form.Item>
+                  <Form.Item
+                    name="senderAccountNumber"
+                    label="Account number payment was sent from"
+                    rules={[{ required: true, min: 2 }]}
+                  >
+                    <Input />
+                  </Form.Item>
+                  <Form.Item
+                    name="amountPaid"
+                    label="Amount paid"
+                    rules={[{ required: true, type: "number", message: "Enter the amount you paid" }]}
+                  >
+                    <InputNumber style={{ width: "100%" }} min={0} />
+                  </Form.Item>
+                  <Form.Item
+                    name="paidAt"
+                    label="Payment date"
+                    rules={[{ required: true, message: "Select the payment date" }]}
+                  >
+                    <DatePicker
+                      style={{ width: "100%" }}
+                      disabledDate={(current) => current && current > dayjs().endOf("day")}
+                    />
                   </Form.Item>
                   <Form.Item
                     name="proof"
