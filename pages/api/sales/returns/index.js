@@ -98,10 +98,7 @@ const createSaleReturn = async (req, res) => {
     return res.status(400).send({ message: error.toString() });
   }
 
-  if (!["ADMIN", "SUPER_ADMIN"].includes(req.user.role)) {
-    return res.status(400).send({ message: "Operation not permitted." });
-  }
-
+  requireRole("ADMIN", "SUPER_ADMIN")(req.user);
   try {
     await db.dbConnect();
     const tenantTransaction = await createTenantTransaction();
@@ -238,4 +235,4 @@ const getLockOption = (transaction, model) => {
   return model ? { lock: { level: transaction.LOCK.UPDATE, of: model } } : { lock: transaction.LOCK.UPDATE };
 };
 
-export default nextConnect().use(auth).post(createSaleReturn).get(getAllSaleReturns);
+export default nextConnect({ onError }).use(auth).post(createSaleReturn).get(getAllSaleReturns);

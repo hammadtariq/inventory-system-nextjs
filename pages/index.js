@@ -476,6 +476,7 @@ const CheckIcon = () => (
 const PLANS = [
   {
     name: "Monthly",
+    slug: "monthly",
     billing: "Flexible, no long-term commitment",
     price: "$40",
     period: "/month",
@@ -494,6 +495,7 @@ const PLANS = [
   },
   {
     name: "Quarterly",
+    slug: "quarterly",
     billing: "Billed every 3 months",
     price: "$100",
     period: "/quarter",
@@ -512,6 +514,7 @@ const PLANS = [
   },
   {
     name: "Annual",
+    slug: "annual",
     billing: "Billed once per year",
     price: "$350",
     period: "/year",
@@ -530,7 +533,7 @@ const PLANS = [
   },
 ];
 
-function Pricing({ onDemoClick }) {
+function Pricing() {
   const rm = useReducedMotion();
   return (
     <section className={styles.section} id="pricing">
@@ -580,9 +583,12 @@ function Pricing({ onDemoClick }) {
                   </li>
                 ))}
               </ul>
-              <button className={plan.featured ? styles.planBtnFill : styles.planBtnOutline} onClick={onDemoClick}>
-                Request a Demo
-              </button>
+              <a
+                className={plan.featured ? styles.planBtnFill : styles.planBtnOutline}
+                href={`/checkout?package=${plan.slug}`}
+              >
+                Proceed to payment
+              </a>
             </motion.div>
           ))}
         </div>
@@ -789,7 +795,7 @@ export default function Landing() {
           <AiInsights />
           <WhyBuy />
           <SoftCta onDemoClick={openDemo} />
-          <Pricing onDemoClick={openDemo} />
+          <Pricing />
           <Faq openFaq={openFaq} setOpenFaq={setOpenFaq} />
           <FinalCta onDemoClick={openDemo} />
         </main>

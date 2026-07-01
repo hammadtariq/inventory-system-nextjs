@@ -35,9 +35,7 @@ module.exports = {
     host: process.env.POSTGRES_HOST,
     port: parseInt(process.env.POSTGRES_PORT || "5432", 10),
     dialect: "postgres",
-    dialectOptions: {
-      ssl: { require: true, rejectUnauthorized: false },
-    },
+    dialectOptions: ssl ? { ssl } : {},
     pool: {
       max: 10,
       min: 0,

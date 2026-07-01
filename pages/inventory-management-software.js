@@ -98,70 +98,6 @@ const structuredData = [
   },
 ];
 
-const containerStyle = {
-  maxWidth: 980,
-  margin: "0 auto",
-  padding: "clamp(88px, 10vw, 120px) 24px 96px",
-};
-
-const h1Style = {
-  fontSize: 46,
-  lineHeight: 1.08,
-  margin: "0 0 18px",
-  color: "var(--ink-1)",
-};
-
-const leadStyle = {
-  fontSize: 19,
-  lineHeight: 1.75,
-  color: "var(--ink-2)",
-  maxWidth: 780,
-};
-
-const sectionStyle = {
-  marginTop: 44,
-};
-
-const cardGridStyle = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-  gap: 16,
-};
-
-const cardStyle = {
-  background: "var(--bg-surface)",
-  border: "1px solid var(--border)",
-  borderRadius: 8,
-  padding: "22px",
-};
-
-const h2Style = {
-  fontSize: 27,
-  margin: "0 0 16px",
-  color: "var(--ink-1)",
-};
-
-const h3Style = {
-  fontSize: 17,
-  margin: "0 0 8px",
-  color: "var(--ink-1)",
-};
-
-const pStyle = {
-  fontSize: 15,
-  lineHeight: 1.75,
-  color: "var(--ink-2)",
-  margin: 0,
-};
-
-const listStyle = {
-  display: "grid",
-  gap: 12,
-  paddingLeft: 20,
-  color: "var(--ink-2)",
-  lineHeight: 1.7,
-};
-
 export default function InventoryManagementSoftware() {
   const [modalOpen, setModalOpen] = useState(false);
   const demoTriggerRef = useRef(null);
@@ -190,48 +126,54 @@ export default function InventoryManagementSoftware() {
       </Head>
       <div className={styles.page}>
         <PublicNav onDemoClick={openDemo} alwaysLight hrefPrefix="/" />
-        <main style={containerStyle}>
-          <p style={{ ...pStyle, color: "var(--accent)", fontWeight: 800, marginBottom: 12 }}>
-            Inventory software guide
-          </p>
-          <h1 style={h1Style}>Inventory management software for Asian SMBs</h1>
-          <p style={leadStyle}>
-            Inventory management software helps SMBs know what is in stock, what is committed to customers, what needs
-            to be reordered, and how purchases and sales affect cash flow. TSO by True Refined Solutions is built as
-            SaaS for Asian teams that want inventory, ledgers, reports, AI-powered insights, and exports in one workflow
-            instead of scattered spreadsheets.
-          </p>
+        <main className={styles.publicArticle}>
+          <div className={styles.publicArticleHero}>
+            <p className={styles.publicKicker}>Inventory software guide</p>
+            <h1 className={styles.publicArticleTitle}>Inventory management software for Asian SMBs</h1>
+            <p className={styles.publicArticleLead}>
+              Inventory management software helps SMBs know what is in stock, what is committed to customers, what needs
+              to be reordered, and how purchases and sales affect cash flow. TSO by True Refined Solutions is built as
+              SaaS for Asian teams that want inventory, ledgers, reports, AI-powered insights, and exports in one
+              workflow instead of scattered spreadsheets.
+            </p>
+          </div>
 
-          <section style={sectionStyle}>
-            <h2 style={h2Style}>What is inventory management software?</h2>
-            <p style={pStyle}>
+          <section className={styles.publicArticleSection}>
+            <h2 className={styles.publicArticleH2}>What is inventory management software?</h2>
+            <p className={styles.publicArticleText}>
               It is a business system that records product quantities, supplier purchases, customer sales, stock
               movement, item costs, and reporting activity. A useful system answers four questions quickly: what do we
               have, what is it worth, who do we owe, and who owes us?
             </p>
           </section>
 
-          <section style={sectionStyle}>
-            <h2 style={h2Style}>When TSO is a fit</h2>
-            <div style={cardGridStyle}>
-              <div style={cardStyle}>
-                <h3 style={h3Style}>Inventory and orders</h3>
-                <p style={pStyle}>Track items, companies, purchases, sales, returns, on-hand quantity, and exports.</p>
+          <section className={styles.publicArticleSection}>
+            <h2 className={styles.publicArticleH2}>When TSO is a fit</h2>
+            <div className={styles.publicArticleGrid}>
+              <div className={styles.publicArticleCard}>
+                <h3 className={styles.publicArticleH3}>Inventory and orders</h3>
+                <p className={styles.publicArticleText}>
+                  Track items, companies, purchases, sales, returns, on-hand quantity, and exports.
+                </p>
               </div>
-              <div style={cardStyle}>
-                <h3 style={h3Style}>Accounting visibility</h3>
-                <p style={pStyle}>Connect sales, purchase dues, payments, customer ledgers, and supplier ledgers.</p>
+              <div className={styles.publicArticleCard}>
+                <h3 className={styles.publicArticleH3}>Accounting visibility</h3>
+                <p className={styles.publicArticleText}>
+                  Connect sales, purchase dues, payments, customer ledgers, and supplier ledgers.
+                </p>
               </div>
-              <div style={cardStyle}>
-                <h3 style={h3Style}>SMB operations</h3>
-                <p style={pStyle}>Give small teams a dashboard for stock, cash, receivables, payables, and reports.</p>
+              <div className={styles.publicArticleCard}>
+                <h3 className={styles.publicArticleH3}>SMB operations</h3>
+                <p className={styles.publicArticleText}>
+                  Give small teams a dashboard for stock, cash, receivables, payables, and reports.
+                </p>
               </div>
             </div>
           </section>
 
-          <section style={sectionStyle}>
-            <h2 style={h2Style}>Answer-ready checklist for buyers</h2>
-            <ul style={listStyle}>
+          <section className={styles.publicArticleSection}>
+            <h2 className={styles.publicArticleH2}>Answer-ready checklist for buyers</h2>
+            <ul className={styles.publicArticleList}>
               <li>Can the system track item quantity, cost, supplier, and customer movement in one place?</li>
               <li>Does it show purchases, sales, dues, payments, and ledgers without duplicate entry?</li>
               <li>Can managers export inventory, ledger, sales, and purchase reports for review?</li>
@@ -240,36 +182,36 @@ export default function InventoryManagementSoftware() {
             </ul>
           </section>
 
-          <section style={sectionStyle}>
-            <h2 style={h2Style}>Frequently asked questions</h2>
-            <div style={cardGridStyle}>
+          <section className={styles.publicArticleSection}>
+            <h2 className={styles.publicArticleH2}>Frequently asked questions</h2>
+            <div className={styles.publicArticleGrid}>
               {faqs.map(({ q, a }) => (
-                <div key={q} style={cardStyle}>
-                  <h3 style={h3Style}>{q}</h3>
-                  <p style={pStyle}>{a}</p>
+                <div key={q} className={styles.publicArticleCard}>
+                  <h3 className={styles.publicArticleH3}>{q}</h3>
+                  <p className={styles.publicArticleText}>{a}</p>
                 </div>
               ))}
             </div>
           </section>
 
-          <section style={sectionStyle}>
-            <h2 style={h2Style}>Related guides</h2>
-            <div style={cardGridStyle}>
+          <section className={styles.publicArticleSection}>
+            <h2 className={styles.publicArticleH2}>Related guides</h2>
+            <div className={styles.publicArticleGrid}>
               {relatedGuides.map(({ href, title, description }) => (
-                <Link key={href} href={href} style={{ ...cardStyle, display: "block", textDecoration: "none" }}>
-                  <h3 style={h3Style}>{title}</h3>
-                  <p style={pStyle}>{description}</p>
+                <Link key={href} href={href} className={styles.publicArticleCardLink}>
+                  <h3 className={styles.publicArticleH3}>{title}</h3>
+                  <p className={styles.publicArticleText}>{description}</p>
                 </Link>
               ))}
             </div>
           </section>
 
-          <section style={sectionStyle}>
-            <h2 style={h2Style}>Sources</h2>
-            <ul style={listStyle}>
+          <section className={styles.publicArticleSection}>
+            <h2 className={styles.publicArticleH2}>Sources</h2>
+            <ul className={styles.publicArticleList}>
               {sources.map(({ name, href, note }) => (
                 <li key={href}>
-                  <a href={href} rel="nofollow" style={{ color: "var(--accent)", fontWeight: 700 }}>
+                  <a href={href} rel="nofollow" className={styles.publicSourceLink}>
                     {name}
                   </a>
                   : {note}

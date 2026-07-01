@@ -1,6 +1,7 @@
 import {
   AccountBookOutlined,
   ApartmentOutlined,
+  AuditOutlined,
   BarChartOutlined,
   DashboardOutlined,
   DollarCircleOutlined,
@@ -18,6 +19,7 @@ import {
 const navigationIcons = {
   accountBook: <AccountBookOutlined />,
   apartment: <ApartmentOutlined />,
+  audit: <AuditOutlined />,
   barChart: <BarChartOutlined />,
   cart: <ShoppingCartOutlined />,
   dashboard: <DashboardOutlined />,

@@ -3,6 +3,7 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import { requireRole, onError } from "@/lib/authz";
 import { STATUS, SPEND_TYPE } from "@/utils/api.util";
 import { balanceQuery } from "@/utils/query.utils";
 import { applyTenantToTransaction, createTenantTransaction } from "@/lib/tenant-transaction";
@@ -20,9 +21,7 @@ const handler = async (req, res) => {
   if (error && Object.keys(error).length) {
     return res.status(400).send({ message: error.toString() });
   }
-  if (!["ADMIN", "SUPER_ADMIN"].includes(req.user.role)) {
-    return res.status(400).send({ message: "Operation not permitted." });
-  }
+  requireRole("ADMIN", "SUPER_ADMIN")(req.user);
   try {
     const { id } = value;
     const { sale, ledger, inventory } = await approveSaleOrder(id);
@@ -134,4 +133,4 @@ const getLockOption = (transaction, model) => {
   return model ? { lock: { level: transaction.LOCK.UPDATE, of: model } } : { lock: transaction.LOCK.UPDATE };
 };
 
-export default nextConnect().use(auth).put(handler);
+export default nextConnect({ onError }).use(auth).put(handler);

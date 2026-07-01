@@ -38,13 +38,19 @@ const Login = () => {
     router.prefetch("/dashboard");
   }, [router]);
 
+  const getSafeNextPath = () => {
+    const next = Array.isArray(router.query.next) ? router.query.next[0] : router.query.next;
+    if (!next || !next.startsWith("/") || next.startsWith("//")) return null;
+    return next;
+  };
+
   const onFinish = (values) => {
     setLoading(true);
     loginUser(values)
       .then((data) => {
         setUserAccess(data.user);
         message.success("Logged in successfully");
-        router.replace(data.user?.role === "SUPER_ADMIN" ? "/organizations" : "/dashboard");
+        router.replace(getSafeNextPath() || (data.user?.role === "SUPER_ADMIN" ? "/organizations" : "/dashboard"));
       })
       .catch(() => {
         message.error("Login failed. Please check your credentials.");

@@ -12,6 +12,7 @@ jest.mock("@/lib/postgres", () => ({
   Sequelize: {
     Op: {
       and: "and",
+      gt: "gt",
     },
     QueryTypes: {
       SELECT: "SELECT",
@@ -30,13 +31,13 @@ describe("fetchInventoryData", () => {
     db.sequelize.query.mockResolvedValue([]);
   });
 
-  it("includes zero-stock rows in inventory exports and reports", async () => {
+  it("excludes zero-stock rows from inventory exports and reports", async () => {
     await fetchInventoryData([], 9);
 
     expect(db.Inventory.findAndCountAll).toHaveBeenCalledWith(
       expect.objectContaining({
         where: {
-          and: [{ organizationId: 9 }],
+          and: [{ organizationId: 9 }, { onHand: { gt: 0 } }],
         },
       })
     );

@@ -6,6 +6,7 @@ import { to } from "@/utils/to.util";
 const publicRoutes = new Set([
   "/",
   "/login",
+  "/checkout",
   "/accept-invite",
   "/about",
   "/privacy",
@@ -29,7 +30,8 @@ const ProtectedRoutes = ({ children, router }) => {
       const [err] = await to(verifyToken());
       if (err) {
         console.error("Token expired or invalid:", err);
-        router.push("/login");
+        const nextPath = router.asPath || router.pathname;
+        router.push(`/login?next=${encodeURIComponent(nextPath)}`);
         return;
       }
 
