@@ -29,11 +29,11 @@ export const useBillingSummary = () => {
   };
 };
 
-export const usePaymentRequests = (status) => {
+export const usePaymentRequests = (status, enabled = true) => {
   const [pagination, setPagination] = useState({ limit: DEFAULT_PAGE_LIMIT, offset: 0 });
   const queryStatus = status ? `&status=${status}` : "";
   const { data, error, mutate } = useSWR(
-    `/api/admin/payments?limit=${pagination.limit}&offset=${pagination.offset}${queryStatus}`,
+    enabled ? `/api/admin/payments?limit=${pagination.limit}&offset=${pagination.offset}${queryStatus}` : null,
     get
   );
 
