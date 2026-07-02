@@ -1,7 +1,7 @@
 import { comaSeparatedValues } from "@/utils/comaSeparatedValues";
 
 describe("comaSeparatedValues", () => {
-  it("formats positive values with Indian-style digit grouping", () => {
+  it("formats positive values with Pakistani-style digit grouping", () => {
     expect(comaSeparatedValues(139.95)).toBe("139.95");
     expect(comaSeparatedValues(1139.95)).toBe("1,139.95");
     expect(comaSeparatedValues(1234567.5)).toBe("12,34,567.50");
