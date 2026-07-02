@@ -46,13 +46,15 @@ const WIPE_TABLES_IN_ORDER = [
 ];
 
 // 3 demo logins: 1 ADMIN, 2 EDITOR with different working scopes (warehouse/purchasing
-// vs. sales), matching the two-role model in data/permission.js.
+// vs. sales), matching the two-role model in data/permission.js. Emails are short,
+// role-based, and easy to type/remember live in front of a prospect — not meant to
+// look like a real person's address (unlike the bulk company/customer records).
 const DEMO_USERS = [
   {
     envPrefix: "DEMO_ADMIN",
     firstName: "amina",
     lastName: "rahman",
-    email: "amina.rahman@drift-warehouse-demo.example.com",
+    email: "admin@driftwarehouse.example.com",
     role: "ADMIN",
     scopeLabel: "org admin",
   },
@@ -60,7 +62,7 @@ const DEMO_USERS = [
     envPrefix: "DEMO_EDITOR_WAREHOUSE",
     firstName: "farhan",
     lastName: "aziz",
-    email: "farhan.aziz@drift-warehouse-demo.example.com",
+    email: "warehouse@driftwarehouse.example.com",
     role: "EDITOR",
     scopeLabel: "warehouse / purchasing",
   },
@@ -68,7 +70,7 @@ const DEMO_USERS = [
     envPrefix: "DEMO_EDITOR_SALES",
     firstName: "sara",
     lastName: "khan",
-    email: "sara.khan@drift-warehouse-demo.example.com",
+    email: "sales@driftwarehouse.example.com",
     role: "EDITOR",
     scopeLabel: "sales",
   },
