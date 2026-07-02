@@ -1,5 +1,6 @@
 "use strict";
 
+const crypto = require("crypto");
 const bcrypt = require("bcrypt");
 const Sequelize = require("sequelize");
 
@@ -22,8 +23,8 @@ async function run() {
 
     const [organization] = await sequelize.query(
       `
-        INSERT INTO organizations (name, slug, plan, status, "maxUsers", "createdAt", "updatedAt")
-        VALUES ('System', 'system', 'ENTERPRISE', 'ACTIVE', 100, NOW(), NOW())
+        INSERT INTO organizations (uuid, name, slug, plan, status, "maxUsers", "createdAt", "updatedAt")
+        VALUES (:uuid, 'System', 'system', 'ENTERPRISE', 'ACTIVE', 100, NOW(), NOW())
         ON CONFLICT (slug)
         DO UPDATE SET
           name = EXCLUDED.name,
@@ -33,7 +34,10 @@ async function run() {
           "updatedAt" = NOW()
         RETURNING id, uuid, name, slug;
       `,
-      { type: Sequelize.QueryTypes.SELECT }
+      {
+        replacements: { uuid: crypto.randomUUID() },
+        type: Sequelize.QueryTypes.SELECT,
+      }
     );
 
     const passwordHash = await bcrypt.hash(process.env.SUPER_ADMIN_PASSWORD, 10);
@@ -41,6 +45,7 @@ async function run() {
     const [user] = await sequelize.query(
       `
         INSERT INTO users (
+          uuid,
           "firstName",
           "lastName",
           email,
@@ -53,6 +58,7 @@ async function run() {
           "updatedAt"
         )
         VALUES (
+          :uuid,
           :firstName,
           :lastName,
           :email,
@@ -78,6 +84,7 @@ async function run() {
       `,
       {
         replacements: {
+          uuid: crypto.randomUUID(),
           firstName: process.env.SUPER_ADMIN_FIRST_NAME.toLowerCase(),
           lastName: process.env.SUPER_ADMIN_LAST_NAME.toLowerCase(),
           email: process.env.SUPER_ADMIN_EMAIL.toLowerCase(),
