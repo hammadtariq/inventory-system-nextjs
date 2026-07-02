@@ -8,6 +8,7 @@ import { SPEND_TYPE, STATUS } from "@/utils/api.util";
 import { balanceQuery } from "@/utils/query.utils";
 import TenantContext from "@/lib/tenant-context";
 import { createTenantTransaction } from "@/lib/tenant-transaction";
+import { bumpInventorySequence } from "@/lib/inventory";
 
 const apiSchema = Joi.object({
   id: Joi.number().required(),
@@ -146,6 +147,7 @@ const updateInventory = async (products, companyId, transaction) => {
         { ...product, companyId, onHand: noOfBales || 0, baleWeightKgs, baleWeightLbs, organizationId },
         { transaction }
       );
+      await bumpInventorySequence(inventory.id, transaction);
     }
     results.push(inventory);
   }
