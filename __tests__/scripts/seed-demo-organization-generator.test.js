@@ -1,3 +1,4 @@
+const Joi = require("joi");
 const {
   createRng,
   generateCompanies,
@@ -11,20 +12,26 @@ const {
 
 const DATE_RANGE = { start: new Date("2025-07-01"), end: new Date("2026-07-01") };
 
+// Same schema pages/api/user/login.js validates against — Joi's email TLD
+// allow-list rejects RFC 2606's bare .example TLD (only example.com/net/org
+// second-level domains are safe), which is what broke the demo logins once.
+const emailSchema = Joi.string().email();
+
 describe("seed-demo-organization-generator", () => {
-  it("generates the requested number of companies with unique names and organization-scoped emails", () => {
+  it("generates the requested number of companies with unique names and organization-scoped emails that pass the login route's Joi email validation", () => {
     const rng = createRng(1);
     const companies = generateCompanies(rng, "drift-warehouse-demo", 55);
 
     expect(companies).toHaveLength(55);
     expect(new Set(companies.map((c) => c.companyName)).size).toBe(55);
     companies.forEach((c) => {
-      expect(c.email.endsWith("@drift-warehouse-demo-vendor.example")).toBe(true);
+      expect(c.email.endsWith("@drift-warehouse-demo-vendor.example.com")).toBe(true);
+      expect(emailSchema.validate(c.email).error).toBeUndefined();
       expect(c.uuid).toMatch(/^[0-9a-f-]{36}$/);
     });
   });
 
-  it("generates the requested number of customers with unique emails", () => {
+  it("generates the requested number of customers with unique emails that pass Joi email validation", () => {
     const rng = createRng(2);
     const customers = generateCustomers(rng, "drift-warehouse-demo", 55);
 
@@ -33,6 +40,7 @@ describe("seed-demo-organization-generator", () => {
     customers.forEach((c) => {
       expect(c.firstName.length).toBeGreaterThanOrEqual(3);
       expect(c.lastName.length).toBeGreaterThanOrEqual(3);
+      expect(emailSchema.validate(c.email).error).toBeUndefined();
     });
   });
 
