@@ -99,39 +99,47 @@ Tests use `node-mocks-http` for request/response mocking. DB is mocked via `jest
 
 ## Tenant Safety Rules (ENFORCE ON EVERY API CHANGE)
 
-This codebase is migrating to multi-tenancy. Every API route MUST scope queries to the current tenant via `organizationId`. Violating these rules causes cross-tenant data leaks.
+Multi-tenancy is live, not aspirational. Every domain table has a non-nullable `organizationId`, and tenant scoping is enforced at three layers: application hooks, Postgres RLS, and (currently, defense-in-depth only) the connecting DB role. Read this section before touching any API route, model, or raw-SQL script — it reflects what's actually wired up, not a target state.
 
-### Hard rules
+### Layer 1: `TenantContext` + automatic write hooks
 
-- **NEVER** use `findByPk(id)` alone — always add `{ where: { id, organizationId } }` or use `findOne({ where: { id, organizationId } })`
-- **NEVER** use `Model.update({}, { where: { id } })` without `organizationId` in the where clause
-- **NEVER** use `Model.destroy({ where: { id } })` without `organizationId` in the where clause
-- **NEVER** use raw `sequelize.query(sql)` without `organizationId` in the `replacements` object
-- **NEVER** trust incoming `companyId`, `customerId`, `saleId`, or JSONB product IDs without verifying they belong to the current tenant first
-- **ALWAYS** call `getTenantContext()` at the top of every API handler to get `organizationId`
+- `lib/tenant-context.js` exports `TenantContext`, an `AsyncLocalStorage`-backed singleton. `middlewares/auth.js` calls `TenantContext.run(organization.id, () => next())` on every authenticated request, so `TenantContext.get()` / `TenantContext.assertGet()` return the current `organizationId` anywhere downstream — no need to thread it through function params.
+- `lib/tenant-write-hooks.js` exports `applyTenantWriteHooks(Model)`, applied in `lib/postgres.js` to every model in `TENANT_MODELS` (`User`, `Customer`, `Company`, `Inventory`, `Purchase`, `PurchaseHistory`, `Sale`, `SaleReturn`, `Items`, `Ledger`, `Cheque`). These hooks:
+  - auto-inject `organizationId` on `create`/`bulkCreate` from `TenantContext.assertGet()` — **you usually don't need to set `organizationId` by hand on a `Model.create()` call**
+  - auto-scope the `where` clause on `find`/`count`/`bulkUpdate`/`bulkDestroy` to the current tenant
+  - throw `"Cross-tenant create/update/destroy attempted"` if an instance's `organizationId` doesn't match the current tenant
+  - can be skipped with `{ tenantBypass: true }` — reserved for genuinely cross-tenant operations gated by `SUPER_ADMIN` role checks (org registration/management, invite-accept, login's Organization lookup). Grep any new `tenantBypass: true` usage hard in review.
+
+### Layer 2: Postgres Row-Level Security
+
+- `migrations/20260430120000-enable-row-level-security.js` enables `FORCE ROW LEVEL SECURITY` with a `USING/WITH CHECK ("organizationId" = current_setting('app.tenant_id', true)::int)` policy on `customers`, `companies`, `inventories`, `purchases`, `sales`, `saleReturns`, `items`, `ledgers`, `cheques`, `purchase_histories`. `users`/`organizations` are intentionally excluded (they're the tenant boundary itself, not tenant-scoped data).
+- `middlewares/auth.js` and `lib/tenant-transaction.js` (`createTenantTransaction`/`applyTenantToTransaction`) both run `SET LOCAL app.tenant_id = :organizationId` inside the request's transaction, so RLS enforces the same boundary the app hooks do — belt and suspenders.
+- **Known gap:** `20260430121000-demote-app-role-for-rls.js` — meant to strip `SUPERUSER`/`BYPASSRLS` from the connecting DB role so RLS is an actual hard boundary — is marked done-but-skipped on Supabase ("role alteration not permitted"). Postgres never applies RLS to a superuser or `BYPASSRLS` role regardless of `FORCE`, so **on production, RLS is currently defense-in-depth only; the app-layer hooks in Layer 1 are the real boundary.** `scripts/verify-security.js`'s `verifyRole()` step will throw if run against a role that still bypasses RLS — treat a failure there as "expected on Supabase until the role is actually demoted," not a regression. Locally, `docker-compose`'s `postgres` role is correctly demoted (`rolsuper=false`, `rolbypassrls=false`), so RLS is fully enforced in dev/CI.
+
+### Layer 3: verification scripts
+
+- `pnpm run db:verify-tenants` (`scripts/verify-tenant-backfill.js`) — every tenant table has `organizationId` populated
+- `pnpm run db:verify-rls` (`scripts/verify-rls.js`) — inserts as one org, confirms a second org and an anonymous session can't see those rows
+- `pnpm run db:verify-security` (`scripts/verify-security.js`) — runs role, column, index, RLS-catalog, backfill, and RLS checks together; this is the one CI/pre-launch should gate on
+
+### Hard rules (still apply on top of the automatic hooks)
+
+- **NEVER** use `findByPk(id)` alone on a `TENANT_MODELS` model — use `findOne({ where: { id, organizationId } })`, or pass `{ tenantBypass: true }` only when the model isn't tenant-scoped (see below) and the route is role-gated
+- **NEVER** use `Model.update()`/`Model.destroy()` with a bare `{ where: { id } }` — the hooks will auto-scope it, but don't rely on that being the only line of defense in new code; write the `organizationId` explicitly for readability
+- **NEVER** use raw `sequelize.query(sql)` without `organizationId` in the `replacements` object — raw queries bypass both the hooks and (if run outside a `SET LOCAL app.tenant_id` transaction) RLS
+- **NEVER** trust incoming `companyId`, `customerId`, `saleId`, or JSONB product IDs without verifying they belong to the current tenant first (see `pages/api/purchase/index.js`'s `db.Items.findAll({ where: { id: productIds, companyId, organizationId } })` for the pattern)
+- **ALWAYS** call `TenantContext.assertGet()` (not `TenantContext.get()`, which returns `null` silently) when a handler requires tenant context
 - **ALWAYS** return 404 (not 403) when a record is not found for the tenant — avoid leaking existence of records
-- Every new Sequelize model **MUST** have `organizationId` as a non-nullable FK with an index
+- Every new Sequelize model that holds tenant data **MUST** have `organizationId` as a non-nullable FK, be added to `TENANT_MODELS` in `lib/tenant-write-hooks.js`, and get an RLS policy in a new migration
 
-### Tenant context pattern
+### Current `findByPk` usage (audited 2026-07-02 — re-run `.claude/scripts/tenant-check.sh` before trusting this list)
 
-```js
-// Top of every API handler
-const { organizationId } = getTenantContext(req);
+Only 6 `findByPk` calls exist repo-wide, all legitimate:
 
-// Safe findByPk replacement
-const record = await Model.findOne({ where: { id, organizationId } });
-if (!record) return res.status(404).json({ message: "Not found" });
+- `lib/organization-scope.js`, `pages/api/org/accept-invite.js`, `pages/api/organizations/[id].js` (×2), `pages/api/user/login.js` — all look up `db.Organization`, which isn't in `TENANT_MODELS` (it's the tenant boundary, not tenant data) and is either pre-auth (login, invite-accept) or `SUPER_ADMIN`-gated (`pages/api/organizations/[id].js`)
+- `pages/api/admin/public-payment-requests/[id].js` — looks up `db.PublicPaymentRequest`, a genuinely global pre-signup model with no `organizationId` column, gated by a `SUPER_ADMIN` role check instead of tenant scoping
 
-// Safe raw query
-await db.sequelize.query('SELECT * FROM "Table" WHERE id = :id AND "organizationId" = :organizationId', {
-  replacements: { id, organizationId },
-  type: QueryTypes.SELECT,
-});
-```
-
-### Files with known unscoped queries (fix before SaaS launch)
-
-There are **30 `findByPk` calls** across 14 files that bypass tenant scoping — each is a cross-tenant vulnerability. Run `.claude/scripts/tenant-check.sh` to audit.
+The old claim of "30 `findByPk` calls across 14 files" predates the `TenantContext`/RLS work above and is stale — don't cite it.
 
 ---
 
