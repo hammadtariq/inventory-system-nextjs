@@ -78,15 +78,15 @@ function slugifyForEmail(value) {
     .replace(/(^\.+|\.+$)/g, "");
 }
 
-// Emails use the RFC 2606 reserved example.com second-level domain, not the bare
-// .example TLD — Joi's email validator (pages/api/user/login.js, models via
-// isEmail) checks the TLD against a real allow-list and rejects .example.
+// Emails use a plain .com domain, not .example — Joi's email validator
+// (pages/api/user/login.js, models via isEmail) checks the TLD against a
+// real allow-list and rejects the bare .example TLD outright.
 function generateCompanies(rng, orgSlug, count) {
   const names = generateCompanyNames(rng, count);
   return names.map((companyName) => ({
     uuid: crypto.randomUUID(),
     companyName,
-    email: `${slugifyForEmail(companyName)}@${orgSlug}-vendor.example.com`,
+    email: `${slugifyForEmail(companyName)}@vendor.com`,
     phone: `+1-${randInt(rng, 200, 999)}-${randInt(rng, 200, 999)}-${String(randInt(rng, 0, 9999)).padStart(4, "0")}`,
     address: `${randInt(rng, 100, 9999)} ${pick(rng, STREET_NAMES_COMPANY)}, Unit ${randInt(rng, 1, 40)}`,
   }));
@@ -110,7 +110,7 @@ function generateCustomers(rng, orgSlug, count) {
         uuid: crypto.randomUUID(),
         firstName: capitalize(firstName),
         lastName: capitalize(lastName),
-        email: `${firstName}.${lastName}@${orgSlug}-customer.example.com`,
+        email: `${firstName}.${lastName}@buyer.com`,
         phone: `+1-${randInt(rng, 200, 999)}-${randInt(rng, 200, 999)}-${String(randInt(rng, 0, 9999)).padStart(
           4,
           "0"
