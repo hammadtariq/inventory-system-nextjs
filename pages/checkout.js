@@ -21,6 +21,12 @@ const getBase64 = (file) =>
     reader.onerror = reject;
   });
 
+const CHECKOUT_CYCLES = [
+  { key: "monthly", label: "Monthly", badge: null },
+  { key: "semiannual", label: "6 Months", badge: "Save 15%" },
+  { key: "annual", label: "Annual", badge: "Save 27%" },
+];
+
 const uploadProps = {
   accept: "image/png,image/jpeg,image/webp",
   maxCount: 1,
@@ -57,6 +63,12 @@ export default function Checkout() {
     setModalOpen(true);
   };
   const closeDemo = () => setModalOpen(false);
+
+  const handleCycleChange = (slug) => {
+    router.replace({ pathname: router.pathname, query: { ...router.query, package: slug } }, undefined, {
+      shallow: true,
+    });
+  };
 
   const submitPaymentProof = async (values) => {
     const file = values.proof?.[0]?.originFileObj;
@@ -131,6 +143,22 @@ export default function Checkout() {
                   <span className={styles.planBadge}>Selected</span>
                 </div>
                 <p className={styles.planBilling}>{selectedPackage.billing}</p>
+                <div className={styles.billingToggle} role="group" aria-label="Billing cycle">
+                  {CHECKOUT_CYCLES.map(({ key, label, badge }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      className={`${styles.billingToggleBtn} ${
+                        normalizedPackageSlug === key ? styles.billingToggleBtnActive : ""
+                      }`}
+                      aria-pressed={normalizedPackageSlug === key}
+                      onClick={() => handleCycleChange(key)}
+                    >
+                      {label}
+                      {badge && <span className={styles.billingToggleBadge}>{badge}</span>}
+                    </button>
+                  ))}
+                </div>
                 <div className={styles.planPrice}>
                   <span className={styles.planPriceAmt}>{selectedPackage.price}</span>
                   <span className={styles.planPricePeriod}>{selectedPackage.period}</span>

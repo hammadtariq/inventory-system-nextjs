@@ -1110,6 +1110,56 @@
   margin-bottom: clamp(40px, 5vw, 56px);
 }
 
+.billingToggle {
+  display: inline-flex;
+  gap: 2px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-surface);
+}
+
+.billingToggleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-3);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.billingToggleBtn:hover {
+  color: var(--ink-1);
+}
+
+.billingToggleBtnActive,
+.billingToggleBtnActive:hover {
+  background: var(--bg-body);
+  color: var(--ink-1);
+  box-shadow: var(--shadow-sm);
+}
+
+.billingToggleBadge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: oklch(0.36 0.13 152);
+  background: oklch(0.95 0.04 152);
+  border-radius: 3px;
+  padding: 1px 6px;
+  letter-spacing: 0.02em;
+}
+
 .pricingGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -1389,10 +1439,17 @@
   margin-top: 8px;
 }
 
+.planSeats {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+  margin-top: 10px;
+}
+
 .planDesc {
   font-size: 13px;
   color: var(--ink-3);
-  margin-top: 14px;
+  margin-top: 6px;
   margin-bottom: 24px;
   line-height: 1.5;
 }

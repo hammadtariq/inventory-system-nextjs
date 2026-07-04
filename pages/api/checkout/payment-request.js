@@ -16,7 +16,7 @@ const IMAGE_FORMAT_BY_MIME = {
 };
 
 const apiSchema = Joi.object({
-  packageSlug: Joi.string().valid("monthly", "quarterly", "annual").required(),
+  packageSlug: Joi.string().valid("monthly", "quarterly", "semiannual", "annual").required(),
   businessName: Joi.string().trim().min(2).max(255).required(),
   contactName: Joi.string().trim().min(2).max(255).required(),
   email: Joi.string().email().trim().lowercase().required(),

@@ -346,11 +346,11 @@ function AiInsights() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.35 }}
         >
-          <p className={styles.panelKicker}>AI inventory assistant</p>
+          <p className={styles.panelKicker}>AI companion · Pro &amp; Enterprise</p>
           <h2 className={styles.sectionHeading}>Ask your inventory data directly</h2>
           <p className={styles.sectionSubLeft}>
-            The assistant turns sales, purchase, customer, and margin questions into clear answers business owners can
-            act on.
+            The AI companion turns sales, purchase, customer, and margin questions into clear answers business owners
+            can act on. Included with Pro and Enterprise plans.
           </p>
           <ul className={styles.aiList} role="list">
             <li>Find top customers by revenue and last purchase date.</li>
@@ -473,68 +473,78 @@ const CheckIcon = () => (
   </svg>
 );
 
-const PLANS = [
+const BILLING_CYCLES = [
+  { key: "monthly", label: "Monthly", badge: null },
+  { key: "semiannual", label: "6 Months", badge: "Save 15%" },
+  { key: "annual", label: "Annual", badge: "Save up to 28%" },
+];
+
+const CUSTOM_PRICE = { amount: "Custom pricing", period: null, perMonth: null, savings: null };
+
+const TIERS = [
   {
-    name: "Monthly",
-    slug: "monthly",
-    billing: "Flexible, no long-term commitment",
-    price: "$40",
-    period: "/month",
-    perMonth: null,
-    savings: null,
-    desc: "Full platform access. Cancel or switch billing anytime.",
+    name: "Starter",
+    seats: "5 seats",
+    billing: "For a single team getting off spreadsheets",
+    prices: {
+      monthly: { amount: "$40", period: "/month", perMonth: null, savings: null },
+      semiannual: { amount: "$204", period: "/6 months", perMonth: "≈ $34 / month", savings: "Save 15%" },
+      annual: { amount: "$350", period: "/year", perMonth: "≈ $29 / month", savings: "Save 27%" },
+    },
+    desc: "Core platform access for small teams.",
     featured: false,
     badge: null,
     features: [
+      "5 user seats",
       "Inventory and warehouse records",
       "Purchase and sales tracking",
       "Customer and supplier records",
       "Ledger management and reports",
-      "AI-powered business insights",
     ],
+    cta: { type: "checkout", supportedCycles: ["monthly", "annual"], fallbackLabel: "Contact Sales" },
   },
   {
-    name: "Quarterly",
-    slug: "quarterly",
-    billing: "Billed every 3 months",
-    price: "$100",
-    period: "/quarter",
-    perMonth: "≈ $33 / month",
-    savings: "Save 17%",
-    desc: "Same full access at a lower effective monthly rate.",
+    name: "Pro",
+    seats: "20 seats",
+    billing: "For growing teams that need AI and deeper reporting",
+    prices: {
+      monthly: { amount: "$90", period: "/month", perMonth: null, savings: null },
+      semiannual: { amount: "$459", period: "/6 months", perMonth: "≈ $77 / month", savings: "Save 15%" },
+      annual: { amount: "$780", period: "/year", perMonth: "≈ $65 / month", savings: "Save 28%" },
+    },
+    desc: "Everything in Starter, plus AI and advanced reporting.",
     featured: true,
     badge: "Popular",
     features: [
-      "Inventory and warehouse records",
-      "Purchase and sales tracking",
-      "Customer and supplier records",
-      "Ledger management and reports",
-      "AI-powered business insights",
+      "20 user seats",
+      "Everything in Starter",
+      "AI companion for inventory questions",
+      "Advanced, exportable reports",
+      "Priority support",
     ],
+    cta: { type: "demo", label: "Contact Sales" },
   },
   {
-    name: "Annual",
-    slug: "annual",
-    billing: "Billed once per year",
-    price: "$350",
-    period: "/year",
-    perMonth: "≈ $29 / month",
-    savings: "Save 27%",
-    desc: "Best rate. Pay once, use TSO all year.",
+    name: "Enterprise",
+    seats: "Unlimited seats",
+    billing: "For larger operations with custom needs",
+    prices: { monthly: CUSTOM_PRICE, semiannual: CUSTOM_PRICE, annual: CUSTOM_PRICE },
+    desc: "Everything in Pro, plus dedicated support and a custom contract.",
     featured: false,
-    badge: "Best value",
+    badge: "Best for scale",
     features: [
-      "Inventory and warehouse records",
-      "Purchase and sales tracking",
-      "Customer and supplier records",
-      "Ledger management and reports",
-      "AI-powered business insights",
+      "Unlimited user seats",
+      "Everything in Pro",
+      "Dedicated onboarding and support",
+      "Custom contract and SLA",
     ],
+    cta: { type: "demo", label: "Contact Sales" },
   },
 ];
 
-function Pricing() {
+function Pricing({ onDemoClick }) {
   const rm = useReducedMotion();
+  const [cycle, setCycle] = useState("monthly");
   return (
     <section className={styles.section} id="pricing">
       <div className={styles.inner}>
@@ -545,52 +555,81 @@ function Pricing() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.4 }}
         >
-          <h2 className={styles.sectionHeading}>Simple, transparent pricing</h2>
+          <h2 className={styles.sectionHeading}>Plans that grow with your team</h2>
           <p className={styles.sectionSubLeft}>
-            All billing periods include full platform access: inventory, purchases, sales, ledger, reports, and AI
-            insights. Pay monthly for flexibility or save up to 27% by paying upfront.
+            Every plan includes inventory, purchases, sales, customers, and ledger management. Pro and Enterprise add
+            the AI companion, deeper reporting, and more seats. Prepay for 6 months or a year to save.
           </p>
+          <div className={styles.billingToggle} role="group" aria-label="Billing cycle">
+            {BILLING_CYCLES.map(({ key, label, badge }) => (
+              <button
+                key={key}
+                type="button"
+                className={`${styles.billingToggleBtn} ${cycle === key ? styles.billingToggleBtnActive : ""}`}
+                aria-pressed={cycle === key}
+                onClick={() => setCycle(key)}
+              >
+                {label}
+                {badge && <span className={styles.billingToggleBadge}>{badge}</span>}
+              </button>
+            ))}
+          </div>
         </motion.div>
         <div className={styles.pricingGrid}>
-          {PLANS.map((plan, i) => (
-            <motion.div
-              key={plan.name}
-              className={plan.featured ? styles.planCardFeatured : styles.planCard}
-              variants={fadeUp}
-              initial={rm ? false : "hidden"}
-              whileInView="visible"
-              custom={i}
-              viewport={{ once: true, amount: 0.15 }}
-            >
-              <div className={styles.planHeader}>
-                <span className={styles.planName}>{plan.name}</span>
-                {plan.badge && <span className={styles.planBadge}>{plan.badge}</span>}
-              </div>
-              <p className={styles.planBilling}>{plan.billing}</p>
-              <div className={styles.planPrice}>
-                <span className={styles.planPriceAmt}>{plan.price}</span>
-                {plan.period && <span className={styles.planPricePeriod}>{plan.period}</span>}
-              </div>
-              {plan.perMonth && <p className={styles.planPerMonth}>{plan.perMonth}</p>}
-              {plan.savings && <span className={styles.planSavings}>{plan.savings}</span>}
-              <p className={styles.planDesc}>{plan.desc}</p>
-              <div className={styles.planDivider} />
-              <ul className={styles.planFeatures} role="list">
-                {plan.features.map((feature) => (
-                  <li key={feature} className={styles.planFeatureItem}>
-                    <CheckIcon />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <a
-                className={plan.featured ? styles.planBtnFill : styles.planBtnOutline}
-                href={`/checkout?package=${plan.slug}`}
+          {TIERS.map((tier, i) => {
+            const priceInfo = tier.prices[cycle];
+            const canCheckout = tier.cta.type === "checkout" && tier.cta.supportedCycles.includes(cycle);
+            return (
+              <motion.div
+                key={tier.name}
+                className={tier.featured ? styles.planCardFeatured : styles.planCard}
+                variants={fadeUp}
+                initial={rm ? false : "hidden"}
+                whileInView="visible"
+                custom={i}
+                viewport={{ once: true, amount: 0.15 }}
               >
-                Proceed to payment
-              </a>
-            </motion.div>
-          ))}
+                <div className={styles.planHeader}>
+                  <span className={styles.planName}>{tier.name}</span>
+                  {tier.badge && <span className={styles.planBadge}>{tier.badge}</span>}
+                </div>
+                <p className={styles.planBilling}>{tier.billing}</p>
+                <div className={styles.planPrice}>
+                  <span className={styles.planPriceAmt}>{priceInfo.amount}</span>
+                  {priceInfo.period && <span className={styles.planPricePeriod}>{priceInfo.period}</span>}
+                </div>
+                {priceInfo.perMonth && <p className={styles.planPerMonth}>{priceInfo.perMonth}</p>}
+                {priceInfo.savings && <span className={styles.planSavings}>{priceInfo.savings}</span>}
+                <p className={styles.planSeats}>{tier.seats}</p>
+                <p className={styles.planDesc}>{tier.desc}</p>
+                <div className={styles.planDivider} />
+                <ul className={styles.planFeatures} role="list">
+                  {tier.features.map((feature) => (
+                    <li key={feature} className={styles.planFeatureItem}>
+                      <CheckIcon />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                {canCheckout ? (
+                  <a
+                    className={tier.featured ? styles.planBtnFill : styles.planBtnOutline}
+                    href={`/checkout?package=${cycle}`}
+                  >
+                    Proceed to payment
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    className={tier.featured ? styles.planBtnFill : styles.planBtnOutline}
+                    onClick={onDemoClick}
+                  >
+                    {tier.cta.type === "checkout" ? tier.cta.fallbackLabel : tier.cta.label}
+                  </button>
+                )}
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -795,7 +834,7 @@ export default function Landing() {
           <AiInsights />
           <WhyBuy />
           <SoftCta onDemoClick={openDemo} />
-          <Pricing />
+          <Pricing onDemoClick={openDemo} />
           <Faq openFaq={openFaq} setOpenFaq={setOpenFaq} />
           <FinalCta onDemoClick={openDemo} />
         </main>
