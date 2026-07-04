@@ -1943,6 +1943,11 @@
   background: var(--accent-hover);
 }
 
+.formSubmit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .formSubmit:active {
   transform: scale(0.97);
   transition: transform 80ms ease-out;
