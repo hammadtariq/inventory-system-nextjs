@@ -15,7 +15,7 @@ dayjs.extend(weekday);
 dayjs.extend(localeData);
 
 const { RangePicker } = DatePicker;
-const startToTodayDate = [dayjs().startOf("month"), dayjs().endOf("month")];
+const startToTodayDate = [dayjs().startOf("month"), dayjs()];
 
 const columns = [
   { title: "Customer Name", dataIndex: "name", key: "name" },

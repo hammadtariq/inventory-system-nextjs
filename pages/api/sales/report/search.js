@@ -68,7 +68,7 @@ const searchSalesReport = async (req, res) => {
     });
 
     if (filteredSales.length === 0) {
-      return res.status(404).send({ message: "No sales data found for the given criteria." });
+      return res.status(200).send({ count: 0, rows: [] });
     }
 
     const companies = await db.Company.findAll({
