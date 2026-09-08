@@ -91,16 +91,22 @@ const LedgerDetailsContent = ({ id, type }) => {
     },
     {
       title: "Paid By",
-      dataIndex: ["customer"],
+      dataIndex: "payByName",
       key: "customerName",
       render: (text, _data) =>
-        _data.customer ? (text ? `${text.firstName} ${text.lastName}` : "") : _data.otherName ? _data.otherName : "",
+        text ??
+        (_data.customer
+          ? `${_data.customer.firstName} ${_data.customer.lastName}`
+          : _data.otherName
+          ? _data.otherName
+          : ""),
     },
     {
       title: "Paid To",
-      dataIndex: ["company", "companyName"],
+      dataIndex: "payToName",
       key: "companyName",
-      render: (text, _data) => (_data.company ? text : _data.otherName ? _data.otherName : ""),
+      render: (text, _data) =>
+        text ?? (_data.company ? _data.company.companyName : _data.otherName ? _data.otherName : ""),
     },
     {
       title: "Payment Type",
@@ -137,7 +143,7 @@ const LedgerDetailsContent = ({ id, type }) => {
         // INVENTORY_RETURN always goes on debit side; REFUND always on credit — handle both old and new entries
         if (_data.paymentType === "REFUND") return "";
         if (_data.paymentType === "INVENTORY_RETURN") return comaSeparatedValues(Number(text).toFixed(2));
-        return _data.spendType === SPEND_TYPE.DEBIT ? comaSeparatedValues(Number(text).toFixed(2)) : "";
+        return _data.displaySpendType === SPEND_TYPE.DEBIT ? comaSeparatedValues(Number(text).toFixed(2)) : "";
       },
     },
     {
@@ -148,14 +154,14 @@ const LedgerDetailsContent = ({ id, type }) => {
         // REFUND always goes on credit side regardless of stored spendType (handles legacy DEBIT entries)
         if (_data.paymentType === "REFUND") return comaSeparatedValues(Number(text).toFixed(2));
         if (_data.paymentType === "INVENTORY_RETURN") return "";
-        return _data.spendType === SPEND_TYPE.CREDIT ? comaSeparatedValues(Number(text).toFixed(2)) : "";
+        return _data.displaySpendType === SPEND_TYPE.CREDIT ? comaSeparatedValues(Number(text).toFixed(2)) : "";
       },
     },
     {
       title: "Balance",
-      dataIndex: "runningBalance",
+      dataIndex: "partyBalance",
       key: "runningBalance",
-      render: (text) => comaSeparatedValues(Number(text).toFixed(2)),
+      render: (text, _data) => comaSeparatedValues(Number(text ?? _data.runningBalance).toFixed(2)),
     },
   ];
 

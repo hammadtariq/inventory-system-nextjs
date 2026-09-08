@@ -1,34 +1,37 @@
 import nextConnect from "next-connect";
+import { Op } from "sequelize";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { companySumQuery, customerSumQuery } from "@/query/index";
+import { resolveLedgerPartyFields, CASH_LIKE_PAYMENT_TYPES } from "@/utils/query.utils";
 import TenantContext from "@/lib/tenant-context";
-
-const CASH_LIKE_TYPES = new Set(["CASH", "ONLINE", "CHEQUE"]);
 
 const computeEntryDelta = (type, paymentType, spendType, amount) => {
   if (type === "company") {
-    if (CASH_LIKE_TYPES.has(paymentType) || spendType === "CREDIT") return -amount;
+    if (CASH_LIKE_PAYMENT_TYPES.has(paymentType) || spendType === "CREDIT") return -amount;
     if (spendType === "DEBIT") return amount;
     return 0;
   }
   // customer
   if (paymentType === "REFUND") return -amount;
-  if (CASH_LIKE_TYPES.has(paymentType) || paymentType === "INVENTORY_RETURN") return amount;
+  if (CASH_LIKE_PAYMENT_TYPES.has(paymentType) || paymentType === "INVENTORY_RETURN") return amount;
   if (spendType === "DEBIT") return amount;
   if (spendType === "CREDIT") return -amount;
   return 0;
 };
 
-const getTransactions = async (req, res) => {
+export const getTransactions = async (req, res) => {
   console.log("get transaction Request Start");
 
   try {
     await db.dbConnect();
     const { id, type = "company" } = req.query;
     const organizationId = TenantContext.assertGet();
-    const condition = type === "company" ? { companyId: id, organizationId } : { customerId: id, organizationId };
+    const condition =
+      type === "company"
+        ? { organizationId, [Op.or]: [{ companyId: id }, { payToCompanyId: id }, { payByCompanyId: id }] }
+        : { organizationId, [Op.or]: [{ customerId: id }, { payToCustomerId: id }, { payByCustomerId: id }] };
 
     // Fetch in ASC order so we can compute running balance chronologically
     const rows = await db.Ledger.findAll({
@@ -37,6 +40,10 @@ const getTransactions = async (req, res) => {
       include: [
         { model: db.Company, as: "company" },
         { model: db.Customer, as: "customer" },
+        { model: db.Company, as: "payToCompany" },
+        { model: db.Customer, as: "payToCustomer" },
+        { model: db.Company, as: "payByCompany" },
+        { model: db.Customer, as: "payByCustomer" },
       ],
     });
 
@@ -45,7 +52,8 @@ const getTransactions = async (req, res) => {
     const transactions = rows.map((row) => {
       const plain = row.toJSON();
       runningBalance += computeEntryDelta(type, plain.paymentType, plain.spendType, Number(plain.amount));
-      return { ...plain, runningBalance };
+      const { payToName, payByName, partyBalance, displaySpendType } = resolveLedgerPartyFields(plain, type, id);
+      return { ...plain, runningBalance, payToName, payByName, partyBalance, displaySpendType };
     });
 
     // Reverse to DESC for display (newest first)
