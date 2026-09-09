@@ -98,12 +98,7 @@ export const approveSaleOrder = async (id, t) => {
 
     const balance = await balanceQuery(customerId, "customer");
 
-    let totalBalance;
-    if (!balance.length) {
-      totalBalance = totalAmount;
-    } else {
-      totalBalance = balance[0].amount - totalAmount;
-    }
+    const totalBalance = (balance.length ? balance[0].amount : 0) - totalAmount;
 
     const ledger = await db.Ledger.create(
       {
