@@ -158,6 +158,9 @@ const PurchaseReport = () => {
 
   const uniqueInvoiceCount = new Set(updatedPurchase.map((r) => r.invoiceNo)).size;
 
+  const tableFooterKeys = ["noOfBales", "totalAmount"];
+  const getFooterLabel = (key) => (key === "noOfBales" ? "Total Bales" : "Total Amount (Rs)");
+
   const handleExportPDF = () => {
     const dateFrom = dateRange ? dateRange[0].format("DD-MM-YYYY") : "";
     const dateTo = dateRange ? dateRange[1].format("DD-MM-YYYY") : "";

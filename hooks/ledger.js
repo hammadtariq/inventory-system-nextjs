@@ -1,6 +1,7 @@
 import useSWR from "swr";
 import { get, post } from "@/lib/http-client";
 import { useState } from "react";
+import { shareFileViaWhatsApp } from "@/lib/whatsapp-share";
 
 export const useLedger = (type, search = "") => {
   const query = new URLSearchParams({ type, search }).toString();
@@ -30,7 +31,12 @@ export const useLedgerCustomerDetails = () => {
   const [errors, setErrors] = useState(null);
   const [totalAmount, setTotalAmount] = useState(null);
 
-  const download = async (id, type, fileType, monthKey) => {
+  const download = async (id, type, fileType, monthKey, action = "download", recipient = {}) => {
+    if (action === "whatsapp" && !recipient.phone) {
+      setErrors(`This ${type} has no WhatsApp number on file. Add a phone number before sending.`);
+      return;
+    }
+
     setExportLoading(true);
     setErrors(null);
 
@@ -51,6 +57,17 @@ export const useLedgerCustomerDetails = () => {
       setTotalAmount(response.headers.get("X-Total-Amount"));
 
       const blob = await response.blob();
+
+      if (action === "whatsapp") {
+        await shareFileViaWhatsApp({
+          blob,
+          fileName: `customer-ledger-${Date.now()}`,
+          messageTitle: recipient.name ? `Ledger Statement - ${recipient.name}` : "Ledger Statement",
+          phoneNumber: recipient.phone,
+        });
+        return;
+      }
+
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = downloadUrl;
@@ -60,7 +77,9 @@ export const useLedgerCustomerDetails = () => {
       link.remove();
     } catch (err) {
       console.error("Ledger export error:", err);
-      setErrors(err.message || "Failed to export ledger");
+      setErrors(
+        action === "whatsapp" ? "Failed to share file via WhatsApp." : err.message || "Failed to export ledger"
+      );
     } finally {
       setExportLoading(false);
     }
