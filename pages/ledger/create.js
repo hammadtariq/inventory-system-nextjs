@@ -15,15 +15,14 @@ import { VALIDATE_MESSAGE } from "@/utils/ui.util";
 import { createPayment } from "../../hooks/ledger";
 import { selectSearchFilter } from "@/utils/filter.util";
 
-const canCreate = permissionsUtil.checkAuth({
-  category: "transaction",
-  action: "create",
-});
-
 const { Option } = Select;
 const OTHER_SENTINEL = -1;
 
 const CreateTransaction = () => {
+  const canCreate = permissionsUtil.checkAuth({
+    category: "transaction",
+    action: "create",
+  });
   const router = useRouter();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
