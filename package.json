@@ -14,6 +14,7 @@
     "db:verify-security": "node scripts/verify-security.js",
     "db:bootstrap-super-admin": "node scripts/bootstrap-super-admin.js",
     "db:seed-demo-org": "node scripts/seed-demo-organization.js",
+    "db:resync-sequences": "node scripts/resync-tenant-sequences.js",
     "seo:audit": "node scripts/seo-audit.js",
     "test": "jest --watchman=false",
     "start": "next start",
