@@ -400,6 +400,27 @@ describe("updateInventory", () => {
     expect(db.Inventory.create).toHaveBeenCalled();
   });
 
+  it("bumps inventories_id_seq past a newly created inventory's explicit id, so the sequence never falls behind", async () => {
+    db.Inventory.findOne.mockResolvedValue(null);
+    db.Inventory.create.mockResolvedValue({ id: 123 });
+
+    await TenantContext.run(23, async () => updateInventory([product], 1, transaction));
+
+    expect(db.sequelize.query).toHaveBeenCalledWith(expect.stringContaining("setval"), {
+      replacements: { id: 123 },
+      transaction,
+    });
+  });
+
+  it("does not touch the sequence when reusing an existing inventory row", async () => {
+    const mockInventory = { increment: jest.fn(), update: jest.fn(), baleWeightKgs: 0, baleWeightLbs: 0 };
+    db.Inventory.findOne.mockResolvedValue(mockInventory);
+
+    await TenantContext.run(23, async () => updateInventory([product], 1, transaction));
+
+    expect(db.sequelize.query).not.toHaveBeenCalledWith(expect.stringContaining("setval"), expect.any(Object));
+  });
+
   it("should update inventory with null weights", async () => {
     const mockInv = {
       increment: jest.fn(),
