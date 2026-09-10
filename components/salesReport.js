@@ -19,7 +19,7 @@ dayjs.extend(weekday);
 dayjs.extend(localeData);
 
 const { RangePicker } = DatePicker;
-const startToTodayDate = [dayjs().startOf("month"), dayjs().endOf("month")];
+const startToTodayDate = [dayjs().startOf("month"), dayjs()];
 const tableFooterKeys = ["totalAmount", "ratePerBale", "ratePerLbs", "ratePerKgs", "noOfBales"];
 
 const getFooterLabel = (key) => key.replace(/([A-Z])/g, " $1").toUpperCase();

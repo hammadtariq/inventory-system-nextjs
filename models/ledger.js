@@ -5,6 +5,10 @@ module.exports = (sequelize, DataTypes) => {
     static associate({ Company, Customer }) {
       this.belongsTo(Company, { foreignKey: "companyId" });
       this.belongsTo(Customer, { foreignKey: "customerId" });
+      this.belongsTo(Company, { foreignKey: "payToCompanyId", as: "payToCompany" });
+      this.belongsTo(Customer, { foreignKey: "payToCustomerId", as: "payToCustomer" });
+      this.belongsTo(Company, { foreignKey: "payByCompanyId", as: "payByCompany" });
+      this.belongsTo(Customer, { foreignKey: "payByCustomerId", as: "payByCustomer" });
     }
     toJSON() {
       return { ...this.get(), companyId: undefined, customerId: undefined };
@@ -61,6 +65,30 @@ module.exports = (sequelize, DataTypes) => {
       },
       transactionId: {
         type: DataTypes.INTEGER,
+      },
+      payToCompanyId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      payToCustomerId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      payByCompanyId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      payByCustomerId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      payToTotal: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+      },
+      payByTotal: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
       },
       organizationId: {
         type: DataTypes.INTEGER,
