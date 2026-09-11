@@ -1,11 +1,20 @@
-import { Button, Dropdown, Menu, message, Spin } from "antd";
+import { Button, Dropdown, message, Spin } from "antd";
 import { DownloadOutlined, LoadingOutlined } from "@ant-design/icons";
 import { useExportFile } from "@/hooks/export";
 import { useState, useCallback, useEffect } from "react";
 import { PRINT_TYPE } from "@/utils/ui.util";
 import { useRouter } from "next/router";
+import { normalizePhoneForWhatsApp, shareFileViaWhatsApp } from "@/lib/whatsapp-share";
 
-const ExportButton = ({ filename, invoiceNumber, id = null, onlyIcon = false, filters }) => {
+const ExportButton = ({
+  filename,
+  invoiceNumber,
+  id = null,
+  onlyIcon = false,
+  filters,
+  whatsappPhone,
+  whatsappRecipientName,
+}) => {
   const [exportParams, setExportParams] = useState(null);
   const { fileBlob, isLoading: exportLoading, isError } = useExportFile(exportParams);
   const router = useRouter();
@@ -24,19 +33,30 @@ const ExportButton = ({ filename, invoiceNumber, id = null, onlyIcon = false, fi
     }, 1500);
   }, []);
 
-  const exportFile = useCallback(() => {
+  const exportFile = useCallback(async () => {
     if (!exportLoading && fileBlob && exportParams) {
       try {
         const fileType = exportParams.fileExtension === "pdf" ? "application/pdf" : "text/csv";
         const blob = new Blob([fileBlob], { type: fileType });
-        createLinkAndDownloadFile(blob, exportParams.fileName, exportParams.fileExtension);
+        if (exportParams.action === "whatsapp") {
+          await shareFileViaWhatsApp({
+            blob,
+            fileName: exportParams.fileName,
+            messageTitle: whatsappRecipientName ? `Ledger Statement - ${whatsappRecipientName}` : "Ledger Statement",
+            phoneNumber: whatsappPhone,
+          });
+        } else {
+          createLinkAndDownloadFile(blob, exportParams.fileName, exportParams.fileExtension);
+        }
       } catch (error) {
-        message.error("Error exporting file.");
+        message.error(
+          exportParams.action === "whatsapp" ? "Failed to share file via WhatsApp." : "Error exporting file."
+        );
       } finally {
         setExportParams(null);
       }
     }
-  }, [exportLoading, fileBlob, exportParams, createLinkAndDownloadFile]);
+  }, [exportLoading, fileBlob, exportParams, createLinkAndDownloadFile, whatsappPhone, whatsappRecipientName]);
 
   useEffect(() => {
     if (!exportLoading && !isError) {
@@ -44,16 +64,25 @@ const ExportButton = ({ filename, invoiceNumber, id = null, onlyIcon = false, fi
     }
   }, [exportFile, exportLoading, isError]);
 
-  const handleExport = (fileExtension, typeOf) => {
-    if (!exportLoading) {
-      setExportParams({ fileName: filename, fileExtension, invoiceNumber, id, filters, typeOf });
+  const handleExport = (fileExtension, typeOf, action = "download") => {
+    if (exportLoading) return;
+    if (action === "whatsapp" && !normalizePhoneForWhatsApp(whatsappPhone)) {
+      message.error("This recipient has no valid WhatsApp number on file. Add a phone number before sending.");
+      return;
     }
+    setExportParams({ fileName: filename, fileExtension, invoiceNumber, id, filters, typeOf, action });
   };
 
   const ledgerMenuProps = {
     items: [
       { key: "1", label: "Export as PDF", disabled: exportLoading, onClick: () => handleExport("pdf") },
       { key: "2", label: "Export as CSV", disabled: exportLoading, onClick: () => handleExport("csv") },
+      {
+        key: "3",
+        label: "Send via WhatsApp",
+        disabled: exportLoading,
+        onClick: () => handleExport("pdf", null, "whatsapp"),
+      },
     ],
   };
 

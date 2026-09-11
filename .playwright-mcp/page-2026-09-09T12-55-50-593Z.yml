@@ -1,0 +1,216 @@
+- generic [ref=f3e1]:
+    - generic [ref=f3e8]:
+        - complementary:
+            - complementary [ref=f3e10]:
+                - generic [ref=f3e11]:
+                    - generic [ref=f3e12]:
+                        - link [ref=f3e13] [cursor=pointer]:
+                            - /url: /dashboard
+                            - generic [ref=f3e14]:
+                                - img "Logo" [ref=f3e15]
+                                - heading "VAST APPAREL" [level=2] [ref=f3e16]
+                        - button [ref=f3e17] [cursor=pointer]:
+                            - img "menu-fold" [ref=f3e18]
+                    - menu [ref=f3e22]:
+                        - menuitem "dashboard Overview" [ref=f3e23] [cursor=pointer]:
+                            - img "dashboard" [ref=f3e24]
+                            - generic [ref=f3e27]: Overview
+                        - menuitem "user Customers" [ref=f3e28] [cursor=pointer]:
+                            - img "user" [ref=f3e29]
+                            - generic [ref=f3e32]: Customers
+                        - menuitem "team Company" [ref=f3e33] [cursor=pointer]:
+                            - img "team" [ref=f3e34]
+                            - generic [ref=f3e37]: Company
+                        - menuitem "tags Items List" [ref=f3e38] [cursor=pointer]:
+                            - img "tags" [ref=f3e39]
+                            - generic [ref=f3e42]: Items List
+                        - menuitem "shopping-cart Purchase" [ref=f3e43] [cursor=pointer]:
+                            - img "shopping-cart" [ref=f3e44]
+                            - generic [ref=f3e47]: Purchase
+                        - menuitem "shop Inventory" [ref=f3e48] [cursor=pointer]:
+                            - img "shop" [ref=f3e49]
+                            - generic [ref=f3e52]: Inventory
+                        - menuitem "shopping Sales" [ref=f3e53] [cursor=pointer]:
+                            - img "shopping" [ref=f3e54]
+                            - generic [ref=f3e57]: Sales
+                        - menuitem "rollback Sale Returns" [ref=f3e58] [cursor=pointer]:
+                            - img "rollback" [ref=f3e59]
+                            - generic [ref=f3e62]: Sale Returns
+                        - menuitem "file-text Quotation" [ref=f3e63] [cursor=pointer]:
+                            - img "file-text" [ref=f3e64]
+                            - generic [ref=f3e67]: Quotation
+                        - menuitem "account-book Ledger" [ref=f3e68] [cursor=pointer]:
+                            - img "account-book" [ref=f3e69]
+                            - generic [ref=f3e72]: Ledger
+                        - menuitem "bar-chart Reports" [ref=f3e73] [cursor=pointer]:
+                            - img "bar-chart" [ref=f3e74]
+                            - generic [ref=f3e77]: Reports
+                        - menuitem "dollar-circle Cheques" [ref=f3e78] [cursor=pointer]:
+                            - img "dollar-circle" [ref=f3e79]
+                            - generic [ref=f3e82]: Cheques
+                        - menuitem "user-add Users" [ref=f3e83] [cursor=pointer]:
+                            - img "user-add" [ref=f3e84]
+                            - generic [ref=f3e87]: Users
+                    - generic [ref=f3e89] [cursor=pointer]:
+                        - generic [ref=f3e90]: AR
+                        - generic [ref=f3e92]:
+                            - generic [ref=f3e93]: amina rahman
+                            - generic [ref=f3e94]: admin@trs.com
+        - main [ref=f3e96]:
+            - navigation [ref=f3e97]:
+                - list [ref=f3e98]:
+                    - listitem [ref=f3e99]:
+                        - link "LEDGER" [ref=f3e101] [cursor=pointer]:
+                            - /url: /ledger
+                    - listitem [aria-hidden] [ref=f3e102]: /
+                    - listitem [ref=f3e103]:
+                        - link "168" [ref=f3e105] [cursor=pointer]:
+                            - /url: /ledger/168?type=customer
+            - generic [ref=f3e107]:
+                - generic [ref=f3e108]:
+                    - generic [ref=f3e109]:
+                        - button "download Export" [ref=f3e111] [cursor=pointer]:
+                            - img "download" [ref=f3e113]
+                            - generic [ref=f3e116]: Export
+                        - generic [ref=f3e118]:
+                            - textbox "Start date" [ref=f3e120]
+                            - generic "to" [ref=f3e122]:
+                                - img "swap-right" [ref=f3e123]
+                            - textbox "End date" [ref=f3e127]
+                            - generic:
+                                - img "calendar"
+                    - generic [ref=f3e128]:
+                        - generic [ref=f3e129]: "Total Balance (RS):"
+                        - generic [ref=f3e130]: "-3,832.11"
+                - table [ref=f3e137]:
+                    - rowgroup [ref=f3e144]:
+                        - row [ref=f3e145]:
+                            - 'columnheader "Serial No #" [ref=f3e146]'
+                            - columnheader "Date" [ref=f3e147]
+                            - columnheader "Paid By" [ref=f3e148]
+                            - columnheader "Paid To" [ref=f3e149]
+                            - columnheader "Payment Type" [ref=f3e150]
+                            - columnheader "Invoice Number" [ref=f3e151]
+                            - columnheader "Debit Amount (Rs)" [ref=f3e152]
+                            - columnheader "Credit Amount (Rs)" [ref=f3e153]
+                            - columnheader "Balance" [ref=f3e154]
+                            - columnheader "Action" [ref=f3e155]
+                    - rowgroup [ref=f3e156]:
+                        - row [ref=f3e157]:
+                            - cell "16174" [ref=f3e158]
+                            - cell "06-09-2026" [ref=f3e159]
+                            - cell "Robert Martinez" [ref=f3e160]
+                            - cell [ref=f3e161]
+                            - cell [ref=f3e162]
+                            - cell [ref=f3e163]:
+                                - link "5981" [ref=f3e164] [cursor=pointer]:
+                                    - /url: /sales/5981?type=view
+                            - cell [ref=f3e165]
+                            - cell "98.47" [ref=f3e166]
+                            - cell "-3,832.11" [ref=f3e167]
+                            - cell [ref=f3e168]:
+                                - img "eye" [ref=f3e169] [cursor=pointer]
+                                - img "download" [active] [ref=f3e172] [cursor=pointer]
+                        - row [ref=f3e175]:
+                            - cell "16173" [ref=f3e176]
+                            - cell "30-07-2026" [ref=f3e177]
+                            - cell "Robert Martinez" [ref=f3e178]
+                            - cell [ref=f3e179]
+                            - cell "AMOUNT REFUND" [ref=f3e180]
+                            - cell [ref=f3e181]
+                            - cell [ref=f3e182]
+                            - cell "53.43" [ref=f3e183]
+                            - cell "-3,733.64" [ref=f3e184]
+                            - cell [ref=f3e185]
+                        - row [ref=f3e186]:
+                            - cell "16172" [ref=f3e187]
+                            - cell "22-07-2026" [ref=f3e188]
+                            - cell "Robert Martinez" [ref=f3e189]
+                            - cell [ref=f3e190]
+                            - cell [ref=f3e191]
+                            - cell [ref=f3e192]:
+                                - link "6007" [ref=f3e193] [cursor=pointer]:
+                                    - /url: /sales/6007?type=view
+                            - cell [ref=f3e194]
+                            - cell "35.30" [ref=f3e195]
+                            - cell "-3,680.21" [ref=f3e196]
+                            - cell [ref=f3e197]:
+                                - img "eye" [ref=f3e198] [cursor=pointer]
+                                - img "download" [ref=f3e201] [cursor=pointer]
+                        - row [ref=f3e204]:
+                            - cell "16171" [ref=f3e205]
+                            - cell "21-06-2026" [ref=f3e206]
+                            - cell "Robert Martinez" [ref=f3e207]
+                            - cell [ref=f3e208]
+                            - cell "ONLINE" [ref=f3e209]
+                            - cell [ref=f3e210]
+                            - cell "63.59" [ref=f3e211]
+                            - cell [ref=f3e212]
+                            - cell "-3,644.91" [ref=f3e213]
+                            - cell [ref=f3e214]
+                        - row [ref=f3e215]:
+                            - cell "16170" [ref=f3e216]
+                            - cell "10-06-2026" [ref=f3e217]
+                            - cell "Robert Martinez" [ref=f3e218]
+                            - cell [ref=f3e219]
+                            - cell [ref=f3e220]
+                            - cell [ref=f3e221]:
+                                - link "6241" [ref=f3e222] [cursor=pointer]:
+                                    - /url: /sales/6241?type=view
+                            - cell [ref=f3e223]
+                            - cell "1,787.88" [ref=f3e224]
+                            - cell "-3,708.50" [ref=f3e225]
+                            - cell [ref=f3e226]:
+                                - img "eye" [ref=f3e227] [cursor=pointer]
+                                - img "download" [ref=f3e230] [cursor=pointer]
+                        - row [ref=f3e233]:
+                            - cell "16169" [ref=f3e234]
+                            - cell "05-06-2026" [ref=f3e235]
+                            - cell "Robert Martinez" [ref=f3e236]
+                            - cell [ref=f3e237]
+                            - cell [ref=f3e238]
+                            - cell [ref=f3e239]:
+                                - link "6052" [ref=f3e240] [cursor=pointer]:
+                                    - /url: /sales/6052?type=view
+                            - cell [ref=f3e241]
+                            - cell "118.37" [ref=f3e242]
+                            - cell "-1,920.62" [ref=f3e243]
+                            - cell [ref=f3e244]:
+                                - img "eye" [ref=f3e245] [cursor=pointer]
+                                - img "download" [ref=f3e248] [cursor=pointer]
+                        - row [ref=f3e251]:
+                            - cell "16168" [ref=f3e252]
+                            - cell "30-01-2026" [ref=f3e253]
+                            - cell "Robert Martinez" [ref=f3e254]
+                            - cell [ref=f3e255]
+                            - cell [ref=f3e256]
+                            - cell [ref=f3e257]:
+                                - link "6194" [ref=f3e258] [cursor=pointer]:
+                                    - /url: /sales/6194?type=view
+                            - cell [ref=f3e259]
+                            - cell "1,770.66" [ref=f3e260]
+                            - cell "-1,802.25" [ref=f3e261]
+                            - cell [ref=f3e262]:
+                                - img "eye" [ref=f3e263] [cursor=pointer]
+                                - img "download" [ref=f3e266] [cursor=pointer]
+                        - row [ref=f3e269]:
+                            - cell "16167" [ref=f3e270]
+                            - cell "15-12-2025" [ref=f3e271]
+                            - cell "Robert Martinez" [ref=f3e272]
+                            - cell [ref=f3e273]
+                            - cell [ref=f3e274]
+                            - cell [ref=f3e275]:
+                                - link "6051" [ref=f3e276] [cursor=pointer]:
+                                    - /url: /sales/6051?type=view
+                            - cell [ref=f3e277]
+                            - cell "31.59" [ref=f3e278]
+                            - cell "-31.59" [ref=f3e279]
+                            - cell [ref=f3e280]:
+                                - img "eye" [ref=f3e281] [cursor=pointer]
+                                - img "download" [ref=f3e284] [cursor=pointer]
+    - button "Open Next.js Dev Tools" [ref=f3e292] [cursor=pointer]
+    - alert [ref=f3e296]: /ledger/168?type=customer
+    - menu [ref=f3e298]:
+        - menuitem "Export as PDF" [ref=f3e299] [cursor=pointer]
+        - menuitem "Export as CSV" [ref=f3e301] [cursor=pointer]
+        - menuitem "Send via WhatsApp" [ref=f3e303] [cursor=pointer]

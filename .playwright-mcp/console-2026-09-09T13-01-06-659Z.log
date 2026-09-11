@@ -1,0 +1,2 @@
+[     470ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://api.whatsapp.com/data/manifest.json:0
+[     517ms] [ERROR] Manifest fetch from https://api.whatsapp.com/data/manifest.json failed, code 404 @ https://api.whatsapp.com/send/?phone=14999930602&text=Ledger+Statement+-+Robert+Martinez%0Ahttp%3A%2F%2Flocalhost%3A3000%2Fapi%2Fexport%2Ffile%2F7c8a9af6-9889-416b-9477-831ae59bb43f&type=phone_number&app_absent=0:0

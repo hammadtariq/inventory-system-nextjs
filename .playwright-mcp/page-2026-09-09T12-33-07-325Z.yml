@@ -1,0 +1,161 @@
+- generic [ref=f7e1]:
+    - generic [ref=f7e18]:
+        - complementary:
+            - complementary [ref=f7e20]:
+                - generic [ref=f7e21]:
+                    - generic [ref=f7e22]:
+                        - link [ref=f7e23] [cursor=pointer]:
+                            - /url: /dashboard
+                            - generic [ref=f7e24]:
+                                - img "Logo" [ref=f7e25]
+                                - heading "VAST APPAREL" [level=2] [ref=f7e26]
+                        - button [ref=f7e27] [cursor=pointer]:
+                            - img "menu-fold" [ref=f7e28]
+                    - menu [ref=f7e32]:
+                        - menuitem "dashboard Overview" [ref=f7e33] [cursor=pointer]:
+                            - img "dashboard" [ref=f7e34]
+                            - generic [ref=f7e37]: Overview
+                        - menuitem "user Customers" [ref=f7e38] [cursor=pointer]:
+                            - img "user" [ref=f7e39]
+                            - generic [ref=f7e42]: Customers
+                        - menuitem "team Company" [ref=f7e43] [cursor=pointer]:
+                            - img "team" [ref=f7e44]
+                            - generic [ref=f7e47]: Company
+                        - menuitem "tags Items List" [ref=f7e48] [cursor=pointer]:
+                            - img "tags" [ref=f7e49]
+                            - generic [ref=f7e52]: Items List
+                        - menuitem "shopping-cart Purchase" [ref=f7e53] [cursor=pointer]:
+                            - img "shopping-cart" [ref=f7e54]
+                            - generic [ref=f7e57]: Purchase
+                        - menuitem "shop Inventory" [ref=f7e58] [cursor=pointer]:
+                            - img "shop" [ref=f7e59]
+                            - generic [ref=f7e62]: Inventory
+                        - menuitem "shopping Sales" [ref=f7e63] [cursor=pointer]:
+                            - img "shopping" [ref=f7e64]
+                            - generic [ref=f7e67]: Sales
+                        - menuitem "rollback Sale Returns" [ref=f7e68] [cursor=pointer]:
+                            - img "rollback" [ref=f7e69]
+                            - generic [ref=f7e72]: Sale Returns
+                        - menuitem "file-text Quotation" [ref=f7e73] [cursor=pointer]:
+                            - img "file-text" [ref=f7e74]
+                            - generic [ref=f7e77]: Quotation
+                        - menuitem "account-book Ledger" [ref=f7e78] [cursor=pointer]:
+                            - img "account-book" [ref=f7e79]
+                            - generic [ref=f7e82]: Ledger
+                        - menuitem "bar-chart Reports" [ref=f7e83] [cursor=pointer]:
+                            - img "bar-chart" [ref=f7e84]
+                            - generic [ref=f7e87]: Reports
+                        - menuitem "dollar-circle Cheques" [ref=f7e88] [cursor=pointer]:
+                            - img "dollar-circle" [ref=f7e89]
+                            - generic [ref=f7e92]: Cheques
+                        - menuitem "user-add Users" [ref=f7e93] [cursor=pointer]:
+                            - img "user-add" [ref=f7e94]
+                            - generic [ref=f7e97]: Users
+                    - generic [ref=f7e99] [cursor=pointer]:
+                        - generic [ref=f7e100]: AR
+                        - generic [ref=f7e102]:
+                            - generic [ref=f7e103]: amina rahman
+                            - generic [ref=f7e104]: admin@trs.com
+        - main [ref=f7e106]:
+            - navigation [ref=f7e107]:
+                - list [ref=f7e108]:
+                    - listitem [ref=f7e109]:
+                        - link "LEDGER" [ref=f7e111] [cursor=pointer]:
+                            - /url: /ledger
+                    - listitem [aria-hidden] [ref=f7e112]: /
+                    - listitem [ref=f7e113]:
+                        - link "79" [ref=f7e115] [cursor=pointer]:
+                            - /url: /ledger/79?type=company
+            - generic [ref=f7e117]:
+                - generic [ref=f7e118]:
+                    - generic [ref=f7e119]:
+                        - button "download Export" [active] [ref=f7e121] [cursor=pointer]:
+                            - img "download" [ref=f7e123]
+                            - generic [ref=f7e126]: Export
+                        - generic [ref=f7e128]:
+                            - textbox "Start date" [ref=f7e130]
+                            - generic "to" [ref=f7e132]:
+                                - img "swap-right" [ref=f7e133]
+                            - textbox "End date" [ref=f7e137]
+                            - generic:
+                                - img "calendar"
+                    - generic [ref=f7e138]:
+                        - generic [ref=f7e139]: "Total Balance (RS):"
+                        - generic [ref=f7e140]: 46,526.25
+                - table [ref=f7e147]:
+                    - rowgroup [ref=f7e154]:
+                        - row [ref=f7e155]:
+                            - 'columnheader "Serial No #" [ref=f7e156]'
+                            - columnheader "Date" [ref=f7e157]
+                            - columnheader "Paid By" [ref=f7e158]
+                            - columnheader "Paid To" [ref=f7e159]
+                            - columnheader "Payment Type" [ref=f7e160]
+                            - columnheader "Invoice Number" [ref=f7e161]
+                            - columnheader "Debit Amount (Rs)" [ref=f7e162]
+                            - columnheader "Credit Amount (Rs)" [ref=f7e163]
+                            - columnheader "Balance" [ref=f7e164]
+                    - rowgroup [ref=f7e165]:
+                        - row [ref=f7e166]:
+                            - cell "15986" [ref=f7e167]
+                            - cell "14-05-2026" [ref=f7e168]
+                            - cell [ref=f7e169]
+                            - cell "Meridian Textiles" [ref=f7e170]
+                            - cell [ref=f7e171]
+                            - cell [ref=f7e172]:
+                                - link "PINV-1139" [ref=f7e173] [cursor=pointer]:
+                                    - /url: /purchase/1164?type=view
+                            - cell "14,178.00" [ref=f7e174]
+                            - cell [ref=f7e175]
+                            - cell "46,526.25" [ref=f7e176]
+                        - row [ref=f7e177]:
+                            - cell "15985" [ref=f7e178]
+                            - cell "21-02-2026" [ref=f7e179]
+                            - cell [ref=f7e180]
+                            - cell "Meridian Textiles" [ref=f7e181]
+                            - cell [ref=f7e182]
+                            - cell [ref=f7e183]:
+                                - link "PINV-1214" [ref=f7e184] [cursor=pointer]:
+                                    - /url: /purchase/1239?type=view
+                            - cell "7,840.00" [ref=f7e185]
+                            - cell [ref=f7e186]
+                            - cell "32,348.25" [ref=f7e187]
+                        - row [ref=f7e188]:
+                            - cell "15984" [ref=f7e189]
+                            - cell "18-01-2026" [ref=f7e190]
+                            - cell [ref=f7e191]
+                            - cell "Meridian Textiles" [ref=f7e192]
+                            - cell "CHEQUE" [ref=f7e193]
+                            - cell [ref=f7e194]
+                            - cell [ref=f7e195]
+                            - cell "5,131.75" [ref=f7e196]
+                            - cell "24,508.25" [ref=f7e197]
+                        - row [ref=f7e198]:
+                            - cell "15983" [ref=f7e199]
+                            - cell "31-12-2025" [ref=f7e200]
+                            - cell [ref=f7e201]
+                            - cell "Meridian Textiles" [ref=f7e202]
+                            - cell [ref=f7e203]
+                            - cell [ref=f7e204]:
+                                - link "PINV-1229" [ref=f7e205] [cursor=pointer]:
+                                    - /url: /purchase/1254?type=view
+                            - cell "23,246.00" [ref=f7e206]
+                            - cell [ref=f7e207]
+                            - cell "29,640.00" [ref=f7e208]
+                        - row [ref=f7e209]:
+                            - cell "15982" [ref=f7e210]
+                            - cell "17-09-2025" [ref=f7e211]
+                            - cell [ref=f7e212]
+                            - cell "Meridian Textiles" [ref=f7e213]
+                            - cell [ref=f7e214]
+                            - cell [ref=f7e215]:
+                                - link "PINV-1017" [ref=f7e216] [cursor=pointer]:
+                                    - /url: /purchase/1042?type=view
+                            - cell "6,394.00" [ref=f7e217]
+                            - cell [ref=f7e218]
+                            - cell "6,394.00" [ref=f7e219]
+    - button "Open Next.js Dev Tools" [ref=f7e12] [cursor=pointer]
+    - alert [ref=f7e16]: /ledger/79?type=company
+    - menu [ref=f7e221]:
+        - menuitem "Export as PDF" [ref=f7e222] [cursor=pointer]
+        - menuitem "Export as CSV" [ref=f7e224] [cursor=pointer]
+        - menuitem "Send via WhatsApp" [ref=f7e226] [cursor=pointer]

@@ -12,6 +12,7 @@ import { companySumQuery, customerSumQuery } from "@/query/index";
 import { resolveLedgerPartyFields } from "@/utils/query.utils";
 import { capitalizeName } from "@/utils/ui.util";
 import TenantContext from "@/lib/tenant-context";
+import { ImageBase64URL } from "public/pdfImage/PDFImage";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -65,6 +66,11 @@ const generateCustomerLedgerPdf = (transactions, totalBalance, headerFrom, heade
   const doc = new jsPDF("landscape", "pt", "a4");
   const pageWidth = doc.internal.pageSize.getWidth();
 
+  // 0. Logo, top-right, aligned with the table's right margin
+  const logoWidth = 95;
+  const logoHeight = 85;
+  doc.addImage(ImageBase64URL, "PNG", pageWidth - 40 - logoWidth, 12, logoWidth, logoHeight);
+
   // 1. Header title (customer/company)
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
@@ -98,6 +104,11 @@ const generateCustomerLedgerPdf = (transactions, totalBalance, headerFrom, heade
   doc.setFontSize(9);
   doc.text(`Date: ${now.format("DD-MMM-YYYY")}`, 40, 105);
   doc.text(`Time: ${now.format("hh:mm A")}`, pageWidth - 110, 105);
+
+  // 3b. Subtle separator between header block and table
+  doc.setDrawColor(225, 225, 225);
+  doc.setLineWidth(1);
+  doc.line(40, 112, pageWidth - 40, 112);
 
   // 4. Table Headers
   const headers = [
@@ -134,7 +145,7 @@ const generateCustomerLedgerPdf = (transactions, totalBalance, headerFrom, heade
 
   // 6. Render Table
   autoTable(doc, {
-    startY: 110,
+    startY: 120,
     head: headers,
     showHead: "firstPage",
     body: rows,
@@ -148,7 +159,7 @@ const generateCustomerLedgerPdf = (transactions, totalBalance, headerFrom, heade
     },
     headStyles: {
       fontStyle: "bold",
-      fillColor: [255, 255, 255],
+      fillColor: [245, 245, 245],
       textColor: 0,
       lineWidth: 0,
     },
@@ -218,7 +229,11 @@ const generateCustomerLedgerPdf = (transactions, totalBalance, headerFrom, heade
   doc.setFont("helvetica", "normal");
   doc.text(comaSeparatedValues(totalDebit.toFixed(2)), debitX - 15, finalY + 10, { align: "right" });
   doc.text(comaSeparatedValues(totalCredit.toFixed(2)), creditX - 15, finalY + 10, { align: "right" });
+
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(30, 41, 59); // subtle slate emphasis for the closing balance figure
   doc.text(comaSeparatedValues(closingBalance.toFixed(2)), closingBalanceX, finalY + 10, { align: "right" });
+  doc.setTextColor(0, 0, 0);
 
   return doc.output("arraybuffer");
 };

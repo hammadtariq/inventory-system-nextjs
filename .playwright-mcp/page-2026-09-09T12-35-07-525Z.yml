@@ -1,0 +1,325 @@
+- generic [ref=f9e1]:
+    - generic [ref=f9e18]:
+        - complementary:
+            - complementary [ref=f9e20]:
+                - generic [ref=f9e21]:
+                    - generic [ref=f9e22]:
+                        - link [ref=f9e23] [cursor=pointer]:
+                            - /url: /dashboard
+                            - generic [ref=f9e24]:
+                                - img "Logo" [ref=f9e25]
+                                - heading "VAST APPAREL" [level=2] [ref=f9e26]
+                        - button [ref=f9e27] [cursor=pointer]:
+                            - img "menu-fold" [ref=f9e28]
+                    - menu [ref=f9e32]:
+                        - menuitem "dashboard Overview" [ref=f9e33] [cursor=pointer]:
+                            - img "dashboard" [ref=f9e34]
+                            - generic [ref=f9e37]: Overview
+                        - menuitem "user Customers" [ref=f9e38] [cursor=pointer]:
+                            - img "user" [ref=f9e39]
+                            - generic [ref=f9e42]: Customers
+                        - menuitem "team Company" [ref=f9e43] [cursor=pointer]:
+                            - img "team" [ref=f9e44]
+                            - generic [ref=f9e47]: Company
+                        - menuitem "tags Items List" [ref=f9e48] [cursor=pointer]:
+                            - img "tags" [ref=f9e49]
+                            - generic [ref=f9e52]: Items List
+                        - menuitem "shopping-cart Purchase" [ref=f9e53] [cursor=pointer]:
+                            - img "shopping-cart" [ref=f9e54]
+                            - generic [ref=f9e57]: Purchase
+                        - menuitem "shop Inventory" [ref=f9e58] [cursor=pointer]:
+                            - img "shop" [ref=f9e59]
+                            - generic [ref=f9e62]: Inventory
+                        - menuitem "shopping Sales" [ref=f9e63] [cursor=pointer]:
+                            - img "shopping" [ref=f9e64]
+                            - generic [ref=f9e67]: Sales
+                        - menuitem "rollback Sale Returns" [ref=f9e68] [cursor=pointer]:
+                            - img "rollback" [ref=f9e69]
+                            - generic [ref=f9e72]: Sale Returns
+                        - menuitem "file-text Quotation" [ref=f9e73] [cursor=pointer]:
+                            - img "file-text" [ref=f9e74]
+                            - generic [ref=f9e77]: Quotation
+                        - menuitem "account-book Ledger" [ref=f9e78] [cursor=pointer]:
+                            - img "account-book" [ref=f9e79]
+                            - generic [ref=f9e82]: Ledger
+                        - menuitem "bar-chart Reports" [ref=f9e83] [cursor=pointer]:
+                            - img "bar-chart" [ref=f9e84]
+                            - generic [ref=f9e87]: Reports
+                        - menuitem "dollar-circle Cheques" [ref=f9e88] [cursor=pointer]:
+                            - img "dollar-circle" [ref=f9e89]
+                            - generic [ref=f9e92]: Cheques
+                        - menuitem "user-add Users" [ref=f9e93] [cursor=pointer]:
+                            - img "user-add" [ref=f9e94]
+                            - generic [ref=f9e97]: Users
+                    - generic [ref=f9e99] [cursor=pointer]:
+                        - generic [ref=f9e100]: AR
+                        - generic [ref=f9e102]:
+                            - generic [ref=f9e103]: amina rahman
+                            - generic [ref=f9e104]: admin@trs.com
+        - main [ref=f9e106]:
+            - navigation [ref=f9e107]:
+                - list [ref=f9e108]:
+                    - listitem [ref=f9e109]:
+                        - link "REPORTS" [ref=f9e111] [cursor=pointer]:
+                            - /url: /reports
+            - generic [ref=f9e113]:
+                - heading "Reports" [level=2] [ref=f9e117]
+                - generic [ref=f9e118]:
+                    - tablist [ref=f9e119]:
+                        - generic [ref=f9e121]:
+                            - tab "Sales" [selected] [ref=f9e123] [cursor=pointer]
+                            - tab "Purchase" [ref=f9e125] [cursor=pointer]
+                            - tab "Inventory" [ref=f9e127] [cursor=pointer]
+                            - tab "Customers" [ref=f9e129] [cursor=pointer]
+                    - tabpanel "Sales" [ref=f9e132]:
+                        - generic [ref=f9e133]:
+                            - generic [ref=f9e134]:
+                                - generic [ref=f9e138]:
+                                    - generic [ref=f9e139]: Total Invoices
+                                    - generic [ref=f9e141]: "5"
+                                - generic [ref=f9e146]:
+                                    - generic [ref=f9e147]: Total Bales
+                                    - generic [ref=f9e149]: "140.00"
+                                - generic [ref=f9e154]:
+                                    - generic [ref=f9e155]: Total Amount (Rs)
+                                    - generic [ref=f9e157]: 1,473.48
+                            - generic [ref=f9e159]:
+                                - generic [ref=f9e161]:
+                                    - generic [ref=f9e162]: Filters
+                                    - generic [ref=f9e164]:
+                                        - button "file-pdf PDF" [ref=f9e165] [cursor=pointer]:
+                                            - img "file-pdf" [ref=f9e167]
+                                            - generic [ref=f9e170]: PDF
+                                        - button "file-excel Excel" [ref=f9e171] [cursor=pointer]:
+                                            - img "file-excel" [ref=f9e173]
+                                            - generic [ref=f9e176]: Excel
+                                        - button "whats-app WhatsApp" [active] [ref=f9e177] [cursor=pointer]:
+                                            - img "whats-app" [ref=f9e448]
+                                            - generic [ref=f9e183]: WhatsApp
+                                - generic [ref=f9e185]:
+                                    - generic [ref=f9e186]:
+                                        - generic [ref=f9e187]: Customer
+                                        - generic [ref=f9e190] [cursor=pointer]:
+                                            - combobox "Search customer..." [ref=f9e192]
+                                            - button [ref=f9e194]:
+                                                - img "search" [ref=f9e195]
+                                    - generic [ref=f9e198]:
+                                        - generic [ref=f9e199]: Company
+                                        - generic [ref=f9e202] [cursor=pointer]:
+                                            - combobox "Search company..." [ref=f9e204]
+                                            - button [ref=f9e206]:
+                                                - img "search" [ref=f9e207]
+                                    - generic [ref=f9e210]:
+                                        - generic [ref=f9e211]: Item
+                                        - generic [ref=f9e214] [cursor=pointer]:
+                                            - combobox "Search item..." [ref=f9e216]
+                                            - button [ref=f9e218]:
+                                                - img "search" [ref=f9e219]
+                                    - generic [ref=f9e222]:
+                                        - generic [ref=f9e223]: Date Range
+                                        - generic [ref=f9e224]:
+                                            - textbox "Start date" [ref=f9e226]: 2026-09-01
+                                            - generic "to" [ref=f9e228]:
+                                                - img "swap-right" [ref=f9e229]
+                                            - textbox "End date" [ref=f9e233]: 2026-09-09
+                                            - generic:
+                                                - img "calendar"
+                                            - button [ref=f9e234] [cursor=pointer]:
+                                                - img "close-circle" [ref=f9e235]
+                            - generic [ref=f9e240]:
+                                - generic [ref=f9e241]:
+                                    - table [ref=f9e244]:
+                                        - rowgroup [ref=f9e245]:
+                                            - row [ref=f9e246]:
+                                                - columnheader "Invoice NO" [ref=f9e247]
+                                                - columnheader "ITEM NAME" [ref=f9e248]
+                                                - columnheader "COMPANY" [ref=f9e249]
+                                                - columnheader "CUSTOMER" [ref=f9e250]
+                                                - columnheader "Bale Weight (LBS)" [ref=f9e251]
+                                                - columnheader "Bale Weight (KGS)" [ref=f9e252]
+                                                - columnheader "Rate Per (LBS)" [ref=f9e253]
+                                                - columnheader "Rate Per (KGS)" [ref=f9e254]
+                                                - columnheader "Rate Per Bale" [ref=f9e255]
+                                                - columnheader "No Of Bales" [ref=f9e256]
+                                                - columnheader "Labour Charge" [ref=f9e257]
+                                                - columnheader "Sold Date" [ref=f9e258]
+                                        - rowgroup [ref=f9e259]:
+                                            - row [ref=f9e260]:
+                                                - cell "5981" [ref=f9e261]
+                                                - cell "bath towels" [ref=f9e262]
+                                                - cell "Coastal Wholesale" [ref=f9e263]
+                                                - cell "Robert Martinez" [ref=f9e264]
+                                                - cell "-" [ref=f9e265]
+                                                - cell "124.00" [ref=f9e266]
+                                                - cell "-" [ref=f9e267]
+                                                - cell "3.51" [ref=f9e268]
+                                                - cell "-" [ref=f9e269]
+                                                - cell "6.00" [ref=f9e270]
+                                                - cell "45.96" [ref=f9e271]
+                                                - cell "09/06/2026" [ref=f9e272]
+                                            - row [ref=f9e273]:
+                                                - cell "5981" [ref=f9e274]
+                                                - cell "undergarments sealed" [ref=f9e275]
+                                                - cell "Amber Fabrics" [ref=f9e276]
+                                                - cell "Robert Martinez" [ref=f9e277]
+                                                - cell "-" [ref=f9e278]
+                                                - cell "130.00" [ref=f9e279]
+                                                - cell "-" [ref=f9e280]
+                                                - cell "1.60" [ref=f9e281]
+                                                - cell "-" [ref=f9e282]
+                                                - cell "20.00" [ref=f9e283]
+                                                - cell "45.96" [ref=f9e284]
+                                                - cell "09/06/2026" [ref=f9e285]
+                                            - row [ref=f9e286]:
+                                                - cell "5981" [ref=f9e287]
+                                                - cell "woolen coats" [ref=f9e288]
+                                                - cell "Meridian Exports" [ref=f9e289]
+                                                - cell "Robert Martinez" [ref=f9e290]
+                                                - cell "189.00" [ref=f9e291]
+                                                - cell "-" [ref=f9e292]
+                                                - cell "2.39" [ref=f9e293]
+                                                - cell "-" [ref=f9e294]
+                                                - cell "-" [ref=f9e295]
+                                                - cell "19.00" [ref=f9e296]
+                                                - cell "45.96" [ref=f9e297]
+                                                - cell "09/06/2026" [ref=f9e298]
+                                            - row [ref=f9e299]:
+                                                - cell "5999" [ref=f9e300]
+                                                - cell "ladies cotton tops" [ref=f9e301]
+                                                - cell "Highland Imports" [ref=f9e302]
+                                                - cell "Robert Hernandez" [ref=f9e303]
+                                                - cell "-" [ref=f9e304]
+                                                - cell "62.00" [ref=f9e305]
+                                                - cell "-" [ref=f9e306]
+                                                - cell "5.61" [ref=f9e307]
+                                                - cell "-" [ref=f9e308]
+                                                - cell "3.00" [ref=f9e309]
+                                                - cell "0.00" [ref=f9e310]
+                                                - cell "09/05/2026" [ref=f9e311]
+                                            - row [ref=f9e312]:
+                                                - cell "5999" [ref=f9e313]
+                                                - cell "track suits mixed" [ref=f9e314]
+                                                - cell "Highland Fabrics" [ref=f9e315]
+                                                - cell "Robert Hernandez" [ref=f9e316]
+                                                - cell "290.00" [ref=f9e317]
+                                                - cell "-" [ref=f9e318]
+                                                - cell "0.93" [ref=f9e319]
+                                                - cell "-" [ref=f9e320]
+                                                - cell "-" [ref=f9e321]
+                                                - cell "8.00" [ref=f9e322]
+                                                - cell "0.00" [ref=f9e323]
+                                                - cell "09/05/2026" [ref=f9e324]
+                                            - row [ref=f9e325]:
+                                                - cell "5999" [ref=f9e326]
+                                                - cell "ladies dresses mixed" [ref=f9e327]
+                                                - cell "Meridian Garments" [ref=f9e328]
+                                                - cell "Robert Hernandez" [ref=f9e329]
+                                                - cell "-" [ref=f9e330]
+                                                - cell "175.00" [ref=f9e331]
+                                                - cell "-" [ref=f9e332]
+                                                - cell "6.47" [ref=f9e333]
+                                                - cell "-" [ref=f9e334]
+                                                - cell "17.00" [ref=f9e335]
+                                                - cell "0.00" [ref=f9e336]
+                                                - cell "09/05/2026" [ref=f9e337]
+                                            - row [ref=f9e338]:
+                                                - cell "6036" [ref=f9e339]
+                                                - cell "ladies dresses mixed" [ref=f9e340]
+                                                - cell "Highland Bale House" [ref=f9e341]
+                                                - cell "Robert Thompson" [ref=f9e342]
+                                                - cell "-" [ref=f9e343]
+                                                - cell "186.00" [ref=f9e344]
+                                                - cell "-" [ref=f9e345]
+                                                - cell "6.02" [ref=f9e346]
+                                                - cell "-" [ref=f9e347]
+                                                - cell "9.00" [ref=f9e348]
+                                                - cell "58.55" [ref=f9e349]
+                                                - cell "09/08/2026" [ref=f9e350]
+                                            - row [ref=f9e351]:
+                                                - cell "6036" [ref=f9e352]
+                                                - cell "mixed winter jackets" [ref=f9e353]
+                                                - cell "Amber Garments" [ref=f9e354]
+                                                - cell "Robert Thompson" [ref=f9e355]
+                                                - cell "237.00" [ref=f9e356]
+                                                - cell "-" [ref=f9e357]
+                                                - cell "2.85" [ref=f9e358]
+                                                - cell "-" [ref=f9e359]
+                                                - cell "-" [ref=f9e360]
+                                                - cell "13.00" [ref=f9e361]
+                                                - cell "58.55" [ref=f9e362]
+                                                - cell "09/08/2026" [ref=f9e363]
+                                            - row [ref=f9e364]:
+                                                - cell "6036" [ref=f9e365]
+                                                - cell "suit jackets mixed" [ref=f9e366]
+                                                - cell "Amber Imports" [ref=f9e367]
+                                                - cell "Robert Thompson" [ref=f9e368]
+                                                - cell "275.00" [ref=f9e369]
+                                                - cell "-" [ref=f9e370]
+                                                - cell "1.69" [ref=f9e371]
+                                                - cell "-" [ref=f9e372]
+                                                - cell "-" [ref=f9e373]
+                                                - cell "11.00" [ref=f9e374]
+                                                - cell "58.55" [ref=f9e375]
+                                                - cell "09/08/2026" [ref=f9e376]
+                                            - row [ref=f9e377]:
+                                                - cell "6103" [ref=f9e378]
+                                                - cell "ladies cotton tops" [ref=f9e379]
+                                                - cell "Ironwood Wholesale" [ref=f9e380]
+                                                - cell "Mary Taylor" [ref=f9e381]
+                                                - cell "178.00" [ref=f9e382]
+                                                - cell "-" [ref=f9e383]
+                                                - cell "3.21" [ref=f9e384]
+                                                - cell "-" [ref=f9e385]
+                                                - cell "-" [ref=f9e386]
+                                                - cell "17.00" [ref=f9e387]
+                                                - cell "0.00" [ref=f9e388]
+                                                - cell "09/02/2026" [ref=f9e389]
+                                            - row [ref=f9e390]:
+                                                - cell "6182" [ref=f9e391]
+                                                - cell "leather jackets grade a" [ref=f9e392]
+                                                - cell "Ironwood Fabrics" [ref=f9e393]
+                                                - cell "Robert Clark" [ref=f9e394]
+                                                - cell "197.00" [ref=f9e395]
+                                                - cell "-" [ref=f9e396]
+                                                - cell "0.67" [ref=f9e397]
+                                                - cell "-" [ref=f9e398]
+                                                - cell "-" [ref=f9e399]
+                                                - cell "8.00" [ref=f9e400]
+                                                - cell "0.00" [ref=f9e401]
+                                                - cell "09/01/2026" [ref=f9e402]
+                                            - row [ref=f9e403]:
+                                                - cell "6182" [ref=f9e404]
+                                                - cell "sweaters grade b" [ref=f9e405]
+                                                - cell "Amber Traders" [ref=f9e406]
+                                                - cell "Robert Clark" [ref=f9e407]
+                                                - cell "-" [ref=f9e408]
+                                                - cell "-" [ref=f9e409]
+                                                - cell "-" [ref=f9e410]
+                                                - cell "-" [ref=f9e411]
+                                                - cell "119.00" [ref=f9e412]
+                                                - cell "9.00" [ref=f9e413]
+                                                - cell "0.00" [ref=f9e414]
+                                                - cell "09/01/2026" [ref=f9e415]
+                                    - generic [ref=f9e417]:
+                                        - generic [ref=f9e418]:
+                                            - strong [ref=f9e419]: "Total Bales:"
+                                            - spinbutton [ref=f9e421]: "140"
+                                        - generic [ref=f9e422]:
+                                            - strong [ref=f9e423]: "Total Amount (Rs):"
+                                            - spinbutton [ref=f9e425]: 1,473.48
+                                - list [ref=f9e426]:
+                                    - listitem "Previous Page" [ref=f9e427]:
+                                        - button [disabled] [ref=f9e428]:
+                                            - img "left" [ref=f9e429]
+                                    - listitem "1" [ref=f9e432] [cursor=pointer]
+                                    - listitem "Next Page" [ref=f9e434]:
+                                        - button [disabled] [ref=f9e435]:
+                                            - img "right" [ref=f9e436]
+                                    - listitem [ref=f9e439]:
+                                        - generic [ref=f9e440]:
+                                            - generic "50 / page" [ref=f9e441]:
+                                                - text: 50 / page
+                                                - combobox "Page Size" [ref=f9e442]
+                                            - img "down" [ref=f9e444]
+    - button "Open Next.js Dev Tools" [ref=f9e12] [cursor=pointer]
+    - alert [ref=f9e16]

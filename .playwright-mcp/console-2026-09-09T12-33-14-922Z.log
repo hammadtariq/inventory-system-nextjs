@@ -1,0 +1,4 @@
+[     541ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://api.whatsapp.com/data/manifest.json:0
+[     822ms] [ERROR] Manifest fetch from https://api.whatsapp.com/data/manifest.json failed, code 404 @ https://api.whatsapp.com/send/?phone=923453397377&text=Ledger+Statement%0Ahttp%3A%2F%2Flocalhost%3A3000%2Fapi%2Fexport%2Ffile%2F295ed40d-2202-4e88-bd91-8280d6b95f29&type=phone_number&app_absent=0:0
+[    1320ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://api.whatsapp.com/data/manifest.json:0
+[    1354ms] [ERROR] Manifest fetch from https://api.whatsapp.com/data/manifest.json failed, code 404 @ https://api.whatsapp.com/send/?phone=923453397377&text=Ledger+Statement%0Ahttp%3A%2F%2Flocalhost%3A3000%2Fapi%2Fexport%2Ffile%2F295ed40d-2202-4e88-bd91-8280d6b95f29&type=phone_number&app_absent=0:0

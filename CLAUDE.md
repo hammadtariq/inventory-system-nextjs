@@ -37,6 +37,7 @@ POSTGRES_PASSWORD=password
 TOKEN_SECRET=minimum-32-characters-long-token-secret
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
+NEXT_PUBLIC_WHATSAPP_NUMBER=<international-format-number-no-plus>  # "Send via WhatsApp" export feature (dev/test value only)
 ```
 
 Start the database: `docker-compose up -d`
