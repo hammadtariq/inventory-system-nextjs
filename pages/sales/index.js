@@ -8,12 +8,13 @@ import AppTable from "@/components/table";
 import AppTitle from "@/components/title";
 import SearchInput from "@/components/SearchInput";
 import { approveSale, cancelSale, useSales, searchSales, getAllSalesbyCustomer } from "@/hooks/sales";
-import { EDITABLE_STATUS } from "@/utils/api.util";
+import { EDITABLE_STATUS, STATUS } from "@/utils/api.util";
 import { getColumnSearchProps } from "@/utils/filter.util";
 import permissionsUtil from "@/utils/permission.util";
 import { DATE_FORMAT, STATUS_COLORS } from "@/utils/ui.util";
 import { CheckOutlined, CloseOutlined, EditOutlined } from "@ant-design/icons";
 import { comaSeparatedValues } from "@/utils/comaSeparatedValues";
+import SendInvoiceWhatsApp from "@/components/sendInvoiceWhatsApp";
 
 const Sales = () => {
   const { sales, error, isLoading, paginationHandler, mutate } = useSales();
@@ -97,6 +98,14 @@ const Sales = () => {
           style={{ color: STATUS_COLORS.EDIT }}
           className="editBtn"
           onClick={() => router.push(`/sales/${text.id}`)}
+        />
+      );
+    } else if (record.status === STATUS.APPROVED) {
+      return (
+        <SendInvoiceWhatsApp
+          invoiceNumber={record.id}
+          phone={record.customer?.phone}
+          recipientName={record.customer ? `${record.customer.firstName} ${record.customer.lastName}` : undefined}
         />
       );
     }
