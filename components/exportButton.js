@@ -4,7 +4,7 @@ import { useExportFile } from "@/hooks/export";
 import { useState, useCallback, useEffect } from "react";
 import { PRINT_TYPE } from "@/utils/ui.util";
 import { useRouter } from "next/router";
-import { shareFileViaWhatsApp } from "@/lib/whatsapp-share";
+import { normalizePhoneForWhatsApp, shareFileViaWhatsApp } from "@/lib/whatsapp-share";
 
 const ExportButton = ({
   filename,
@@ -66,8 +66,8 @@ const ExportButton = ({
 
   const handleExport = (fileExtension, typeOf, action = "download") => {
     if (exportLoading) return;
-    if (action === "whatsapp" && !whatsappPhone) {
-      message.error("This recipient has no WhatsApp number on file. Add a phone number before sending.");
+    if (action === "whatsapp" && !normalizePhoneForWhatsApp(whatsappPhone)) {
+      message.error("This recipient has no valid WhatsApp number on file. Add a phone number before sending.");
       return;
     }
     setExportParams({ fileName: filename, fileExtension, invoiceNumber, id, filters, typeOf, action });
