@@ -52,4 +52,4 @@ exportedFiles
 .env*
 
 # MCP Playwright-mcp
-.playwright-mcp/
+.playwright-mcp/*
