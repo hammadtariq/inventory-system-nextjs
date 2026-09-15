@@ -33,7 +33,7 @@ const searchPurchaseReport = async (req, res) => {
     });
 
     if (!purchases.rows.length) {
-      return res.status(404).json({ message: "No purchases found for the given criteria." });
+      return res.status(200).json({ count: 0, rows: [] });
     }
 
     // Filter purchases based on companyId and itemName
@@ -53,7 +53,7 @@ const searchPurchaseReport = async (req, res) => {
       .filter(Boolean);
 
     if (!filteredPurchases.length) {
-      return res.status(404).json({ message: "No purchases match the filtered criteria." });
+      return res.status(200).json({ count: 0, rows: [] });
     }
 
     // Extract unique company IDs from the filtered purchases

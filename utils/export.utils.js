@@ -345,7 +345,7 @@ export function generateQuotationTable(doc, tableData) {
  * @param {object[]} opts.rows
  * @param {{ label: string, value: number|string }[]} [opts.summary]
  */
-export function exportReportToPDF({ title, dateRange, filterLabel, columns, rows, summary }) {
+export function exportReportToPDF({ title, dateRange, filterLabel, columns, rows, summary, skipSave = false }) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.width;
 
@@ -447,7 +447,11 @@ export function exportReportToPDF({ title, dateRange, filterLabel, columns, rows
     });
   }
 
-  doc.save(`${title.replace(/\s+/g, "_").toLowerCase()}_${Date.now()}.pdf`);
+  if (!skipSave) {
+    doc.save(`${title.replace(/\s+/g, "_").toLowerCase()}_${Date.now()}.pdf`);
+  }
+
+  return doc;
 }
 
 // ─── Number → words ──────────────────────────────────────────────────────────

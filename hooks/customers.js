@@ -27,7 +27,7 @@ export const useCustomers = () => {
 };
 
 export const useCustomer = (id) => {
-  const { data, error } = useSWR(`/api/customer/${id}`, get);
+  const { data, error } = useSWR(id ? `/api/customer/${id}` : null, get);
 
   return {
     customer: data,

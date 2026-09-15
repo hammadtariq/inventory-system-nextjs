@@ -19,10 +19,7 @@ dayjs.extend(weekday);
 dayjs.extend(localeData);
 
 const { RangePicker } = DatePicker;
-const startToTodayDate = [dayjs().startOf("month"), dayjs().endOf("month")];
-const tableFooterKeys = ["totalAmount", "ratePerBale", "ratePerLbs", "ratePerKgs", "noOfBales"];
-
-const getFooterLabel = (key) => key.replace(/([A-Z])/g, " $1").toUpperCase();
+const startToTodayDate = [dayjs().startOf("month"), dayjs()];
 
 const columns = [
   { title: "Invoice NO", dataIndex: "invoiceNo", key: "invoiceNo" },
@@ -157,6 +154,9 @@ const PurchaseReport = () => {
   }, [fetchPurchaseData]);
 
   const uniqueInvoiceCount = new Set(updatedPurchase.map((r) => r.invoiceNo)).size;
+
+  const tableFooterKeys = ["noOfBales", "totalAmount"];
+  const getFooterLabel = (key) => (key === "noOfBales" ? "Total Bales" : "Total Amount (Rs)");
 
   const handleExportPDF = () => {
     const dateFrom = dateRange ? dateRange[0].format("DD-MM-YYYY") : "";

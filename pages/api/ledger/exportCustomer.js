@@ -9,8 +9,10 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { Op } from "sequelize";
 import { companySumQuery, customerSumQuery } from "@/query/index";
+import { resolveLedgerPartyFields } from "@/utils/query.utils";
 import { capitalizeName } from "@/utils/ui.util";
 import TenantContext from "@/lib/tenant-context";
+import { ImageBase64URL } from "public/pdfImage/PDFImage";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -18,39 +20,34 @@ dayjs.extend(timezone);
 // Utility for comma formatting
 const comaSeparatedValues = (val) => val?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
-const getLedgerBalance = (transaction, type) => {
+const getLedgerBalance = (transaction, type, id) => {
   if (!transaction) return 0;
 
-  const balance = type === "company" ? transaction.companyTotal : transaction.customerTotal;
-  return Number(balance ?? transaction.totalBalance ?? 0);
+  const { partyBalance } = resolveLedgerPartyFields(transaction, type, id);
+  return Number(partyBalance ?? transaction.totalBalance ?? 0);
 };
 
-const getDebitAmount = (transaction, type) => {
-  const { paymentType, spendType, amount } = transaction;
-  if (type === "customer") {
-    // REFUND always on credit side; INVENTORY_RETURN always on debit side
-    if (paymentType === "REFUND") return 0;
-    if (paymentType === "INVENTORY_RETURN") return amount || 0;
-    if (["CASH", "ONLINE", "CHEQUE"].includes(paymentType)) return amount || 0;
-    return spendType === "DEBIT" ? amount || 0 : 0;
-  }
-  // company
-  if (["CASH", "ONLINE", "CHEQUE"].includes(paymentType)) return amount || 0;
-  return spendType === "DEBIT" ? amount || 0 : 0;
+// Mirrors the live ledger table's column logic (pages/ledger/[id].js) exactly: REFUND and
+// INVENTORY_RETURN are fixed sides regardless of party or role (they only ever occur on legacy
+// customer rows), everything else defers to resolveLedgerPartyFields's displaySpendType, which
+// is already role-aware for Pay To/Pay By rows and paymentType-aware for legacy company rows.
+// Do NOT special-case CASH/ONLINE/CHEQUE here ahead of that — for a role-based row (e.g. a
+// customer-to-customer payment), a cash-like paymentType does not mean "always debit"; it
+// depends on whether the viewed party is the Pay To or Pay By side.
+const getDebitAmount = (transaction, type, id) => {
+  const { paymentType, amount } = transaction;
+  if (paymentType === "REFUND") return 0;
+  if (paymentType === "INVENTORY_RETURN") return amount || 0;
+  const { displaySpendType } = resolveLedgerPartyFields(transaction, type, id);
+  return displaySpendType === "DEBIT" ? amount || 0 : 0;
 };
 
-const getCreditAmount = (transaction, type) => {
-  const { paymentType, spendType, amount } = transaction;
-  if (type === "customer") {
-    // REFUND always on credit side (handles both legacy DEBIT entries and new CREDIT entries)
-    if (paymentType === "REFUND") return amount || 0;
-    if (paymentType === "INVENTORY_RETURN") return 0;
-    if (["CASH", "ONLINE", "CHEQUE"].includes(paymentType)) return 0;
-    return spendType === "CREDIT" ? amount || 0 : 0;
-  }
-  // company
-  if (["CASH", "ONLINE", "CHEQUE"].includes(paymentType)) return 0;
-  return spendType === "CREDIT" ? amount || 0 : 0;
+const getCreditAmount = (transaction, type, id) => {
+  const { paymentType, amount } = transaction;
+  if (paymentType === "REFUND") return amount || 0;
+  if (paymentType === "INVENTORY_RETURN") return 0;
+  const { displaySpendType } = resolveLedgerPartyFields(transaction, type, id);
+  return displaySpendType === "CREDIT" ? amount || 0 : 0;
 };
 
 // Helper: parse optional dates
@@ -65,9 +62,14 @@ const parseDateRange = (startDate, endDate) => {
 };
 
 // Generate PDF
-const generateCustomerLedgerPdf = (transactions, totalBalance, headerFrom, headerTo, type, balanceMap) => {
+const generateCustomerLedgerPdf = (transactions, totalBalance, headerFrom, headerTo, type, id, balanceMap) => {
   const doc = new jsPDF("landscape", "pt", "a4");
   const pageWidth = doc.internal.pageSize.getWidth();
+
+  // 0. Logo, top-right, aligned with the table's right margin
+  const logoWidth = 95;
+  const logoHeight = 85;
+  doc.addImage(ImageBase64URL, "PNG", pageWidth - 40 - logoWidth, 12, logoWidth, logoHeight);
 
   // 1. Header title (customer/company)
   doc.setFontSize(14);
@@ -103,6 +105,11 @@ const generateCustomerLedgerPdf = (transactions, totalBalance, headerFrom, heade
   doc.text(`Date: ${now.format("DD-MMM-YYYY")}`, 40, 105);
   doc.text(`Time: ${now.format("hh:mm A")}`, pageWidth - 110, 105);
 
+  // 3b. Subtle separator between header block and table
+  doc.setDrawColor(225, 225, 225);
+  doc.setLineWidth(1);
+  doc.line(40, 112, pageWidth - 40, 112);
+
   // 4. Table Headers
   const headers = [
     [
@@ -118,26 +125,27 @@ const generateCustomerLedgerPdf = (transactions, totalBalance, headerFrom, heade
 
   // 5. Rows
   const rows = transactions.map((row) => {
-    const rowBalance = balanceMap ? balanceMap.get(row.id) : getLedgerBalance(row, type);
+    const rowBalance = balanceMap ? balanceMap.get(row.id) : getLedgerBalance(row, type, id);
+    const { payToName } = resolveLedgerPartyFields(row, type, id);
     return [
       row.paymentDate ? dayjs(row.paymentDate).format("DD-MM-YYYY") : "",
-      row.company ? row.company.companyName : row.otherName || "",
+      payToName,
       row.reference || "",
       row.invoiceNumber || "",
-      getDebitAmount(row, type) ? comaSeparatedValues(getDebitAmount(row, type).toFixed(2)) : "",
-      getCreditAmount(row, type) ? comaSeparatedValues(getCreditAmount(row, type).toFixed(2)) : "",
+      getDebitAmount(row, type, id) ? comaSeparatedValues(getDebitAmount(row, type, id).toFixed(2)) : "",
+      getCreditAmount(row, type, id) ? comaSeparatedValues(getCreditAmount(row, type, id).toFixed(2)) : "",
       comaSeparatedValues(Number(rowBalance ?? 0).toFixed(2)),
     ];
   });
 
-  const totalDebit = transactions.reduce((acc, row) => acc + getDebitAmount(row, type), 0);
-  const totalCredit = transactions.reduce((acc, row) => acc + getCreditAmount(row, type), 0);
+  const totalDebit = transactions.reduce((acc, row) => acc + getDebitAmount(row, type, id), 0);
+  const totalCredit = transactions.reduce((acc, row) => acc + getCreditAmount(row, type, id), 0);
 
   const closingBalance = totalBalance || 0;
 
   // 6. Render Table
   autoTable(doc, {
-    startY: 110,
+    startY: 120,
     head: headers,
     showHead: "firstPage",
     body: rows,
@@ -151,7 +159,7 @@ const generateCustomerLedgerPdf = (transactions, totalBalance, headerFrom, heade
     },
     headStyles: {
       fontStyle: "bold",
-      fillColor: [255, 255, 255],
+      fillColor: [245, 245, 245],
       textColor: 0,
       lineWidth: 0,
     },
@@ -221,32 +229,37 @@ const generateCustomerLedgerPdf = (transactions, totalBalance, headerFrom, heade
   doc.setFont("helvetica", "normal");
   doc.text(comaSeparatedValues(totalDebit.toFixed(2)), debitX - 15, finalY + 10, { align: "right" });
   doc.text(comaSeparatedValues(totalCredit.toFixed(2)), creditX - 15, finalY + 10, { align: "right" });
+
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(30, 41, 59); // subtle slate emphasis for the closing balance figure
   doc.text(comaSeparatedValues(closingBalance.toFixed(2)), closingBalanceX, finalY + 10, { align: "right" });
+  doc.setTextColor(0, 0, 0);
 
   return doc.output("arraybuffer");
 };
 
 // Generate CSV
-const sanitizeTransactions = (transactions, type, balanceMap) =>
+const sanitizeTransactions = (transactions, type, id, balanceMap) =>
   transactions.map((t) => {
-    const id = t.id;
+    const rowId = t.id;
     if (typeof t.get === "function") {
       t = t.get({ plain: true });
     }
-    const rowBalance = balanceMap ? balanceMap.get(id) : getLedgerBalance(t, type);
+    const rowBalance = balanceMap ? balanceMap.get(rowId) : getLedgerBalance(t, type, id);
+    const { payToName } = resolveLedgerPartyFields(t, type, id);
     return {
       Date: t.paymentDate ? dayjs(t.paymentDate).format("DD-MM-YYYY") : "",
-      PaidTo: t.company ? t.company.companyName : t.otherName || "",
+      PaidTo: payToName,
       reference: t.reference,
-      Debit: getDebitAmount(t, type) ? getDebitAmount(t, type).toFixed(2) : "",
-      Credit: getCreditAmount(t, type) ? getCreditAmount(t, type).toFixed(2) : "",
+      Debit: getDebitAmount(t, type, id) ? getDebitAmount(t, type, id).toFixed(2) : "",
+      Credit: getCreditAmount(t, type, id) ? getCreditAmount(t, type, id).toFixed(2) : "",
       ClosingBalance: Number(rowBalance ?? 0).toFixed(2),
     };
   });
 
-const generateCustomerLedgerCsv = (transactions, type, balanceMap) => {
+const generateCustomerLedgerCsv = (transactions, type, id, balanceMap) => {
   try {
-    const cleanData = sanitizeTransactions(transactions, type, balanceMap);
+    const cleanData = sanitizeTransactions(transactions, type, id, balanceMap);
     const csv = json2csv(cleanData);
     return Buffer.from(csv);
   } catch (error) {
@@ -255,7 +268,7 @@ const generateCustomerLedgerCsv = (transactions, type, balanceMap) => {
   }
 };
 
-const exportCustomerLedger = async (req, res) => {
+export const exportCustomerLedger = async (req, res) => {
   try {
     await db.dbConnect();
     const { id, type, fileType, startDate, endDate } = req.query;
@@ -270,7 +283,10 @@ const exportCustomerLedger = async (req, res) => {
     if (error) return res.status(400).json({ message: error });
 
     // Build where clause
-    const baseCondition = type === "company" ? { companyId: id, organizationId } : { customerId: id, organizationId };
+    const baseCondition =
+      type === "company"
+        ? { organizationId, [Op.or]: [{ companyId: id }, { payToCompanyId: id }, { payByCompanyId: id }] }
+        : { organizationId, [Op.or]: [{ customerId: id }, { payToCustomerId: id }, { payByCustomerId: id }] };
     const where = { ...baseCondition };
 
     // Apply inclusive date filter only if both dates are provided
@@ -294,6 +310,22 @@ const exportCustomerLedger = async (req, res) => {
           model: db.Customer,
           as: "customer",
         },
+        {
+          model: db.Company,
+          as: "payToCompany",
+        },
+        {
+          model: db.Customer,
+          as: "payToCustomer",
+        },
+        {
+          model: db.Company,
+          as: "payByCompany",
+        },
+        {
+          model: db.Customer,
+          as: "payByCustomer",
+        },
       ],
     });
 
@@ -310,7 +342,9 @@ const exportCustomerLedger = async (req, res) => {
 
     // Use stored per-row balances (customerTotal/companyTotal) to match what the UI displays
     const dateFilterApplied = !!(startDate || endDate);
-    const effectiveClosingBalance = dateFilterApplied ? getLedgerBalance(transactions[0], type) : totalBalanceFromQuery;
+    const effectiveClosingBalance = dateFilterApplied
+      ? getLedgerBalance(transactions[0], type, id)
+      : totalBalanceFromQuery;
 
     // Prepare header dates for PDF (if filters provided)
     const headerFrom = start ? start.format("DD-MMM-YYYY") : null;
@@ -323,6 +357,7 @@ const exportCustomerLedger = async (req, res) => {
         headerFrom,
         headerTo,
         type,
+        id,
         null
       );
       res.setHeader("Content-Type", "application/pdf");
@@ -332,7 +367,7 @@ const exportCustomerLedger = async (req, res) => {
     }
 
     if (fileType === "csv") {
-      const csv = generateCustomerLedgerCsv(transactions, type, null);
+      const csv = generateCustomerLedgerCsv(transactions, type, id, null);
       res.setHeader("Content-Type", "text/csv");
       res.setHeader("Content-Disposition", `attachment; filename=customer-ledger.csv`);
       res.setHeader("X-Total-Amount", effectiveClosingBalance);

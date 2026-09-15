@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { Button, Form, Input, Radio, Select } from "antd";
+import { Button, Form, Input, message, Radio, Select } from "antd";
 import dayjs from "dayjs";
 import { useRouter } from "next/router";
 
@@ -15,43 +15,61 @@ import { VALIDATE_MESSAGE } from "@/utils/ui.util";
 import { createPayment } from "../../hooks/ledger";
 import { selectSearchFilter } from "@/utils/filter.util";
 
-const canCreate = permissionsUtil.checkAuth({
-  category: "transaction",
-  action: "create",
-});
-
 const { Option } = Select;
+const OTHER_SENTINEL = -1;
 
 const CreateTransaction = () => {
+  const canCreate = permissionsUtil.checkAuth({
+    category: "transaction",
+    action: "create",
+  });
   const router = useRouter();
+  const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [companyId, setCompanyId] = useState();
-  const [customerId, setCustomerId] = useState();
+
+  const [payToType, setPayToType] = useState("company");
+  const [payByType, setPayByType] = useState("customer");
+  const [payToId, setPayToId] = useState();
+  const [payById, setPayById] = useState();
 
   const [paymentType, setPaymentType] = useState(PAYMENT_TYPE.CASH);
 
   const { company, isLoading: companyLoading } = useCompanyAttributes(["companyName", "id"]);
   const { customers, isLoading: customerLoading } = useCustomerAttributes(["firstName", "lastName", "id"]);
 
-  const companyData = company ? [{ id: -1, companyName: "Other" }, ...company] : [];
-  const customerData = customers ? [{ id: -1, firstName: "Other", lastName: "" }, ...customers] : [];
+  const companyData = company || [];
+  const customerData = customers || [];
+
+  const isDefaultCombo = payToType === "company" && payByType === "customer";
+  const payToCompanyData = isDefaultCombo
+    ? [{ id: OTHER_SENTINEL, companyName: "Other" }, ...companyData]
+    : companyData;
+  const payByCustomerData = isDefaultCombo
+    ? [{ id: OTHER_SENTINEL, firstName: "Other", lastName: "" }, ...customerData]
+    : customerData;
 
   const onFinish = async (values) => {
+    if (payToType === payByType && payToId === payById && payToId !== OTHER_SENTINEL && payToId !== undefined) {
+      message.error("Pay To and Pay By cannot be the same party");
+      return;
+    }
+
     setLoading(true);
     try {
       const { totalAmount, otherName, paymentDate, reference } = values;
 
       let params = {
+        payToType,
+        payToId,
+        payByType,
+        payById,
         totalAmount,
         reference,
         spendType: SPEND_TYPE.DEBIT, // todo
         paymentDate: dayjs(paymentDate),
         paymentType,
-        otherName: companyId === -1 || customerId === -1 ? otherName : "",
+        otherName: payToId === OTHER_SENTINEL || payById === OTHER_SENTINEL ? otherName : "",
       };
-
-      params = companyId !== -1 ? { ...params, companyId } : params;
-      params = customerId !== -1 ? { ...params, customerId } : params;
 
       params =
         paymentType === PAYMENT_TYPE.CHEQUE
@@ -70,13 +88,26 @@ const CreateTransaction = () => {
     setPaymentType(e.target.value);
   };
 
-  const handleSelectCompany = (value) => {
-    setCompanyId(value);
+  const handlePayToTypeChange = (e) => {
+    setPayToType(e.target.value);
+    setPayToId(undefined);
+    form.setFieldsValue({ payToId: undefined });
   };
 
-  const handleSelectCustomer = (value) => {
-    setCustomerId(value);
+  const handlePayByTypeChange = (e) => {
+    setPayByType(e.target.value);
+    setPayById(undefined);
+    form.setFieldsValue({ payById: undefined });
   };
+
+  const handleSelectPayTo = (value) => {
+    setPayToId(value);
+  };
+
+  const handleSelectPayBy = (value) => {
+    setPayById(value);
+  };
+
   const renderCheckForm = () => {
     return (
       <>
@@ -110,7 +141,7 @@ const CreateTransaction = () => {
     <div>
       <h2>Create Transaction</h2>
 
-      <Form layout="vertical" name="nest-messages" onFinish={onFinish} validateMessages={VALIDATE_MESSAGE}>
+      <Form form={form} layout="vertical" name="nest-messages" onFinish={onFinish} validateMessages={VALIDATE_MESSAGE}>
         <Form.Item name="paymentType" label="Payment Type">
           <Radio.Group onChange={onChange} defaultValue={PAYMENT_TYPE.CASH} value={paymentType}>
             <Radio value={PAYMENT_TYPE.CASH}>Cash</Radio>
@@ -119,8 +150,16 @@ const CreateTransaction = () => {
           </Radio.Group>
         </Form.Item>
         {paymentType === "CHEQUE" ? renderCheckForm() : null}
+
+        <Form.Item label="Pay To Type">
+          <Radio.Group onChange={handlePayToTypeChange} value={payToType}>
+            <Radio value="company">Company</Radio>
+            <Radio value="customer">Customer</Radio>
+          </Radio.Group>
+        </Form.Item>
+
         <Form.Item
-          name="companyId"
+          name="payToId"
           label="Paid To"
           rules={[
             {
@@ -128,25 +167,42 @@ const CreateTransaction = () => {
             },
           ]}
         >
-          <Select
-            showSearch
-            filterOption={selectSearchFilter}
-            optionFilterProp="children"
-            loading={companyLoading}
-            placeholder="Select Company"
-            allowClear
-            onChange={handleSelectCompany}
-          >
-            {companyData &&
-              companyData.map((obj) => (
-                <Option key={obj.id} value={obj.id} disabled={obj.id === -1 && customerId === -1}>
+          {payToType === "company" ? (
+            <Select
+              showSearch
+              filterOption={selectSearchFilter}
+              optionFilterProp="children"
+              loading={companyLoading}
+              placeholder="Select Company"
+              allowClear
+              onChange={handleSelectPayTo}
+            >
+              {payToCompanyData.map((obj) => (
+                <Option key={obj.id} value={obj.id} disabled={obj.id === OTHER_SENTINEL && payById === OTHER_SENTINEL}>
                   {obj.companyName}
                 </Option>
               ))}
-          </Select>
+            </Select>
+          ) : (
+            <Select
+              showSearch
+              filterOption={selectSearchFilter}
+              optionFilterProp="children"
+              loading={customerLoading}
+              placeholder="Select Customer"
+              allowClear
+              onChange={handleSelectPayTo}
+            >
+              {customerData.map((obj) => (
+                <Option key={obj.id} value={obj.id}>
+                  {`${obj.firstName} ${obj.lastName}`}
+                </Option>
+              ))}
+            </Select>
+          )}
         </Form.Item>
 
-        {companyId === -1 ? (
+        {payToId === OTHER_SENTINEL ? (
           <Form.Item
             name="otherName"
             label="Name"
@@ -161,8 +217,15 @@ const CreateTransaction = () => {
           </Form.Item>
         ) : null}
 
+        <Form.Item label="Pay By Type">
+          <Radio.Group onChange={handlePayByTypeChange} value={payByType}>
+            <Radio value="company">Company</Radio>
+            <Radio value="customer">Customer</Radio>
+          </Radio.Group>
+        </Form.Item>
+
         <Form.Item
-          name="customerId"
+          name="payById"
           label="Paid By"
           rules={[
             {
@@ -170,25 +233,42 @@ const CreateTransaction = () => {
             },
           ]}
         >
-          <Select
-            showSearch
-            filterOption={selectSearchFilter}
-            optionFilterProp="children"
-            loading={customerLoading}
-            placeholder="Select Customer"
-            allowClear
-            onChange={handleSelectCustomer}
-          >
-            {customerData &&
-              customerData.map((obj) => (
-                <Option key={obj.id} value={obj.id} disabled={obj.id === -1 && companyId === -1}>
+          {payByType === "company" ? (
+            <Select
+              showSearch
+              filterOption={selectSearchFilter}
+              optionFilterProp="children"
+              loading={companyLoading}
+              placeholder="Select Company"
+              allowClear
+              onChange={handleSelectPayBy}
+            >
+              {companyData.map((obj) => (
+                <Option key={obj.id} value={obj.id}>
+                  {obj.companyName}
+                </Option>
+              ))}
+            </Select>
+          ) : (
+            <Select
+              showSearch
+              filterOption={selectSearchFilter}
+              optionFilterProp="children"
+              loading={customerLoading}
+              placeholder="Select Customer"
+              allowClear
+              onChange={handleSelectPayBy}
+            >
+              {payByCustomerData.map((obj) => (
+                <Option key={obj.id} value={obj.id} disabled={obj.id === OTHER_SENTINEL && payToId === OTHER_SENTINEL}>
                   {`${obj.firstName} ${obj.lastName}`}
                 </Option>
               ))}
-          </Select>
+            </Select>
+          )}
         </Form.Item>
 
-        {customerId === -1 ? (
+        {payById === OTHER_SENTINEL ? (
           <Form.Item
             name="otherName"
             label="Name"
