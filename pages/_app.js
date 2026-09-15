@@ -5,6 +5,7 @@ import ProtectedRoutes from "@/components/protectedRoutes";
 import StorageUtils from "@/utils/storage.util";
 import PermissionUtil from "@/utils/permission.util";
 import { useEffect } from "react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const setPermission = () => {
   const user = StorageUtils.getItem("user");
@@ -38,6 +39,7 @@ export default function MyApp({ Component, pageProps, router }) {
       <ProtectedRoutes router={router}>
         <>{getLayout(<Component {...pageProps} router={router} />)}</>
       </ProtectedRoutes>
+      <SpeedInsights />
     </>
   );
 }
