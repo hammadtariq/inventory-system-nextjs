@@ -3,6 +3,8 @@ import NextLink from "next/link";
 import AppTable from "@/components/table";
 import styles from "@/styles/Ledger.module.css";
 import { useLedgerCustomerDetails, useLedgerDetails } from "@/hooks/ledger";
+import { useCompany } from "@/hooks/company";
+import { useCustomer } from "@/hooks/customers";
 import { Alert, Button, DatePicker, Dropdown, message, Row, Space, Spin } from "antd";
 import { SPEND_TYPE } from "@/utils/api.util";
 import { DATE_FORMAT } from "@/utils/ui.util";
@@ -35,7 +37,24 @@ const LedgerDetailsContent = ({ id, type }) => {
 
   const { download, exportLoading, errors: exportError } = useLedgerCustomerDetails();
 
+  // The party this ledger belongs to — a WhatsApp export must go only to their own number,
+  // never a shared/default one, so it's resolved from their record rather than any config value.
+  const { company: recipientCompany } = useCompany(type === "company" ? id : null);
+  const { customer: recipientCustomerResponse } = useCustomer(type === "customer" ? id : null);
+  const recipientCustomer = recipientCustomerResponse?.data;
+  const recipient =
+    type === "company"
+      ? { phone: recipientCompany?.phone, name: recipientCompany?.companyName }
+      : {
+          phone: recipientCustomer?.phone,
+          name: recipientCustomer ? `${recipientCustomer.firstName} ${recipientCustomer.lastName}` : undefined,
+        };
+
   const handleMenuClick = async (e) => {
+    if (e.key === "3") {
+      await download(id, type, "pdf", monthKey, "whatsapp", recipient);
+      return;
+    }
     const selectedType = e.key === "1" ? "pdf" : "csv";
     await download(id, type, selectedType, monthKey);
   };
@@ -50,6 +69,7 @@ const LedgerDetailsContent = ({ id, type }) => {
     items: [
       { key: "1", label: "Export as PDF" },
       { key: "2", label: "Export as CSV" },
+      { key: "3", label: "Send via WhatsApp" },
     ],
     onClick: handleMenuClick,
   };
@@ -70,7 +90,13 @@ const LedgerDetailsContent = ({ id, type }) => {
                 )
               }
             />
-            <ExportButton filename="ledger" invoiceNumber={record.invoiceNumber} onlyIcon={true} />
+            <ExportButton
+              filename="ledger"
+              invoiceNumber={record.invoiceNumber}
+              onlyIcon={true}
+              whatsappPhone={recipient.phone}
+              whatsappRecipientName={recipient.name}
+            />
           </>
         )}
       </>

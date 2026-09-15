@@ -24,7 +24,7 @@ export const useCompanies = () => {
 };
 
 export const useCompany = (id) => {
-  const { data, error } = useSWR(`/api/company/${id}`, get);
+  const { data, error } = useSWR(id ? `/api/company/${id}` : null, get);
 
   return {
     company: data,
