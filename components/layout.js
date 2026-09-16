@@ -8,18 +8,23 @@ import AppContent from "@/components/content";
 import AppSider from "@/components/appSider";
 import MobileDashboardNav from "@/components/mobileDashboardNav";
 import styles from "@/styles/DashboardNavigation.module.css";
+import StorageUtils from "@/utils/storage.util";
 
-// Lives outside component state so it survives Layout remounts (e.g. the
-// Spinner<->children swap in ProtectedRoutes on every route change) without
-// persisting across a real full-page reload, which reinitializes this module.
-let sidebarCollapsed = false;
+const SIDEBAR_COLLAPSED_KEY = "sidebarCollapsed";
+
+// Layout only ever mounts client-side: ProtectedRoutes renders a Spinner in
+// its place until the auth check resolves, for every protected route, on
+// both the initial load and every route change. So it's safe to read
+// localStorage synchronously here - this never runs during SSR/hydration and
+// keeps the collapsed state stable across remounts, navigation, and reloads.
+const getInitialCollapsed = () => StorageUtils.getItem(SIDEBAR_COLLAPSED_KEY) ?? false;
 
 export default function Layout({ children }) {
-  const [collapsed, setCollapsedState] = useState(sidebarCollapsed);
+  const [collapsed, setCollapsedState] = useState(getInitialCollapsed);
 
   const setCollapsed = (value) => {
-    sidebarCollapsed = value;
     setCollapsedState(value);
+    StorageUtils.setItem(SIDEBAR_COLLAPSED_KEY, value);
   };
 
   return (
