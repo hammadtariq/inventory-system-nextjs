@@ -1,6 +1,7 @@
 import { createMocks } from "node-mocks-http";
 import db from "@/lib/postgres";
 import { updateInventory } from "@/pages/api/inventory/[id]";
+import TenantContext from "@/lib/tenant-context";
 
 jest.mock("@/lib/postgres");
 
@@ -15,12 +16,12 @@ describe("updateInventory API", () => {
     };
     db.dbConnect = jest.fn();
     db.Inventory = {
-      findByPk: jest.fn(),
+      findOne: jest.fn(),
     };
   });
 
   it("should update inventory item successfully", async () => {
-    db.Inventory.findByPk.mockResolvedValue(inventoryMock);
+    db.Inventory.findOne.mockResolvedValue(inventoryMock);
 
     const { req, res } = createMocks({
       method: "PUT",
@@ -28,15 +29,15 @@ describe("updateInventory API", () => {
       body: { itemName: "updated roll" },
     });
 
-    await updateInventory(req, res);
+    await TenantContext.run(23, async () => updateInventory(req, res));
 
-    expect(db.Inventory.findByPk).toHaveBeenCalledWith(+req.query.id);
+    expect(db.Inventory.findOne).toHaveBeenCalledWith({ where: { id: +req.query.id, organizationId: 23 } });
     expect(inventoryMock.update).toHaveBeenCalledWith({ itemName: "updated roll" });
     expect(res._getStatusCode()).toBe(200);
   });
 
   it("should return 404 if inventory item not found", async () => {
-    db.Inventory.findByPk.mockResolvedValue(null);
+    db.Inventory.findOne.mockResolvedValue(null);
 
     const { req, res } = createMocks({
       method: "PUT",
@@ -44,14 +45,14 @@ describe("updateInventory API", () => {
       body: { itemName: "test" },
     });
 
-    await updateInventory(req, res);
+    await TenantContext.run(23, async () => updateInventory(req, res));
 
     expect(res._getStatusCode()).toBe(404);
     expect(res._getData()).toEqual({ message: "inventory item not found" });
   });
 
   it("should return 400 if body is empty", async () => {
-    db.Inventory.findByPk.mockResolvedValue(inventoryMock);
+    db.Inventory.findOne.mockResolvedValue(inventoryMock);
 
     const { req, res } = createMocks({
       method: "PUT",
@@ -59,7 +60,7 @@ describe("updateInventory API", () => {
       body: {},
     });
 
-    await updateInventory(req, res);
+    await TenantContext.run(23, async () => updateInventory(req, res));
 
     expect(res._getStatusCode()).toBe(400);
     expect(res._getData()).toEqual({
@@ -75,14 +76,14 @@ describe("updateInventory API", () => {
       body: {},
     });
 
-    await updateInventory(req, res);
+    await TenantContext.run(23, async () => updateInventory(req, res));
 
     expect(res._getStatusCode()).toBe(400);
     expect(res._getData()).toEqual({ message: 'ValidationError: "id" is required' });
   });
 
   it("should return 500 on server error", async () => {
-    db.Inventory.findByPk.mockRejectedValue(new Error("DB crashed"));
+    db.Inventory.findOne.mockRejectedValue(new Error("DB crashed"));
 
     const { req, res } = createMocks({
       method: "PUT",
@@ -90,7 +91,7 @@ describe("updateInventory API", () => {
       body: { itemName: "cotton" },
     });
 
-    await updateInventory(req, res);
+    await TenantContext.run(23, async () => updateInventory(req, res));
 
     expect(res._getStatusCode()).toBe(500);
     expect(res._getData()).toEqual({ message: "Error: DB crashed" });

@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 
-import { Alert, Button, Popconfirm, Row, Col, message } from "antd";
+import { Alert, Button, Popconfirm, message } from "antd";
 import dayjs from "dayjs";
 import { useRouter } from "next/router";
 import EditableInventoryCell from "@/components/editableInventoryCell";
@@ -190,10 +190,11 @@ const Items = () => {
   if (error) return <Alert message={error} type="error" />;
   return (
     <>
-      <AppTitle level={2}>Items List</AppTitle>
-      <Row justify="space-between">
-        <Col>
-          {router.isReady && (
+      <AppTitle
+        level={2}
+        action={<AppCreateButton url="/items/create" />}
+        toolbar={
+          router.isReady ? (
             <SearchInput
               valueKey="companyName"
               handleSearch={handleSearch}
@@ -201,12 +202,11 @@ const Items = () => {
               placeholder="search company"
               defaultValue={router.query.companyName || ""}
             />
-          )}
-        </Col>
-        <Col>
-          <AppCreateButton url="/items/create" />
-        </Col>
-      </Row>
+          ) : null
+        }
+      >
+        Items List
+      </AppTitle>
       <AppTable
         isLoading={isLoading || isSaving}
         rowKey="id"

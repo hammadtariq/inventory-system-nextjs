@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { Button, Card, Col, DatePicker, InputNumber, Row, Statistic } from "antd";
-import { FilePdfOutlined, FileExcelOutlined } from "@ant-design/icons";
+import { Button, Card, Col, DatePicker, InputNumber, Row, Statistic, message } from "antd";
+import { FilePdfOutlined, FileExcelOutlined, WhatsAppOutlined } from "@ant-design/icons";
+import { shareFileViaWhatsApp } from "@/lib/whatsapp-share";
 import * as XLSX from "xlsx";
 import styles from "@/styles/Report.module.css";
 import SearchInput from "./SearchInput";
@@ -19,7 +20,10 @@ dayjs.extend(weekday);
 dayjs.extend(localeData);
 
 const { RangePicker } = DatePicker;
-const startToTodayDate = [dayjs().startOf("month"), dayjs().endOf("month")];
+const startToTodayDate = [dayjs().startOf("month"), dayjs()];
+const tableFooterKeys = ["totalAmount", "ratePerBale", "ratePerLbs", "ratePerKgs", "noOfBales"];
+
+const getFooterLabel = (key) => key.replace(/([A-Z])/g, " $1").toUpperCase();
 
 const columns = [
   { title: "Invoice NO", dataIndex: "invoiceNo", key: "invoiceNo" },
@@ -79,6 +83,7 @@ const SalesReport = () => {
   const [updatedSales, setUpdatedSales] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [total, setTotal] = useState({});
+  const [waLoading, setWaLoading] = useState(false);
 
   const transformData = (salesData) =>
     salesData.flatMap(({ id: invoiceNo, customer, laborCharge, soldDate, totalAmount, soldProducts }) =>
@@ -163,7 +168,10 @@ const SalesReport = () => {
 
   const uniqueInvoiceCount = new Set(updatedSales.map((r) => r.invoiceNo)).size;
 
-  const handleExportPDF = () => {
+  const tableFooterKeys = ["noOfBales", "totalAmount"];
+  const getFooterLabel = (key) => (key === "noOfBales" ? "Total Bales" : "Total Amount (Rs)");
+
+  const buildPdfParams = () => {
     const dateFrom = dateRange ? dateRange[0].format("DD-MM-YYYY") : "";
     const dateTo = dateRange ? dateRange[1].format("DD-MM-YYYY") : "";
 
@@ -171,7 +179,7 @@ const SalesReport = () => {
     if (searchLabels.customer) filterLines.push(`Customer: ${searchLabels.customer}`);
     if (searchLabels.company) filterLines.push(`Company: ${searchLabels.company}`);
 
-    exportReportToPDF({
+    return {
       title: "SALE REPORT",
       dateRange: [`From Date: ${dateFrom}`, `To Date: ${dateTo}`],
       filterLabel: filterLines.length ? filterLines : undefined,
@@ -191,7 +199,28 @@ const SalesReport = () => {
         { label: "Total Bales", value: total.noOfBales || 0 },
         { label: "Total Amount", value: total.totalAmount || 0 },
       ],
-    });
+    };
+  };
+
+  const handleExportPDF = () => {
+    exportReportToPDF(buildPdfParams());
+  };
+
+  const handleSendWhatsApp = async () => {
+    setWaLoading(true);
+    try {
+      const doc = exportReportToPDF({ ...buildPdfParams(), skipSave: true });
+      const blob = doc.output("blob");
+      await shareFileViaWhatsApp({
+        blob,
+        fileName: `sale_report_${Date.now()}`,
+        messageTitle: "Sale Report",
+      });
+    } catch (error) {
+      message.error("Failed to share report via WhatsApp.");
+    } finally {
+      setWaLoading(false);
+    }
   };
 
   const handleExportExcel = () => {
@@ -275,6 +304,16 @@ const SalesReport = () => {
             >
               Excel
             </Button>
+            <Button
+              type="primary"
+              icon={<WhatsAppOutlined />}
+              onClick={handleSendWhatsApp}
+              disabled={!updatedSales.length}
+              loading={waLoading}
+              style={{ backgroundColor: "#25D366", borderColor: "#25D366" }}
+            >
+              WhatsApp
+            </Button>
           </div>
         }
       >
@@ -326,26 +365,17 @@ const SalesReport = () => {
         rowClassName={styles.editableRow}
         totalCount={updatedSales ? updatedSales.length : 0}
         footer={() => (
-          <div>
-            <Row gutter={16}>
-              <Col span={16} />
-              <Col span={8}>
-                {["totalAmount", "ratePerBale", "ratePerLbs", "ratePerKgs", "noOfBales"].map((key) => (
-                  <Row justify="end" key={key}>
-                    <Col span={12}>
-                      <strong>{key.replace(/([A-Z])/g, " $1").toUpperCase()}:</strong>
-                    </Col>
-                    <Col span={12}>
-                      <InputNumber
-                        value={comaSeparatedValues(total[key] || 0)}
-                        readOnly
-                        className={styles.inputNumberField}
-                      />
-                    </Col>
-                  </Row>
-                ))}
-              </Col>
-            </Row>
+          <div className={styles.tableFooterSummary}>
+            {tableFooterKeys.map((key) => (
+              <div className={styles.tableFooterItem} key={key}>
+                <strong>{getFooterLabel(key)}:</strong>
+                <InputNumber
+                  value={comaSeparatedValues(total[key] || 0)}
+                  readOnly
+                  className={styles.inputNumberField}
+                />
+              </div>
+            ))}
           </div>
         )}
       />

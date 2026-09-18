@@ -64,7 +64,7 @@ const AddEditSale = ({ sale, type = null }) => {
       setLaborCharge(sale.laborCharge);
       setCustomerId(sale.customer.id);
     } else if (isCreate) {
-      setUpdatedProducts(inventory);
+      setUpdatedProducts((inventory ?? []).filter((item) => item.onHand > 0));
       form.resetFields();
     }
   }, [sale, inventory, isView, isEdit, isCreate, form]);

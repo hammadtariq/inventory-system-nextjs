@@ -82,18 +82,18 @@ const CreateQuotation = () => {
   return (
     <div>
       <Form form={form} layout="vertical" validateMessages={VALIDATE_MESSAGE}>
-        <Row gutter={24}>
-          <Col span={8}>
+        <Row gutter={[24, 0]}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item label="Customer">
               <SelectCustomer selectCustomerOnChange={selectCustomerOnChange} />
             </Form.Item>
           </Col>
-          <Col span={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item name="totalAmount" label="Total Amount (RS)">
               <Input type="number" value={totalAmount} readOnly />
             </Form.Item>
           </Col>
-          <Col span={8}>
+          <Col xs={24} sm={24} lg={8}>
             <Form.Item label="Products">
               <Select
                 mode="multiple"
@@ -128,7 +128,7 @@ const CreateQuotation = () => {
                 updatedProducts={updatedProducts}
                 setUpdatedProducts={setUpdatedProducts}
               />
-              <div style={{ marginTop: 16, display: "flex", gap: 8 }}>
+              <div style={{ marginTop: 16, display: "flex", flexWrap: "wrap", gap: 8 }}>
                 <Button type="primary" icon={<SaveOutlined />} onClick={handleSave} disabled={editAll}>
                   Save Quotation
                 </Button>

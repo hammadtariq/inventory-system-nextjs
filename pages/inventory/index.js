@@ -140,37 +140,41 @@ const Inventory = () => {
   if (error || companyError) return <Alert message={error || companyError} type="error" />;
   return (
     <>
-      <AppTitle level={2}>Inventory List</AppTitle>
-      <Row justify="space-between" align="middle">
-        <Col>
-          <SearchInput
-            valueKey="itemName"
-            valueKey2="company.companyName"
-            handleSearch={handleSearch}
-            handleSelect={handleSelect}
-            placeholder="search inventory"
-          />
-        </Col>
-        <Col>
-          <Row justify="end" gutter={[16, 16]}>
+      <AppTitle
+        level={2}
+        toolbar={
+          <Row justify="space-between" align="middle" gutter={[16, 16]}>
             <Col>
-              <div className={styles.companyLabel}>
-                <label className={styles.labelWidth}>Filter by :</label>
-                <SelectSearch
-                  placeholder="Company Name"
-                  onChange={(value) => handleChange(value)}
-                  options={companyOptions}
-                />
-              </div>
+              <SearchInput
+                valueKey="itemName"
+                valueKey2="company.companyName"
+                handleSearch={handleSearch}
+                handleSelect={handleSelect}
+                placeholder="search inventory"
+              />
             </Col>
             <Col>
-              <ExportButton filename="inventory" filters={filters} />
+              <Row justify="end" gutter={[16, 16]}>
+                <Col>
+                  <div className={styles.companyLabel}>
+                    <label className={styles.labelWidth}>Filter by :</label>
+                    <SelectSearch
+                      placeholder="Company Name"
+                      onChange={(value) => handleChange(value)}
+                      options={companyOptions}
+                    />
+                  </div>
+                </Col>
+                <Col>
+                  <ExportButton filename="inventory" filters={filters} />
+                </Col>
+              </Row>
             </Col>
           </Row>
-        </Col>
-      </Row>
-      <br />
-      <br />
+        }
+      >
+        Inventory List
+      </AppTitle>
       {loading && <Spinner />}
       <AppTable
         isLoading={isLoading}

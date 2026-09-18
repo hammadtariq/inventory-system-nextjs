@@ -1,5 +1,12 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# Superpowers brainstorm sessions
+.superpowers/
+
+.claude/skills/impeccable/*
+.github/skills/impeccable/*
+.impeccable/*
+
 # dependencies
 /node_modules
 /.pnp
@@ -42,3 +49,7 @@ yarn-error.log*
 
 #exports
 exportedFiles
+.env*
+
+# MCP Playwright-mcp
+.playwright-mcp/*

@@ -2,6 +2,7 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { cleanItemName } from "@/utils/api.util";
+import TenantContext from "@/lib/tenant-context";
 
 const Op = db.Sequelize.Op;
 
@@ -10,9 +11,10 @@ const searchPurchaseReport = async (req, res) => {
 
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
 
     // Build the `where` clause for the purchase query
-    const whereClause = {};
+    const whereClause = { organizationId };
     if (dateRangeStart && dateRangeEnd) {
       whereClause.purchaseDate = {
         [Op.between]: [new Date(dateRangeStart), new Date(dateRangeEnd)],
@@ -31,7 +33,7 @@ const searchPurchaseReport = async (req, res) => {
     });
 
     if (!purchases.rows.length) {
-      return res.status(404).json({ message: "No purchases found for the given criteria." });
+      return res.status(200).json({ count: 0, rows: [] });
     }
 
     // Filter purchases based on companyId and itemName
@@ -51,7 +53,7 @@ const searchPurchaseReport = async (req, res) => {
       .filter(Boolean);
 
     if (!filteredPurchases.length) {
-      return res.status(404).json({ message: "No purchases match the filtered criteria." });
+      return res.status(200).json({ count: 0, rows: [] });
     }
 
     // Extract unique company IDs from the filtered purchases
@@ -66,6 +68,7 @@ const searchPurchaseReport = async (req, res) => {
     const companies = await db.Company.findAll({
       where: {
         id: Array.from(companyIds),
+        organizationId,
       },
     });
 

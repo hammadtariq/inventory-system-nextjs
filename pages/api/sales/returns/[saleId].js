@@ -5,6 +5,7 @@ import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { STATUS } from "@/utils/api.util";
 import { getReturnableProducts, getReturnedMetricsMap } from "@/utils/saleReturn.util";
+import TenantContext from "@/lib/tenant-context";
 
 const apiSchema = Joi.object({
   saleId: Joi.number().required(),
@@ -23,8 +24,10 @@ const getReturnableSale = async (req, res) => {
 
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
 
-    const sale = await db.Sale.findByPk(value.saleId, {
+    const sale = await db.Sale.findOne({
+      where: { id: value.saleId, organizationId },
       include: [db.Customer],
     });
 
@@ -37,13 +40,13 @@ const getReturnableSale = async (req, res) => {
     }
 
     const saleReturns = await db.SaleReturn.findAll({
-      where: { saleId: sale.id },
+      where: { saleId: sale.id, organizationId },
       order: [["id", "ASC"]],
     });
 
     const soldProductsWithCompany = await Promise.all(
       (sale.soldProducts || []).map(async (product) => {
-        const company = await db.Company.findByPk(product.companyId);
+        const company = await db.Company.findOne({ where: { id: product.companyId, organizationId } });
         return {
           ...product,
           company,

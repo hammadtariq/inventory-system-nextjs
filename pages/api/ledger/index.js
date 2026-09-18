@@ -3,6 +3,7 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { companyQuery, customerQuery } from "../../../query";
+import TenantContext from "@/lib/tenant-context";
 
 const getAllTransactions = async (req, res) => {
   console.log("get all transaction Request Start");
@@ -11,6 +12,7 @@ const getAllTransactions = async (req, res) => {
     await db.dbConnect();
 
     const { type = "company", search = "" } = req.query;
+    const organizationId = TenantContext.assertGet();
     const baseQuery = type === "company" ? companyQuery : customerQuery;
 
     let finalQuery = `
@@ -20,7 +22,7 @@ const getAllTransactions = async (req, res) => {
       ) AS t
     `;
 
-    const replacements = {};
+    const replacements = { organizationId };
 
     if (search) {
       finalQuery += ` WHERE t.name ILIKE :search `;

@@ -1,6 +1,7 @@
 import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import TenantContext from "@/lib/tenant-context";
 
 const Op = db.Sequelize.Op;
 
@@ -9,9 +10,11 @@ const searchSalesReport = async (req, res) => {
 
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
 
     // Where clause for other conditions (like customer and date range)
     const whereClause = {
+      organizationId,
       ...(customerId && { "$customer.id$": { [Op.eq]: customerId } }),
       ...(dateRangeStart &&
         dateRangeEnd && {
@@ -65,12 +68,13 @@ const searchSalesReport = async (req, res) => {
     });
 
     if (filteredSales.length === 0) {
-      return res.status(404).send({ message: "No sales data found for the given criteria." });
+      return res.status(200).send({ count: 0, rows: [] });
     }
 
     const companies = await db.Company.findAll({
       where: {
         id: Array.from(companyIds),
+        organizationId,
       },
     });
 

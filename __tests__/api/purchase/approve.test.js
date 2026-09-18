@@ -1,6 +1,7 @@
 import { approvePurchaseOrder, updateInventory, updateLedger } from "@/pages/api/purchase/approve/[id]";
 import db from "@/lib/postgres";
 import { balanceQuery } from "@/utils/query.utils";
+import TenantContext from "@/lib/tenant-context";
 
 jest.mock("@/lib/postgres", () => ({
   dbConnect: jest.fn().mockResolvedValue(),
@@ -9,11 +10,18 @@ jest.mock("@/lib/postgres", () => ({
       commit: jest.fn(),
       rollback: jest.fn(),
     }),
+    query: jest.fn().mockResolvedValue(),
+    literal: jest.fn((value) => value),
   },
-  Purchase: { findByPk: jest.fn(), update: jest.fn() },
+  Purchase: { findOne: jest.fn(), update: jest.fn() },
   Inventory: { findOne: jest.fn(), create: jest.fn(), update: jest.fn(), increment: jest.fn() },
   Ledger: { findOne: jest.fn(), create: jest.fn(), update: jest.fn() },
   Company: {},
+  Sequelize: {
+    Op: {
+      gt: Symbol.for("sequelize.gt"),
+    },
+  },
 }));
 
 jest.mock("@/utils/query.utils", () => ({
@@ -32,24 +40,28 @@ describe("approvePurchaseOrder", () => {
   });
 
   it("should return 404 if purchase is not found", async () => {
-    db.Purchase.findByPk.mockResolvedValue(null);
-    const res = await approvePurchaseOrder(1, { role: "ADMIN" });
+    db.Purchase.findOne.mockResolvedValue(null);
+    const res = await TenantContext.run(23, async () => approvePurchaseOrder(1, { role: "ADMIN" }));
+    expect(db.sequelize.query).toHaveBeenCalledWith("SET LOCAL app.tenant_id = :organizationId", {
+      transaction: expect.any(Object),
+      replacements: { organizationId: 23 },
+    });
     expect(res.status).toBe(404);
     expect(res.body.message).toMatch(/does not exist/);
   });
 
   it("should return 400 if purchase is already approved", async () => {
-    db.Purchase.findByPk.mockResolvedValue({ status: "APPROVED" });
-    const res = await approvePurchaseOrder(1, { role: "ADMIN" });
+    db.Purchase.findOne.mockResolvedValue({ status: "APPROVED" });
+    const res = await TenantContext.run(23, async () => approvePurchaseOrder(1, { role: "ADMIN" }));
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/already approved/);
   });
 
   it("should handle DB error and rollback", async () => {
-    db.Purchase.findByPk.mockImplementation(() => {
+    db.Purchase.findOne.mockImplementation(() => {
       throw new Error("db error");
     });
-    const res = await approvePurchaseOrder(1, { role: "ADMIN" });
+    const res = await TenantContext.run(23, async () => approvePurchaseOrder(1, { role: "ADMIN" }));
     expect(res.status).toBe(500);
     expect(res.body.message).toEqual("db error");
   });
@@ -130,13 +142,13 @@ describe("approvePurchaseOrder", () => {
       totalBalance: 10,
     };
 
-    db.Purchase.findByPk.mockResolvedValue(mockPurchase);
+    db.Purchase.findOne.mockResolvedValue(mockPurchase);
     db.Inventory.findOne.mockResolvedValue(mockInventory);
     db.Ledger.findOne.mockResolvedValue(null);
     db.Ledger.create.mockResolvedValue(mockLedger);
     balanceQuery.mockResolvedValue([{ amount: 0 }]);
 
-    const res = await approvePurchaseOrder(772, { role: "ADMIN" });
+    const res = await TenantContext.run(23, async () => approvePurchaseOrder(772, { role: "ADMIN" }));
 
     expect(mockPurchase.update).toHaveBeenCalledWith(
       {
@@ -155,6 +167,213 @@ describe("approvePurchaseOrder", () => {
     expect(res.body.inventory[1]).toMatchObject(mockInventory);
 
     expect(res.body.purchaseOrder).toEqual(updatedMockPurchase);
+  });
+
+  it("should hydrate revised purchase products before creating inventory", async () => {
+    const mockTransaction = {
+      commit: jest.fn(),
+      rollback: jest.fn(),
+    };
+
+    db.sequelize.transaction.mockResolvedValue(mockTransaction);
+
+    const mockPurchase = {
+      id: 900,
+      status: "PENDING",
+      totalAmount: 10,
+      surCharge: null,
+      invoiceNumber: null,
+      revisionNo: 1,
+      baleType: "SMALL_BALES",
+      purchaseDate: "2025-04-22T12:37:45.496Z",
+      companyId: 36,
+      revisionDetails: {
+        purchasedProducts: [
+          {
+            id: 524,
+            noOfBales: 15,
+          },
+        ],
+      },
+      purchasedProducts: [
+        {
+          id: 524,
+          companyId: 36,
+          itemName: "men tropical pant xl",
+          noOfBales: 10,
+          ratePerKgs: 1,
+          ratePerLbs: 1,
+          ratePerBale: 1,
+          baleWeightKgs: 0,
+          baleWeightLbs: 0,
+        },
+      ],
+      update: jest.fn().mockResolvedValue({ status: "APPROVED" }),
+    };
+
+    db.Purchase.findOne.mockResolvedValue(mockPurchase);
+    db.Inventory.findOne.mockResolvedValue(null);
+    db.Inventory.create.mockResolvedValue({ id: 1 });
+    db.Ledger.findOne.mockResolvedValue({
+      amount: 10,
+      totalBalance: 10,
+      update: jest.fn(),
+    });
+    db.Ledger.create.mockResolvedValue({ id: 2 });
+    balanceQuery.mockResolvedValue([{ amount: 0 }]);
+
+    const res = await TenantContext.run(23, async () => approvePurchaseOrder(900, { role: "ADMIN" }));
+
+    expect(db.Inventory.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        itemName: "men tropical pant xl",
+        companyId: 36,
+        onHand: 15,
+      }),
+      { transaction: mockTransaction }
+    );
+    expect(res.status).toBe(200);
+    expect(mockTransaction.commit).toHaveBeenCalled();
+  });
+
+  it("should hydrate revised purchase products when ids are stringified", async () => {
+    const mockTransaction = {
+      commit: jest.fn(),
+      rollback: jest.fn(),
+    };
+
+    db.sequelize.transaction.mockResolvedValue(mockTransaction);
+
+    const mockPurchase = {
+      id: 901,
+      status: "PENDING",
+      totalAmount: 10,
+      surCharge: null,
+      invoiceNumber: null,
+      revisionNo: 1,
+      baleType: "SMALL_BALES",
+      purchaseDate: "2025-04-22T12:37:45.496Z",
+      companyId: 36,
+      revisionDetails: {
+        purchasedProducts: [
+          {
+            id: "524",
+            noOfBales: 15,
+          },
+        ],
+      },
+      purchasedProducts: [
+        {
+          id: 524,
+          companyId: 36,
+          itemName: "men tropical pant xl",
+          noOfBales: 10,
+          ratePerKgs: 1,
+          ratePerLbs: 1,
+          ratePerBale: 1,
+          baleWeightKgs: 0,
+          baleWeightLbs: 0,
+        },
+      ],
+      update: jest.fn().mockResolvedValue({ status: "APPROVED" }),
+    };
+
+    db.Purchase.findOne.mockResolvedValue(mockPurchase);
+    db.Inventory.findOne.mockResolvedValue(null);
+    db.Inventory.create.mockResolvedValue({ id: 1 });
+    db.Ledger.findOne.mockResolvedValue({
+      amount: 10,
+      totalBalance: 10,
+      update: jest.fn(),
+    });
+    db.Ledger.create.mockResolvedValue({ id: 2 });
+    balanceQuery.mockResolvedValue([{ amount: 0 }]);
+
+    const res = await TenantContext.run(23, async () => approvePurchaseOrder(901, { role: "ADMIN" }));
+
+    expect(db.Inventory.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        itemName: "men tropical pant xl",
+        companyId: 36,
+        onHand: 15,
+      }),
+      { transaction: mockTransaction }
+    );
+    expect(res.status).toBe(200);
+  });
+
+  it("should not re-add unchanged revised purchase product quantities", async () => {
+    const mockTransaction = {
+      commit: jest.fn(),
+      rollback: jest.fn(),
+    };
+
+    db.sequelize.transaction.mockResolvedValue(mockTransaction);
+
+    const mockPurchase = {
+      id: 902,
+      status: "PENDING",
+      totalAmount: 30,
+      invoiceNumber: "INV-1",
+      revisionNo: 1,
+      purchaseDate: "2025-04-22T12:37:45.496Z",
+      companyId: 36,
+      revisionDetails: {
+        previousPurchasedProducts: [
+          {
+            id: 524,
+            companyId: 36,
+            itemName: "men tropical pant xl",
+            noOfBales: 3,
+            ratePerBale: 10,
+          },
+        ],
+        purchasedProducts: [
+          {
+            id: 524,
+            ratePerBale: 20,
+          },
+        ],
+      },
+      purchasedProducts: [
+        {
+          id: 524,
+          companyId: 36,
+          itemName: "men tropical pant xl",
+          noOfBales: 3,
+          ratePerBale: 10,
+        },
+      ],
+      update: jest.fn().mockResolvedValue({ status: "APPROVED" }),
+    };
+
+    const mockInventory = {
+      increment: jest.fn(),
+      update: jest.fn(),
+      baleWeightKgs: 0,
+      baleWeightLbs: 0,
+      ratePerBale: 10,
+    };
+
+    db.Purchase.findOne.mockResolvedValue(mockPurchase);
+    db.Inventory.findOne.mockResolvedValue(mockInventory);
+    db.Ledger.findOne.mockResolvedValue({
+      amount: 20,
+      totalBalance: 20,
+      update: jest.fn(),
+    });
+
+    const res = await TenantContext.run(23, async () => approvePurchaseOrder(902, { role: "ADMIN" }));
+
+    expect(mockInventory.increment).toHaveBeenCalledWith({ onHand: 0, noOfBales: 0 }, { transaction: mockTransaction });
+    expect(mockInventory.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ratePerBale: 20,
+      }),
+      { transaction: mockTransaction }
+    );
+    expect(res.status).toBe(200);
+    expect(mockTransaction.commit).toHaveBeenCalled();
   });
 });
 
@@ -176,7 +395,7 @@ describe("updateInventory", () => {
     db.Inventory.findOne.mockResolvedValue(null);
     db.Inventory.create.mockResolvedValue({ id: 123 });
 
-    const res = await updateInventory([product], 1, transaction);
+    const res = await TenantContext.run(23, async () => updateInventory([product], 1, transaction));
     expect(res).toHaveLength(1);
     expect(db.Inventory.create).toHaveBeenCalled();
   });
@@ -190,7 +409,7 @@ describe("updateInventory", () => {
     };
     db.Inventory.findOne.mockResolvedValue(mockInv);
 
-    await updateInventory([product], 1, transaction);
+    await TenantContext.run(23, async () => updateInventory([product], 1, transaction));
     expect(mockInv.increment).toHaveBeenCalled();
     expect(mockInv.update).toHaveBeenCalled();
   });
@@ -204,7 +423,7 @@ describe("updateInventory", () => {
     };
     db.Inventory.findOne.mockResolvedValue(mockInv);
 
-    await updateInventory([product], 1, transaction);
+    await TenantContext.run(23, async () => updateInventory([product], 1, transaction));
     expect(mockInv.increment).toHaveBeenCalledWith(expect.any(Object), { transaction });
     expect(mockInv.update).toHaveBeenCalled();
   });
@@ -218,20 +437,22 @@ describe("updateInventory", () => {
     };
     db.Inventory.findOne.mockResolvedValue(mockInventory);
 
-    await updateInventory(
-      [
-        {
-          id: 849,
-          noOfBales: 10,
-          ratePerKgs: 1,
-          ratePerLbs: 1,
-          ratePerBale: 1,
-          baleWeightKgs: 0,
-          baleWeightLbs: 0,
-        },
-      ],
-      36,
-      {}
+    await TenantContext.run(23, async () =>
+      updateInventory(
+        [
+          {
+            id: 849,
+            noOfBales: 10,
+            ratePerKgs: 1,
+            ratePerLbs: 1,
+            ratePerBale: 1,
+            baleWeightKgs: 0,
+            baleWeightLbs: 0,
+          },
+        ],
+        36,
+        {}
+      )
     );
 
     expect(mockInventory.increment).toHaveBeenCalledWith(
@@ -277,7 +498,7 @@ describe("updateLedger", () => {
     };
     db.Ledger.findOne.mockResolvedValue(ledgerMock);
 
-    const result = await updateLedger(1, baseProps);
+    const result = await TenantContext.run(23, async () => updateLedger(1, baseProps));
     expect(ledgerMock.update).toHaveBeenCalled();
     expect(result).toEqual(ledgerMock);
   });
@@ -296,7 +517,7 @@ describe("updateLedger", () => {
     db.Ledger.create.mockResolvedValue(createdLedger);
     balanceQuery.mockResolvedValue([{ amount: 1000 }]);
 
-    const result = await updateLedger(0, baseProps);
+    const result = await TenantContext.run(23, async () => updateLedger(0, baseProps));
     expect(db.Ledger.create).toHaveBeenCalledWith(
       expect.objectContaining({
         companyId: 1,
@@ -314,7 +535,7 @@ describe("updateLedger", () => {
 
   it("should handle case when balance query returns empty", async () => {
     balanceQuery.mockResolvedValue([]);
-    const result = await updateLedger(0, baseProps);
+    const result = await TenantContext.run(23, async () => updateLedger(0, baseProps));
     expect(result).toEqual({
       amount: 5000,
       companyId: 1,

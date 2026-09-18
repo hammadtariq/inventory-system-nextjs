@@ -3,6 +3,7 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import TenantContext from "@/lib/tenant-context";
 
 const apiSchema = Joi.object({
   id: Joi.number().required(),
@@ -23,8 +24,9 @@ export const updateInventory = async (req, res) => {
 
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
 
-    const inventoryItem = await db.Inventory.findByPk(value.id);
+    const inventoryItem = await db.Inventory.findOne({ where: { id: value.id, organizationId } });
     if (!inventoryItem) {
       return res.status(404).send({ message: "inventory item not found" });
     }
@@ -68,7 +70,8 @@ const deleteInventory = async (req, res) => {
 
   try {
     await db.dbConnect();
-    const inventory = await db.Inventory.findByPk(value.id);
+    const organizationId = TenantContext.assertGet();
+    const inventory = await db.Inventory.findOne({ where: { id: value.id, organizationId } });
 
     if (!inventory) {
       return res.status(404).send({ message: "inventory does not exist" });
@@ -76,7 +79,7 @@ const deleteInventory = async (req, res) => {
     if (inventory.onHand > 0) {
       return res.status(400).send({ message: "inventory stock exist unable to delete" });
     }
-    await db.Inventory.destroy({ where: { id: value.id } });
+    await db.Inventory.destroy({ where: { id: value.id, organizationId } });
     console.log("delete inventory Request End");
 
     return res.send();
@@ -98,8 +101,9 @@ const getInventory = async (req, res) => {
   }
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
     const { id } = value;
-    const inventory = await db.Inventory.findByPk(id, { include: [db.Company] });
+    const inventory = await db.Inventory.findOne({ where: { id, organizationId }, include: [db.Company] });
 
     if (!inventory) {
       return res.status(404).send({ message: "inventory not exist" });

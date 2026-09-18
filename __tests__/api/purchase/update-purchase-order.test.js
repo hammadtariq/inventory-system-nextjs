@@ -2,11 +2,15 @@ import { updatePurchaseOrder, updatePurchaseOrderAfterApproval } from "@/pages/a
 import db from "@/lib/postgres";
 import { createMocks } from "node-mocks-http";
 import { STATUS } from "@/utils/api.util";
+import TenantContext from "@/lib/tenant-context";
 
 jest.mock("@/lib/postgres", () => ({
   dbConnect: jest.fn(),
   Purchase: {
-    findByPk: jest.fn(),
+    findOne: jest.fn(),
+  },
+  Company: {
+    findOne: jest.fn(),
   },
   PurchaseHistory: {
     create: jest.fn().mockResolvedValue({}), // mock it so it doesn't throw
@@ -28,14 +32,14 @@ describe("updatePurchaseOrder", () => {
     res.status = jest.fn().mockReturnValue(res);
     res.send = jest.fn();
 
-    await updatePurchaseOrder(req, res);
+    await TenantContext.run(23, async () => updatePurchaseOrder(req, res));
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.send).toHaveBeenCalledWith({ message: 'ValidationError: "id" must be a number' });
   });
 
   it("should return 404 if purchase not found", async () => {
-    db.Purchase.findByPk.mockResolvedValue(null);
+    db.Purchase.findOne.mockResolvedValue(null);
 
     const { req, res } = createMocks({
       method: "POST",
@@ -46,14 +50,14 @@ describe("updatePurchaseOrder", () => {
     res.status = jest.fn().mockReturnValue(res);
     res.send = jest.fn();
 
-    await updatePurchaseOrder(req, res);
+    await TenantContext.run(23, async () => updatePurchaseOrder(req, res));
 
     expect(res.status).toHaveBeenCalledWith(404);
     expect(res.send).toHaveBeenCalledWith({ message: "Purchase order does not exist" });
   });
 
   it("should return 500 on unexpected errors", async () => {
-    db.Purchase.findByPk.mockRejectedValue(new Error("DB Error"));
+    db.Purchase.findOne.mockRejectedValue(new Error("DB Error"));
 
     const { req, res } = createMocks({
       method: "POST",
@@ -64,7 +68,7 @@ describe("updatePurchaseOrder", () => {
     res.status = jest.fn().mockReturnValue(res);
     res.send = jest.fn();
 
-    await updatePurchaseOrder(req, res);
+    await TenantContext.run(23, async () => updatePurchaseOrder(req, res));
 
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.send).toHaveBeenCalledWith({ message: "Error: DB Error" });
@@ -76,7 +80,7 @@ describe("updatePurchaseOrder", () => {
       update: jest.fn(),
     };
 
-    db.Purchase.findByPk.mockResolvedValue(mockPurchase);
+    db.Purchase.findOne.mockResolvedValue(mockPurchase);
 
     const { req, res } = createMocks({
       method: "POST",
@@ -87,7 +91,7 @@ describe("updatePurchaseOrder", () => {
     res.status = jest.fn().mockReturnValue(res);
     res.send = jest.fn();
 
-    await updatePurchaseOrder(req, res);
+    await TenantContext.run(23, async () => updatePurchaseOrder(req, res));
 
     expect(mockPurchase.update).toHaveBeenCalledWith(expect.objectContaining({ status: STATUS.PENDING }));
     expect(res.send).toHaveBeenCalledWith(mockPurchase);
@@ -99,7 +103,7 @@ describe("updatePurchaseOrder", () => {
       update: jest.fn(),
     };
 
-    db.Purchase.findByPk.mockResolvedValue(mockPurchase);
+    db.Purchase.findOne.mockResolvedValue(mockPurchase);
 
     const { req, res } = createMocks({
       method: "POST",
@@ -110,7 +114,7 @@ describe("updatePurchaseOrder", () => {
     res.status = jest.fn().mockReturnValue(res);
     res.send = jest.fn();
 
-    await updatePurchaseOrder(req, res);
+    await TenantContext.run(23, async () => updatePurchaseOrder(req, res));
 
     // Since you're not updating, just check the returned purchase object
     expect(res.send).toHaveBeenCalledWith(mockPurchase);
@@ -129,7 +133,7 @@ describe("updatePurchaseOrder", () => {
       }),
     };
 
-    db.Purchase.findByPk.mockResolvedValue(mockPurchase);
+    db.Purchase.findOne.mockResolvedValue(mockPurchase);
 
     const { req, res } = createMocks({
       method: "POST",
@@ -140,7 +144,7 @@ describe("updatePurchaseOrder", () => {
     res.status = jest.fn().mockReturnValue(res);
     res.send = jest.fn();
 
-    await updatePurchaseOrder(req, res);
+    await TenantContext.run(23, async () => updatePurchaseOrder(req, res));
 
     expect(mockPurchase.update).toHaveBeenCalledWith(
       expect.objectContaining({

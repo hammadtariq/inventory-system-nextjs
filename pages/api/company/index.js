@@ -1,8 +1,10 @@
 import Joi from "joi";
 import nextConnect from "next-connect";
+import { UniqueConstraintError } from "sequelize";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import TenantContext from "@/lib/tenant-context";
 import { DEFAULT_ROWS_LIMIT } from "@/utils/api.util";
 
 const apiSchema = Joi.object({
@@ -12,7 +14,7 @@ const apiSchema = Joi.object({
   address: Joi.string().trim().min(10),
 });
 
-const createCompany = async (req, res) => {
+export const createCompany = async (req, res) => {
   console.log("Create Company Request Start");
   const { error, value } = apiSchema.validate(req.body);
   if (error && Object.keys(error).length) {
@@ -20,13 +22,17 @@ const createCompany = async (req, res) => {
   }
   try {
     await db.dbConnect();
-    const company = await db.Company.findOne({ where: { companyName: value.companyName } });
+    const organizationId = TenantContext.assertGet();
+    const company = await db.Company.findOne({
+      where: { companyName: value.companyName, organizationId },
+    });
     if (company) {
-      return res.status(409).send({ message: "company already exist" });
+      return res.status(409).send({ message: `Company "${value.companyName}" already exists in this organization.` });
     }
 
     await db.Company.create({
       ...value,
+      organizationId,
     });
 
     console.log("Create Company Request End");
@@ -34,11 +40,14 @@ const createCompany = async (req, res) => {
     return res.send();
   } catch (error) {
     console.log("Create Company Request Error:", error);
+    if (error instanceof UniqueConstraintError || error?.name === "SequelizeUniqueConstraintError") {
+      return res.status(409).send({ message: `Company "${value.companyName}" already exists in this organization.` });
+    }
     return res.status(500).send({ message: error.toString() });
   }
 };
 
-const getAllCompanies = async (req, res) => {
+export const getAllCompanies = async (req, res) => {
   console.log("Get All Company Request Start");
 
   const { limit, offset, attributes = [] } = req.query;

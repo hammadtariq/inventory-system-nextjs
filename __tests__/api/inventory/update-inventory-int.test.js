@@ -18,6 +18,7 @@ jest.mock("@/lib/postgres", () => {
 });
 import { updateInventory } from "@/pages/api/purchase/approve/[id]";
 import { approveSaleOrder } from "@/pages/api/sales/approve/[id]";
+import TenantContext from "@/lib/tenant-context";
 
 beforeAll(async () => {
   await sequelize.sync({ force: true });
@@ -33,6 +34,7 @@ describe("updateInventory integration", () => {
       {
         id: 1,
         companyId: 1,
+        organizationId: 23,
         itemName: "cotton",
         noOfBales: 10,
         onHand: 10,
@@ -42,6 +44,7 @@ describe("updateInventory integration", () => {
       {
         id: 524,
         companyId: 1,
+        organizationId: 23,
         itemName: "men tropical pant xl",
         noOfBales: "5",
         onHand: "5",
@@ -51,6 +54,7 @@ describe("updateInventory integration", () => {
       {
         id: 500,
         companyId: 1,
+        organizationId: 23,
         itemName: "white bed cover",
         noOfBales: 0,
         onHand: 0,
@@ -61,38 +65,40 @@ describe("updateInventory integration", () => {
 
     const t = await sequelize.transaction();
 
-    await updateInventory(
-      [
-        {
-          id: 1,
-          noOfBales: 10,
-          baleWeightKgs: 20,
-          baleWeightLbs: 40,
-          ratePerBale: 5,
-        },
-        {
-          id: 524,
-          itemName: "men tropical pant xl",
-          noOfBales: "10",
-          ratePerKgs: 1,
-          ratePerLbs: 1,
-          ratePerBale: 1,
-          baleWeightKgs: 0,
-          baleWeightLbs: 0,
-        },
-        {
-          id: 500,
-          itemName: "white bed cover",
-          noOfBales: -3,
-          ratePerKgs: 1,
-          ratePerLbs: 1,
-          ratePerBale: 1,
-          baleWeightKgs: 0,
-          baleWeightLbs: 0,
-        },
-      ],
-      1,
-      t
+    await TenantContext.run(23, async () =>
+      updateInventory(
+        [
+          {
+            id: 1,
+            noOfBales: 10,
+            baleWeightKgs: 20,
+            baleWeightLbs: 40,
+            ratePerBale: 5,
+          },
+          {
+            id: 524,
+            itemName: "men tropical pant xl",
+            noOfBales: "10",
+            ratePerKgs: 1,
+            ratePerLbs: 1,
+            ratePerBale: 1,
+            baleWeightKgs: 0,
+            baleWeightLbs: 0,
+          },
+          {
+            id: 500,
+            itemName: "white bed cover",
+            noOfBales: -3,
+            ratePerKgs: 1,
+            ratePerLbs: 1,
+            ratePerBale: 1,
+            baleWeightKgs: 0,
+            baleWeightLbs: 0,
+          },
+        ],
+        1,
+        t
+      )
     );
 
     await t.commit();
@@ -118,17 +124,25 @@ describe("updateInventory integration", () => {
   });
 
   it("decrements inventory correctly upon sale approval", async () => {
-    const customer = await Customer.create({ id: 1, firstName: "Test", lastName: "Customer", email: "abc@gmail.com" });
+    const customer = await Customer.create({
+      id: 1,
+      firstName: "Test",
+      lastName: "Customer",
+      email: "abc@gmail.com",
+      organizationId: 23,
+    });
     await Ledger.create({
       customerId: customer.id,
       paymentType: "CASH",
       spendType: "DEBIT",
       amount: 5000,
+      organizationId: 23,
     });
 
     await Inventory.create({
       id: 100,
       companyId: 1,
+      organizationId: 23,
       itemName: "cotton roll",
       noOfBales: 20,
       onHand: 20,
@@ -140,6 +154,7 @@ describe("updateInventory integration", () => {
       id: 999,
       customerId: 1,
       companyId: 1,
+      organizationId: 23,
       status: "PENDING",
       soldDate: new Date(),
       totalAmount: 1000,
@@ -157,7 +172,7 @@ describe("updateInventory integration", () => {
 
     const t = await sequelize.transaction();
 
-    const { inventory } = await approveSaleOrder(999, t); // real method call
+    const { inventory } = await TenantContext.run(23, async () => approveSaleOrder(999, t)); // real method call
 
     const updated = await Inventory.findByPk(100);
 

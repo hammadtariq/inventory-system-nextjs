@@ -2,12 +2,15 @@ import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { saleGraphQuery } from "@/query/index";
+import TenantContext from "@/lib/tenant-context";
 
 const graphSaleTable = async (req, res) => {
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
     const yearlyData = await db.sequelize.query(saleGraphQuery, {
       type: db.Sequelize.QueryTypes.SELECT,
+      replacements: { organizationId },
     });
     return res.send(yearlyData);
   } catch (error) {

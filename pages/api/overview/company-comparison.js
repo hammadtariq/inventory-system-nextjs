@@ -1,10 +1,13 @@
 import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import TenantContext from "@/lib/tenant-context";
 
-const getCompanyComparison = async (req, res) => {
+export const getCompanyComparison = async (req, res) => {
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
+    const year = parseInt(req.query.year) || new Date().getFullYear();
 
     const result = await db.sequelize.query(
       `SELECT
@@ -12,11 +15,15 @@ const getCompanyComparison = async (req, res) => {
         COALESCE(SUM(p."totalAmount"), 0) as total
        FROM companies comp
        LEFT JOIN purchases p
-         ON p."companyId" = comp.id AND p.status = 'APPROVED'
+         ON p."companyId" = comp.id
+         AND p.status = 'APPROVED'
+         AND p."organizationId" = :organizationId
+         AND EXTRACT(YEAR FROM p."purchaseDate") = :year
+       WHERE comp."organizationId" = :organizationId
        GROUP BY comp.id, comp."companyName"
        ORDER BY total DESC
        LIMIT 5`,
-      { type: db.Sequelize.QueryTypes.SELECT }
+      { type: db.Sequelize.QueryTypes.SELECT, replacements: { organizationId, year } }
     );
 
     return res.send(result);

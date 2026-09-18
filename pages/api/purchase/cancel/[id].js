@@ -3,7 +3,9 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import { requireRole, onError } from "@/lib/authz";
 import { STATUS } from "@/utils/api.util";
+import TenantContext from "@/lib/tenant-context";
 
 const apiSchema = Joi.object({
   id: Joi.number().required(),
@@ -18,13 +20,12 @@ const cancelPurchaseOrder = async (req, res) => {
   if (error && error && Object.keys(error).length) {
     return res.status(400).send({ message: error.toString() });
   }
-  if (req.user.role !== "ADMIN") {
-    return res.status(400).send({ message: "Operation not permitted." });
-  }
+  requireRole("ADMIN", "SUPER_ADMIN")(req.user);
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
     const { id } = value;
-    const purchase = await db.Purchase.findByPk(id);
+    const purchase = await db.Purchase.findOne({ where: { id, organizationId } });
 
     if (!purchase) {
       return res.status(404).send({ message: "purchase order not exist" });
@@ -38,4 +39,4 @@ const cancelPurchaseOrder = async (req, res) => {
   }
 };
 
-export default nextConnect().use(auth).put(cancelPurchaseOrder);
+export default nextConnect({ onError }).use(auth).put(cancelPurchaseOrder);

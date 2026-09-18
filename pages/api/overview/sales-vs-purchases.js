@@ -1,10 +1,17 @@
 import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import TenantContext from "@/lib/tenant-context";
 
-const getSalesVsPurchases = async (req, res) => {
+export const getSalesVsPurchases = async (req, res) => {
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
+    const year = parseInt(req.query.year) || new Date().getFullYear();
+    const queryOptions = {
+      type: db.Sequelize.QueryTypes.SELECT,
+      replacements: { organizationId, year },
+    };
 
     const [salesData, purchasesData] = await Promise.all([
       db.sequelize.query(
@@ -15,11 +22,12 @@ const getSalesVsPurchases = async (req, res) => {
          FROM generate_series(1, 12) gs
          LEFT JOIN sales s
            ON EXTRACT(MONTH FROM s."soldDate") = gs
-           AND EXTRACT(YEAR FROM s."soldDate") = EXTRACT(YEAR FROM NOW())
+           AND EXTRACT(YEAR FROM s."soldDate") = :year
            AND s.status = 'APPROVED'
+           AND s."organizationId" = :organizationId
          GROUP BY gs
          ORDER BY gs`,
-        { type: db.Sequelize.QueryTypes.SELECT }
+        queryOptions
       ),
       db.sequelize.query(
         `SELECT
@@ -29,11 +37,12 @@ const getSalesVsPurchases = async (req, res) => {
          FROM generate_series(1, 12) gs
          LEFT JOIN purchases p
            ON EXTRACT(MONTH FROM p."purchaseDate") = gs
-           AND EXTRACT(YEAR FROM p."purchaseDate") = EXTRACT(YEAR FROM NOW())
+           AND EXTRACT(YEAR FROM p."purchaseDate") = :year
            AND p.status = 'APPROVED'
+           AND p."organizationId" = :organizationId
          GROUP BY gs
          ORDER BY gs`,
-        { type: db.Sequelize.QueryTypes.SELECT }
+        queryOptions
       ),
     ]);
 

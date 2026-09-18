@@ -1,22 +1,36 @@
 import nextConnect from "next-connect";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import TenantContext from "@/lib/tenant-context";
 
-const getPurchaseDistribution = async (req, res) => {
+export const getPurchaseDistribution = async (req, res) => {
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
+    const year = parseInt(req.query.year) || new Date().getFullYear();
+    const queryOptions = {
+      type: db.Sequelize.QueryTypes.SELECT,
+      replacements: { organizationId, year },
+    };
 
     const [paidResult, totalResult] = await Promise.all([
       db.sequelize.query(
         `SELECT COALESCE(SUM(amount), 0) as total
          FROM ledgers
          WHERE "companyId" IS NOT NULL
-           AND "paymentType" IN ('CASH', 'ONLINE', 'CHEQUE')`,
-        { type: db.Sequelize.QueryTypes.SELECT }
+           AND "organizationId" = :organizationId
+           AND "paymentType" IN ('CASH', 'ONLINE', 'CHEQUE')
+           AND EXTRACT(YEAR FROM "createdAt") = :year`,
+        queryOptions
       ),
-      db.sequelize.query(`SELECT COALESCE(SUM("totalAmount"), 0) as total FROM purchases WHERE status = 'APPROVED'`, {
-        type: db.Sequelize.QueryTypes.SELECT,
-      }),
+      db.sequelize.query(
+        `SELECT COALESCE(SUM("totalAmount"), 0) as total
+         FROM purchases
+         WHERE status = 'APPROVED'
+           AND "organizationId" = :organizationId
+           AND EXTRACT(YEAR FROM "purchaseDate") = :year`,
+        queryOptions
+      ),
     ]);
 
     const paid = parseFloat(paidResult[0].total) || 0;

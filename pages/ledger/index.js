@@ -49,21 +49,33 @@ const Ledger = () => {
 
   return (
     <div>
-      <AppTitle level={2}>
+      <AppTitle
+        level={2}
+        action={
+          <div className={styles.headerActions}>
+            <AppCreateButton url="/ledger/create" />
+            <Button className={styles.refundButton} onClick={() => router.push("/ledger/refund")}>
+              Refund to Customer
+            </Button>
+          </div>
+        }
+        toolbar={
+          <div className={styles.headerToolbar}>
+            <Input
+              allowClear
+              className={styles.headerSearch}
+              placeholder={`Search ${type === "company" ? "companies" : "customers"}...`}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <Radio.Group onChange={onChangeType} value={type} className={styles.headerSegment}>
+              <Radio value="company">Company</Radio>
+              <Radio value="customer">Customer</Radio>
+            </Radio.Group>
+          </div>
+        }
+      >
         Ledger
-        <Col>
-          <Input
-            allowClear
-            placeholder={`Search ${type === "company" ? "companies" : "customers"}...`}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{ maxWidth: 220, marginRight: 12 }}
-          />
-          <Button style={{ float: "right", marginLeft: 8 }} onClick={() => router.push("/ledger/refund")}>
-            Refund to Customer
-          </Button>
-          <AppCreateButton url="/ledger/create" />
-        </Col>
       </AppTitle>
 
       <Row gutter={[15, 15]} align="space-between" style={{ marginBottom: 25 }}>
@@ -76,12 +88,7 @@ const Ledger = () => {
           )}
         </Col>
 
-        <Col sm={12} xs={24} className={styles.companySelection}>
-          <Radio.Group onChange={onChangeType} value={type}>
-            <Radio value="company">Company</Radio>
-            <Radio value="customer">Customer</Radio>
-          </Radio.Group>
-        </Col>
+        <Col sm={12} xs={24} />
       </Row>
 
       {transactions.length > 0 ? (

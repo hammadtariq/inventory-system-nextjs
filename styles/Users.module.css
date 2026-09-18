@@ -1,0 +1,27 @@
+.inviteActions,
+.rowActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.inviteActionButton {
+  min-width: 82px;
+}
+
+.usersTable :global(.ant-table-cell) {
+  vertical-align: top;
+}
+
+@media (max-width: 576px) {
+  .inviteActions,
+  .rowActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .inviteActionButton,
+  .rowActions :global(.ant-btn) {
+    width: 100%;
+  }
+}

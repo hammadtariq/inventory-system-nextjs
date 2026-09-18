@@ -3,30 +3,45 @@ import { verifyToken } from "@/hooks/login";
 import Spinner from "./spinner";
 import { to } from "@/utils/to.util";
 
+const publicRoutes = new Set([
+  "/",
+  "/login",
+  "/checkout",
+  "/accept-invite",
+  "/about",
+  "/privacy",
+  "/terms",
+  "/inventory-management-software",
+  "/inventory-accounting-software",
+  "/inventory-software-south-asia",
+]);
+
 const ProtectedRoutes = ({ children, router }) => {
-  const [canViewPage, setCanViewPage] = useState(false);
+  const isPublicRoute = publicRoutes.has(router.pathname);
+  const [verifiedPath, setVerifiedPath] = useState(null);
 
   useEffect(() => {
     const checkAccess = async () => {
-      if (router.pathname === "/login") {
-        setCanViewPage(true);
+      if (isPublicRoute) {
         return;
       }
 
+      setVerifiedPath(null);
       const [err] = await to(verifyToken());
       if (err) {
         console.error("Token expired or invalid:", err);
-        router.push("/login");
+        const nextPath = router.asPath || router.pathname;
+        router.push(`/login?next=${encodeURIComponent(nextPath)}`);
         return;
       }
 
-      setCanViewPage(true);
+      setVerifiedPath(router.pathname);
     };
 
     checkAccess();
-  }, [router, router.pathname]);
+  }, [isPublicRoute, router, router.pathname]);
 
-  return canViewPage ? children : <Spinner />;
+  return isPublicRoute || verifiedPath === router.pathname ? children : <Spinner />;
 };
 
 export default ProtectedRoutes;

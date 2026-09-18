@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
-import { AutoComplete, Button, Space } from "antd";
+import { AutoComplete, Input } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import _debounce from "lodash/debounce";
 
@@ -29,11 +29,6 @@ const searchResult = (results = [], valueKey = "", valueKey2 = "", type) =>
 
 const SearchInput = ({ handleSearch, handleSelect, valueKey, valueKey2, placeholder, type, defaultValue }) => {
   const [options, setOptions] = useState([]);
-  const [inputValue, setInputValue] = useState(defaultValue || "");
-
-  useEffect(() => {
-    setInputValue(defaultValue || "");
-  }, [defaultValue]);
 
   const debouncedSearch = useMemo(
     () =>
@@ -55,30 +50,32 @@ const SearchInput = ({ handleSearch, handleSelect, valueKey, valueKey2, placehol
 
   const _handleSelect = (displayValue, option) => {
     const id = option.key;
-    setInputValue(displayValue);
     setOptions([]);
     handleSelect(id, displayValue);
   };
 
-  const handleChange = (value) => {
-    setInputValue(value || "");
-  };
-
   return (
-    <Space.Compact size="large" className={styles.inputWrap}>
-      <AutoComplete
-        popupMatchSelectWidth={500}
-        style={{ width: "100%" }}
-        options={options}
-        onSelect={_handleSelect}
-        onSearch={debouncedSearch}
-        onChange={handleChange}
-        value={inputValue}
+    // key forces a clean remount when defaultValue changes (e.g. router.query param update)
+    <AutoComplete
+      key={defaultValue ?? ""}
+      popupMatchSelectWidth
+      className={styles.inputWrap}
+      options={options}
+      onSelect={_handleSelect}
+      showSearch={{ onSearch: debouncedSearch, filterOption: false }}
+    >
+      <Input.Search
+        size="large"
         placeholder={placeholder}
+        defaultValue={defaultValue || ""}
+        enterButton={<SearchOutlined />}
         allowClear
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="off"
+        spellCheck={false}
       />
-      <Button type="primary" icon={<SearchOutlined />} />
-    </Space.Compact>
+    </AutoComplete>
   );
 };
 

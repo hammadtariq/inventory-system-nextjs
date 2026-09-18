@@ -3,18 +3,20 @@ import nextConnect from "next-connect";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
+import TenantContext from "@/lib/tenant-context";
 
 const dbConnect = db.dbConnect;
 
-const getCustomer = async (req, res) => {
+export const getCustomer = async (req, res) => {
   console.log("Get Customer Request Start");
   try {
     await dbConnect();
     const { id } = req.query;
-    const customer = await db.Customer.findByPk(id);
+    const organizationId = TenantContext.assertGet();
+    const customer = await db.Customer.findOne({ where: { id, organizationId } });
 
     if (!customer) {
-      return res.status(409).send({ message: "Customer not exist" });
+      return res.status(404).send({ message: "Customer not exist" });
     }
     console.log("Get Customer Request End");
     return res.send({
@@ -28,7 +30,7 @@ const getCustomer = async (req, res) => {
   }
 };
 
-const editCustomer = async (req, res) => {
+export const editCustomer = async (req, res) => {
   console.log("Edit Customer Request Start");
   const apiSchema = Joi.object({
     firstName: Joi.string().min(3).trim(),
@@ -50,10 +52,11 @@ const editCustomer = async (req, res) => {
 
   try {
     await dbConnect();
+    const organizationId = TenantContext.assertGet();
 
-    const customer = await db.Customer.findByPk(value.id);
+    const customer = await db.Customer.findOne({ where: { id: value.id, organizationId } });
     if (!customer) {
-      return res.status(409).send({ message: "Customer not exist" });
+      return res.status(404).send({ message: "Customer not exist" });
     }
 
     await customer.update({ ...value });
@@ -71,19 +74,20 @@ const editCustomer = async (req, res) => {
   }
 };
 
-const deleteCustomer = async (req, res) => {
+export const deleteCustomer = async (req, res) => {
   console.log("Delete Customer Request Start");
 
   const { id } = req.query;
 
   try {
     await dbConnect();
+    const organizationId = TenantContext.assertGet();
 
     const customer = await db.Customer.destroy({
-      where: { id },
+      where: { id, organizationId },
     });
     if (!customer) {
-      return res.status(409).send({ message: "Customer not exist" });
+      return res.status(404).send({ message: "Customer not exist" });
     }
     console.log("Delete Customer Request End");
 

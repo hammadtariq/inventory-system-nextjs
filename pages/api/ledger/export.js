@@ -3,6 +3,7 @@ import { calculateAmount } from "@/utils/api.util";
 import { auth } from "@/middlewares/auth";
 import nextConnect from "next-connect";
 import db from "@/lib/postgres";
+import TenantContext from "@/lib/tenant-context";
 const path = require("path");
 const fs = require("fs");
 
@@ -10,6 +11,7 @@ const exportLedger = async (req, res) => {
   console.log("ledger export file handler started");
   try {
     await db.dbConnect();
+    const organizationId = TenantContext.assertGet();
 
     // Extract query parameters
     const { fileExtension, invoiceNumber, typeOf } = req.query;
@@ -18,6 +20,7 @@ const exportLedger = async (req, res) => {
     const data = await db.Sale.findOne({
       where: {
         id: invoiceNumber,
+        organizationId,
       },
       include: [
         {
@@ -39,7 +42,7 @@ const exportLedger = async (req, res) => {
 
     // ✅ Step 2: Fetch all related companies in one go
     const companies = await db.Company.findAll({
-      where: { id: companyIds },
+      where: { id: companyIds, organizationId },
       attributes: ["id", "companyName"],
     });
 

@@ -7,6 +7,7 @@ import db from "@/lib/postgres";
 import path from "path";
 import fs from "fs";
 import { PRINT_TYPE } from "@/utils/ui.util";
+import TenantContext from "@/lib/tenant-context";
 
 const exportInventory = async (req, res) => {
   console.log("Export inventory starts");
@@ -28,7 +29,8 @@ const exportInventory = async (req, res) => {
     }
 
     const typeOf = req.query.typeOf;
-    const [inventoryData] = await fetchInventoryData(filters);
+    const organizationId = TenantContext.assertGet();
+    const [inventoryData] = await fetchInventoryData(filters, organizationId);
     const formattedInventoryData = formatInventoryData(inventoryData.rows, typeOf);
 
     const fileInfo = {
@@ -84,18 +86,19 @@ const parseFilters = (filters) => {
   }
 };
 
-const fetchInventoryData = async (filters) => {
+export const fetchInventoryData = async (filters, organizationId) => {
   try {
     return await Promise.all([
       db.Inventory.findAndCountAll({
         where: {
-          [db.Sequelize.Op.and]: [{ onHand: { [db.Sequelize.Op.gt]: 0 } }, ...filters],
+          [db.Sequelize.Op.and]: [{ organizationId }, { onHand: { [db.Sequelize.Op.gt]: 0 } }, ...filters],
         },
         include: [db.Company],
         order: [["itemName", "ASC"]],
       }),
       db.sequelize.query(companyTotalBalesQuery, {
         type: db.Sequelize.QueryTypes.SELECT,
+        replacements: { organizationId },
       }),
     ]);
   } catch (error) {
@@ -126,7 +129,7 @@ const formatInventoryData = (rows, typeOf) => {
       itemName: item.itemName || "-",
       companyName: item.company?.companyName || "-",
       onHand: item.onHand || 0,
-      company: item.company.companyName,
+      company: item.company?.companyName || "-",
       totalBales: item.total || 0,
       ...(item.baleWeightKgs !== undefined && { kgs: formatNumber(item.baleWeightKgs) }),
       ...(item.baleWeightLbs !== undefined && { lbs: formatNumber(item.baleWeightLbs) }),
