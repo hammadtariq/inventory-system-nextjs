@@ -9,6 +9,7 @@ import { PAYMENT_TYPE, SPEND_TYPE, STATUS } from "@/utils/api.util";
 import { getReturnedQuantityMap, getSaleReturnItemKey } from "@/utils/saleReturn.util";
 import TenantContext from "@/lib/tenant-context";
 import { createTenantTransaction } from "@/lib/tenant-transaction";
+import { bumpInventorySequence } from "@/lib/inventory";
 
 const productSchema = Joi.object().keys({
   itemName: Joi.string().trim().required(),
@@ -82,6 +83,7 @@ const updateInventoryForReturn = async (products, transaction) => {
         },
         { transaction }
       );
+      await bumpInventorySequence(inventory.id, transaction);
     }
 
     updatedInventory.push(inventory);
@@ -236,4 +238,5 @@ const getLockOption = (transaction, model) => {
   return model ? { lock: { level: transaction.LOCK.UPDATE, of: model } } : { lock: transaction.LOCK.UPDATE };
 };
 
+export { updateInventoryForReturn };
 export default nextConnect({ onError }).use(auth).post(createSaleReturn).get(getAllSaleReturns);
