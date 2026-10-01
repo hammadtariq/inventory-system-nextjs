@@ -29,7 +29,7 @@ describe("navigation config", () => {
     const items = getNavigationItems("ADMIN");
 
     expect(items.map((item) => item.title)).toContain("Users");
-    expect(items.map((item) => item.title)).toContain("Payments");
+    expect(items.map((item) => item.title)).not.toContain("Payments");
     expect(items.map((item) => item.title)).not.toContain("Organizations");
   });
 
@@ -38,6 +38,7 @@ describe("navigation config", () => {
 
     expect(items.map((item) => item.title)).toContain("Users");
     expect(items.map((item) => item.title)).toContain("Organizations");
+    expect(items.map((item) => item.title)).toContain("Payments");
   });
 
   test("keeps owner mobile shortcuts focused on approval and status routes", () => {
