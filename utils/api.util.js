@@ -22,7 +22,11 @@ export const EDITABLE_STATUS = [STATUS.CANCEL, STATUS.PENDING];
 export const DEFAULT_ROWS_LIMIT = 1000;
 
 export const calculateAmount = (totalAmount, a) => {
-  if (a.onHand) {
+  // "onHand" in a (not a.onHand, not hasOwnProperty): Inventory rows have onHand
+  // even when it's legitimately 0 (sold out), and Sequelize instances expose
+  // attributes via prototype getters backed by dataValues, so hasOwnProperty
+  // returns false on a real model instance even though `in` finds it.
+  if ("onHand" in a) {
     if (a.ratePerKgs && a.baleWeightKgs) {
       totalAmount += Number(a.ratePerKgs * a.baleWeightKgs);
     } else if (a.ratePerLbs && a.baleWeightLbs) {
