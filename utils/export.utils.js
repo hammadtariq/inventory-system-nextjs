@@ -72,6 +72,8 @@ export function mapDataToTable(data) {
   return data.map((item, index) => {
     const rate =
       item.ratePerLbs ?? item.lbsRate ?? item.ratePerKgs ?? item.kgRate ?? item.ratePerBale ?? item.baleRate ?? null;
+    const kgRate = item.ratePerKgs ?? item.kgRate ?? null;
+    const lbsRate = item.ratePerLbs ?? item.lbsRate ?? null;
 
     return {
       sno: index + 1,
@@ -86,6 +88,8 @@ export function mapDataToTable(data) {
       lbs: item.lbs ?? "-",
       kgs: item.kgs ?? "-",
       ...(rate !== null && rate !== "-" ? { rate } : "-"),
+      kgRate: kgRate ?? "-",
+      lbsRate: lbsRate ?? "-",
       ...(item.totalAmount != null ? { totalAmount: item.totalAmount } : {}),
     };
   });
@@ -107,27 +111,40 @@ export function calculateTotals(tableData) {
 }
 
 /**
- * Appends a bold TOTAL footer row to the table data.
- * The row is flagged with TOTAL_KEY so didParseCell can bold it.
+ * Appends bold footer row(s) to the table data: always a NET TOTAL row, and —
+ * when laborCharge is not null (sale invoices, not quotations) — LABOUR CHARGE
+ * and GRAND TOTAL rows too, so the full breakdown lives inside the table.
+ * Each row is flagged with TOTAL_KEY so didParseCell can bold it.
  */
-export function appendTotalsRow(tableData, totals) {
-  tableData.push({
+export function appendTotalsRow(tableData, totals, laborCharge = null) {
+  const blankTotalsRow = (item, totalAmount) => ({
     sno: "",
-    item: "TOTAL",
+    item,
     company: "",
-    bales: totals.bales || "",
+    bales: "",
     lbs: "",
     kgs: "",
     rate: "",
-    totalAmount: totals.totalAmount || "",
+    kgRate: "",
+    lbsRate: "",
+    totalAmount,
     [TOTAL_KEY]: true,
   });
+
+  tableData.push({ ...blankTotalsRow("NET TOTAL", totals.totalAmount || ""), bales: totals.bales || "" });
+
+  if (laborCharge !== null) {
+    const netTotal = totals.totalAmount || 0;
+    tableData.push(blankTotalsRow("LABOUR CHARGE", laborCharge || ""));
+    tableData.push(blankTotalsRow("GRAND TOTAL", netTotal + laborCharge || ""));
+  }
+
   return tableData;
 }
 
 /**
  * Renders the main data table.
- * – WITH_RATES  → 8 columns including Rate and Amount
+ * – WITH_RATES  → 10 columns including Rate, Rate per KG, Rate per LBS and Amount
  * – WITHOUT_RATES → 6 columns (no Rate / Amount)
  */
 export function generateTable(doc, tableData) {
@@ -143,14 +160,16 @@ export function generateTable(doc, tableData) {
   // Widths must sum to tableWidth (182 mm).
   const columns = showRateColumns
     ? [
-        { header: "SR", dataKey: "sno", width: 12, halign: "left" }, // widened for 2-digit numbers (change 3)
-        { header: "Items", dataKey: "item", width: 40, halign: "left" }, // slightly reduced to free space for Amount
-        { header: "Company Name", dataKey: "company", width: 30, halign: "left" },
-        { header: "Quantity", dataKey: "bales", width: 19, halign: "center" },
-        { header: "Weight (LBS)", dataKey: "lbs", width: 21, halign: "center" },
-        { header: "Weight (KGS)", dataKey: "kgs", width: 21, halign: "center" },
-        { header: "Rate", dataKey: "rate", width: 16, halign: "center" },
-        { header: "Amount", dataKey: "totalAmount", width: 24, halign: "right" },
+        { header: "SR", dataKey: "sno", width: 10, halign: "left" },
+        { header: "Items", dataKey: "item", width: 36, halign: "left" },
+        { header: "Company Name", dataKey: "company", width: 26, halign: "left" },
+        { header: "Quantity", dataKey: "bales", width: 15, halign: "center" },
+        { header: "Weight (LBS)", dataKey: "lbs", width: 17, halign: "center" },
+        { header: "Weight (KGS)", dataKey: "kgs", width: 17, halign: "center" },
+        { header: "Rate", dataKey: "rate", width: 13, halign: "center" },
+        { header: "Rate per KG", dataKey: "kgRate", width: 15, halign: "center" },
+        { header: "Rate per LBS", dataKey: "lbsRate", width: 15, halign: "center" },
+        { header: "Amount", dataKey: "totalAmount", width: 22, halign: "right" },
       ]
     : [
         { header: "SR", dataKey: "sno", width: 12, halign: "left" }, // widened for 2-digit numbers (change 3)
@@ -164,12 +183,11 @@ export function generateTable(doc, tableData) {
   const columnStyles = Object.fromEntries(columns.map((col, i) => [i, { cellWidth: col.width, halign: col.halign }]));
 
   // ── Body rows ───────────────────────────────────────────────────────────
+  const numericColumns = ["bales", "rate", "kgRate", "lbsRate", "totalAmount"];
   const bodyRows = tableData.map((row) =>
     columns.map((col) => {
       const v = row[col.dataKey];
-      if (col.dataKey === "bales" && v !== "") return formatNum(v);
-      if (col.dataKey === "rate" && v !== "") return formatNum(v);
-      if (col.dataKey === "totalAmount" && v !== "") return formatNum(v);
+      if (numericColumns.includes(col.dataKey) && v !== "") return formatNum(v);
       return v ?? "";
     })
   );
@@ -221,8 +239,11 @@ export function generateTable(doc, tableData) {
 export function addSummarySection() {}
 
 /**
- * Called for WITH_RATES exports.
- * Renders "PKR: … ONLY" (left) and an Authorized Signatory line (bottom-right).
+ * Renders an Authorized Signatory line (bottom-right).
+ * For sale invoices, Net Total / Labour Charge / Grand Total live inside the
+ * table itself (see appendTotalsRow) and the amount-in-words line is no
+ * longer shown. Quotations still get the "PKR: … ONLY" wording plus a
+ * standalone Grand Total line, since they don't have table footer rows for it.
  */
 export function addNetAmountSection(doc, totalAmount, laborCharge = 0, isQuotation = false) {
   const pageWidth = doc.internal.pageSize.width;
@@ -231,30 +252,20 @@ export function addNetAmountSection(doc, totalAmount, laborCharge = 0, isQuotati
   const y = tableEnd + 22;
   const grandTotal = totalAmount + laborCharge;
 
-  // Amount in words
-  const words = numberToWords(Math.round(grandTotal));
-  const pkrText = `PKR: ${words.toUpperCase()} ONLY`;
-  const wrapped = doc.splitTextToSize(pkrText, pageWidth * 0.55);
-
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "normal");
-  doc.text(wrapped, 14, y);
-
-  // Amount summary – lower-right under the table
-  const grandTotalStr = `Rs. ${formatNum(grandTotal.toFixed(2))}`;
-  const summaryX = pageWidth - 14;
-  const summaryStartY = tableEnd + 22;
-
-  doc.setFont("helvetica", "bold");
-
   if (isQuotation) {
-    doc.text(`Grand Total = ${grandTotalStr}`, summaryX, summaryStartY, { align: "right" });
-  } else {
-    const amountStr = `Rs. ${formatNum(totalAmount.toFixed(2))}`;
-    const laborChargeStr = `Rs. ${formatNum(laborCharge.toFixed(2))}`;
-    doc.text(`Net Total = ${amountStr}`, summaryX, summaryStartY, { align: "right" });
-    doc.text(`Labour Charge = ${laborChargeStr}`, summaryX, summaryStartY + 6, { align: "right" });
-    doc.text(`Grand Total = ${grandTotalStr}`, summaryX, summaryStartY + 12, { align: "right" });
+    // Amount in words
+    const words = numberToWords(Math.round(grandTotal));
+    const pkrText = `PKR: ${words.toUpperCase()} ONLY`;
+    const wrapped = doc.splitTextToSize(pkrText, pageWidth * 0.55);
+
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text(wrapped, 14, y);
+
+    const grandTotalStr = `Rs. ${formatNum(grandTotal.toFixed(2))}`;
+    const summaryX = pageWidth - 14;
+    doc.setFont("helvetica", "bold");
+    doc.text(`Grand Total = ${grandTotalStr}`, summaryX, y, { align: "right" });
   }
 
   // Authorized Signatory – bottom right

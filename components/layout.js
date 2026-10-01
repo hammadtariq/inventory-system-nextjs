@@ -7,6 +7,8 @@ import AppContent from "@/components/content";
 // import AppFooter from "@/components/footer";
 import AppSider from "@/components/appSider";
 import MobileDashboardNav from "@/components/mobileDashboardNav";
+import ChatBot from "@/components/chatBot";
+
 import styles from "@/styles/DashboardNavigation.module.css";
 import StorageUtils from "@/utils/storage.util";
 
@@ -40,6 +42,7 @@ export default function Layout({ children }) {
           <AppContent>{children}</AppContent>
           {/* <AppFooter /> */}
         </AntLayout>
+        <ChatBot />
       </AntLayout>
     </>
   );
