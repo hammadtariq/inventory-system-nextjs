@@ -46,8 +46,14 @@
       "Bash(node .qa/scripts/:*)",
       "mcp__playwright-test"
     ],
-    "deny": ["Read(./.env)", "Read(./playwright/.auth/**)"]
+    "deny": [
+      "Read(./.env)",
+      "Read(./playwright/.auth/**)"
+    ]
   },
+  "enabledMcpjsonServers": [
+    "playwright-test"
+  ],
   "hooks": {
     "PostToolUse": [
       {
@@ -71,6 +77,14 @@
     "superpowers@claude-plugins-official": true,
     "qa-kit@qa-ai-kit": true
   },
+  "extraKnownMarketplaces": {
+    "qa-ai-kit": {
+      "source": {
+        "source": "github",
+        "repo": "hammadtariq/qa-ai-kit"
+      }
+    }
+  },
   "mcpServers": {
     "postgres": {
       "command": "npx",
@@ -80,14 +94,5 @@
         "postgresql://postgres:postgres@localhost:5432/inventory-management-local"
       ]
     }
-  },
-  "extraKnownMarketplaces": {
-    "qa-ai-kit": {
-      "source": {
-        "source": "github",
-        "repo": "hammadtariq/qa-ai-kit"
-      }
-    }
-  },
-  "enabledMcpjsonServers": ["playwright-test"]
+  }
 }

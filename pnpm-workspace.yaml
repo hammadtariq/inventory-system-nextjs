@@ -1,6 +1,15 @@
 packages:
   - "."
 
+allowBuilds:
+  bcrypt: true
+  core-js: false
+  less: false
+  pre-commit: false
+  sharp: true
+  spawn-sync: false
+  sqlite3: true
+
 ignoredBuiltDependencies:
   - core-js
   - less
