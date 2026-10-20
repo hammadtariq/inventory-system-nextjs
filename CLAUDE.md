@@ -257,6 +257,10 @@ Single-context — one `CONTEXT.md` + `docs/adr/` at the repo root (neither exis
 End-to-end tests use the agency QA Kit: Playwright test agents write and heal tests, TestRail is the
 system of record, and people review at five gates. Jest unit tests in `__tests__/` are unchanged.
 
+**Before designing any test case, read `.qa/business-context.md`**: what this business must never get
+wrong (ledger balances, stock, tenant isolation, approval authority), its rules, how staff really use it,
+and the known gaps. Cases protect those things; they are not written per screen or per field.
+
 ### App under test
 
 - E2E runs against **this checkout on a local/CI database**, never production. With `BASE_URL` unset,
