@@ -3,11 +3,18 @@
   "kitVersion": "0.1.0",
   "testDir": "e2e",
   "testrail": {
-    "projectId": 0,
-    "suiteId": null,
-    "templateId": null,
-    "reviewField": null,
-    "automatedField": null
+    "projectId": 1,
+    "suiteId": 1,
+    "templateId": 2,
+    "reviewField": {
+      "field": "custom_review_status",
+      "draft": 1,
+      "approved": 2
+    },
+    "automatedField": {
+      "field": "custom_is_automated",
+      "value": true
+    }
   },
   "triage": {
     "maxFailures": 15,
