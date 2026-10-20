@@ -278,8 +278,16 @@ system of record, and people review at five gates. Jest unit tests in `__tests__
 - Every test links to its TestRail case: `test('title', { annotation: tr('C1234') }, async ({ page }) => { ... })`.
   Results reach TestRail only through this annotation. Don't put the case id in the title.
 - P1 cases get `tag: '@smoke'`. Flaky tests under investigation get `'@quarantine'` (skipped in CI).
-- Ant Design UI: prefer `getByRole` / `getByLabel` (Form.Item labels work), then `getByText`, then
-  `getByTestId`. Avoid `.ant-*` class selectors; they change between antd versions.
+- Ant Design UI: prefer `getByRole`, then `getByText`, then `getByTestId`. Avoid `.ant-*` class
+  selectors in specs; they change between antd versions (the one exception is `e2e/support/antd.ts`).
+- **antd Select / AutoComplete (company, customer, item, list type pickers):** use the helpers in
+  `e2e/support/antd.ts`, e.g. `await antSelect(page, "Company", "Coastal Traders")`. Two traps they handle:
+  - `getByRole("option", { name })` matches antd's hidden 0×0 accessibility list, so clicking it waits forever.
+  - Form.Item labels without a `name` prop aren't linked to their input, so `getByLabel("Company")` finds nothing.
+- **Agents driving the live browser (planner, generator, healer):** in an antd dropdown never click an
+  `option` ref from the snapshot. Click the field, type enough of the option's text to make it unique,
+  then press Enter (or ArrowDown + Enter to move to the next option). Lists are virtual: only ~10 rows
+  are rendered, so type to reach anything further down.
 - Assert the business outcome (record created, totals and ledger balances correct, status changed),
   not only that a page loaded. Use `toMatchAriaSnapshot` for tables and forms whose structure matters.
 - No `waitForTimeout`, `page.pause()` or `test.only`. Create data through the API (`request` fixture,

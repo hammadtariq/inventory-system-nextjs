@@ -7,12 +7,12 @@
     "suiteId": 1,
     "templateId": 2,
     "reviewField": {
-      "field": "custom_review_status",
+      "field": "custom_case_review_status",
       "draft": 1,
       "approved": 2
     },
     "automatedField": {
-      "field": "custom_is_automated",
+      "field": "custom_case_is_automated",
       "value": true
     }
   },
