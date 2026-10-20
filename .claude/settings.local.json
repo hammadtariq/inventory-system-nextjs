@@ -17,7 +17,9 @@
       "Bash(lsof -i :3000 -sTCP:LISTEN)",
       "Bash(curl -s http://localhost:3000/ --max-time 10)",
       "mcp__playwright__browser_click",
-      "mcp__playwright__browser_type"
+      "mcp__playwright__browser_type",
+      "mcp__plugin_qa-kit_testrail__testrail_update_case",
+      "mcp__plugin_qa-kit_testrail__testrail_add_cases"
     ]
   },
   "enabledPlugins": {

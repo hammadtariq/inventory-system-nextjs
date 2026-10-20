@@ -46,9 +46,14 @@
       "Bash(node .qa/scripts/:*)",
       "mcp__playwright-test"
     ],
-    "deny": ["Read(./.env)", "Read(./playwright/.auth/**)"]
+    "deny": [
+      "Read(./.env)",
+      "Read(./playwright/.auth/**)"
+    ]
   },
-  "enabledMcpjsonServers": ["playwright-test"],
+  "enabledMcpjsonServers": [
+    "playwright-test"
+  ],
   "hooks": {
     "PostToolUse": [
       {
@@ -69,7 +74,6 @@
   "enabledPlugins": {
     "context7@claude-plugins-official": true,
     "code-review@claude-plugins-official": true,
-    "superpowers@claude-plugins-official": true,
     "qa-kit@qa-ai-kit": true
   },
   "extraKnownMarketplaces": {
