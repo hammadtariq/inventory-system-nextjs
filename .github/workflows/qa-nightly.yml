@@ -1,0 +1,193 @@
+# QA Kit: nightly full E2E regression at 01:00 Asia/Karachi (20:00 UTC) against `main`, on a
+# throwaway Postgres seeded with the demo org. Claude's triage finishes before the workday, so the
+# subscription's 5-hour window has reset by morning.
+name: QA - nightly regression
+
+on:
+  schedule:
+    - cron: "0 20 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: qa-nightly
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    outputs:
+      failed: ${{ steps.result.outputs.failed }}
+      quarantine: ${{ steps.flaky.outputs.quarantine }}
+      run_title: ${{ steps.title.outputs.title }}
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      CI: true
+      TESTRAIL_URL: ${{ secrets.TESTRAIL_URL }}
+      TESTRAIL_USER: ${{ secrets.TESTRAIL_USER }}
+      TESTRAIL_API_KEY: ${{ secrets.TESTRAIL_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/qa-app-setup
+
+      - name: Run title
+        id: title
+        run: echo "title=Nightly $(date -u +%Y-%m-%d) #${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+
+      - name: Restore flaky history
+        uses: actions/cache/restore@v4
+        with:
+          path: .qa-cache
+          key: qa-flaky-${{ github.run_id }}
+          restore-keys: qa-flaky-
+
+      - name: Full E2E regression
+        id: run
+        continue-on-error: true
+        run: pnpm exec playwright test --grep-invert @quarantine
+
+      - name: Update flaky history
+        id: flaky
+        if: always()
+        run: node .qa/scripts/flaky-history.mjs reports/results.json .qa-cache/flaky-history.json reports/flaky.json
+
+      - name: Save flaky history
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .qa-cache
+          key: qa-flaky-${{ github.run_id }}
+
+      - name: Upload results to TestRail
+        if: always() && env.TESTRAIL_URL != '' && vars.TESTRAIL_PROJECT_NAME != ''
+        continue-on-error: true
+        env:
+          RUN_TITLE: ${{ steps.title.outputs.title }}
+          TESTRAIL_PROJECT_NAME: ${{ vars.TESTRAIL_PROJECT_NAME }}
+        run: |
+          [ -f reports/junit.xml ] || { echo "No JUnit report"; exit 0; }
+          grep -qs 'name="test_id"' reports/junit.xml || { echo "No tests are linked to TestRail cases yet (tr('C123')); skipping upload."; exit 0; }
+          pip install --quiet trcli
+          SUITE=$(node -p "(require('./.qa/config.json').testrail||{}).suiteId||''")
+          trcli -n -h "$TESTRAIL_URL" -u "$TESTRAIL_USER" -k "$TESTRAIL_API_KEY" \
+            --project "$TESTRAIL_PROJECT_NAME" \
+            parse_junit -f reports/junit.xml \
+            --title "$RUN_TITLE" \
+            --case-matcher property --close-run ${SUITE:+--suite-id $SUITE}
+
+      - name: Result
+        id: result
+        if: always()
+        run: echo "failed=${{ steps.run.outcome == 'failure' }}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qa-reports-nightly-${{ github.run_id }}
+          path: reports/
+          retention-days: 14
+          if-no-files-found: ignore
+
+  triage:
+    needs: regression
+    if: always() && (needs.regression.outputs.failed == 'true' || needs.regression.outputs.quarantine == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      CI: true
+      QA_LOCK_ASSERTIONS: "1"
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/qa-app-setup
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: qa-reports-nightly-${{ github.run_id }}
+          path: reports
+
+      - run: |
+          git config user.name "qa-kit[bot]"
+          git config user.email "qa-kit-bot@users.noreply.github.com"
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ github.token }}
+          plugin_marketplaces: https://github.com/hammadtariq/qa-ai-kit.git
+          plugins: qa-kit@qa-ai-kit
+          prompt: /qa-kit:triage nightly
+          claude_args: |
+            --max-turns 40
+            --allowedTools "Read,Glob,Grep,Edit,Write,MultiEdit,Agent,Bash(node .qa/scripts/:*),Bash(pnpm exec playwright test:*),Bash(npx playwright test:*),Bash(git checkout:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git diff:*),Bash(git status:*),Bash(gh pr create:*),Bash(gh issue create:*),Bash(gh issue list:*),Bash(cat:*),mcp__playwright-test"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qa-triage-${{ github.run_id }}
+          path: reports/triage.md
+          if-no-files-found: ignore
+
+  digest:
+    needs: [regression, triage]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: qa-reports-nightly-${{ github.run_id }}
+          path: reports
+
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: qa-triage-${{ github.run_id }}
+          path: reports
+
+      - name: Post digest
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          GITHUB_TOKEN: ${{ github.token }}
+          QA_RUN_TITLE: ${{ needs.regression.outputs.run_title }}
+          TESTRAIL_URL: ${{ secrets.TESTRAIL_URL }}
+          TESTRAIL_USER: ${{ secrets.TESTRAIL_USER }}
+          TESTRAIL_API_KEY: ${{ secrets.TESTRAIL_API_KEY }}
+        run: node .qa/scripts/summary.mjs | tee -a "$GITHUB_STEP_SUMMARY"

@@ -249,3 +249,53 @@ Default label vocabulary — `needs-triage`, `needs-info`, `ready-for-agent`, `r
 ### Domain docs
 
 Single-context — one `CONTEXT.md` + `docs/adr/` at the repo root (neither exists yet; skills proceed silently). See `docs/agents/domain.md`.
+
+---
+
+## QA conventions (QA Kit, Playwright E2E)
+
+End-to-end tests use the agency QA Kit: Playwright test agents write and heal tests, TestRail is the
+system of record, and people review at five gates. Jest unit tests in `__tests__/` are unchanged.
+
+### App under test
+
+- E2E runs against **this checkout on a local/CI database**, never production. With `BASE_URL` unset,
+  Playwright starts the app on `http://127.0.0.1:3100` (`pnpm dev` locally, `pnpm start` in CI after a build).
+- Test data: the "Drift Warehouse Demo" org from `pnpm db:seed-demo-org` (run `pnpm db:migrate` first).
+  Seed with `DEMO_ADMIN_PASSWORD` set and use the same value as `QA_USER_PASSWORD`. The seed keeps the
+  password of users that already exist, so on a previously seeded database use the earlier password.
+- Before migrating, seeding or running E2E locally, check that `.env` points at the **local** docker-compose
+  database, not Supabase: the seed rewrites the demo org's data.
+- Logins: `admin@trs.com` (ADMIN, default storage state), `warehouse@trs.com` and `sales@trs.com` (EDITOR).
+  Role-specific tests log in as the EDITOR in their own setup, using `DEMO_EDITOR_*_PASSWORD`.
+- Areas: dashboard, inventory, items, company, customers, purchase, sales, sale-returns, ledger, cheques,
+  quotation, reports, users. Multi-tenant: tests that create data should verify it stays within the org.
+
+### Writing E2E tests
+
+- Tests live in `e2e/<area>/<feature>.spec.ts`. Import `test`, `expect` and `tr` from `e2e/fixtures.ts`.
+  `e2e/seed.spec.ts` is the seed for the planner and generator agents.
+- Every test links to its TestRail case: `test('title', { annotation: tr('C1234') }, async ({ page }) => { ... })`.
+  Results reach TestRail only through this annotation. Don't put the case id in the title.
+- P1 cases get `tag: '@smoke'`. Flaky tests under investigation get `'@quarantine'` (skipped in CI).
+- Ant Design UI: prefer `getByRole` / `getByLabel` (Form.Item labels work), then `getByText`, then
+  `getByTestId`. Avoid `.ant-*` class selectors; they change between antd versions.
+- Assert the business outcome (record created, totals and ledger balances correct, status changed),
+  not only that a page loaded. Use `toMatchAriaSnapshot` for tables and forms whose structure matters.
+- No `waitForTimeout`, `page.pause()` or `test.only`. Create data through the API (`request` fixture,
+  it shares the signed-in cookie) rather than long UI setup.
+- Check your work: `node .qa/scripts/lint-specs.mjs <files>` and `npx playwright test <files> --repeat-each=3`.
+
+### What needs a person (the gates)
+
+1. New TestRail cases stay "AI draft" until the QA lead approves them. Never approve cases yourself.
+2. New or changed specs go through a PR labelled `qa:gate-2`.
+3. Never change an assertion's matcher or expected value to make a test pass. If behaviour changed,
+   mark the test `test.fixme()` with a reason and open a `qa:gate-3` issue.
+4. Bugs are drafted as `qa:gate-4` issues; a person reproduces them before anything ships.
+5. Release sign-off is a person's call.
+
+### Commands
+
+- `npx playwright test` · `npx playwright test --grep @smoke` · `npx playwright show-report reports/html`
+- Kit skills: `/qa-kit:plan-feature`, `/qa-kit:generate-tests`, `/qa-kit:triage`, `/qa-kit:digest`, `/qa-kit:upkeep`

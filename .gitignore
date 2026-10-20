@@ -53,3 +53,11 @@ exportedFiles
 
 # MCP Playwright-mcp
 .playwright-mcp/*
+
+# QA Kit
+reports/
+test-results/
+playwright-report/
+playwright/.auth/
+.qa-cache/
+.mcp.json.qa-backup
