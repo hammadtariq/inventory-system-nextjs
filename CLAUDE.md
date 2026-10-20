@@ -262,7 +262,10 @@ system of record, and people review at five gates. Jest unit tests in `__tests__
 - E2E runs against **this checkout on a local/CI database**, never production. With `BASE_URL` unset,
   Playwright starts the app on `http://127.0.0.1:3100` (`pnpm dev` locally, `pnpm start` in CI after a build).
 - Test data: the "Drift Warehouse Demo" org from `pnpm db:seed-demo-org` (run `pnpm db:migrate` first).
-  Seed with `DEMO_ADMIN_PASSWORD` set and use the same value as `QA_USER_PASSWORD`.
+  Seed with `DEMO_ADMIN_PASSWORD` set and use the same value as `QA_USER_PASSWORD`. The seed keeps the
+  password of users that already exist, so on a previously seeded database use the earlier password.
+- Before migrating, seeding or running E2E locally, check that `.env` points at the **local** docker-compose
+  database, not Supabase: the seed rewrites the demo org's data.
 - Logins: `admin@trs.com` (ADMIN, default storage state), `warehouse@trs.com` and `sales@trs.com` (EDITOR).
   Role-specific tests log in as the EDITOR in their own setup, using `DEMO_EDITOR_*_PASSWORD`.
 - Areas: dashboard, inventory, items, company, customers, purchase, sales, sale-returns, ledger, cheques,

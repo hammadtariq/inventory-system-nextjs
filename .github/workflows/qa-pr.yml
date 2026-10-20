@@ -70,6 +70,7 @@ jobs:
           TESTRAIL_PROJECT_NAME: ${{ vars.TESTRAIL_PROJECT_NAME }}
         run: |
           ls reports/*/junit.xml >/dev/null 2>&1 || { echo "No JUnit reports"; exit 0; }
+          grep -qs 'name="test_id"' reports/*/junit.xml || { echo "No tests are linked to TestRail cases yet (tr('C123')); skipping upload."; exit 0; }
           pip install --quiet trcli
           SUITE=$(node -p "(require('./.qa/config.json').testrail||{}).suiteId||''")
           trcli -n -h "$TESTRAIL_URL" -u "$TESTRAIL_USER" -k "$TESTRAIL_API_KEY" \
