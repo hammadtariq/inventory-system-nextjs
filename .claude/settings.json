@@ -40,8 +40,13 @@
       "mcp__github-stockflow__search_issues",
       "mcp__github-stockflow__search_code",
       "mcp__github-stockflow__get_file_contents",
-      "mcp__github-stockflow__list_commits"
-    ]
+      "mcp__github-stockflow__list_commits",
+      "Bash(npx playwright test:*)",
+      "Bash(npx playwright show-report:*)",
+      "Bash(node .qa/scripts/:*)",
+      "mcp__playwright-test"
+    ],
+    "deny": ["Read(./.env)", "Read(./playwright/.auth/**)"]
   },
   "hooks": {
     "PostToolUse": [
@@ -63,7 +68,8 @@
   "enabledPlugins": {
     "context7@claude-plugins-official": true,
     "code-review@claude-plugins-official": true,
-    "superpowers@claude-plugins-official": true
+    "superpowers@claude-plugins-official": true,
+    "qa-kit@qa-ai-kit": true
   },
   "mcpServers": {
     "postgres": {
@@ -74,5 +80,14 @@
         "postgresql://postgres:postgres@localhost:5432/inventory-management-local"
       ]
     }
-  }
+  },
+  "extraKnownMarketplaces": {
+    "qa-ai-kit": {
+      "source": {
+        "source": "github",
+        "repo": "hammadtariq/qa-ai-kit"
+      }
+    }
+  },
+  "enabledMcpjsonServers": ["playwright-test"]
 }

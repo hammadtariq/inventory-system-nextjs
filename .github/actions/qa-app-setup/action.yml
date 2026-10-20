@@ -1,0 +1,74 @@
+name: QA app setup
+description: >
+  Install dependencies, migrate and seed a throwaway Postgres (job service container) with the demo
+  organization, build the app and install Playwright's browser. Exports QA_USER_EMAIL/QA_USER_PASSWORD
+  for the tests. The job must define a `postgres` service on port 5432 (user/password postgres).
+
+inputs:
+  build:
+    description: Build the Next.js app (needed whenever tests run)
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@v4
+      with:
+        version: 10
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 24
+        cache: pnpm
+
+    - name: Install dependencies
+      shell: bash
+      run: pnpm install --frozen-lockfile
+
+    - name: Prepare database and test credentials
+      shell: bash
+      env:
+        PGPASSWORD: postgres
+      run: |
+        # The app role must not be the bootstrap superuser: the RLS migration demotes the role it runs as.
+        psql -h localhost -U postgres -c "CREATE ROLE qa_app LOGIN SUPERUSER PASSWORD 'qa_app';"
+        psql -h localhost -U postgres -c "CREATE DATABASE inventory_qa OWNER qa_app;"
+        PASS="Qa-$(openssl rand -hex 12)"
+        echo "::add-mask::$PASS"
+        {
+          echo "POSTGRES_HOST=localhost"
+          echo "POSTGRES_PORT=5432"
+          echo "POSTGRES_USER=qa_app"
+          echo "POSTGRES_PASSWORD=qa_app"
+          echo "POSTGRES_DB=inventory_qa"
+          echo "TOKEN_SECRET=$(openssl rand -hex 32)"
+          echo "NEXT_TELEMETRY_DISABLED=1"
+          echo "QA_USER_EMAIL=admin@trs.com"
+          echo "QA_USER_PASSWORD=$PASS"
+          echo "DEMO_ADMIN_PASSWORD=$PASS"
+        } >> "$GITHUB_ENV"
+
+    - name: Migrate and seed the demo organization
+      shell: bash
+      run: |
+        pnpm db:migrate > /tmp/migrate.log 2>&1 || { tail -50 /tmp/migrate.log; exit 1; }
+        pnpm db:seed-demo-org > /tmp/seed.log 2>&1 || { tail -50 /tmp/seed.log; exit 1; }
+        grep -q "seeded successfully" /tmp/seed.log && echo "Demo organization seeded."
+
+    - name: Cache Next.js build cache
+      if: inputs.build == 'true'
+      uses: actions/cache@v4
+      with:
+        path: .next/cache
+        key: next-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('pages/**', 'components/**', 'hooks/**', 'lib/**', 'utils/**', 'styles/**') }}
+        restore-keys: |
+          next-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+
+    - name: Build the app
+      if: inputs.build == 'true'
+      shell: bash
+      run: pnpm build
+
+    - name: Install Playwright browser
+      shell: bash
+      run: pnpm exec playwright install --with-deps chromium

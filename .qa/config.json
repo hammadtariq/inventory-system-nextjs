@@ -1,0 +1,17 @@
+{
+  "name": "TSO Inventory (StockFlow)",
+  "kitVersion": "0.1.0",
+  "testDir": "e2e",
+  "testrail": {
+    "projectId": 0,
+    "suiteId": null,
+    "templateId": null,
+    "reviewField": null,
+    "automatedField": null
+  },
+  "triage": {
+    "maxFailures": 15,
+    "quarantineAfter": 3,
+    "flakyWindowDays": 7
+  }
+}

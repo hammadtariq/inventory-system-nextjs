@@ -1,0 +1,146 @@
+# QA Kit: PR checks. Lint the specs, run changed E2E tests and @smoke against this PR's build
+# (throwaway Postgres + demo org), upload results to TestRail, and on failure let Claude triage
+# and comment on the PR.
+name: QA - PR checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: qa-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    outputs:
+      failed: ${{ steps.result.outputs.failed }}
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      CI: true
+      TESTRAIL_URL: ${{ secrets.TESTRAIL_URL }}
+      TESTRAIL_USER: ${{ secrets.TESTRAIL_USER }}
+      TESTRAIL_API_KEY: ${{ secrets.TESTRAIL_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/qa-app-setup
+
+      - name: Lint test conventions
+        run: node .qa/scripts/lint-specs.mjs
+
+      - name: E2E tests changed in this PR
+        id: changed
+        continue-on-error: true
+        env:
+          QA_REPORT_DIR: reports/changed
+        run: pnpm exec playwright test --only-changed=origin/${{ github.base_ref }} --grep-invert @quarantine --pass-with-no-tests
+
+      - name: Smoke tests
+        id: smoke
+        continue-on-error: true
+        env:
+          QA_REPORT_DIR: reports/smoke
+        run: pnpm exec playwright test --grep @smoke --grep-invert @quarantine --pass-with-no-tests
+
+      - name: Upload results to TestRail
+        if: always() && env.TESTRAIL_URL != '' && vars.TESTRAIL_PROJECT_NAME != ''
+        continue-on-error: true
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_BRANCH: ${{ github.head_ref }}
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+          TESTRAIL_PROJECT_NAME: ${{ vars.TESTRAIL_PROJECT_NAME }}
+        run: |
+          ls reports/*/junit.xml >/dev/null 2>&1 || { echo "No JUnit reports"; exit 0; }
+          pip install --quiet trcli
+          SUITE=$(node -p "(require('./.qa/config.json').testrail||{}).suiteId||''")
+          trcli -n -h "$TESTRAIL_URL" -u "$TESTRAIL_USER" -k "$TESTRAIL_API_KEY" \
+            --project "$TESTRAIL_PROJECT_NAME" \
+            parse_junit -f "reports/*/junit.xml" \
+            --title "PR #$PR_NUMBER $PR_BRANCH @ ${PR_SHA::7}" \
+            --case-matcher property --close-run ${SUITE:+--suite-id $SUITE}
+
+      - name: Result
+        id: result
+        if: always()
+        run: |
+          if [ "${{ steps.changed.outcome }}" = "failure" ] || [ "${{ steps.smoke.outcome }}" = "failure" ]; then
+            echo "failed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "failed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qa-reports-pr-${{ github.event.pull_request.number }}-${{ github.run_attempt }}
+          path: reports/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Fail the check when tests failed
+        if: steps.result.outputs.failed == 'true'
+        run: exit 1
+
+  triage:
+    needs: e2e
+    # Only for branches in this repo (secrets are not available to fork PRs).
+    if: always() && needs.e2e.outputs.failed == 'true' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      CI: true
+      QA_LOCK_ASSERTIONS: "1"
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/qa-app-setup
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: qa-reports-pr-${{ github.event.pull_request.number }}-${{ github.run_attempt }}
+          path: reports
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ github.token }}
+          plugin_marketplaces: https://github.com/hammadtariq/qa-ai-kit.git
+          plugins: qa-kit@qa-ai-kit
+          prompt: /qa-kit:triage pr ${{ github.event.pull_request.number }}
+          claude_args: |
+            --max-turns 25
+            --allowedTools "Read,Glob,Grep,Edit,Write,Agent,Bash(node .qa/scripts/:*),Bash(pnpm exec playwright test:*),Bash(npx playwright test:*),Bash(gh pr comment:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh issue create:*),Bash(gh issue list:*),Bash(git diff:*),Bash(git log:*),Bash(cat:*),mcp__playwright-test"
