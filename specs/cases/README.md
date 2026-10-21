@@ -40,6 +40,11 @@ and `/qa-kit:push-cases` sends the Keep rows to TestRail and writes the case ids
 
 Extra columns you add are kept.
 
+**What reaches TestRail:** `title`, `priority`, `type`, `preconditions` followed by a "Why it matters:" line,
+and the numbered `steps`/`expected` (the `data` table goes inside step 1). `risks`, `notes`, `known_issue`,
+`source`, `file` and the review columns stay in the repo, so a push only changes a TestRail case when the case
+itself changed.
+
 ## Reviewing (Gate 1)
 
 1. Open the CSV, read each row as the business owner would, and fill `decision`. Fill-down works:
