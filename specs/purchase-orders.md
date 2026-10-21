@@ -4,6 +4,8 @@
 
 Regression coverage for Purchase Orders (brief: `specs/briefs/purchase-orders.md`) in the Drift Warehouse Demo org on a local DB (http://127.0.0.1:3100). Roles: ADMIN admin@trs.com (default storage state) and EDITOR warehouse@trs.com (log in during test setup with `DEMO_EDITOR_*_PASSWORD`). Out of scope: purchase reports and exports.
 
+**The cases live in `specs/cases/purchase-orders.csv`**, one row per case: review and edit them there (any spreadsheet), then run `node .qa/scripts/cases.mjs plan specs/cases/purchase-orders.csv` to regenerate the Test Scenarios block below. Everything else in this file is written by hand.
+
 TestRail section: "Purchase orders" (id 4). **24 cases**, consolidated on 2026-10-21 from the original 60 (C4–C63) and revised the same day by a case review (`/qa-kit:review-cases`) against the code: each case is one business outcome, written as a journey with checkpoints or a data table. The 36 merged or dropped ids are listed under "Retired cases" at the end and are moved to a "Retired" section in TestRail, not deleted. Rewritten cases go back to "AI draft" for Gate 1.
 
 Confirmed business rules (from the brief):
@@ -59,13 +61,15 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 **Seed for all suites:** `e2e/seed.spec.ts`
 
+<!-- cases:start (generated from the cases CSV by .qa/scripts/cases.mjs; edit the CSV, not this block) -->
+
 ### 1. Create and price a purchase
 
 #### 1.1. Staff record a purchase in the form and it is saved as PENDING with the right total, without touching stock or ledger
 
-**TestRail:** C4 · **Priority:** P1 · **Criterion:** 1, posting boundary 2
+**TestRail:** C4 · **Key:** PO-01 · **Priority:** P1 · **Type:** Functional · **Risks:** 1, 2 · **Source:** Criterion 1, posting boundary 2
 **File:** `e2e/purchase/create.spec.ts`
-**Why it matters:** a purchase is a draft until the owner approves it; if saving alone moved stock or the supplier balance, every unapproved draft would distort the books.
+**Why it matters:** A purchase is a draft until the owner approves it; if saving alone moved stock or the supplier balance, every unapproved draft would distort the books.
 
 **Steps:**
 
@@ -88,11 +92,14 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 #### 1.2. Every pricing method gives the same total on screen, in the saved purchase and in the supplier ledger
 
-**TestRail:** C30 · **Priority:** P1 · **Brief:** pricing 1
+**TestRail:** C30 · **Key:** PO-02 · **Priority:** P1 · **Type:** Functional · **Risks:** 1 · **Source:** Brief pricing 1 · **Kg, lb and mixed rows expected to fail (weight pricing)**
 **File:** `e2e/purchase/pricing.spec.ts`
-**Why it matters:** the purchase total becomes what the business owes the supplier; a wrong multiplier means paying the wrong amount.
+**Why it matters:** The purchase total becomes what the business owes the supplier; a wrong multiplier means paying the wrong amount.
 
-**Steps:** for each row, create the purchase in the UI, check the on-screen total, create, reload and GET, then approve via the API and GET the company ledger. Use multiple bales so a missing bale multiplier can't pass.
+**Steps:**
+
+1. For each row, create the purchase in the UI, check the on-screen total, create, reload and GET, then approve via the API and GET the company ledger. Use multiple bales so a missing bale multiplier can't pass.
+   - expect: On-screen Total Amount, saved totalAmount and the single new ledger DEBIT all equal the expected total; balance rises by exactly that amount
 
 | Row             | Company / type                 | Lines                                                       | Sur Charge | Expected total = saved total = ledger DEBIT  |
 | --------------- | ------------------------------ | ----------------------------------------------------------- | ---------- | -------------------------------------------- |
@@ -101,14 +108,13 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 | per bale        | 'Ironwood Imports' SMALL_BALES | 3 bales × Rs 10/bale, 2 bales × Rs 20/bale                  | 0          | 70                                           |
 | mixed, decimals | 'Ironwood Garments' BIG_BALES  | 4 bales × 12.5 kg × Rs 10.4/kg, 2 bales × 100 lb × Rs 40/lb | 75         | 8,595 (surcharge added once; decimals saved) |
 
-- expect (each row): on-screen Total Amount, saved totalAmount and the single new ledger DEBIT all equal the expected total; balance rises by exactly that amount
 - The kg, lb and mixed rows are expected to fail (weight-pricing bug). Keep them in a separate `test.fixme()` test from the per-bale row.
 
 #### 1.3. A direct request with an inconsistent total does not post an incorrect supplier liability
 
-**TestRail:** C33 · **Priority:** P1 · **Brief:** pricing 1 · **May fail (client-supplied total)**
+**TestRail:** C33 · **Key:** PO-03 · **Priority:** P1 · **Type:** Functional · **Risks:** 1 · **Source:** Brief pricing 1 · **May fail (client-supplied total)**
 **File:** `e2e/purchase/pricing-api.spec.ts`
-**Why it matters:** anyone with an API session could understate a supplier liability; the books must follow the lines, not the client's arithmetic.
+**Why it matters:** Anyone with an API session could understate a supplier liability; the books must follow the lines, not the client's arithmetic.
 
 **Steps:**
 
@@ -121,9 +127,9 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 #### 2.1. The create form only submits a complete purchase
 
-**TestRail:** C9 · **Priority:** P1 · **Criterion:** 2
+**TestRail:** C9 · **Key:** PO-04 · **Priority:** P1 · **Type:** Functional · **Risks:** 5 · **Source:** Criterion 2
 **File:** `e2e/purchase/validation.spec.ts`
-**Why it matters:** an incomplete purchase saved by mistake becomes a record someone may approve.
+**Why it matters:** An incomplete purchase saved by mistake becomes a record someone may approve.
 
 **Steps:**
 
@@ -142,9 +148,9 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 #### 2.2. Switching company or bale type while creating leaves only the new selection's items and recalculates totals
 
-**TestRail:** C55 · **Priority:** P2 · **Brief:** form 9
+**TestRail:** C55 · **Key:** PO-05 · **Priority:** P2 · **Type:** Functional · **Risks:** 2, 1 · **Source:** Brief form 9
 **File:** `e2e/purchase/form.spec.ts`
-**Why it matters:** a stale line from the first selection would put stock and cost against the wrong supplier.
+**Why it matters:** A stale line from the first selection would put stock and cost against the wrong supplier.
 
 **Steps:**
 
@@ -159,11 +165,14 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 #### 2.3. The API rejects an incomplete purchase or another supplier's item on create, and saves nothing
 
-**TestRail:** C11 · **Priority:** P1 · **Criterion:** 1, 2 · **Brief:** integrity 8
+**TestRail:** C11 · **Key:** PO-06 · **Priority:** P1 · **Type:** Functional · **Risks:** 2, 5 · **Source:** Criterion 1, 2; Brief integrity 8
 **File:** `e2e/purchase/validation-api.spec.ts`
-**Why it matters:** the form isn't the only way in; a bad request must never create a purchase that later posts stock and money against the wrong supplier.
+**Why it matters:** The form isn't the only way in; a bad request must never create a purchase that later posts stock and money against the wrong supplier.
 
-**Steps:** for each row, POST the request, then check the purchase count is unchanged. Rows that fail today live in C48 and C59 and fold in here once fixed.
+**Steps:**
+
+1. For each row, POST the request, then check the purchase count is unchanged. Rows that fail today live in C48 and C59 and fold in here once fixed.
+   - expect: Each row gives its expected result.
 
 | Row                                                             | Request                                       | Expected                                            |
 | --------------------------------------------------------------- | --------------------------------------------- | --------------------------------------------------- |
@@ -174,11 +183,14 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 #### 2.4. The API rejects a malformed purchase on create and on edit
 
-**TestRail:** C48 · **Priority:** P1 · **Criterion:** 2 · **Expected to fail (D2, D8)**
+**TestRail:** C48 · **Key:** PO-07 · **Priority:** P1 · **Type:** Functional · **Risks:** 1, 2 · **Source:** Criterion 2 · **Expected to fail (D2, D8)**
 **File:** `e2e/purchase/validation-api.spec.ts`
-**Why it matters:** an approved purchase with no lines, negative quantities or an unpriced weight line posts a supplier liability that doesn't match the goods received.
+**Why it matters:** An approved purchase with no lines, negative quantities or an unpriced weight line posts a supplier liability that doesn't match the goods received.
 
-**Steps:** setup one PENDING 'Ironwood Garments' BIG_BALES purchase P. For each row, send the request on create (POST) and on edit (PUT P), then check the purchase count is unchanged and P is unchanged (GET).
+**Steps:**
+
+1. Setup one PENDING 'Ironwood Garments' BIG_BALES purchase P. For each row, send the request on create (POST) and on edit (PUT P), then check the purchase count is unchanged and P is unchanged (GET).
+   - expect: Each row gives its expected result.
 
 | Row                                                      | Request                                                                        | Expected             |
 | -------------------------------------------------------- | ------------------------------------------------------------------------------ | -------------------- |
@@ -193,9 +205,9 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 #### 2.5. The API refuses an edit that changes a purchase's company or bale type
 
-**TestRail:** C57 · **Priority:** P1 · **Brief:** form 9 · **Expected to fail (D5)**
+**TestRail:** C57 · **Key:** PO-08 · **Priority:** P1 · **Type:** Functional · **Risks:** 1, 5 · **Source:** Brief form 9 · **Expected to fail (D5)**
 **File:** `e2e/purchase/form-api.spec.ts`
-**Why it matters:** moving a purchase to another supplier silently rewrites whose balance it affects.
+**Why it matters:** Moving a purchase to another supplier silently rewrites whose balance it affects.
 
 **Steps:**
 
@@ -208,9 +220,9 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 #### 3.1. Approving a purchase adds its bales to stock and posts one DEBIT, exactly once
 
-**TestRail:** C12 · **Priority:** P1 · **Criterion:** 3, 4 · **Brief:** posting boundary 2
+**TestRail:** C12 · **Key:** PO-09 · **Priority:** P1 · **Type:** Regression · **Risks:** 1, 2 · **Source:** Criterion 3, 4; Brief posting boundary 2
 **File:** `e2e/purchase/approve.spec.ts`
-**Why it matters:** approval is the moment goods and money enter the books; replacing stock instead of adding, missing a new item, or posting twice all give wrong numbers.
+**Why it matters:** Approval is the moment goods and money enter the books; replacing stock instead of adding, missing a new item, or posting twice all give wrong numbers.
 
 **Steps:**
 
@@ -221,7 +233,7 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 3. GET /api/inventory
    - expect: 'handbags mixed' + 5 (increased, not replaced); a row for N with on-hand 7
 4. GET company ledger
-   - expect: one new DEBIT 1200 for P; balance B + 1200
+   - expect: One new DEBIT 1200 for P; balance B + 1200
 5. GET the other supplier's ledger
    - expect: Unchanged
 6. Approve P again via the API
@@ -229,24 +241,24 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 #### 3.2. Cancelling a never-approved PENDING purchase sets CANCEL without changing stock or ledger
 
-**TestRail:** C15 · **Priority:** P1 · **Criterion:** 6
+**TestRail:** C15 · **Key:** PO-10 · **Priority:** P1 · **Type:** Functional · **Risks:** 1, 2 · **Source:** Criterion 6
 **File:** `e2e/purchase/cancel.spec.ts`
-**Why it matters:** a cancelled order must leave no trace in stock or what is owed.
+**Why it matters:** A cancelled order must leave no trace in stock or what is owed.
 
 **Steps:**
 
 1. Setup: PENDING purchase 5 × 16 kg × Rs 10 (800); record stock, balance, entry count. Cancel from the list (cross icon, 'Yes')
    - expect: CANCEL; icons gone
 2. GET purchase
-   - expect: status CANCEL
+   - expect: Status CANCEL
 3. GET inventory and ledger
    - expect: Unchanged
 
 #### 3.3. An approval posts exactly once, whether sent twice at the same time or retried after a lost response
 
-**TestRail:** C60 · **Priority:** P1 · **Brief:** retry 11
+**TestRail:** C60 · **Key:** PO-11 · **Priority:** P1 · **Type:** Functional · **Risks:** 1, 2 · **Source:** Brief retry 11
 **File:** `e2e/purchase/concurrency.spec.ts`
-**Why it matters:** the owner approves in batches, double-clicks and retries on slow connections; a second posting doubles the stock and the debt.
+**Why it matters:** The owner approves in batches, double-clicks and retries on slow connections; a second posting doubles the stock and the debt.
 
 **Steps:**
 
@@ -261,9 +273,9 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 #### 3.4. Approving two purchases for the same supplier and item at the same time keeps both postings
 
-**TestRail:** C62 · **Priority:** P1 · **Brief:** concurrency 11 · **Likely to fail (D11, race)**
+**TestRail:** C62 · **Key:** PO-12 · **Priority:** P1 · **Type:** Functional · **Risks:** 1, 2 · **Source:** Brief concurrency 11 · **Likely to fail (D11, race)**
 **File:** `e2e/purchase/concurrency.spec.ts`
-**Why it matters:** a lost update loses real stock and real debt without any error.
+**Why it matters:** A lost update loses real stock and real debt without any error.
 
 **Steps:**
 
@@ -276,11 +288,13 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 #### 4.1. Staff (EDITOR) prepare and correct purchases, but only the owner can approve or cancel them
 
-**TestRail:** C16 · **Priority:** P1 · **Criterion:** 5, 7, 8
+**TestRail:** C16 · **Key:** PO-13 · **Priority:** P1 · **Type:** Security · **Risks:** 4 · **Source:** Criterion 5, 7, 8
 **File:** `e2e/purchase/permissions.spec.ts`
-**Why it matters:** staff prepare the work and the owner commits it; a button hidden in the UI is not a control if the API still accepts the request.
+**Why it matters:** Staff prepare the work and the owner commits it; a button hidden in the UI is not a control if the API still accepts the request.
 
-**Steps:** log in as EDITOR in the test's setup.
+**Preconditions:** log in as EDITOR in the test's setup.
+
+**Steps:**
 
 1. As EDITOR create 'Ironwood Imports', SMALL_BALES, 3 bales × Rs 20/bale in the UI
    - expect: PENDING, total 60; stock and ledger unchanged
@@ -295,11 +309,13 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 #### 4.2. Staff can view an approved purchase but can't change it
 
-**TestRail:** C20 · **Priority:** P1 · **Criterion:** 5, 8 · **Expected to fail (D9)**
+**TestRail:** C20 · **Key:** PO-14 · **Priority:** P1 · **Type:** Security · **Risks:** 4, 5 · **Source:** Criterion 5, 8 · **Expected to fail (D9)**
 **File:** `e2e/purchase/permissions.spec.ts`
-**Why it matters:** an approved purchase is the owner's commitment. If staff can edit it, they reopen it as PENDING and change what the business owes and holds without the owner approving anything.
+**Why it matters:** An approved purchase is the owner's commitment. If staff can edit it, they reopen it as PENDING and change what the business owes and holds without the owner approving anything.
 
-**Steps:** setup via the API as ADMIN: an APPROVED 'Ironwood Imports' SMALL_BALES purchase P, 3 bales × Rs 20/bale (60). Record P (status, revisionNo, lines, total), X's stock, the supplier balance and entry count. Log in as EDITOR in the test's setup.
+**Preconditions:** setup via the API as ADMIN: an APPROVED 'Ironwood Imports' SMALL_BALES purchase P, 3 bales × Rs 20/bale (60). Record P (status, revisionNo, lines, total), X's stock, the supplier balance and entry count. Log in as EDITOR in the test's setup.
+
+**Steps:**
 
 1. As EDITOR open /purchase
    - expect: P's row shows APPROVED with no edit, approve or cancel action; P can be opened to view it
@@ -314,9 +330,9 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 #### 4.3. Another organization's purchases, companies and items can't be seen or touched
 
-**TestRail:** C58 · **Priority:** P1 · **Brief:** isolation 10
+**TestRail:** C58 · **Key:** PO-15 · **Priority:** P1 · **Type:** Security · **Risks:** 3 · **Source:** Brief isolation 10
 **File:** `e2e/purchase/isolation-api.spec.ts`
-**Why it matters:** one business seeing or changing another's purchases ends the product.
+**Why it matters:** One business seeing or changing another's purchases ends the product.
 
 **Steps:**
 
@@ -333,11 +349,14 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 #### 4.4. An edit can only attach this supplier's items of this bale type, never another organization's or a nonexistent one
 
-**TestRail:** C59 · **Priority:** P1 · **Type:** Security · **Brief:** integrity 8, isolation 10 · **Expected to fail (D8b)**
+**TestRail:** C59 · **Key:** PO-16 · **Priority:** P1 · **Type:** Security · **Risks:** 3, 2 · **Source:** Brief integrity 8, isolation 10 · **Expected to fail (D8b)**
 **File:** `e2e/purchase/isolation-api.spec.ts`
-**Why it matters:** an edit that attaches a foreign item posts stock and cost against the wrong supplier. If the item belongs to another organization, approving the purchase writes a stock row keyed by that org's item into this one.
+**Why it matters:** An edit that attaches a foreign item posts stock and cost against the wrong supplier. If the item belongs to another organization, approving the purchase writes a stock row keyed by that org's item into this one.
 
-**Steps:** setup one PENDING 'Ironwood Garments' BIG_BALES purchase P (via the API) and record it; a second org with an item W (as in C58). For each row, PUT P with the product list changed as shown, then GET P, the purchase count, and as the other org GET W's stock.
+**Steps:**
+
+1. Setup one PENDING 'Ironwood Garments' BIG_BALES purchase P (via the API) and record it; a second org with an item W (as in C58). For each row, PUT P with the product list changed as shown, then GET P, the purchase count, and as the other org GET W's stock.
+   - expect: Each row gives its expected result.
 
 | Row                                  | PUT purchasedProducts                                    | Expected                                 |
 | ------------------------------------ | -------------------------------------------------------- | ---------------------------------------- |
@@ -351,9 +370,9 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 #### 5.1. Editing a PENDING purchase saves only the kept items and values, and still posts nothing
 
-**TestRail:** C21 · **Priority:** P1 · **Criterion:** 7 · **Brief:** form 9
+**TestRail:** C21 · **Key:** PO-17 · **Priority:** P1 · **Type:** Regression · **Risks:** 5, 2 · **Source:** Criterion 7; Brief form 9
 **File:** `e2e/purchase/edit.spec.ts`
-**Why it matters:** suppliers' final invoices differ from the order; corrections before approval must stick exactly as entered.
+**Why it matters:** Suppliers' final invoices differ from the order; corrections before approval must stick exactly as entered.
 
 **Steps:**
 
@@ -374,9 +393,9 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 #### 5.2. Revising an approved purchase records the change and re-approval moves stock and ledger by the difference only
 
-**TestRail:** C23 · **Priority:** P1 · **Criterion:** 8 · **Brief:** revision cycle 3
+**TestRail:** C23 · **Key:** PO-18 · **Priority:** P1 · **Type:** Regression · **Risks:** 1, 2, 5 · **Source:** Criterion 8; Brief revision cycle 3
 **File:** `e2e/purchase/edit-approved.spec.ts`
-**Why it matters:** corrections after approval are routine; re-posting the full purchase would double stock and debt, and the history is what the accountant checks.
+**Why it matters:** Corrections after approval are routine; re-posting the full purchase would double stock and debt, and the history is what the accountant checks.
 
 **Steps:**
 
@@ -396,9 +415,9 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 #### 5.3. Editing a revised purchase again while pending keeps the latest values, and re-approval is relative to the last approved version
 
-**TestRail:** C34 · **Priority:** P1 · **Criterion:** 7 · **Brief:** revision cycle 3 · **Expected to fail (D1)**
+**TestRail:** C34 · **Key:** PO-19 · **Priority:** P1 · **Type:** Regression · **Risks:** 5, 1, 2 · **Source:** Criterion 7; Brief revision cycle 3 · **Expected to fail (D1)**
 **File:** `e2e/purchase/revision-cycle.spec.ts`
-**Why it matters:** an edit that reports success but saves nothing means the owner approves numbers nobody entered.
+**Why it matters:** An edit that reports success but saves nothing means the owner approves numbers nobody entered.
 
 **Steps:**
 
@@ -415,11 +434,14 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 #### 5.4. Every kind of correction moves stock and ledger by exactly what changed
 
-**TestRail:** C35 · **Priority:** P1 · **Brief:** revision matrix 4
+**TestRail:** C35 · **Key:** PO-20 · **Priority:** P1 · **Type:** Regression · **Risks:** 1, 2 · **Source:** Brief revision matrix 4
 **File:** `e2e/purchase/revision-matrix.spec.ts`
-**Why it matters:** a price fix must not add stock, and a removed item must give its stock back; each mistake shows up as wrong stock or a wrong supplier balance.
+**Why it matters:** A price fix must not add stock, and a removed item must give its stock back; each mistake shows up as wrong stock or a wrong supplier balance.
 
-**Steps:** for each row, set up via the API an approved purchase priced at 10 kg × Rs 10/kg per bale, record stock and balance B after that first approval, PUT the change, approve, then GET inventory and ledger. Match lines by item id.
+**Steps:**
+
+1. For each row, set up via the API an approved purchase priced at 10 kg × Rs 10/kg per bale, record stock and balance B after that first approval, PUT the change, approve, then GET inventory and ledger. Match lines by item id.
+   - expect: No new ledger entry; the purchase's existing entry is adjusted
 
 | Row             | Before (total)               | Change (total)       | Expected stock          | Expected ledger    |
 | --------------- | ---------------------------- | -------------------- | ----------------------- | ------------------ |
@@ -430,15 +452,13 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 | item removed    | X 5 + Y 4 (900)              | remove Y (500)       | Y - 4; X unchanged      | entry 500; B - 400 |
 | lines reordered | [X 5, Y 4] (900)             | [Y 4, X 5] (900)     | unchanged               | entry 900; B       |
 
-- expect (each row): no new ledger entry; the purchase's existing entry is adjusted
-
 ### 6. Ledger reconciliation and downstream activity
 
 #### 6.1. Running balances stay correct when a purchase is backdated or revised before later purchases and payments
 
-**TestRail:** C43 · **Priority:** P1 · **Criterion:** 8 · **Brief:** ledger reconciliation 6, downstream 5 · **Step 1 expected to fail (D10, ordering pending owner decision)**
+**TestRail:** C43 · **Key:** PO-21 · **Priority:** P1 · **Type:** Regression · **Risks:** 1 · **Source:** Criterion 8; Brief ledger reconciliation 6, downstream 5 · **Step 1 expected to fail (D10, ordering pending owner decision)**
 **File:** `e2e/purchase/ledger-reconcile.spec.ts`
-**Why it matters:** the supplier statement is read line by line; one wrong running balance makes every later line wrong.
+**Why it matters:** The supplier statement is read line by line; one wrong running balance makes every later line wrong.
 
 **Steps:**
 
@@ -458,9 +478,9 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 #### 6.2. Revising an older purchase reconciles running balances of entries on the same date
 
-**TestRail:** C44 · **Priority:** P1 · **Brief:** ledger reconciliation 6 · **May fail (same-date risk)**
+**TestRail:** C44 · **Key:** PO-22 · **Priority:** P1 · **Type:** Functional · **Risks:** 1 · **Source:** Brief ledger reconciliation 6 · **May fail (same-date risk)**
 **File:** `e2e/purchase/ledger-reconcile.spec.ts`
-**Why it matters:** month-end entries often share a date; skipping same-date entries leaves the statement inconsistent.
+**Why it matters:** Month-end entries often share a date; skipping same-date entries leaves the statement inconsistent.
 
 **Steps:**
 
@@ -469,9 +489,9 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 #### 6.3. Correcting a purchase after some bales were sold keeps the sale and applies only the correction
 
-**TestRail:** C41 · **Priority:** P1 · **Brief:** downstream 5
+**TestRail:** C41 · **Key:** PO-23 · **Priority:** P1 · **Type:** Regression · **Risks:** 2, 1 · **Source:** Brief downstream 5
 **File:** `e2e/purchase/downstream.spec.ts`
-**Why it matters:** goods are often sold before the supplier's final invoice arrives; the correction must not undo or duplicate the sale.
+**Why it matters:** Goods are often sold before the supplier's final invoice arrives; the correction must not undo or duplicate the sale.
 
 **Steps:**
 
@@ -482,9 +502,9 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 #### 7.1. New purchases default to the latest cost, a typed rate is kept, and older purchases keep their recorded rates
 
-**TestRail:** C46 · **Priority:** P1 · **Brief:** latest cost 7 · **Step 1 may fail (D7)**
+**TestRail:** C46 · **Key:** PO-24 · **Priority:** P1 · **Type:** Functional · **Risks:** 5, 1 · **Source:** Brief latest cost 7 · **Step 1 may fail (D7)**
 **File:** `e2e/purchase/latest-cost.spec.ts`
-**Why it matters:** costs change; a stale default leads to wrong orders, and rewriting old purchases would change what was already owed and paid.
+**Why it matters:** Costs change; a stale default leads to wrong orders, and rewriting old purchases would change what was already owed and paid.
 
 **Steps:**
 
@@ -494,6 +514,8 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
    - expect: A still Rs 10/kg, original total and ledger amount
 3. Create a purchase with X at a typed Rs 13/kg; reload; open its edit page; GET
    - expect: Rs 13/kg saved and shown (assert the rate, not the weight-priced total)
+
+<!-- cases:end -->
 
 ## Retired cases
 

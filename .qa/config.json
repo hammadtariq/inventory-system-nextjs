@@ -1,6 +1,6 @@
 {
   "name": "TSO Inventory (StockFlow)",
-  "kitVersion": "0.1.0",
+  "kitVersion": "0.4.0",
   "testDir": "e2e",
   "testrail": {
     "projectId": 1,
