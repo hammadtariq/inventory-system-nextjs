@@ -310,4 +310,4 @@ and the known gaps. Cases protect those things; they are not written per screen 
 ### Commands
 
 - `npx playwright test` · `npx playwright test --grep @smoke` · `npx playwright show-report reports/html`
-- Kit skills: `/qa-kit:plan-feature`, `/qa-kit:generate-tests`, `/qa-kit:triage`, `/qa-kit:digest`, `/qa-kit:upkeep`
+- Kit skills: `/qa-kit:plan-feature`, `/qa-kit:review-cases`, `/qa-kit:generate-tests`, `/qa-kit:triage`, `/qa-kit:digest`, `/qa-kit:upkeep`
