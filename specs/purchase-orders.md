@@ -32,15 +32,15 @@ How to write these tests:
 
 ## Known risks and discrepancies
 
-- **Weight pricing (brief, `utils/ui.util.js`):** the form computes weight-priced lines as weight × rate without the bale count. The kg and lb rows of C30 are expected to fail until fixed.
-- **D1 (`pages/api/purchase/[id].js`):** a pending edit only saves when revisionNo is 0, so editing a revised PENDING purchase returns 200 but saves nothing. C34 is expected to fail.
-- **D2:** the API accepts `purchasedProducts: []`. C48 is expected to fail.
+- **Weight pricing (brief, `utils/ui.util.js`, #222):** the form computes weight-priced lines as weight × rate without the bale count. The kg and lb rows of C30 are expected to fail until fixed.
+- **D1 (`pages/api/purchase/[id].js`, #223):** a pending edit only saves when revisionNo is 0, so editing a revised PENDING purchase returns 200 but saves nothing. C34 is expected to fail.
+- **D2 (#217):** the API accepts `purchasedProducts: []`. C48 is expected to fail.
 - **D8 (review, 2026-10-21, #217):** the Joi schemas accept negative bales, weights, rates and surcharge, and a weight line with no weight or no rate. The PUT schema also makes company, date, bale type and products optional. The owner says only the optional fields (invoice number, surcharge) may be left out of an edit. C48 is expected to fail.
 - **D8b (#218):** PUT `/api/purchase/{id}` never looks up the items it saves, and create checks the item's company but not its bale type. An edit can attach a nonexistent item, another supplier's item, an item of the other bale type, or another organization's item. Approving such a purchase then creates a stock row in this org keyed by a foreign item id. C59 is expected to fail.
 - **D9 (#216):** an EDITOR can PUT an APPROVED purchase, which reopens it as PENDING with a new revision. The owner's rule is view-only for staff. C20 is expected to fail.
-- **D10 (#219):** approving a new (revisionNo 0) backdated purchase stores its balance as the sum of all entries + its total, and later-dated rows aren't shifted. The ledger screen and PDF show these stored balances in entry (id) order, not date order. C43 step 1 is expected to fail; the owner has to decide date order vs entry order.
+- **D10 (#219):** approving a new (revisionNo 0) backdated purchase stores its balance as the sum of all entries + its total, and later-dated rows aren't shifted. The ledger screen and PDF show these stored balances in entry (id) order, not date order. C43 step 1 is expected to fail. Owner decision (2026-10-21): the statement follows date order.
 - **D11 (#220):** approval locks only the purchase being approved. `balanceQuery` reads the supplier's balance outside the approval transaction, so two purchases for one supplier approved at the same moment can store overlapping balances (10,500 and 10,300 instead of 10,500 and 10,800). C62 is likely to fail; it's a race, so run it with `--repeat-each`.
-- **D5:** the API doesn't enforce the UI's locks on company and bale type. C57 is expected to fail.
+- **D5 (#224):** the API doesn't enforce the UI's locks on company and bale type. C57 is expected to fail.
 - **D7 (new, 2026-10-21):** approval writes the latest rates to the inventory row (`pages/api/purchase/approve/[id].js`), but the create form takes its defaults from the item (`/api/items`), so a new purchase may not default to the latest cost. C46 may fail on its first step; confirm with the owner which rate "latest cost" means.
 - **Client-supplied total:** C33 may fail.
 - **Same-date ledger entries:** revision updates select strictly later dates. C44 may fail.
@@ -51,7 +51,7 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 ## Left out of this plan
 
-- **Waiting on owner decisions (from the brief), so no expected result is asserted:** cancelling an APPROVED or revised-pending purchase, repeated cancellation, approving a cancelled purchase, editing/reopening a cancelled purchase; whether last approved stock/ledger effects stay in place while a revision is pending (C23 doesn't assert it); a correction removing more stock than remains after sales; lines with both kg and lb filled; currency rounding; zero-price/zero-quantity lines; fractional bale counts; duplicate item lines; the exact meaning and timing of "latest cost" (see D7); whether the supplier statement follows date order or entry order (D10, C43 step 1); whether staff are also view-only on a CANCEL purchase (C20 covers APPROVED only).
+- **Waiting on owner decisions (from the brief), so no expected result is asserted:** cancelling an APPROVED or revised-pending purchase, repeated cancellation, approving a cancelled purchase, editing/reopening a cancelled purchase; whether last approved stock/ledger effects stay in place while a revision is pending (C23 doesn't assert it); a correction removing more stock than remains after sales; lines with both kg and lb filled; currency rounding; zero-price/zero-quantity lines; fractional bale counts; duplicate item lines; the exact meaning and timing of "latest cost" (see D7); whether staff are also view-only on a CANCEL purchase (C20 covers APPROVED only).
 - **Moved to Jest integration tests** (they need fault injection or a guaranteed race, which E2E can't produce reliably): failure consistency (brief scenario 12), and an edit racing an approval (brief scenario 11, formerly C63).
 - **Not in the brief:** company search filter and its empty state, PO date picker limits, 404/malformed ids, popconfirm "No", read-only view page, ADMIN icon matrix across statuses, unauthenticated access.
 
@@ -436,7 +436,7 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 #### 6.1. Running balances stay correct when a purchase is backdated or revised before later purchases and payments
 
-**TestRail:** C43 · **Priority:** P1 · **Criterion:** 8 · **Brief:** ledger reconciliation 6, downstream 5 · **Step 1 expected to fail (D10, ordering pending owner decision)**
+**TestRail:** C43 · **Priority:** P1 · **Criterion:** 8 · **Brief:** ledger reconciliation 6, downstream 5 · **Step 1 expected to fail (D10, #219)**
 **File:** `e2e/purchase/ledger-reconcile.spec.ts`
 **Why it matters:** the supplier statement is read line by line; one wrong running balance makes every later line wrong.
 
@@ -454,7 +454,7 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
    - expect: Q and payment running balances each drop by 400; final balance = previous final balance - 400
 
 - "Running balance" means the Balance column the supplier statement shows: each row's `partyBalance` from GET /api/ledger/{companyId}?type=company (the stored balance), not the recomputed `runningBalance` field.
-- Step 1 assumes the statement follows date order. Today rows are listed in entry order and a new backdated purchase doesn't shift later rows (D10). Keep step 1 in its own `test.step` so steps 2–5 still report. If the owner chooses entry order, rewrite step 1.
+- The statement follows date order (owner decision, 2026-10-21). Today rows are listed in entry order and a new backdated purchase doesn't shift later rows (D10, #219), so step 1 is expected to fail. Keep it in its own `test.step` so steps 2–5 still report.
 
 #### 6.2. Revising an older purchase reconciles running balances of entries on the same date
 

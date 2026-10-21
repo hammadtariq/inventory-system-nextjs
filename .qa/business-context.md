@@ -93,8 +93,9 @@ As implemented (verified in code, 2026-10-20). Where a rule looks wrong it is li
     organization's item; an EDITOR can edit an APPROVED purchase, which reopens it; a backdated purchase
     doesn't shift later rows' stored balances; concurrent approvals for one supplier can store overlapping
     balances.
-  - Still to decide: should the supplier statement follow date order or entry order? Are staff also
-    view-only on a CANCEL purchase?
+  - Decided (owner, 2026-10-21): supplier and customer statements follow date order; a backdated entry
+    takes its date position and shifts later balances. Still to decide: are staff also view-only on a
+    CANCEL purchase?
   - Cheque status accepts any text.
   - In production, row-level security is defence-in-depth only; the app's tenant hooks are the real
     boundary (see CLAUDE.md), so tenant cases must go through the API, not just the UI.
