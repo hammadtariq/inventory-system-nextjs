@@ -247,33 +247,21 @@ export function checkCases(rows, { push = false, risks = loadRisks() } = {}, col
 
 // ---------------------------------------------------------------- text for TestRail and the plan
 
-// Preconditions as TestRail shows them: setup, notes, and the business reason last.
+// Preconditions as TestRail stores them: the setup, then the business reason. Known issues, notes, risks
+// and the key stay in the repo (CSV, plan, test.fixme reasons), so a push only changes TestRail when the
+// case itself changed.
 export function testrailPreconditions(r) {
   const parts = [];
   if (r.preconditions) parts.push(r.preconditions);
-  if (r.known_issue) parts.push(`Known issue: ${r.known_issue}`);
-  if (r.notes)
-    parts.push(
-      "Notes:\n" +
-        r.notes
-          .split("\n")
-          .map((l) => `- ${l.replace(/^[-*]\s*/, "")}`)
-          .join("\n")
-    );
   if (r.why_it_matters) parts.push(`Why it matters: ${r.why_it_matters}`);
-  const tail = [
-    r.key && `Case key: ${r.key}`,
-    r.risks && `Business risks: ${riskList(r.risks).join(", ")}`,
-    r.source && `Source: ${r.source}`,
-  ];
-  if (tail.some(Boolean)) parts.push(tail.filter(Boolean).join("\n"));
   return parts.join("\n\n");
 }
 
 const dataAsText = (r) => {
   const d = parseData(r.data);
   if (!d) return "";
-  return "\n\n" + [d.header, ...d.rows].map((cells) => "| " + cells.join(" | ") + " |").join("\n");
+  const line = (cells) => "| " + cells.join(" | ") + " |";
+  return "\n\n" + [line(d.header), line(d.header.map(() => "---")), ...d.rows.map(line)].join("\n");
 };
 
 export function testrailSteps(r) {
@@ -318,6 +306,15 @@ function mdTable(header, rows) {
   );
 }
 
+// Escape "*" (and a "_" right before it) outside code spans, so text like DEMO_EDITOR_* isn't read as
+// emphasis; Prettier would rewrite it.
+const md = (t) =>
+  (t || "")
+    .split(/(`[^`]*`)/)
+    .map((part, i) => (i % 2 ? part : part.replace(/(?<!\\)\*/g, "\\*").replace(/_(?=\\\*)/g, "\\_")))
+    .join("");
+const unmd = (t) => (t || "").replace(/\\([*_])/g, "$1");
+
 export function renderScenarios(rows) {
   const out = [];
   const sections = [];
@@ -328,9 +325,9 @@ export function renderScenarios(rows) {
     s.rows.push(r);
   }
   sections.forEach((sec, si) => {
-    out.push(`### ${si + 1}. ${sec.name}`, "");
+    out.push(`### ${si + 1}. ${md(sec.name)}`, "");
     sec.rows.forEach((r, ci) => {
-      out.push(`#### ${si + 1}.${ci + 1}. ${r.title}`, "");
+      out.push(`#### ${si + 1}.${ci + 1}. ${md(r.title)}`, "");
       const meta = [
         `**TestRail:** ${r.testrail_id || "— (not pushed yet)"}`,
         `**Key:** ${r.key}`,
@@ -338,29 +335,36 @@ export function renderScenarios(rows) {
       ];
       if (r.type) meta.push(`**Type:** ${r.type}`);
       if (r.risks) meta.push(`**Risks:** ${riskList(r.risks).join(", ")}`);
-      if (r.source) meta.push(`**Source:** ${r.source}`);
-      if (r.known_issue) meta.push(`**${r.known_issue}**`);
+      if (r.source) meta.push(`**Source:** ${md(r.source)}`);
+      if (r.known_issue) meta.push(`**${md(r.known_issue)}**`);
       out.push(meta.join(" · "));
       if (r.file) out.push(`**File:** \`${r.file}\``);
-      if (r.why_it_matters) out.push(`**Why it matters:** ${r.why_it_matters}`);
+      if (r.why_it_matters) out.push(`**Why it matters:** ${md(r.why_it_matters)}`);
       out.push("");
-      if (r.preconditions) out.push(`**Preconditions:** ${r.preconditions}`, "");
+      if (r.preconditions) out.push(`**Preconditions:** ${md(r.preconditions)}`, "");
       out.push("**Steps:**", "");
       const s = numbered(r.steps).items;
       const e = numbered(r.expected).items;
       s.forEach((step, i) => {
-        out.push(`${i + 1}. ${step.replace(/\n/g, "\n   ")}`);
-        if (e[i]) out.push(`   - expect: ${e[i].replace(/\n/g, "\n     ")}`);
+        out.push(`${i + 1}. ${md(step).replace(/\n/g, "\n   ")}`);
+        if (e[i]) out.push(`   - expect: ${md(e[i]).replace(/\n/g, "\n     ")}`);
       });
       const d = parseData(r.data);
-      if (d) out.push("", mdTable(d.header, d.rows));
+      if (d)
+        out.push(
+          "",
+          mdTable(
+            d.header.map(md),
+            d.rows.map((row) => row.map(md))
+          )
+        );
       if (r.notes)
         out.push(
           "",
           ...r.notes
             .split("\n")
             .filter((l) => l.trim())
-            .map((l) => `- ${l.replace(/^[-*]\s*/, "")}`)
+            .map((l) => `- ${md(l.replace(/^[-*]\s*/, ""))}`)
         );
       out.push("");
     });
@@ -490,14 +494,24 @@ function caseFromBlock(text, section) {
     steps.push(intro || "Run the case as described.");
     expected.push(eachRow || (table.length ? "Each row gives its expected result." : ""));
   }
-  // Capitalise a leading plain word only, never an identifier like totalAmount or companyId.
-  const cap = (x) =>
-    x && /^[a-z]+\b/.test(x) && !/^[a-z]+[A-Z_]/.test(x) ? x.charAt(0).toUpperCase() + x.slice(1) : x;
-  if (r.why_it_matters) r.why_it_matters = cap(r.why_it_matters);
-  r.steps = steps.map((s, i) => `${i + 1}. ${cap(s)}`).join("\n");
-  r.expected = expected.map((s, i) => `${i + 1}. ${cap(s)}`).join("\n");
+  r.steps = steps.map((s, i) => `${i + 1}. ${s}`).join("\n");
+  r.expected = expected.map((s, i) => `${i + 1}. ${s}`).join("\n");
   if (table.length) r.data = table.join("\n");
   if (notes.length) r.notes = notes.join("\n");
+  // Text as written, with the Markdown escapes the plan generator adds removed.
+  for (const k of [
+    "title",
+    "why_it_matters",
+    "preconditions",
+    "steps",
+    "expected",
+    "data",
+    "notes",
+    "known_issue",
+    "source",
+    "section",
+  ])
+    if (r[k]) r[k] = unmd(r[k]);
   return r;
 }
 
