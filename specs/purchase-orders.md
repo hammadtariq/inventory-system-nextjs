@@ -29,7 +29,7 @@ Key facts verified against the code and a live run:
 How to write these tests:
 
 - **One test per case.** Journeys use one `test.step` per numbered step, each with its own assertions. Data-table cases loop over their rows inside one test, one `test.step` per row named after the row, so a failure names the row.
-- **Known bugs stay in their own case** (C48, C57, C59, C20, C34, C44, C43 step 1, C62, and the weight-pricing rows of C30). Mark the test `test.fixme()` with the reason so it doesn't block the healthy rows. When a bug is fixed, fold its rows into the related table (C48, C57 and C59's same-org rows into C11; C59's cross-org row into C58; C20 into C16) and retire the id.
+- **Known bugs stay in their own case** (C20, C33, C34, C44, C48, C55, C57, C59), and known-bug rows or steps stay apart from healthy ones (C30's weight rows, C23's totals, C43 step 1, C46 step 1). A whole-case known bug starts with `test.fixme(!po.runKnownBugs, "Known bug #N: ...")`; a known-bug row or step runs only `if (po.knownBug("#N", ...))` (`e2e/support/purchase-api.ts`). The assertions are never weakened: `QA_RUN_KNOWN_BUGS=1 npx playwright test e2e/purchase` runs them all, to check whether a fix landed. A case id appears in one test only (the kit's lint enforces it). When a bug is fixed, fold its rows into the related table (C48, C57 and C59's same-org rows into C11; C59's cross-org row into C58; C20 into C16) and retire the id.
 - **The weight-pricing bug should fail one place, not ten.** Only C30 checks weight-priced totals in the form. Other UI journeys use SMALL_BALES lines priced per bale (fill No of Bales and Rate Per Bale, leave weights and per-kg/lb rates empty; the form uses kg/lb first when filled), or create their data through the API.
 
 ## Known risks and discrepancies
@@ -43,9 +43,12 @@ How to write these tests:
 - **D10 (#219):** approving a new (revisionNo 0) backdated purchase stores its balance as the sum of all entries + its total, and later-dated rows aren't shifted. The ledger screen and PDF show these stored balances in entry (id) order, not date order. C43 step 1 is expected to fail. Owner decision (2026-10-21): the statement follows date order.
 - **D11 (#220):** approval locks only the purchase being approved. `balanceQuery` reads the supplier's balance outside the approval transaction, so two purchases for one supplier approved at the same moment can store overlapping balances (10,500 and 10,300 instead of 10,500 and 10,800). C62 is likely to fail; it's a race, so run it with `--repeat-each`.
 - **D5 (#224):** the API doesn't enforce the UI's locks on company and bale type. C57 is expected to fail.
-- **D7 (new, 2026-10-21):** approval writes the latest rates to the inventory row (`pages/api/purchase/approve/[id].js`), but the create form takes its defaults from the item (`/api/items`), so a new purchase may not default to the latest cost. C46 may fail on its first step; confirm with the owner which rate "latest cost" means.
-- **Client-supplied total:** C33 may fail.
-- **Same-date ledger entries:** revision updates select strictly later dates. C44 may fail.
+- **D7 (#232, confirmed by C46):** approval writes the latest rates to the inventory row (`pages/api/purchase/approve/[id].js`), but the create form takes its defaults from the item (`/api/items`), so a new purchase defaults to the item's original rate. C46 step 1 is a known-bug step. Still for the owner: when the latest approved and latest dated purchases differ, which wins?
+- **Client-supplied total (#226, confirmed by C33):** the server saves and posts the request's `totalAmount`.
+- **Same-date ledger entries (#227, confirmed by C44):** revision updates shift only strictly later dates.
+- **Stale lines after a bale-type switch (#229, found by C55):** values typed before switching List Type come back and are saved.
+- **Parallel approvals of a new item (#231, found by C62):** both try to create the stock row; one fails with a duplicate-key 500. Not yet a case; C62 gives X stock first so it tests the lost-update risk only. Propose a case via `/qa-kit:plan-feature`.
+- **Dev DB pool (#228, PR #230):** with the development pool of 2, overlapping requests (dashboard load, parallel approvals) deadlock the dev server. E2E needs the pool of 10 from #230.
 - **Cancel / approve status checks:** cancel only changes status, and approve only rejects APPROVED. Not tested, pending the decisions below.
 - D6: the UI shows SMALL_BALES / BIG_BALES rather than "Small/Big bales". Approval also increments the inventory row's baleWeightKgs/Lbs. 404 wording differs between endpoints.
 
@@ -279,7 +282,7 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 **Steps:**
 
-1. Two PENDING purchases of X: 5 bales (500), 3 bales (300); record S, B. Approve both in parallel
+1. X already in stock (approve an opening purchase of it first; see #231). Two PENDING purchases of X: 5 bales (500), 3 bales (300); record S, B. Approve both in parallel
    - expect: 200 each; X = S + 8; two entries; B + 800; every running balance = previous ± amount
 
 - The stored balances can overlap only when both approvals read the balance before either commits, so the test may pass on some runs. Run it with `--repeat-each` before trusting a pass.
