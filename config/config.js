@@ -14,7 +14,9 @@ module.exports = {
     dialect: "postgres",
     dialectOptions: ssl ? { ssl } : {},
     pool: {
-      max: 2,
+      // Each request holds one connection for its tenant transaction, and approval opens a second one, so
+      // a pool of 2 deadlocks as soon as two such requests overlap (dashboard load, parallel approvals). #228
+      max: 10,
       min: 0,
       acquire: 30000,
       idle: 10000,
