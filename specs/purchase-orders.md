@@ -4,7 +4,7 @@
 
 Regression coverage for Purchase Orders (brief: `specs/briefs/purchase-orders.md`) in the Drift Warehouse Demo org on a local DB (http://127.0.0.1:3100). Roles: ADMIN admin@trs.com (default storage state) and EDITOR warehouse@trs.com (log in during test setup with `DEMO_EDITOR_*_PASSWORD`). Out of scope: purchase reports and exports.
 
-TestRail section: "Purchase orders" (id 4), cases C4–C63. All cases are AI drafts until the QA lead approves them (Gate 1). TestRail holds the full steps; this plan mirrors them for the generator.
+TestRail section: "Purchase orders" (id 4). **22 cases**, consolidated on 2026-10-21 from the original 60 (C4–C63): each case is one business outcome, written as a journey with checkpoints or a data table. The 38 merged or dropped ids are listed under "Retired cases" at the end and are moved to a "Retired" section in TestRail, not deleted. Rewritten cases go back to "AI draft" for Gate 1.
 
 Confirmed business rules (from the brief):
 
@@ -24,12 +24,19 @@ Key facts verified against the code and a live run:
 - Purchase payload: {companyId, totalAmount, surCharge (nullable), invoiceNumber (nullable), purchaseDate (ISO), baleType 'SMALL_BALES'|'BIG_BALES', purchasedProducts: [{id, itemName (min 3 chars), noOfBales, baleWeightKgs, baleWeightLbs, ratePerKgs, ratePerLbs, ratePerBale}]}. totalAmount is supplied by the client; the server does not recompute it. **In API setup, always send a totalAmount equal to the lines' computed total** (only C33 sends an inconsistent one on purpose), and populate only one unit (kg or lb) per line.
 - Check outcomes after a reload or through GET endpoints (saved data, stock, supplier ledger), not only success messages.
 
+How to write these tests:
+
+- **One test per case.** Journeys use one `test.step` per numbered step, each with its own assertions. Data-table cases loop over their rows inside one test, one `test.step` per row named after the row, so a failure names the row.
+- **Known bugs stay in their own case** (C48, C57, C34, C44, and the weight-pricing rows of C30). Mark the test `test.fixme()` with the reason so it doesn't block the healthy rows. When a bug is fixed, fold its rows into the related table (C48 and C57 into C11) and retire the id.
+- **The weight-pricing bug should fail one place, not ten.** Only C30 checks weight-priced totals in the form. Other UI journeys use SMALL_BALES lines priced per bale (fill No of Bales and Rate Per Bale, leave weights and per-kg/lb rates empty; the form uses kg/lb first when filled), or create their data through the API.
+
 ## Known risks and discrepancies
 
-- **Pricing (brief, `utils/ui.util.js`):** the form computes weight-priced lines as weight × rate without the bale count. C4, C5, C17, C21, C23, C30–C32 and C47 are expected to fail until fixed.
-- **D1 (`pages/api/purchase/[id].js`):** a pending edit only saves when revisionNo is 0, so editing a revised PENDING purchase returns 200 but saves nothing. C26 and C34 are expected to fail.
+- **Weight pricing (brief, `utils/ui.util.js`):** the form computes weight-priced lines as weight × rate without the bale count. The kg and lb rows of C30 are expected to fail until fixed.
+- **D1 (`pages/api/purchase/[id].js`):** a pending edit only saves when revisionNo is 0, so editing a revised PENDING purchase returns 200 but saves nothing. C34 is expected to fail.
 - **D2:** the API accepts `purchasedProducts: []`. C48 is expected to fail.
 - **D5:** the API doesn't enforce the UI's locks on company and bale type. C57 is expected to fail.
+- **D7 (new, 2026-10-21):** approval writes the latest rates to the inventory row (`pages/api/purchase/approve/[id].js`), but the create form takes its defaults from the item (`/api/items`), so a new purchase may not default to the latest cost. C46 may fail on its first step; confirm with the owner which rate "latest cost" means.
 - **Client-supplied total:** C33 may fail.
 - **Same-date ledger entries:** revision updates select strictly later dates. C44 may fail.
 - **Cancel / approve status checks:** cancel only changes status, and approve only rejects APPROVED. Not tested, pending the decisions below.
@@ -39,1026 +46,428 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 ## Left out of this plan
 
-- **Waiting on owner decisions (from the brief), so no expected result is asserted:** cancelling an APPROVED or revised-pending purchase, repeated cancellation, approving a cancelled purchase, editing/reopening a cancelled purchase; whether last approved stock/ledger effects stay in place while a revision is pending (C23 no longer asserts it); a correction removing more stock than remains after sales; lines with both kg and lb filled; currency rounding; zero-price/zero-quantity lines; fractional bale counts; duplicate item lines; the exact meaning and timing of "latest cost" (C45 uses a purchase that is both latest by date and latest approved, which satisfies either meaning).
-- **Failure consistency (brief scenario 12):** forcing a failure mid-posting or mid-revision can't be triggered from the UI or API. Cover it with Jest integration tests that inject failures into the transaction.
-- **Not in the brief:** company search filter on the list, PO date picker limits, 404/malformed ids, popconfirm "No", read-only view page, ADMIN icon matrix across statuses, unauthenticated access.
+- **Waiting on owner decisions (from the brief), so no expected result is asserted:** cancelling an APPROVED or revised-pending purchase, repeated cancellation, approving a cancelled purchase, editing/reopening a cancelled purchase; whether last approved stock/ledger effects stay in place while a revision is pending (C23 doesn't assert it); a correction removing more stock than remains after sales; lines with both kg and lb filled; currency rounding; zero-price/zero-quantity lines; fractional bale counts; duplicate item lines; the exact meaning and timing of "latest cost" (see D7).
+- **Moved to Jest integration tests** (they need fault injection or a guaranteed race, which E2E can't produce reliably): failure consistency (brief scenario 12), and an edit racing an approval (brief scenario 11, formerly C63).
+- **Not in the brief:** company search filter and its empty state, PO date picker limits, 404/malformed ids, popconfirm "No", read-only view page, ADMIN icon matrix across statuses, unauthenticated access.
 
 ## Test Scenarios
 
 **Seed for all suites:** `e2e/seed.spec.ts`
 
-### 1. Create purchase order
+### 1. Create and price a purchase
 
-#### 1.1. ADMIN creates a purchase in the UI and it is saved as PENDING without touching stock or ledger
+#### 1.1. Staff record a purchase in the form and it is saved as PENDING with the right total, without touching stock or ledger
 
-**TestRail:** C4 · **Priority:** P1 · **Criterion:** 1, pricing
+**TestRail:** C4 · **Priority:** P1 · **Criterion:** 1, posting boundary 2
 **File:** `e2e/purchase/create.spec.ts`
+**Why it matters:** a purchase is a draft until the owner approves it; if saving alone moved stock or the supplier balance, every unapproved draft would distort the books.
 
 **Steps:**
 
-1. Record on-hand stock of 'handbags mixed' and the 'Ironwood Garments' ledger balance. Open /purchase/create as ADMIN.
-
-
-    - expect: Heading 'Create Purchase Order'; Total Amount and Total Bundle(s) show 0; 'Create Purchase' is disabled
-
-2. Select company 'Ironwood Garments' and List Type BIG_BALES
-
-
-    - expect: Items table lists only that company's BIG_BALES items
-
-3. Remove 'ladies cotton tops'; Edit All; 'handbags mixed': 4 bales, 100 kg, Rs 2/kg; Save All
-
-
-    - expect: Total Bundle(s) = 4; Total Amount = 800 (4 × 100 × 2)
-
+1. Setup: two SMALL_BALES items A and B for 'Ironwood Imports' via POST /api/items. Record their on-hand stock and the 'Ironwood Imports' ledger balance and entry count. Open /purchase/create as ADMIN.
+   - expect: Heading 'Create Purchase Order'; Total Amount and Total Bundle(s) show 0; 'Create Purchase' is disabled
+2. Select company 'Ironwood Imports' and List Type SMALL_BALES
+   - expect: 'Rate Per Bale' column; only that company's SMALL_BALES items are listed, including A and B
+3. Keep only A and B; Edit All; A: 3 bales × Rs 10/bale, B: 2 bales × Rs 20/bale; type the rates over the defaults; Save All
+   - expect: Total Bundle(s) = 5; Total Amount = 70
 4. Enter a unique Invoice No and Sur Charge 50
-
-
-    - expect: Total Amount = 850
-
+   - expect: Total Amount = 120
 5. Click 'Create Purchase'
-
-
-    - expect: Redirected to /purchase; new row shows Ironwood Garments, BIG_BALES, the invoice, Sur Charge 50, total 850, PENDING
-
+   - expect: Redirected to /purchase; new row shows Ironwood Imports, SMALL_BALES, the invoice, Sur Charge 50, total 120, PENDING
 6. Reload; GET /api/purchase/{id}
-
-
-    - expect: totalAmount 850, surCharge 50, one line 4 bales / 100 kg / Rs 2; status PENDING
-
+   - expect: totalAmount 120, surCharge 50, exactly the 2 lines with the typed bales and rates; status PENDING
 7. GET /api/inventory and the company ledger
+   - expect: Stock, balance and entry count unchanged
+8. Create a second purchase the same way with one line (A: 2 bales × Rs 10/bale), Invoice No empty and Sur Charge 0; reload; GET
+   - expect: No error toast; PENDING; invoiceNumber null ('N/A' in the list); totalAmount 20
 
-
-    - expect: Unchanged
-
-#### 1.2. Purchase is saved without the optional invoice number and surcharge
-
-**TestRail:** C5 · **Priority:** P2 · **Criterion:** 1
-**File:** `e2e/purchase/create.spec.ts`
-
-**Steps:**
-
-1. Create via UI: 'Ironwood Garments', BIG_BALES, one item 2 bales × 10 kg × Rs 2/kg; Invoice No empty, Sur Charge 0
-
-
-    - expect: Redirected to /purchase with no error toast
-
-2. Reload; GET /api/purchase/{id}
-
-
-    - expect: PENDING; invoiceNumber null ('N/A' in list); totalAmount 40
-
-#### 1.3. SMALL_BALES purchase prices each line as bales × rate per bale and saves several items
-
-**TestRail:** C6 · **Priority:** P2 · **Criterion:** 1, pricing
-**File:** `e2e/purchase/create.spec.ts`
-
-**Steps:**
-
-1. Setup: two SMALL_BALES items for 'Ironwood Imports' via POST /api/items. Select 'Ironwood Imports' and SMALL_BALES
-
-
-    - expect: 'Rate Per Bale' column; both items listed
-
-2. Keep only the two items; A: 3 bales × Rs 10/bale, B: 2 bales × Rs 20/bale; Save All
-
-
-    - expect: Total Bundle(s) = 5; Total Amount = 70
-
-3. Create; reload; GET /api/purchase/{id}
-
-
-    - expect: PENDING, SMALL_BALES, totalAmount 70, exactly the 2 lines
-
-#### 1.4. API rejects a purchase containing an item from another company
-
-**TestRail:** C7 · **Priority:** P1 · **Criterion:** 1
-**File:** `e2e/purchase/create-api.spec.ts`
-
-**Steps:**
-
-1. POST for 'Ironwood Garments' with only the other company's 'ladies cotton tops'
-
-
-    - expect: HTTP 404 'one or more purchased products were not found'
-
-2. POST with one own item plus the other company's item
-
-
-    - expect: HTTP 404, same message
-
-3. GET /api/purchase
-
-
-    - expect: Count unchanged
-
-#### 1.5. New purchase belongs to the signed-in user's organization
-
-**TestRail:** C8 · **Priority:** P2 · **Criterion:** isolation
-**File:** `e2e/purchase/create-api.spec.ts`
-
-**Steps:**
-
-1. POST a purchase; GET it and the list
-
-
-    - expect: All have the demo org's organizationId
-
-### 2. Pricing
-
-#### 2.1. Kg-priced line total is bales × kg per bale × rate, in the saved purchase and the ledger
+#### 1.2. Every pricing method gives the same total on screen, in the saved purchase and in the supplier ledger
 
 **TestRail:** C30 · **Priority:** P1 · **Brief:** pricing 1
 **File:** `e2e/purchase/pricing.spec.ts`
+**Why it matters:** the purchase total becomes what the business owes the supplier; a wrong multiplier means paying the wrong amount.
 
-**Steps:**
+**Steps:** for each row, create the purchase in the UI, check the on-screen total, create, reload and GET, then approve via the API and GET the company ledger. Use multiple bales so a missing bale multiplier can't pass.
 
-1. UI: one line 3 bales × 50 kg × Rs 100/kg (no lb values); Save All
+| Row             | Company / type                 | Lines                                                       | Sur Charge | Expected total = saved total = ledger DEBIT  |
+| --------------- | ------------------------------ | ----------------------------------------------------------- | ---------- | -------------------------------------------- |
+| kg              | 'Ironwood Garments' BIG_BALES  | 3 bales × 50 kg × Rs 100/kg                                 | 0          | 15,000                                       |
+| lb              | 'Ironwood Garments' BIG_BALES  | 2 bales × 100 lb × Rs 40/lb                                 | 0          | 8,000                                        |
+| per bale        | 'Ironwood Imports' SMALL_BALES | 3 bales × Rs 10/bale, 2 bales × Rs 20/bale                  | 0          | 70                                           |
+| mixed, decimals | 'Ironwood Garments' BIG_BALES  | 4 bales × 12.5 kg × Rs 10.4/kg, 2 bales × 100 lb × Rs 40/lb | 75         | 8,595 (surcharge added once; decimals saved) |
 
+- expect (each row): on-screen Total Amount, saved totalAmount and the single new ledger DEBIT all equal the expected total; balance rises by exactly that amount
+- The kg, lb and mixed rows are expected to fail (weight-pricing bug). Keep them in a separate `test.fixme()` test from the per-bale row.
 
-    - expect: Total Amount 15,000
+#### 1.3. A direct request with an inconsistent total does not post an incorrect supplier liability
 
-2. Create; reload; GET
-
-
-    - expect: totalAmount 15000
-
-3. Approve; GET ledger
-
-
-    - expect: DEBIT 15000; balance + 15000
-
-#### 2.2. Lb-priced line total is bales × lb per bale × rate, in the saved purchase and the ledger
-
-**TestRail:** C31 · **Priority:** P1 · **Brief:** pricing 1
-**File:** `e2e/purchase/pricing.spec.ts`
-
-**Steps:**
-
-1. UI: one line 2 bales × 100 lb × Rs 40/lb (no kg values); Save All
-
-
-    - expect: Total Amount 8,000
-
-2. Create; reload; GET
-
-
-    - expect: totalAmount 8000
-
-3. Approve; GET ledger
-
-
-    - expect: DEBIT 8000; balance + 8000
-
-#### 2.3. Multi-line purchase with decimal weights and rates totals every line and adds the surcharge once
-
-**TestRail:** C32 · **Priority:** P1 · **Brief:** pricing 1
-**File:** `e2e/purchase/pricing.spec.ts`
-
-**Steps:**
-
-1. A: 4 bales × 12.5 kg × Rs 10.4/kg; B: 2 bales × 100 lb × Rs 40/lb; Save All
-
-
-    - expect: Total 8,520
-
-2. Sur Charge 75
-
-
-    - expect: Total 8,595
-
-3. Create; reload; GET
-
-
-    - expect: totalAmount 8595, surCharge 75, decimals saved
-
-4. Approve; GET ledger
-
-
-    - expect: one DEBIT 8595
-
-#### 2.4. A direct request with an inconsistent total does not post an incorrect supplier liability
-
-**TestRail:** C33 · **Priority:** P1 · **Brief:** pricing 1
+**TestRail:** C33 · **Priority:** P1 · **Brief:** pricing 1 · **May fail (client-supplied total)**
 **File:** `e2e/purchase/pricing-api.spec.ts`
+**Why it matters:** anyone with an API session could understate a supplier liability; the books must follow the lines, not the client's arithmetic.
 
 **Steps:**
 
 1. POST one line 3 × 50 kg × Rs 100 (15000) with totalAmount 1
-
-
-    - expect: Rejected (4xx, nothing saved) or saved with totalAmount 15000
-
+   - expect: Rejected (4xx, nothing saved) or saved with totalAmount 15000
 2. If saved: approve; GET ledger
+   - expect: DEBIT 15000, never 1
 
+### 2. Input integrity
 
-    - expect: DEBIT 15000, never 1
-
-### 3. Required fields and input integrity
-
-#### 3.1. Create form blocks saving until a company, bale type and at least one product are given
+#### 2.1. The create form only submits a complete purchase
 
 **TestRail:** C9 · **Priority:** P1 · **Criterion:** 2
 **File:** `e2e/purchase/validation.spec.ts`
+**Why it matters:** an incomplete purchase saved by mistake becomes a record someone may approve.
 
 **Steps:**
 
-1. Nothing selected
-
-
-    - expect: 'Create Purchase' disabled
-
-2. Company only
-
-
-    - expect: No items table; still disabled
-
+1. Open /purchase/create with nothing selected
+   - expect: 'Create Purchase' disabled
+2. Select a company only
+   - expect: No items table; still disabled
 3. Select BIG_BALES, select all rows, Remove Selected
+   - expect: Empty table; disabled
+4. Select a new company created via the API with no items, and BIG_BALES
+   - expect: No rows; disabled
+5. Select 'Ironwood Garments' and BIG_BALES; fill nothing; Create Purchase
+   - expect: Toast 'ValidationError: "purchasedProducts[0].noOfBales" is required'; URL unchanged
+6. GET /api/purchase
+   - expect: Count unchanged from before step 1
 
+#### 2.2. Switching company or bale type while creating leaves only the new selection's items and recalculates totals
 
-    - expect: Empty table; disabled
-
-#### 3.2. Submitting with item rows left unfilled shows the validation error and saves nothing
-
-**TestRail:** C10 · **Priority:** P2 · **Criterion:** 2
-**File:** `e2e/purchase/validation.spec.ts`
+**TestRail:** C55 · **Priority:** P2 · **Brief:** form 9
+**File:** `e2e/purchase/form.spec.ts`
+**Why it matters:** a stale line from the first selection would put stock and cost against the wrong supplier.
 
 **Steps:**
 
-1. Select 'Ironwood Garments', BIG_BALES; fill nothing; Create Purchase
+1. Company A, SMALL_BALES, fill a row
+   - expect: Total reflects it
+2. Switch to company B
+   - expect: Only B's items; totals reset
+3. Fill a B row, then switch List Type to BIG_BALES
+   - expect: Only B's BIG_BALES items; totals reset
+4. Switch back to SMALL_BALES, fill a B row; create; reload; GET
+   - expect: companyId B, baleType SMALL_BALES; only that B item saved; total matches the row
 
+#### 2.3. The API rejects invalid purchases on create and edit, and nothing is saved or changed
 
-    - expect: Toast 'ValidationError: "purchasedProducts[0].noOfBales" is required'; URL unchanged
-
-2. GET /api/purchase
-
-
-    - expect: Count unchanged
-
-#### 3.3. API rejects a purchase missing company, purchase date, bale type or products
-
-**TestRail:** C11 · **Priority:** P1 · **Criterion:** 2
+**TestRail:** C11 · **Priority:** P1 · **Criterion:** 1, 2 · **Brief:** integrity 8
 **File:** `e2e/purchase/validation-api.spec.ts`
+**Why it matters:** the form isn't the only way in; a bad request must never create or corrupt a purchase that later posts stock and money.
 
-**Steps:**
+**Steps:** setup one PENDING 'Ironwood Garments' BIG_BALES purchase P. For each row, send the request on create (POST) and on edit (PUT P), then check the purchase count is unchanged and P is unchanged (GET).
 
-1. POST without companyId / purchaseDate / baleType / purchasedProducts in turn
+| Row                                                             | Request                                                                      | Expected                                                                   |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| missing companyId / purchaseDate / baleType / purchasedProducts | one field omitted at a time                                                  | 400 naming the field                                                       |
+| weight line without weight                                      | rate set, no weight                                                          | 4xx                                                                        |
+| weight line without rate                                        | weight set, no rate                                                          | 4xx                                                                        |
+| negative values                                                 | noOfBales -1, baleWeightKgs -10, ratePerKgs -5, surCharge -50, one at a time | 400                                                                        |
+| item doesn't exist                                              | item id 999999                                                               | 404 'one or more purchased products were not found' on create; 4xx on edit |
+| item of the other bale type                                     | a SMALL_BALES item of the same company in a BIG_BALES purchase               | 4xx                                                                        |
+| item of another company                                         | only the other company's 'ladies cotton tops'                                | 404 'one or more purchased products were not found'                        |
+| own item plus another company's item                            | one of each                                                                  | 404, same message                                                          |
 
-
-    - expect: HTTP 400 naming the missing field each time
-
-2. GET /api/purchase
-
-
-    - expect: Count unchanged
-
-#### 3.4. API rejects an empty product list on create and on edit
+#### 2.4. The API rejects an empty product list on create and on edit
 
 **TestRail:** C48 · **Priority:** P1 · **Criterion:** 2 · **Expected to fail (D2)**
 **File:** `e2e/purchase/validation-api.spec.ts`
+**Why it matters:** an approved purchase with no lines posts a supplier liability with no stock behind it.
 
 **Steps:**
 
 1. POST with purchasedProducts []
-
-
-    - expect: 4xx; count unchanged
-
+   - expect: 4xx; count unchanged
 2. PUT an existing PENDING purchase with []
+   - expect: 4xx; unchanged
 
-
-    - expect: 4xx; unchanged
-
-#### 3.5. API rejects an edit missing company, purchase date, bale type or products
-
-**TestRail:** C49 · **Priority:** P2 · **Brief:** integrity 8
-**File:** `e2e/purchase/validation-api.spec.ts`
-
-**Steps:**
-
-1. PUT without each required field in turn
-
-
-    - expect: HTTP 400 each; purchase unchanged
-
-#### 3.6. API rejects a weight-priced line missing its weight or rate
-
-**TestRail:** C50 · **Priority:** P2 · **Brief:** integrity 8
-**File:** `e2e/purchase/validation-api.spec.ts`
-
-**Steps:**
-
-1. POST a line with rate but no weight, then weight but no rate
-
-
-    - expect: 4xx each; count unchanged
-
-#### 3.7. API rejects negative quantities, weights, rates and surcharge on create and edit
-
-**TestRail:** C51 · **Priority:** P1 · **Brief:** integrity 8
-**File:** `e2e/purchase/validation-api.spec.ts`
-
-**Steps:**
-
-1. POST with noOfBales -1, baleWeightKgs -10, ratePerKgs -5, surCharge -50 in turn
-
-
-    - expect: HTTP 400 each; count unchanged
-
-2. PUT the same values in turn
-
-
-    - expect: HTTP 400 each; purchase unchanged
-
-#### 3.8. API rejects a nonexistent item on create and edit
-
-**TestRail:** C52 · **Priority:** P2 · **Brief:** integrity 8
-**File:** `e2e/purchase/validation-api.spec.ts`
-
-**Steps:**
-
-1. POST with item id 999999
-
-
-    - expect: 404 'one or more purchased products were not found'
-
-2. PUT with item id 999999
-
-
-    - expect: 4xx; unchanged
-
-#### 3.9. API rejects an item of the other bale type on create and edit
-
-**TestRail:** C53 · **Priority:** P2 · **Brief:** integrity 8
-**File:** `e2e/purchase/validation-api.spec.ts`
-
-**Steps:**
-
-1. POST a BIG_BALES purchase containing a SMALL_BALES item of the same company
-
-
-    - expect: 4xx; nothing saved
-
-2. PUT a BIG_BALES purchase adding it
-
-
-    - expect: 4xx; unchanged
-
-#### 3.10. API rejects an edit that adds another company's item
-
-**TestRail:** C54 · **Priority:** P1 · **Brief:** integrity 8
-**File:** `e2e/purchase/validation-api.spec.ts`
-
-**Steps:**
-
-1. PUT a company 2 purchase adding a company 3 item
-
-
-    - expect: 4xx; unchanged
-
-### 4. Form integrity
-
-#### 4.1. Switching company during creation leaves only the new company's items and recalculates totals
-
-**TestRail:** C55 · **Priority:** P2 · **Brief:** form 9
-**File:** `e2e/purchase/form.spec.ts`
-
-**Steps:**
-
-1. Company A, BIG_BALES, fill a row
-
-
-    - expect: Total reflects it
-
-2. Switch to company B
-
-
-    - expect: Only B's items; totals reset
-
-3. Fill a B row; create; reload; GET
-
-
-    - expect: companyId B; only B's item saved; total matches
-
-#### 4.2. Switching bale type during creation leaves only that type's items and recalculates totals
-
-**TestRail:** C56 · **Priority:** P2 · **Brief:** form 9
-**File:** `e2e/purchase/form.spec.ts`
-
-**Steps:**
-
-1. BIG_BALES, fill a row; switch to SMALL_BALES
-
-
-    - expect: Only SMALL_BALES items; totals reset
-
-2. Fill a row; create; reload; GET
-
-
-    - expect: baleType SMALL_BALES; only that item saved
-
-#### 4.3. API refuses an edit that changes a purchase's company or bale type
+#### 2.5. The API refuses an edit that changes a purchase's company or bale type
 
 **TestRail:** C57 · **Priority:** P1 · **Brief:** form 9 · **Expected to fail (D5)**
 **File:** `e2e/purchase/form-api.spec.ts`
+**Why it matters:** moving a purchase to another supplier silently rewrites whose balance it affects.
 
 **Steps:**
 
-1. PUT with companyId 3 (and company 3 items); PUT with baleType SMALL_BALES
-
-
-    - expect: 4xx each
-
+1. PUT with another company's id (and that company's items); PUT with baleType SMALL_BALES
+   - expect: 4xx each
 2. GET
+   - expect: companyId and baleType unchanged
 
+### 3. Approve and cancel
 
-    - expect: companyId and baleType unchanged
+#### 3.1. Approving a purchase adds its bales to stock and posts one DEBIT, exactly once
 
-### 5. Approve and cancel
-
-#### 5.1. ADMIN approving a purchase raises item stock and adds one ledger DEBIT for the total
-
-**TestRail:** C12 · **Priority:** P1 · **Criterion:** 3
+**TestRail:** C12 · **Priority:** P1 · **Criterion:** 3, 4 · **Brief:** posting boundary 2
 **File:** `e2e/purchase/approve.spec.ts`
+**Why it matters:** approval is the moment goods and money enter the books; replacing stock instead of adding, missing a new item, or posting twice all give wrong numbers.
 
 **Steps:**
 
-1. Setup via API: record stock of both items, ledger balance B, entry count, and another supplier's balance. PENDING purchase P: 'handbags mixed' 5 × 20 kg × Rs 5 (500), 'ladies cotton tops' 3 × 50 kg × Rs 2 (300), total 800. Approve from the list (check icon, 'Yes')
+1. Setup via API: a new item N (POST /api/items, no stock row yet). Record stock of 'handbags mixed', the 'Ironwood Garments' ledger balance B and entry count, and another supplier's balance. PENDING purchase P: 'handbags mixed' 5 × 20 kg × Rs 5 (500), N 7 × 10 kg × Rs 10 (700), total 1200. GET /api/inventory
+   - expect: No row for N
+2. Approve P from the list (check icon, 'Yes')
+   - expect: APPROVED; approve/cancel icons gone
+3. GET /api/inventory
+   - expect: 'handbags mixed' + 5 (increased, not replaced); a row for N with on-hand 7
+4. GET company ledger
+   - expect: one new DEBIT 1200 for P; balance B + 1200
+5. GET the other supplier's ledger
+   - expect: Unchanged
+6. Approve P again via the API
+   - expect: HTTP 400 'Purchase order already approved'; stock, balance and entry count equal step 3 and 4 values
 
-
-    - expect: APPROVED; approve/cancel icons gone
-
-2. GET /api/inventory
-
-
-    - expect: 'handbags mixed' + 5; 'ladies cotton tops' + 3 (increased, not replaced)
-
-3. GET company ledger
-
-
-    - expect: one new DEBIT 800 for P; balance B + 800
-
-4. GET other supplier's ledger
-
-
-    - expect: Unchanged
-
-#### 5.2. Approving a purchase creates a stock row for an item that had none
-
-**TestRail:** C13 · **Priority:** P1 · **Criterion:** 3
-**File:** `e2e/purchase/approve.spec.ts`
-
-**Steps:**
-
-1. Setup: new item via POST /api/items; PENDING purchase 7 × 10 kg × Rs 10 (700). GET inventory
-
-
-    - expect: No row for the item
-
-2. Approve
-
-
-    - expect: HTTP 200
-
-3. GET inventory and ledger
-
-
-    - expect: Row with on-hand 7; one DEBIT 700
-
-#### 5.3. Approving an already approved purchase is refused and changes nothing
-
-**TestRail:** C14 · **Priority:** P1 · **Criterion:** 4
-**File:** `e2e/purchase/approve-api.spec.ts`
-
-**Steps:**
-
-1. Approve a purchase, record stock/balance/entry count, approve again
-
-
-    - expect: HTTP 400 'Purchase order already approved'
-
-2. GET inventory and ledger
-
-
-    - expect: Equal to the recorded values
-
-#### 5.4. ADMIN cancelling a never-approved PENDING purchase sets status CANCEL without changing stock or ledger
+#### 3.2. Cancelling a never-approved PENDING purchase sets CANCEL without changing stock or ledger
 
 **TestRail:** C15 · **Priority:** P1 · **Criterion:** 6
 **File:** `e2e/purchase/cancel.spec.ts`
+**Why it matters:** a cancelled order must leave no trace in stock or what is owed.
 
 **Steps:**
 
 1. Setup: PENDING purchase 5 × 16 kg × Rs 10 (800); record stock, balance, entry count. Cancel from the list (cross icon, 'Yes')
-
-
-    - expect: CANCEL; icons gone
-
+   - expect: CANCEL; icons gone
 2. GET purchase
-
-
-    - expect: status CANCEL
-
+   - expect: status CANCEL
 3. GET inventory and ledger
+   - expect: Unchanged
 
+#### 3.3. An approval posts exactly once, whether sent twice at the same time or retried after a lost response
 
-    - expect: Unchanged
+**TestRail:** C60 · **Priority:** P1 · **Brief:** retry 11
+**File:** `e2e/purchase/concurrency.spec.ts`
+**Why it matters:** the owner approves in batches, double-clicks and retries on slow connections; a second posting doubles the stock and the debt.
 
-### 6. Permissions and isolation
+**Steps:**
 
-#### 6.1. EDITOR sees no approve or cancel actions on the purchase list
+1. PENDING P1: 5 bales (500); record S, B. Approve from two ADMIN contexts in parallel (API)
+   - expect: One 200, one 'already approved'; stock S + 5; one entry; balance B + 500
+2. PENDING P2: 5 bales (500); record S, B. Approve from the list with a route that forwards the request (route.fetch) and then aborts the response
+   - expect: UI shows failure or no update
+3. Reload; approve P2 again
+   - expect: Refused as already approved, or shows APPROVED
+4. GET inventory and ledger
+   - expect: S + 5; one entry for P2; B + 500
 
-**TestRail:** C16 · **Priority:** P1 · **Criterion:** 5
+#### 3.4. Approving two purchases for the same supplier and item at the same time keeps both postings
+
+**TestRail:** C62 · **Priority:** P1 · **Brief:** concurrency 11
+**File:** `e2e/purchase/concurrency.spec.ts`
+**Why it matters:** a lost update loses real stock and real debt without any error.
+
+**Steps:**
+
+1. Two PENDING purchases of X: 5 bales (500), 3 bales (300); record S, B. Approve both in parallel
+   - expect: 200 each; X = S + 8; two entries; B + 800; every running balance = previous ± amount
+
+### 4. Permissions and isolation
+
+#### 4.1. Staff (EDITOR) prepare and correct purchases, but only the owner can approve or cancel them
+
+**TestRail:** C16 · **Priority:** P1 · **Criterion:** 5, 7, 8
 **File:** `e2e/purchase/permissions.spec.ts`
+**Why it matters:** staff prepare the work and the owner commits it; a button hidden in the UI is not a control if the API still accepts the request.
 
-**Steps:**
+**Steps:** log in as EDITOR in the test's setup.
 
-1. PENDING purchase via API as ADMIN; log in as EDITOR; open /purchase
+1. As EDITOR create 'Ironwood Imports', SMALL_BALES, 3 bales × Rs 20/bale in the UI
+   - expect: PENDING, total 60; stock and ledger unchanged
+2. Open /purchase
+   - expect: The row shows only the pencil icon, no approve or cancel
+3. Edit it: Sur Charge 25, 4 bales; Update Purchase
+   - expect: Sur Charge 25, total 105, still PENDING
+4. As EDITOR PUT approve, then cancel, on it
+   - expect: 403 'Operation not permitted.' each; as ADMIN: still PENDING, stock and ledger unchanged
+5. ADMIN approves it; as EDITOR PUT changed bales and total on the APPROVED purchase
+   - expect: 200; PENDING, revisionNo 1
+6. As EDITOR approve the revision
+   - expect: 403; stays PENDING; stock and ledger still reflect only the first approval
 
-
-    - expect: Row listed with only the pencil icon
-
-#### 6.2. EDITOR creates a purchase and it is saved as PENDING
-
-**TestRail:** C17 · **Priority:** P1 · **Criterion:** 5
-**File:** `e2e/purchase/permissions.spec.ts`
-
-**Steps:**
-
-1. As EDITOR create 'Ironwood Garments', BIG_BALES, 3 × 10 kg × Rs 2
-
-
-    - expect: PENDING, total 60
-
-2. GET inventory and ledger
-
-
-    - expect: Unchanged
-
-#### 6.3. EDITOR edits a PENDING purchase and it stays PENDING
-
-**TestRail:** C18 · **Priority:** P1 · **Criterion:** 5, 7
-**File:** `e2e/purchase/permissions.spec.ts`
-
-**Steps:**
-
-1. As EDITOR edit: Sur Charge 25, change bales; Update Purchase
-
-
-    - expect: Sur Charge 25, new total, PENDING
-
-#### 6.4. API refuses approve and cancel requests from an EDITOR
-
-**TestRail:** C19 · **Priority:** P1 · **Criterion:** 5
-**File:** `e2e/purchase/permissions-api.spec.ts`
-
-**Steps:**
-
-1. As EDITOR PUT approve, then cancel
-
-
-    - expect: 403 'Operation not permitted.' each
-
-2. As ADMIN GET purchase, inventory, ledger
-
-
-    - expect: PENDING; unchanged
-
-#### 6.5. EDITOR can revise an APPROVED purchase but cannot re-approve it
-
-**TestRail:** C20 · **Priority:** P2 · **Criterion:** 5, 8
-**File:** `e2e/purchase/permissions-api.spec.ts`
-
-**Steps:**
-
-1. As EDITOR PUT changed bales/total on an APPROVED purchase
-
-
-    - expect: 200; PENDING, revisionNo 1
-
-2. As EDITOR approve
-
-
-    - expect: 403; stays PENDING
-
-#### 6.6. Another organization's purchases cannot be listed, viewed, edited, approved or cancelled
+#### 4.2. Another organization's purchases, companies and items can't be seen or touched
 
 **TestRail:** C58 · **Priority:** P1 · **Brief:** isolation 10
 **File:** `e2e/purchase/isolation-api.spec.ts`
+**Why it matters:** one business seeing or changing another's purchases ends the product.
 
 **Steps:**
 
-1. Precondition: a second org with PENDING purchase Z. As demo ADMIN: list, GET, PUT, approve, cancel Z
+1. POST a purchase as the demo ADMIN; GET it and the list
+   - expect: Every row carries the demo org's organizationId
+2. Precondition: a second org with PENDING purchase Z, its company and item. As demo ADMIN: list, GET, PUT, approve and cancel Z
+   - expect: Z not listed; 404 for each
+3. POST with the other org's companyId; POST with its item id; PUT a demo purchase adding its item
+   - expect: 404/4xx each; nothing saved or changed
+4. Check Z, its stock and ledger as the other org
+   - expect: Unchanged
 
+### 5. Edit and revise
 
-    - expect: Not listed; 404 for each
+#### 5.1. Editing a PENDING purchase saves only the kept items and values, and still posts nothing
 
-2. Check Z as the other org
-
-
-    - expect: Z, its stock and ledger unchanged
-
-#### 6.7. Injecting another organization's company or item ids into a purchase is rejected without side effects
-
-**TestRail:** C59 · **Priority:** P1 · **Brief:** isolation 10
-**File:** `e2e/purchase/isolation-api.spec.ts`
-
-**Steps:**
-
-1. POST with the other org's companyId; POST with its item id; PUT adding its item
-
-
-    - expect: 404/4xx each; nothing saved or changed
-
-### 7. Edit and revisions
-
-#### 7.1. Editing a PENDING purchase saves the changes and keeps it PENDING
-
-**TestRail:** C21 · **Priority:** P1 · **Criterion:** 7
+**TestRail:** C21 · **Priority:** P1 · **Criterion:** 7 · **Brief:** form 9
 **File:** `e2e/purchase/edit.spec.ts`
+**Why it matters:** suppliers' final invoices differ from the order; corrections before approval must stick exactly as entered.
 
 **Steps:**
 
-1. Setup: never-approved purchase 'handbags mixed' 5 × 20 kg × Rs 10 (1000). Open its edit page
+1. Setup: never-approved SMALL_BALES purchase with A 5 bales × Rs 10/bale and B 2 bales × Rs 20/bale (90). Open its edit page
+   - expect: 'Update Purchase Order'; prefilled (total 90, 7 bundles)
+2. Remove B
+   - expect: Row gone; bundles 5; 'Add Removed Items' enabled
+3. Restore B via 'Add Removed Items' + Apply
+   - expect: Row back; bundles 7
+4. Remove B again; A to 8 bales; Sur Charge 40; new invoice
+   - expect: Total 120
+5. Update Purchase
+   - expect: Row shows the new invoice, Sur Charge 40, total 120, PENDING
+6. Reload; GET
+   - expect: PENDING, revisionNo 0, only A with 8 bales, 120
+7. GET inventory and ledger
+   - expect: Unchanged
 
+#### 5.2. Revising an approved purchase records the change and re-approval moves stock and ledger by the difference only
 
-    - expect: 'Update Purchase Order'; prefilled (total 1000, 5 bundles)
-
-2. Bales 8; Sur Charge 40; new invoice
-
-
-    - expect: Total 1640
-
-3. Update Purchase
-
-
-    - expect: Row shows new invoice, Sur Charge 40, total 1640, PENDING
-
-4. Reload; GET
-
-
-    - expect: PENDING, revisionNo 0, 8 bales, 1640
-
-5. GET inventory and ledger
-
-
-    - expect: Unchanged
-
-#### 7.2. Removing and restoring items while editing a PENDING purchase saves only the kept items
-
-**TestRail:** C22 · **Priority:** P2 · **Criterion:** 7
-**File:** `e2e/purchase/edit.spec.ts`
-
-**Steps:**
-
-1. Remove 'ladies cotton tops'
-
-
-    - expect: Row gone; bundles drop; 'Add Removed Items' enabled
-
-2. Restore it via 'Add Removed Items' + Apply
-
-
-    - expect: Row back; bundles restored
-
-3. Remove again; Update; GET
-
-
-    - expect: Only 'handbags mixed'; PENDING
-
-#### 7.3. Editing an APPROVED purchase records a revision and returns it to PENDING
-
-**TestRail:** C23 · **Priority:** P1 · **Criterion:** 8
+**TestRail:** C23 · **Priority:** P1 · **Criterion:** 8 · **Brief:** revision cycle 3
 **File:** `e2e/purchase/edit-approved.spec.ts`
+**Why it matters:** corrections after approval are routine; re-posting the full purchase would double stock and debt, and the history is what the accountant checks.
 
 **Steps:**
 
-1. Setup: new item X; P approved: X 10 × 10 kg × Rs 5 (500), 'handbags mixed' 5 × 10 kg × Rs 10 (500), total 1000. Edit: X 15, 'handbags mixed' 3
+1. Setup: new item X; record S_X, S_H and balance B0. P approved via the API: X 10 × 10 kg × Rs 5 (500), 'handbags mixed' 5 × 10 kg × Rs 10 (500), total 1000. Edit P in the UI: X 15, 'handbags mixed' 3; Update Purchase
+   - expect: PENDING; approve/cancel icons back
+2. Reload; GET
+   - expect: revisionNo 1, total 1050; revisionDetails X +5, 'handbags mixed' -2, previous 10 and 5
+3. Approve from the list
+   - expect: APPROVED, revisionNo 1
+4. GET inventory and ledger
+   - expect: X = S_X + 15; 'handbags mixed' = S_H + 3; entry count unchanged since the first approval; P's entry 1050; balance B0 + 1050
+5. Revise again via the API: X 12, 'handbags mixed' 3 (total 900); approve
+   - expect: revisionNo 2; X = S_X + 12; 'handbags mixed' still S_H + 3; still one entry for P, 900; balance B0 + 900
 
+- Does not assert stock/ledger while a revision is pending (open decision).
+- The UI totals in step 1 are weight-priced; assert the saved values via GET, not the on-screen total, so the weight-pricing bug (C30) doesn't fail this case.
 
-    - expect: Total 1050
+#### 5.3. Editing a revised purchase again while pending keeps the latest values, and re-approval is relative to the last approved version
 
-2. Update Purchase
-
-
-    - expect: PENDING; approve/cancel icons back
-
-3. Reload; GET
-
-
-    - expect: revisionNo 1, total 1050; revisionDetails X +5, 'handbags mixed' -2, previous 10 and 5
-
-- Does not assert stock/ledger while pending (open decision).
-
-#### 7.4. Re-approving a revised purchase applies only the stock difference and adjusts the existing ledger entry
-
-**TestRail:** C24 · **Priority:** P1 · **Criterion:** 8
-**File:** `e2e/purchase/edit-approved.spec.ts`
-
-**Steps:**
-
-1. Record S_X, S_H, B0 before setup. Same setup as 7.3, revised (1050). Approve from the list
-
-
-    - expect: APPROVED, revisionNo 1
-
-2. GET inventory
-
-
-    - expect: X = S_X + 15; 'handbags mixed' = S_H + 3
-
-3. GET ledger
-
-
-    - expect: Entry count unchanged; P's entry 1050; balance B0 + 1050
-
-#### 7.5. Re-approving a revised purchase shifts later ledger balances by the change in total
-
-**TestRail:** C25 · **Priority:** P1 · **Criterion:** 8
-**File:** `e2e/purchase/edit-approved.spec.ts`
-
-**Steps:**
-
-1. P (3 days ago, 10 × 10 kg × Rs 10 = 1000) and Q (today, 400) approved; record T_Q, B. Revise P to 13 bales (1300), approve
-
-
-    - expect: P 1300; Q T_Q + 300; balance B + 300; no new entries
-
-2. Revise P to 9 bales (900), approve
-
-
-    - expect: P 900; Q T_Q - 100; balance B - 100
-
-#### 7.6. Editing a previously revised PENDING purchase saves the changes
-
-**TestRail:** C26 · **Priority:** P1 · **Criterion:** 7 · **Expected to fail (D1)**
-**File:** `e2e/purchase/edit-approved.spec.ts`
-
-**Steps:**
-
-1. Approved 10 × 10 kg × Rs 10 (1000), revised to 16 bales / 1600. Open edit page
-
-
-    - expect: 16 bales
-
-2. Change to 20 bales (2000); Update
-
-
-    - expect: Row total 2000
-
-3. GET
-
-
-    - expect: 20 bales, 2000, PENDING
-
-#### 7.7. A second revision applies only the new difference on re-approval
-
-**TestRail:** C27 · **Priority:** P2 · **Criterion:** 8
-**File:** `e2e/purchase/edit-approved.spec.ts`
-
-**Steps:**
-
-1. Record S_X, B. Approved X 10 × 10 kg × Rs 10 (1000); revised to 15 (1500) and approved. Revise to 12 (1200)
-
-
-    - expect: PENDING, revisionNo 2
-
-2. Approve
-
-
-    - expect: APPROVED, revisionNo 2
-
-3. GET inventory and ledger
-
-
-    - expect: X = S_X + 12; one entry, 1200; balance B + 1200
-
-#### 7.8. Approve, revise, edit again while pending, approve: latest values persist and stock moves relative to the last approved version
-
-**TestRail:** C34 · **Priority:** P1 · **Brief:** revision cycle 3 · **Expected to fail (D1)**
+**TestRail:** C34 · **Priority:** P1 · **Criterion:** 7 · **Brief:** revision cycle 3 · **Expected to fail (D1)**
 **File:** `e2e/purchase/revision-cycle.spec.ts`
+**Why it matters:** an edit that reports success but saves nothing means the owner approves numbers nobody entered.
 
 **Steps:**
 
 1. Record S, B. Approved X 10 × 10 kg × Rs 10 (1000). Revise to 15 (1500)
-
-
-    - expect: PENDING, revisionNo 1
-
-2. Edit to 12 (1200); reload GET
-
-
-    - expect: 12 bales, 1200
-
+   - expect: PENDING, revisionNo 1
+2. Edit to 12 (1200) on the edit page; Update; reload; GET
+   - expect: 12 bales, 1200
 3. Approve; GET inventory and ledger
-
-
-    - expect: X = S + 12; one entry 1200; balance B + 1200
-
+   - expect: X = S + 12; one entry 1200; balance B + 1200
 4. Cycle: revise to 8 (800), edit to 9 (900), approve
-
-
-    - expect: X = S + 9; entry 900; balance B + 900
-
+   - expect: X = S + 9; entry 900; balance B + 900
 5. Revision history
+   - expect: Latest revision records -3 from the last approved version (12 → 9)
 
+#### 5.4. Every kind of correction moves stock and ledger by exactly what changed
 
-    - expect: Latest revision records -3 from the last approved version (12 → 9)
+**TestRail:** C35 · **Priority:** P1 · **Brief:** revision matrix 4
+**File:** `e2e/purchase/revision-matrix.spec.ts`
+**Why it matters:** a price fix must not add stock, and a removed item must give its stock back; each mistake shows up as wrong stock or a wrong supplier balance.
 
-### 8. Revision matrix
+**Steps:** for each row, set up via the API an approved purchase priced at 10 kg × Rs 10/kg per bale, record stock and balance B after that first approval, PUT the change, approve, then GET inventory and ledger. Match lines by item id.
 
-All start from an approved purchase priced at 10 kg × Rs 10/kg per bale unless stated; record stock and balance B after the first approval.
+| Row             | Before (total)               | Change (total)       | Expected stock          | Expected ledger    |
+| --------------- | ---------------------------- | -------------------- | ----------------------- | ------------------ |
+| rate only       | X 5 bales (500)              | rate Rs 12/kg (600)  | X unchanged             | entry 600; B + 100 |
+| surcharge only  | X 5 bales, surcharge 0 (500) | surcharge 50 (550)   | unchanged               | entry 550; B + 50  |
+| weight only     | X 5 bales (500)              | 12 kg per bale (600) | on-hand bales unchanged | entry 600; B + 100 |
+| item added      | X 5 (500)                    | add Y 4 bales (900)  | X unchanged; Y + 4      | entry 900; B + 400 |
+| item removed    | X 5 + Y 4 (900)              | remove Y (500)       | Y - 4; X unchanged      | entry 500; B - 400 |
+| lines reordered | [X 5, Y 4] (900)             | [Y 4, X 5] (900)     | unchanged               | entry 900; B       |
 
-#### 8.1. Re-approving a rate-only change adjusts the ledger and does not move stock
+- expect (each row): no new ledger entry; the purchase's existing entry is adjusted
 
-**TestRail:** C35 · **Priority:** P1 · **File:** `e2e/purchase/revision-matrix.spec.ts`
+### 6. Ledger reconciliation and downstream activity
 
-1. X 5 bales (500) → rate Rs 12/kg (600); approve
+#### 6.1. Running balances stay correct when a purchase is backdated or revised before later purchases and payments
 
+**TestRail:** C43 · **Priority:** P1 · **Criterion:** 8 · **Brief:** ledger reconciliation 6, downstream 5
+**File:** `e2e/purchase/ledger-reconcile.spec.ts`
+**Why it matters:** the supplier statement is read line by line; one wrong running balance makes every later line wrong.
 
-    - expect: X stock unchanged; entry 600; balance B + 100; no new entry
+**Steps:**
 
-#### 8.2. Re-approving a surcharge-only change adjusts the ledger and does not move stock
+1. Company with entries dated today; record their running balances, B, and another supplier's balance. Approve a purchase P dated 5 days ago (500)
+   - expect: DEBIT 500 ordered before the later entries; each later running balance + 500; balance B + 500; every running balance = previous ± amount; other supplier unchanged
+2. Approve Q dated today (400); record T_Q and B
+   - expect: Q's running balance = previous + 400
+3. Record a supplier payment of 300 dated today, after Q, via the ledger payment API (confirm the payload against the ledger API and its tests); record its running balance T_pay
+   - expect: Payment row present; balance B - 300
+4. Revise P to a total 300 higher; approve
+   - expect: P's entry +300; Q T_Q + 300; payment still 300 with T_pay + 300; no new entries; every running balance = previous ± amount
+5. Revise P to a total 400 lower than step 4; approve
+   - expect: Q and payment running balances each drop by 400; final balance = previous final balance - 400
 
-**TestRail:** C36 · **Priority:** P2 · **File:** `e2e/purchase/revision-matrix.spec.ts`
+#### 6.2. Revising an older purchase reconciles running balances of entries on the same date
 
-1. X 5 bales, surcharge 0 (500) → surcharge 50 (550); approve
+**TestRail:** C44 · **Priority:** P1 · **Brief:** ledger reconciliation 6 · **May fail (same-date risk)**
+**File:** `e2e/purchase/ledger-reconcile.spec.ts`
+**Why it matters:** month-end entries often share a date; skipping same-date entries leaves the statement inconsistent.
 
+**Steps:**
 
-    - expect: Stock unchanged; entry 550; balance B + 50
+1. P and Q on the same date, P approved first then Q (1000 each); record B. Revise P to 12 bales (1200); approve
+   - expect: P 1200; Q running balance + 200; every running balance = previous ± amount; balance B + 200
 
-#### 8.3. Re-approving a weight-only change adjusts the ledger and does not change on-hand bales
+#### 6.3. Correcting a purchase after some bales were sold keeps the sale and applies only the correction
 
-**TestRail:** C37 · **Priority:** P2 · **File:** `e2e/purchase/revision-matrix.spec.ts`
+**TestRail:** C41 · **Priority:** P1 · **Brief:** downstream 5
+**File:** `e2e/purchase/downstream.spec.ts`
+**Why it matters:** goods are often sold before the supplier's final invoice arrives; the correction must not undo or duplicate the sale.
 
-1. X 5 bales (500) → 12 kg per bale (600); approve
+**Steps:**
 
+1. Approved X 10 bales (1000); a sale of 2 bales of X created and approved via the sales API; record S (after the sale), the sale and the customer ledger. Revise the purchase to 7 bales (700); approve
+   - expect: X = S - 3; the sale and customer ledger unchanged; purchase entry 700; supplier balance - 300
 
-    - expect: On-hand unchanged; entry 600; balance B + 100
+### 7. Latest cost
 
-#### 8.4. Re-approving after adding an item posts stock only for the added item
+#### 7.1. New purchases default to the latest cost, a typed rate is kept, and older purchases keep their recorded rates
 
-**TestRail:** C38 · **Priority:** P1 · **File:** `e2e/purchase/revision-matrix.spec.ts`
+**TestRail:** C46 · **Priority:** P1 · **Brief:** latest cost 7 · **Step 1 may fail (D7)**
+**File:** `e2e/purchase/latest-cost.spec.ts`
+**Why it matters:** costs change; a stale default leads to wrong orders, and rewriting old purchases would change what was already owed and paid.
 
-1. X 5 (500) → add Y 4 bales (900); approve
+**Steps:**
 
+1. Item X at Rs 10/kg. Purchase A at Rs 10/kg approved, then purchase B dated today at Rs 14/kg approved. Open /purchase/create and select X's company and type
+   - expect: X defaults to Rs 14/kg
+2. GET A, its view page and its ledger entry
+   - expect: A still Rs 10/kg, original total and ledger amount
+3. Create a purchase with X at a typed Rs 13/kg; reload; open its edit page; GET
+   - expect: Rs 13/kg saved and shown (assert the rate, not the weight-priced total)
 
-    - expect: X unchanged; Y + 4; entry 900; balance B + 400
+## Retired cases
 
-#### 8.5. Re-approving after removing an item reverses that item's posted stock
+Moved to the "Retired" section in TestRail on consolidation (2026-10-21). Merged cases' steps live on in the case named; nothing here is generated.
 
-**TestRail:** C39 · **Priority:** P1 · **File:** `e2e/purchase/revision-matrix.spec.ts`
-
-1. X 5 + Y 4 (900) → remove Y (500); approve
-
-
-    - expect: Y - 4; X unchanged; entry 500; balance B - 400
-
-#### 8.6. Re-approving with unchanged lines in a different order changes neither stock nor ledger
-
-**TestRail:** C40 · **Priority:** P2 · **File:** `e2e/purchase/revision-matrix.spec.ts`
-
-1. [X 5, Y 4] (900) → PUT [Y 4, X 5] (900); approve
-
-
-    - expect: Stock unchanged; entry 900; balance B
-
-### 9. Downstream activity and ledger reconciliation
-
-#### 9.1. Correcting a purchase after some bales were sold keeps the sale and applies only the correction
-
-**TestRail:** C41 · **Priority:** P1 · **File:** `e2e/purchase/downstream.spec.ts`
-
-1. Approved X 10 bales (1000); sale of 2 bales of X created and approved via the sales API; record S (after sale), sale, customer ledger. Revise to 7 bales (700); approve
-
-
-    - expect: X = S - 3; sale and customer ledger unchanged; purchase entry 700; supplier balance - 300
-
-#### 9.2. Correcting a purchase after a supplier payment keeps the payment and shifts balances by the correction
-
-**TestRail:** C42 · **Priority:** P1 · **File:** `e2e/purchase/downstream.spec.ts`
-
-1. P approved (1000); supplier payment 300 dated after P via the ledger payment API (confirm payload against the ledger API/tests); record payment running balance T and B. Revise P to 12 bales (1200); approve
-
-
-    - expect: Payment still 300 with running balance T + 200; P 1200; balance B + 200; no new entries
-
-#### 9.3. Approving a backdated purchase updates the running balances of all later entries
-
-**TestRail:** C43 · **Priority:** P1 · **File:** `e2e/purchase/ledger-reconcile.spec.ts`
-
-1. Company with entries dated today; record running balances, B, and another supplier's balance. Approve a purchase dated 5 days ago (500)
-
-
-    - expect: DEBIT 500 before later entries; each later running balance + 500; balance B + 500; every running balance = previous ± amount; other supplier unchanged
-
-#### 9.4. Revising an older purchase reconciles running balances of entries on the same date
-
-**TestRail:** C44 · **Priority:** P1 · **File:** `e2e/purchase/ledger-reconcile.spec.ts` · **May fail (same-date risk)**
-
-1. P and Q same date, P approved first then Q (1000 each); record B. Revise P to 12 bales (1200); approve
-
-
-    - expect: P 1200; Q running balance + 200; every running balance = previous ± amount; balance B + 200
-
-### 10. Latest cost
-
-#### 10.1. A new purchase defaults to the item's latest cost
-
-**TestRail:** C45 · **Priority:** P2 · **File:** `e2e/purchase/latest-cost.spec.ts`
-
-1. Item X at Rs 10/kg; purchase dated today at Rs 14/kg approved. Open /purchase/create and select X's company and type
-
-
-    - expect: X defaults to Rs 14/kg
-
-#### 10.2. Older purchases keep their recorded rates when the item cost changes
-
-**TestRail:** C46 · **Priority:** P1 · **File:** `e2e/purchase/latest-cost.spec.ts`
-
-1. A at Rs 10/kg approved; later B at Rs 14/kg approved. GET A and its view page and ledger entry
-
-
-    - expect: A still Rs 10/kg, original total and ledger amount
-
-#### 10.3. An explicitly entered purchase rate survives saving and reloading
-
-**TestRail:** C47 · **Priority:** P2 · **File:** `e2e/purchase/latest-cost.spec.ts`
-
-1. X default Rs 10/kg; create 2 × 10 kg at Rs 13/kg
-
-
-    - expect: Total 260
-
-2. Reload; edit page; GET
-
-
-    - expect: Rs 13/kg, 260
-
-### 11. Retry and concurrency
-
-#### 11.1. Two simultaneous approvals of the same purchase post it exactly once
-
-**TestRail:** C60 · **Priority:** P1 · **File:** `e2e/purchase/concurrency-api.spec.ts`
-
-1. PENDING 5 bales (500); record S, B. Approve from two ADMIN contexts in parallel
-
-
-    - expect: One 200, one 'already approved'; stock S + 5; one entry; balance B + 500
-
-#### 11.2. Retrying an approval whose response was lost does not post it twice
-
-**TestRail:** C61 · **Priority:** P2 · **File:** `e2e/purchase/concurrency.spec.ts`
-
-1. Approve from the list with a route that forwards the request (route.fetch) and then aborts the response
-
-
-    - expect: UI shows failure or no update
-
-2. Reload; approve again
-
-
-    - expect: Refused as already approved, or shows APPROVED
-
-3. GET inventory and ledger
-
-
-    - expect: S + 5; one entry; B + 500
-
-#### 11.3. Approving two purchases for the same supplier and item at the same time keeps both postings
-
-**TestRail:** C62 · **Priority:** P1 · **File:** `e2e/purchase/concurrency-api.spec.ts`
-
-1. Two PENDING purchases of X: 5 bales (500), 3 bales (300); record S, B. Approve both in parallel
-
-
-    - expect: 200 each; X = S + 8; two entries; B + 800; running balances reconcile
-
-#### 11.4. An edit racing an approval never leaves an approved state that differs from the saved purchase
-
-**TestRail:** C63 · **Priority:** P2 · **File:** `e2e/purchase/concurrency-api.spec.ts`
-
-1. Never-approved P: 5 bales (500); record S, B. In parallel: PUT 8 bales (800) and approve
-
-
-    - expect: If APPROVED, stock and ledger match P's saved values; if PENDING, nothing posted; the edit is saved or explicitly refused, never silently lost
-
-### 12. Empty states
-
-#### 12.1. Selecting a company with no items shows an empty items table and creation stays disabled
-
-**TestRail:** C28 · **Priority:** P3 · **File:** `e2e/purchase/empty-states.spec.ts`
-
-1. New company with no items; select it and BIG_BALES
-
-
-    - expect: No rows; 'Create Purchase' disabled
-
-#### 12.2. Searching a company with no purchases shows the empty list state
-
-**TestRail:** C29 · **Priority:** P3 · **File:** `e2e/purchase/empty-states.spec.ts`
-
-1. New company with no purchases; search it on /purchase
-
-
-    - expect: 'No data' empty state, no error
+| Retired                          | Now covered by | Note                                                                    |
+| -------------------------------- | -------------- | ----------------------------------------------------------------------- |
+| C5                               | C4             | step 8                                                                  |
+| C6, C31, C32                     | C30            | rows of the pricing table                                               |
+| C10, C28                         | C9             | steps 4–5                                                               |
+| C56                              | C55            | step 3                                                                  |
+| C7, C49, C50, C51, C52, C53, C54 | C11            | rows of the validation table                                            |
+| C13, C14                         | C12            | steps 1, 3 and 6                                                        |
+| C61                              | C60            | steps 2–4                                                               |
+| C17, C18, C19, C20               | C16            | EDITOR journey                                                          |
+| C8, C59                          | C58            | steps 1 and 3                                                           |
+| C22                              | C21            | steps 2–4                                                               |
+| C24, C27                         | C23            | steps 3–5                                                               |
+| C26                              | C34            | duplicate                                                               |
+| C36, C37, C38, C39, C40          | C35            | rows of the revision table                                              |
+| C25, C42                         | C43            | steps 2–5                                                               |
+| C45, C47                         | C46            | steps 1 and 3                                                           |
+| C29                              | —              | dropped: empty search result protects nothing the owner would lose      |
+| C63                              | —              | dropped from E2E: edit racing approval moves to a Jest integration test |
