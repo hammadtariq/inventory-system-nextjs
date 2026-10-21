@@ -2,7 +2,7 @@ name: QA app setup
 description: >
   Install dependencies, migrate and seed a throwaway Postgres (job service container) with the demo
   organization, build the app and install Playwright's browser. Exports QA_USER_EMAIL/QA_USER_PASSWORD
-  for the tests. The job must define a `postgres` service on port 5432 (user/password postgres).
+  and the EDITOR passwords for the tests. The job must define a `postgres` service on port 5432 (user/password postgres).
 
 inputs:
   build:
@@ -33,8 +33,13 @@ runs:
         # The app role must not be the bootstrap superuser: the RLS migration demotes the role it runs as.
         psql -h localhost -U postgres -c "CREATE ROLE qa_app LOGIN SUPERUSER PASSWORD 'qa_app';"
         psql -h localhost -U postgres -c "CREATE DATABASE inventory_qa OWNER qa_app;"
+        # Throwaway passwords for the seeded logins (no repository secrets needed: the database is discarded).
         PASS="Qa-$(openssl rand -hex 12)"
+        WAREHOUSE_PASS="Qa-$(openssl rand -hex 12)"
+        SALES_PASS="Qa-$(openssl rand -hex 12)"
         echo "::add-mask::$PASS"
+        echo "::add-mask::$WAREHOUSE_PASS"
+        echo "::add-mask::$SALES_PASS"
         {
           echo "POSTGRES_HOST=localhost"
           echo "POSTGRES_PORT=5432"
@@ -46,6 +51,8 @@ runs:
           echo "QA_USER_EMAIL=admin@trs.com"
           echo "QA_USER_PASSWORD=$PASS"
           echo "DEMO_ADMIN_PASSWORD=$PASS"
+          echo "DEMO_EDITOR_WAREHOUSE_PASSWORD=$WAREHOUSE_PASS"
+          echo "DEMO_EDITOR_SALES_PASSWORD=$SALES_PASS"
         } >> "$GITHUB_ENV"
 
     - name: Migrate and seed the demo organization

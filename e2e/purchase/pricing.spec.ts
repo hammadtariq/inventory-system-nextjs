@@ -14,7 +14,6 @@ type FormLine = {
 };
 type Row = {
   name: string;
-  supplier: string;
   type: po.BaleType;
   lines: FormLine[];
   surCharge: number;
@@ -25,7 +24,6 @@ type Row = {
 const rows: Row[] = [
   {
     name: "per bale",
-    supplier: "Ironwood Imports",
     type: "SMALL_BALES",
     lines: [
       { bales: 3, ratePerBale: 10 },
@@ -36,7 +34,6 @@ const rows: Row[] = [
   },
   {
     name: "kg",
-    supplier: "Ironwood Garments",
     type: "BIG_BALES",
     lines: [{ bales: 3, kgs: 50, ratePerKgs: 100 }],
     surCharge: 0,
@@ -45,7 +42,6 @@ const rows: Row[] = [
   },
   {
     name: "lb",
-    supplier: "Ironwood Garments",
     type: "BIG_BALES",
     lines: [{ bales: 2, lbs: 100, ratePerLbs: 40 }],
     surCharge: 0,
@@ -54,7 +50,6 @@ const rows: Row[] = [
   },
   {
     name: "mixed, decimals",
-    supplier: "Ironwood Garments",
     type: "BIG_BALES",
     lines: [
       { bales: 4, kgs: 12.5, ratePerKgs: 10.4 },
@@ -74,14 +69,15 @@ test(
       await test.step(row.name, async () => {
         if (row.knownBug && !po.knownBug(row.knownBug, `${row.name} row: weight-priced line omits the bale count`))
           return;
-        const supplier = await po.companyId(request, row.supplier);
+        // Each row gets its own supplier: parallel tests post to the seeded ones and would move the balance.
+        const { id: supplier, name: supplierName } = await po.newSupplier(request, "c30-supplier");
         const items = [];
         for (const _ of row.lines) items.push(await po.createItem(request, supplier, row.type, { tag: "c30" }));
         const invoice = po.uid("c30-inv");
         const before = await po.ledger(request, supplier);
 
         await page.goto("/purchase/create");
-        await antSelect(page, "Company", row.supplier);
+        await antSelect(page, "Company", supplierName);
         await antSelect(page, "List Type", row.type);
         await page.getByRole("button", { name: "Edit All" }).click();
         for (const [i, l] of row.lines.entries()) {

@@ -17,8 +17,9 @@ test(
   async ({ request }) => {
     const other = await createOtherOrg("c58");
     const otherBefore = await otherOrgSnapshot(other);
-    const garments = await po.companyId(request, "Ironwood Garments");
-    const own = await po.seededItem(request, garments, "BIG_BALES", "handbags mixed");
+    // An own supplier: parallel tests post to the seeded ones and would move its purchase count.
+    const garments = (await po.newSupplier(request, "c58-supplier")).id;
+    const own = await po.createItem(request, garments, "BIG_BALES", { tag: "c58", ratePerKgs: 5 });
     const ownLine = po.line(own, 2, { kg: 10, perKg: 5 });
 
     let demoOrgId = 0;
@@ -43,9 +44,15 @@ test(
     });
 
     await test.step("Creating a purchase with the other org's company or item is refused and saves nothing", async () => {
-      const count = await po.purchaseCount(request);
+      const count = await po.purchaseCount(request, garments);
+      const invoices = [po.uid("c58-their-company"), po.uid("c58-their-item")];
       const withTheirCompany = await request.post("/api/purchase", {
-        data: po.purchaseBody({ companyId: other.companyId, baleType: "BIG_BALES", lines: [ownLine] }),
+        data: po.purchaseBody({
+          companyId: other.companyId,
+          baleType: "BIG_BALES",
+          lines: [ownLine],
+          invoiceNumber: invoices[0],
+        }),
       });
       expect.soft(withTheirCompany.status(), "their company").toBe(404);
       const withTheirItem = await request.post("/api/purchase", {
@@ -53,10 +60,12 @@ test(
           companyId: garments,
           baleType: "BIG_BALES",
           lines: [{ id: other.itemId, itemName: other.itemName, noOfBales: 2, baleWeightKgs: 10, ratePerKgs: 5 }],
+          invoiceNumber: invoices[1],
         }),
       });
       expect.soft(withTheirItem.status(), "their item").toBe(404);
-      expect(await po.purchaseCount(request)).toBe(count);
+      expect(await po.purchaseCount(request, garments)).toBe(count);
+      for (const invoice of invoices) expect(await po.withInvoice(request, invoice), invoice).toEqual([]);
     });
 
     await test.step("As the other org: Z, its stock and its ledger are unchanged", async () => {
@@ -72,10 +81,11 @@ test(
     test.fixme(!po.runKnownBugs, "Known bug #218 (D8b): PUT /api/purchase/{id} never checks the items it saves.");
     const other = await createOtherOrg("c59");
     const otherBefore = await otherOrgSnapshot(other);
-    const garments = await po.companyId(request, "Ironwood Garments");
-    const wholesale = await po.companyId(request, "Ironwood Wholesale");
-    const own = await po.seededItem(request, garments, "BIG_BALES", "handbags mixed");
-    const otherCompanyItem = await po.seededItem(request, wholesale, "BIG_BALES", "ladies cotton tops");
+    // Own suppliers: parallel tests post to the seeded ones and would move their purchase counts.
+    const garments = (await po.newSupplier(request, "c59-supplier")).id;
+    const wholesale = (await po.newSupplier(request, "c59-other")).id;
+    const own = await po.createItem(request, garments, "BIG_BALES", { tag: "c59-own", ratePerKgs: 5 });
+    const otherCompanyItem = await po.createItem(request, wholesale, "BIG_BALES", { tag: "c59-other", ratePerKgs: 5 });
     const smallItem = await po.createItem(request, garments, "SMALL_BALES", { tag: "c59", ratePerBale: 10 });
     const ownLine = po.line(own, 2, { kg: 10, perKg: 5 });
     const p = await po.createPurchase(request, { companyId: garments, baleType: "BIG_BALES", lines: [ownLine] });
@@ -114,17 +124,20 @@ test(
     }
 
     await test.step("POST a BIG_BALES purchase with a SMALL_BALES item: refused, nothing saved", async () => {
-      const count = await po.purchaseCount(request);
+      const count = await po.purchaseCount(request, garments);
+      const invoiceNumber = po.uid("c59-small");
       const res = await request.post("/api/purchase", {
         data: po.purchaseBody({
           companyId: garments,
           baleType: "BIG_BALES",
           lines: [po.line(smallItem, 1, { perBale: 10 })],
+          invoiceNumber,
         }),
       });
       expect.soft(res.status()).toBeGreaterThanOrEqual(400);
       expect.soft(res.status()).toBeLessThan(500);
-      expect(await po.purchaseCount(request)).toBe(count);
+      expect(await po.purchaseCount(request, garments)).toBe(count);
+      expect(await po.withInvoice(request, invoiceNumber)).toEqual([]);
     });
 
     await test.step("The other org's data is untouched and this org has no stock row keyed by its item", async () => {

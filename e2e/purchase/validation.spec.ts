@@ -5,14 +5,16 @@ import { test, expect, tr } from "../fixtures";
 import { antSelect } from "../support/antd";
 import * as po from "../support/purchase-api";
 
-const SUPPLIER = "Ironwood Garments";
-
 test.describe("Input integrity", () => {
   test(
     "The create form only submits a complete purchase",
     { annotation: tr("C9"), tag: "@smoke" },
     async ({ page, request }) => {
-      const countBefore = await po.purchaseCount(request);
+      // A supplier of this test's own with two BIG_BALES items (parallel tests post to the seeded ones).
+      const supplier = await po.newSupplier(request, "c9-supplier");
+      const first = await po.createItem(request, supplier.id, "BIG_BALES", { tag: "c9-a" });
+      const second = await po.createItem(request, supplier.id, "BIG_BALES", { tag: "c9-b" });
+      const countBefore = await po.purchaseCount(request, supplier.id);
 
       // Setup: a new company with no items.
       const emptyCompany = po.uid("c9-empty");
@@ -31,7 +33,7 @@ test.describe("Input integrity", () => {
 
       // 2. Select a company only
       await test.step("No items table and still disabled", async () => {
-        await antSelect(page, "Company", SUPPLIER);
+        await antSelect(page, "Company", supplier.name);
         await expect(page.getByRole("button", { name: "Edit All" })).toHaveCount(0);
         await expect(page.getByRole("table")).toHaveCount(0);
         await expect(createButton).toBeDisabled();
@@ -40,11 +42,11 @@ test.describe("Input integrity", () => {
       // 3. Select BIG_BALES, select all rows, Remove Selected
       await test.step("The table is empty and 'Create Purchase' is disabled", async () => {
         await antSelect(page, "List Type", "BIG_BALES");
-        await expect(rowOf("ladies cotton tops")).toBeVisible();
+        await expect(rowOf(first.itemName)).toBeVisible();
         await page.getByRole("columnheader").getByRole("checkbox").check();
         await page.getByRole("button", { name: "Remove Selected" }).click();
-        await expect(rowOf("ladies cotton tops")).toHaveCount(0);
-        await expect(rowOf("handbags mixed")).toHaveCount(0);
+        await expect(rowOf(first.itemName)).toHaveCount(0);
+        await expect(rowOf(second.itemName)).toHaveCount(0);
         await expect(page.getByRole("img", { name: "No data" })).toBeVisible();
         await expect(createButton).toBeDisabled();
       });
@@ -53,14 +55,14 @@ test.describe("Input integrity", () => {
       await test.step("No rows and 'Create Purchase' is disabled", async () => {
         await antSelect(page, "Company", emptyCompany);
         await expect(page.getByRole("img", { name: "No data" })).toBeVisible();
-        await expect(rowOf("ladies cotton tops")).toHaveCount(0);
+        await expect(rowOf(first.itemName)).toHaveCount(0);
         await expect(createButton).toBeDisabled();
       });
 
-      // 5. Select 'Ironwood Garments' and BIG_BALES; fill nothing; Create Purchase
+      // 5. Select the supplier again and BIG_BALES; fill nothing; Create Purchase
       await test.step("A validation toast is shown and the URL does not change", async () => {
-        await antSelect(page, "Company", SUPPLIER);
-        await expect(rowOf("ladies cotton tops")).toBeVisible();
+        await antSelect(page, "Company", supplier.name);
+        await expect(rowOf(first.itemName)).toBeVisible();
         await expect(createButton).toBeEnabled();
         await createButton.click();
         await expect(page.getByText('ValidationError: "purchasedProducts[0].noOfBales" is required')).toBeVisible();
@@ -69,7 +71,7 @@ test.describe("Input integrity", () => {
 
       // 6. GET /api/purchase
       await test.step("The purchase count is unchanged from before step 1", async () => {
-        expect(await po.purchaseCount(request)).toBe(countBefore);
+        expect(await po.purchaseCount(request, supplier.id)).toBe(countBefore);
       });
     }
   );

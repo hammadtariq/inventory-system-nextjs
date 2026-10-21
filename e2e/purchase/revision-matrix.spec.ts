@@ -68,7 +68,8 @@ test(
   "Every kind of correction moves stock and ledger by exactly what changed",
   { annotation: tr("C35"), tag: "@smoke" },
   async ({ request }) => {
-    const garments = await po.companyId(request, "Ironwood Garments");
+    // An own supplier: parallel tests post to the seeded ones and would move its balance.
+    const garments = (await po.newSupplier(request, "c35-supplier")).id;
 
     for (const row of rows) {
       await test.step(row.name, async () => {

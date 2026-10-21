@@ -17,10 +17,11 @@ test(
   "The API rejects an incomplete purchase or another supplier's item on create, and saves nothing",
   { annotation: tr("C11"), tag: "@smoke" },
   async ({ request }) => {
-    const garments = await po.companyId(request, "Ironwood Garments");
-    const wholesale = await po.companyId(request, "Ironwood Wholesale");
-    const own = await po.seededItem(request, garments, "BIG_BALES", "handbags mixed");
-    const foreign = await po.seededItem(request, wholesale, "BIG_BALES", "ladies cotton tops");
+    // Own suppliers: parallel tests post to the seeded ones and would move their purchase counts.
+    const garments = (await po.newSupplier(request, "c11-supplier")).id;
+    const wholesale = (await po.newSupplier(request, "c11-other")).id;
+    const own = await po.createItem(request, garments, "BIG_BALES", { tag: "c11-own", ratePerKgs: 5 });
+    const foreign = await po.createItem(request, wholesale, "BIG_BALES", { tag: "c11-foreign", ratePerKgs: 5 });
     const valid = po.purchaseBody({
       companyId: garments,
       baleType: "BIG_BALES",
@@ -68,11 +69,15 @@ test(
 
     for (const row of rows) {
       await test.step(row.name, async () => {
-        const before = await po.purchaseCount(request);
+        const before = [await po.purchaseCount(request, garments), await po.purchaseCount(request, wholesale)];
         const res = await request.post("/api/purchase", { data: row.body });
         expect.soft(res.status(), row.name).toBe(row.status);
         expect.soft((await res.json()).message, row.name).toMatch(row.message);
-        expect.soft(await po.purchaseCount(request), `${row.name}: nothing saved`).toBe(before);
+        const after = [await po.purchaseCount(request, garments), await po.purchaseCount(request, wholesale)];
+        expect.soft(after, `${row.name}: nothing saved`).toEqual(before);
+        expect
+          .soft(await po.withInvoice(request, row.body.invoiceNumber as string), `${row.name}: nothing saved`)
+          .toEqual([]);
       });
     }
   }
@@ -86,8 +91,9 @@ test(
       !po.runKnownBugs,
       "Known bug #217 (D2, D8): the API accepts empty product lists, negative values, unpriced weight lines and edits missing required fields."
     );
-    const garments = await po.companyId(request, "Ironwood Garments");
-    const own = await po.seededItem(request, garments, "BIG_BALES", "handbags mixed");
+    // Own supplier: parallel tests post to the seeded ones and would move its purchase count.
+    const garments = (await po.newSupplier(request, "c48-supplier")).id;
+    const own = await po.createItem(request, garments, "BIG_BALES", { tag: "c48", ratePerKgs: 5 });
     const goodLine = po.line(own, 2, { kg: 10, perKg: 5 });
     const p = await po.createPurchase(request, { companyId: garments, baleType: "BIG_BALES", lines: [goodLine] });
     const full = po.purchaseBody({
@@ -126,12 +132,14 @@ test(
 
     for (const row of malformed) {
       await test.step(`${row.name} (create and edit)`, async () => {
-        const count = await po.purchaseCount(request);
+        const count = await po.purchaseCount(request, garments);
+        const invoiceNumber = po.uid("c48");
         const created = await request.post("/api/purchase", {
-          data: { ...full, invoiceNumber: po.uid("c48"), ...row.change },
+          data: { ...full, invoiceNumber, ...row.change },
         });
         expectRejected(created.status(), row.status, `create, ${row.name}`);
-        expect.soft(await po.purchaseCount(request), `create, ${row.name}: nothing saved`).toBe(count);
+        expect.soft(await po.purchaseCount(request, garments), `create, ${row.name}: nothing saved`).toBe(count);
+        expect.soft(await po.withInvoice(request, invoiceNumber), `create, ${row.name}: nothing saved`).toEqual([]);
 
         const before = snapshot(await po.getPurchase(request, p.id));
         const edited = await po.editPurchase(request, p.id, { ...full, ...row.change });

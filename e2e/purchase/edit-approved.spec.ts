@@ -5,8 +5,9 @@ test(
   "Revising an approved purchase records the change and re-approval moves stock and ledger by the difference only",
   { annotation: tr("C23"), tag: "@smoke" },
   async ({ page, request }) => {
-    const garments = await po.companyId(request, "Ironwood Garments");
-    const handbags = await po.seededItem(request, garments, "BIG_BALES", "handbags mixed");
+    // An own supplier: parallel tests post to the seeded ones and would move its balance.
+    const garments = (await po.newSupplier(request, "c23-supplier")).id;
+    const handbags = await po.stockedItem(request, garments, "c23-handbags");
     const x = await po.createItem(request, garments, "BIG_BALES", { tag: "c23", ratePerKgs: 5 });
     const stockX = (await po.stockOf(request, x.id)) ?? 0;
     const stockH = (await po.stockOf(request, handbags.id)) ?? 0;
@@ -21,7 +22,7 @@ test(
     const rowOf = (name: string) => page.getByRole("row").filter({ hasText: name });
     const listRow = rowOf(p.invoiceNumber!);
 
-    await test.step("Edit in the UI: X 15 bales, 'handbags mixed' 3; it returns to PENDING with approve/cancel back", async () => {
+    await test.step("Edit in the UI: X 15 bales, the stocked item 3; it returns to PENDING with approve/cancel back", async () => {
       await page.goto(`/purchase/${p.id}`);
       await page.getByRole("button", { name: "Edit All" }).click();
       await rowOf(x.itemName).getByRole("spinbutton").nth(po.FORM_INPUT.bales).fill("15");
@@ -35,7 +36,7 @@ test(
       await expect(listRow.getByRole("img", { name: "close" })).toBeVisible();
     });
 
-    await test.step("Saved: revision 1 recording X +5 and 'handbags mixed' -2 from 10 and 5", async () => {
+    await test.step("Saved: revision 1 recording X +5 and the stocked item -2 from 10 and 5", async () => {
       const saved = await po.getPurchase(request, p.id);
       expect(saved.revisionNo).toBe(1);
       const change = (id: number) => saved.revisionDetails.purchasedProducts.find((l: po.Line) => Number(l.id) === id);

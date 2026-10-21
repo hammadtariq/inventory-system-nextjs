@@ -5,7 +5,8 @@ test(
   "Correcting a purchase after some bales were sold keeps the sale and applies only the correction",
   { annotation: tr("C41"), tag: "@smoke" },
   async ({ request }) => {
-    const garments = await po.companyId(request, "Ironwood Garments");
+    // An own supplier: parallel tests post to the seeded ones and would move its balance.
+    const garments = (await po.newSupplier(request, "c41-supplier")).id;
     const x = await po.createItem(request, garments, "BIG_BALES", { tag: "c41", ratePerKgs: 10 });
     const p = await po.createPurchase(request, {
       companyId: garments,

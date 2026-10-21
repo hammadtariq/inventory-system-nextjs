@@ -9,13 +9,14 @@ test(
       !po.runKnownBugs,
       "Known bug #226: the server saves and posts the client's totalAmount without checking it against the lines."
     );
-    const garments = await po.companyId(request, "Ironwood Garments");
+    // An own supplier: parallel tests post to the seeded ones and would move its balance.
+    const garments = (await po.newSupplier(request, "c33-supplier")).id;
     const item = await po.createItem(request, garments, "BIG_BALES", { tag: "c33", ratePerKgs: 100 });
     const lines = [po.line(item, 3, { kg: 50, perKg: 100 })];
     const correct = po.purchaseTotal(lines); // 15000
     expect(correct).toBe(15000);
     const before = await po.ledger(request, garments);
-    const count = await po.purchaseCount(request);
+    const count = await po.purchaseCount(request, garments);
     const invoiceNumber = po.uid("c33");
 
     const res = await request.post("/api/purchase", {
@@ -25,7 +26,8 @@ test(
     if (res.status() >= 400) {
       await test.step("POST with totalAmount 1: rejected and nothing saved", async () => {
         expect(res.status()).toBeLessThan(500);
-        expect(await po.purchaseCount(request)).toBe(count);
+        expect(await po.purchaseCount(request, garments)).toBe(count);
+        expect(await po.withInvoice(request, invoiceNumber)).toEqual([]);
       });
       return;
     }

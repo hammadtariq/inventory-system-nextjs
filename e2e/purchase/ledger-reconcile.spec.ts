@@ -27,7 +27,15 @@ test(
   async ({ request }) => {
     const supplier = await po.createCompany(request, "c43");
     const x = await po.createItem(request, supplier, "BIG_BALES", { tag: "c43", ratePerKgs: 10 });
-    const garments = await po.companyId(request, "Ironwood Garments");
+    // Another supplier with a balance, of this test's own so parallel tests don't move it.
+    const garments = (await po.newSupplier(request, "c43-other")).id;
+    const y = await po.createItem(request, garments, "BIG_BALES", { tag: "c43-other", ratePerKgs: 10 });
+    const opening = await po.createPurchase(request, {
+      companyId: garments,
+      baleType: "BIG_BALES",
+      lines: bales(y, 1),
+    });
+    await po.approveOk(request, opening.id);
     const otherSupplierBefore = (await po.ledger(request, garments)).balance;
     const buy = async (n: number, purchaseDate: Date) => {
       const p = await po.createPurchase(request, {

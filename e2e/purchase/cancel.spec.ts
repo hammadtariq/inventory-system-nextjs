@@ -5,8 +5,9 @@ test(
   "Cancelling a never-approved PENDING purchase sets CANCEL without changing stock or ledger",
   { annotation: tr("C15"), tag: "@smoke" },
   async ({ page, request }) => {
-    const garments = await po.companyId(request, "Ironwood Garments");
-    const handbags = await po.seededItem(request, garments, "BIG_BALES", "handbags mixed");
+    // An own supplier (parallel tests post to the seeded ones) and an item already in stock.
+    const garments = (await po.newSupplier(request, "c15-supplier")).id;
+    const handbags = await po.stockedItem(request, garments, "c15-handbags");
     const p = await po.createPurchase(request, {
       companyId: garments,
       baleType: "BIG_BALES",
