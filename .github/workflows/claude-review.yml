@@ -22,6 +22,7 @@ jobs:
       contents: read
       pull-requests: write
       issues: write
+      id-token: write # Required for Claude's GitHub App authentication via OIDC.
     steps:
       - uses: anthropics/claude-code-action@beta
         with:
