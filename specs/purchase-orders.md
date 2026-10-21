@@ -4,7 +4,7 @@
 
 Regression coverage for Purchase Orders (brief: `specs/briefs/purchase-orders.md`) in the Drift Warehouse Demo org on a local DB (http://127.0.0.1:3100). Roles: ADMIN admin@trs.com (default storage state) and EDITOR warehouse@trs.com (log in during test setup with `DEMO_EDITOR_*_PASSWORD`). Out of scope: purchase reports and exports.
 
-TestRail section: "Purchase orders" (id 4). **22 cases**, consolidated on 2026-10-21 from the original 60 (C4–C63): each case is one business outcome, written as a journey with checkpoints or a data table. The 38 merged or dropped ids are listed under "Retired cases" at the end and are moved to a "Retired" section in TestRail, not deleted. Rewritten cases go back to "AI draft" for Gate 1.
+TestRail section: "Purchase orders" (id 4). **24 cases**, consolidated on 2026-10-21 from the original 60 (C4–C63) and revised the same day by a case review (`/qa-kit:review-cases`) against the code: each case is one business outcome, written as a journey with checkpoints or a data table. The 36 merged or dropped ids are listed under "Retired cases" at the end and are moved to a "Retired" section in TestRail, not deleted. Rewritten cases go back to "AI draft" for Gate 1.
 
 Confirmed business rules (from the brief):
 
@@ -17,7 +17,7 @@ Key facts verified against the code and a live run:
 
 - Endpoints: POST/GET /api/purchase, GET/PUT /api/purchase/{id}, PUT /api/purchase/approve/{id}, PUT /api/purchase/cancel/{id}. Inventory: GET /api/inventory (row id equals item id; fields onHand, noOfBales, baleWeightKgs). Ledger: GET /api/ledger/{companyId}?type=company returns {transactions[] (id, amount, spendType, totalBalance, runningBalance, transactionId = purchase id), totalBalance}.
 - UI: list /purchase (columns Id, Company Name, Invoice Total Amount (Rs), Bale Type, Invoice Number, Sur Charge (Rs), Purchase Date, Updated At, Status, Action; company search box 'search company'); create /purchase/create; edit /purchase/{id}. The List Type dropdown shows the raw codes SMALL_BALES / BIG_BALES. After choosing company and list type the form lists ALL of that company's items of that type; fill No of Bales (required) and weights/rates via 'Edit All' then 'Save All'; drop rows with Remove / Remove Selected. SMALL_BALES also requires Rate Per Bale. 'Create Purchase' is disabled until company and list type are chosen, at least one row exists and 'Edit All' mode is closed. Server validation errors appear as a toast.
-- Permissions (`data/permission.js`, `lib/authz.js`): purchase_approve is ADMIN only; purchase_edit is ADMIN and EDITOR. Approve (check) and cancel (cross) icons show only on PENDING rows for users with purchase_approve; every row has an edit (pencil) icon. Approve/cancel APIs return 403 'Operation not permitted.' for EDITOR.
+- Permissions (`data/permission.js`, `lib/authz.js`): purchase_approve is ADMIN only; purchase_edit is ADMIN and EDITOR. Approve (check) and cancel (cross) icons show only on PENDING rows for users with purchase_approve; every row has an edit (pencil) icon. Approve/cancel APIs return 403 'Operation not permitted.' for EDITOR. **Owner rule (2026-10-21): staff can only view an APPROVED purchase, not change it.** The code still lets an EDITOR edit one (see D9, C20).
 - Seeded data (ids may differ; resolve by name and read before-values at runtime): company 'Ironwood Garments' (BIG_BALES items 'ladies cotton tops', 'handbags mixed'); a second company with its own BIG_BALES 'ladies cotton tops'; 'Ironwood Imports' (SMALL_BALES 'mixed winter jackets'). Every seeded item already has an inventory row, so "stock row created" needs a new item from POST /api/items ({companyId, itemName, type, ratePerKgs}), which creates no inventory row.
 - antd pickers (Company, List Type, 'Add Removed Items', 'search company'): in specs use the helpers in `e2e/support/antd.ts`, e.g. `await antSelect(page, "Company", "Ironwood Garments")` and `antSelect(page, "List Type", "BIG_BALES")`. Don't use `getByRole("option", { name })` (it matches antd's hidden 0×0 listbox and hangs) or `getByLabel("Company")` / `getByLabel("List Type")` (these Form.Items have no `name`, so the label isn't linked). Agents driving the live browser: never click an `option` ref from the snapshot; click the field, type enough of the option text to make it unique, then press Enter. Lists are virtual (~10 rows rendered), so type to reach later options.
 - Test data: create your own items/purchases via the API with unique invoice numbers/names (e.g. `QA-PO-<case>-<timestamp>`). Never mutate seeded purchases. No delete endpoint exists, so data accumulates.
@@ -27,7 +27,7 @@ Key facts verified against the code and a live run:
 How to write these tests:
 
 - **One test per case.** Journeys use one `test.step` per numbered step, each with its own assertions. Data-table cases loop over their rows inside one test, one `test.step` per row named after the row, so a failure names the row.
-- **Known bugs stay in their own case** (C48, C57, C34, C44, and the weight-pricing rows of C30). Mark the test `test.fixme()` with the reason so it doesn't block the healthy rows. When a bug is fixed, fold its rows into the related table (C48 and C57 into C11) and retire the id.
+- **Known bugs stay in their own case** (C48, C57, C59, C20, C34, C44, C43 step 1, C62, and the weight-pricing rows of C30). Mark the test `test.fixme()` with the reason so it doesn't block the healthy rows. When a bug is fixed, fold its rows into the related table (C48, C57 and C59's same-org rows into C11; C59's cross-org row into C58; C20 into C16) and retire the id.
 - **The weight-pricing bug should fail one place, not ten.** Only C30 checks weight-priced totals in the form. Other UI journeys use SMALL_BALES lines priced per bale (fill No of Bales and Rate Per Bale, leave weights and per-kg/lb rates empty; the form uses kg/lb first when filled), or create their data through the API.
 
 ## Known risks and discrepancies
@@ -35,6 +35,11 @@ How to write these tests:
 - **Weight pricing (brief, `utils/ui.util.js`):** the form computes weight-priced lines as weight × rate without the bale count. The kg and lb rows of C30 are expected to fail until fixed.
 - **D1 (`pages/api/purchase/[id].js`):** a pending edit only saves when revisionNo is 0, so editing a revised PENDING purchase returns 200 but saves nothing. C34 is expected to fail.
 - **D2:** the API accepts `purchasedProducts: []`. C48 is expected to fail.
+- **D8 (review, 2026-10-21):** the Joi schemas accept negative bales, weights, rates and surcharge, and a weight line with no weight or no rate. The PUT schema also makes company, date, bale type and products optional. The owner says only the optional fields (invoice number, surcharge) may be left out of an edit. C48 is expected to fail.
+- **D8b:** PUT `/api/purchase/{id}` never looks up the items it saves, and create checks the item's company but not its bale type. An edit can attach a nonexistent item, another supplier's item, an item of the other bale type, or another organization's item. Approving such a purchase then creates a stock row in this org keyed by a foreign item id. C59 is expected to fail.
+- **D9:** an EDITOR can PUT an APPROVED purchase, which reopens it as PENDING with a new revision. The owner's rule is view-only for staff. C20 is expected to fail.
+- **D10:** approving a new (revisionNo 0) backdated purchase stores its balance as the sum of all entries + its total, and later-dated rows aren't shifted. The ledger screen and PDF show these stored balances in entry (id) order, not date order. C43 step 1 is expected to fail; the owner has to decide date order vs entry order.
+- **D11:** approval locks only the purchase being approved. `balanceQuery` reads the supplier's balance outside the approval transaction, so two purchases for one supplier approved at the same moment can store overlapping balances (10,500 and 10,300 instead of 10,500 and 10,800). C62 is likely to fail; it's a race, so run it with `--repeat-each`.
 - **D5:** the API doesn't enforce the UI's locks on company and bale type. C57 is expected to fail.
 - **D7 (new, 2026-10-21):** approval writes the latest rates to the inventory row (`pages/api/purchase/approve/[id].js`), but the create form takes its defaults from the item (`/api/items`), so a new purchase may not default to the latest cost. C46 may fail on its first step; confirm with the owner which rate "latest cost" means.
 - **Client-supplied total:** C33 may fail.
@@ -46,7 +51,7 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 ## Left out of this plan
 
-- **Waiting on owner decisions (from the brief), so no expected result is asserted:** cancelling an APPROVED or revised-pending purchase, repeated cancellation, approving a cancelled purchase, editing/reopening a cancelled purchase; whether last approved stock/ledger effects stay in place while a revision is pending (C23 doesn't assert it); a correction removing more stock than remains after sales; lines with both kg and lb filled; currency rounding; zero-price/zero-quantity lines; fractional bale counts; duplicate item lines; the exact meaning and timing of "latest cost" (see D7).
+- **Waiting on owner decisions (from the brief), so no expected result is asserted:** cancelling an APPROVED or revised-pending purchase, repeated cancellation, approving a cancelled purchase, editing/reopening a cancelled purchase; whether last approved stock/ledger effects stay in place while a revision is pending (C23 doesn't assert it); a correction removing more stock than remains after sales; lines with both kg and lb filled; currency rounding; zero-price/zero-quantity lines; fractional bale counts; duplicate item lines; the exact meaning and timing of "latest cost" (see D7); whether the supplier statement follows date order or entry order (D10, C43 step 1); whether staff are also view-only on a CANCEL purchase (C20 covers APPROVED only).
 - **Moved to Jest integration tests** (they need fault injection or a guaranteed race, which E2E can't produce reliably): failure consistency (brief scenario 12), and an edit racing an approval (brief scenario 11, formerly C63).
 - **Not in the brief:** company search filter and its empty state, PO date picker limits, 404/malformed ids, popconfirm "No", read-only view page, ADMIN icon matrix across statuses, unauthenticated access.
 
@@ -152,37 +157,39 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 4. Switch back to SMALL_BALES, fill a B row; create; reload; GET
    - expect: companyId B, baleType SMALL_BALES; only that B item saved; total matches the row
 
-#### 2.3. The API rejects invalid purchases on create and edit, and nothing is saved or changed
+#### 2.3. The API rejects an incomplete purchase or another supplier's item on create, and saves nothing
 
 **TestRail:** C11 · **Priority:** P1 · **Criterion:** 1, 2 · **Brief:** integrity 8
 **File:** `e2e/purchase/validation-api.spec.ts`
-**Why it matters:** the form isn't the only way in; a bad request must never create or corrupt a purchase that later posts stock and money.
+**Why it matters:** the form isn't the only way in; a bad request must never create a purchase that later posts stock and money against the wrong supplier.
+
+**Steps:** for each row, POST the request, then check the purchase count is unchanged. Rows that fail today live in C48 and C59 and fold in here once fixed.
+
+| Row                                                             | Request                                       | Expected                                            |
+| --------------------------------------------------------------- | --------------------------------------------- | --------------------------------------------------- |
+| missing companyId / purchaseDate / baleType / purchasedProducts | one field omitted at a time                   | 400 naming the field                                |
+| item doesn't exist                                              | item id 999999                                | 404 'one or more purchased products were not found' |
+| item of another company                                         | only the other company's 'ladies cotton tops' | 404, same message                                   |
+| own item plus another company's item                            | one of each                                   | 404, same message                                   |
+
+#### 2.4. The API rejects a malformed purchase on create and on edit
+
+**TestRail:** C48 · **Priority:** P1 · **Criterion:** 2 · **Expected to fail (D2, D8)**
+**File:** `e2e/purchase/validation-api.spec.ts`
+**Why it matters:** an approved purchase with no lines, negative quantities or an unpriced weight line posts a supplier liability that doesn't match the goods received.
 
 **Steps:** setup one PENDING 'Ironwood Garments' BIG_BALES purchase P. For each row, send the request on create (POST) and on edit (PUT P), then check the purchase count is unchanged and P is unchanged (GET).
 
-| Row                                                             | Request                                                                      | Expected                                                                   |
-| --------------------------------------------------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| missing companyId / purchaseDate / baleType / purchasedProducts | one field omitted at a time                                                  | 400 naming the field                                                       |
-| weight line without weight                                      | rate set, no weight                                                          | 4xx                                                                        |
-| weight line without rate                                        | weight set, no rate                                                          | 4xx                                                                        |
-| negative values                                                 | noOfBales -1, baleWeightKgs -10, ratePerKgs -5, surCharge -50, one at a time | 400                                                                        |
-| item doesn't exist                                              | item id 999999                                                               | 404 'one or more purchased products were not found' on create; 4xx on edit |
-| item of the other bale type                                     | a SMALL_BALES item of the same company in a BIG_BALES purchase               | 4xx                                                                        |
-| item of another company                                         | only the other company's 'ladies cotton tops'                                | 404 'one or more purchased products were not found'                        |
-| own item plus another company's item                            | one of each                                                                  | 404, same message                                                          |
+| Row                                                      | Request                                                                        | Expected             |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------ | -------------------- |
+| empty product list                                       | purchasedProducts []                                                           | 4xx                  |
+| negative values                                          | noOfBales -1, baleWeightKgs -10, ratePerKgs -5, surCharge -50, one at a time   | 400                  |
+| weight line without weight                               | rate set, no weight                                                            | 4xx                  |
+| weight line without rate                                 | weight set, no rate                                                            | 4xx                  |
+| edit without a required field (PUT only)                 | companyId / purchaseDate / baleType / purchasedProducts omitted, one at a time | 400 naming the field |
+| edit without the optional fields (PUT only, control row) | invoiceNumber and surCharge omitted, everything else sent                      | 200; P saved as sent |
 
-#### 2.4. The API rejects an empty product list on create and on edit
-
-**TestRail:** C48 · **Priority:** P1 · **Criterion:** 2 · **Expected to fail (D2)**
-**File:** `e2e/purchase/validation-api.spec.ts`
-**Why it matters:** an approved purchase with no lines posts a supplier liability with no stock behind it.
-
-**Steps:**
-
-1. POST with purchasedProducts []
-   - expect: 4xx; count unchanged
-2. PUT an existing PENDING purchase with []
-   - expect: 4xx; unchanged
+- Owner rule (2026-10-21): an edit may leave out only the optional fields (invoice number, surcharge).
 
 #### 2.5. The API refuses an edit that changes a purchase's company or bale type
 
@@ -254,7 +261,7 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 #### 3.4. Approving two purchases for the same supplier and item at the same time keeps both postings
 
-**TestRail:** C62 · **Priority:** P1 · **Brief:** concurrency 11
+**TestRail:** C62 · **Priority:** P1 · **Brief:** concurrency 11 · **Likely to fail (D11, race)**
 **File:** `e2e/purchase/concurrency.spec.ts`
 **Why it matters:** a lost update loses real stock and real debt without any error.
 
@@ -262,6 +269,8 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 1. Two PENDING purchases of X: 5 bales (500), 3 bales (300); record S, B. Approve both in parallel
    - expect: 200 each; X = S + 8; two entries; B + 800; every running balance = previous ± amount
+
+- The stored balances can overlap only when both approvals read the balance before either commits, so the test may pass on some runs. Run it with `--repeat-each` before trusting a pass.
 
 ### 4. Permissions and isolation
 
@@ -281,12 +290,29 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
    - expect: Sur Charge 25, total 105, still PENDING
 4. As EDITOR PUT approve, then cancel, on it
    - expect: 403 'Operation not permitted.' each; as ADMIN: still PENDING, stock and ledger unchanged
-5. ADMIN approves it; as EDITOR PUT changed bales and total on the APPROVED purchase
-   - expect: 200; PENDING, revisionNo 1
-6. As EDITOR approve the revision
-   - expect: 403; stays PENDING; stock and ledger still reflect only the first approval
 
-#### 4.2. Another organization's purchases, companies and items can't be seen or touched
+- Staff on an APPROVED purchase is C20 (known bug D9); fold it in here once fixed.
+
+#### 4.2. Staff can view an approved purchase but can't change it
+
+**TestRail:** C20 · **Priority:** P1 · **Criterion:** 5, 8 · **Expected to fail (D9)**
+**File:** `e2e/purchase/permissions.spec.ts`
+**Why it matters:** an approved purchase is the owner's commitment. If staff can edit it, they reopen it as PENDING and change what the business owes and holds without the owner approving anything.
+
+**Steps:** setup via the API as ADMIN: an APPROVED 'Ironwood Imports' SMALL_BALES purchase P, 3 bales × Rs 20/bale (60). Record P (status, revisionNo, lines, total), X's stock, the supplier balance and entry count. Log in as EDITOR in the test's setup.
+
+1. As EDITOR open /purchase
+   - expect: P's row shows APPROVED with no edit, approve or cancel action; P can be opened to view it
+2. As EDITOR open /purchase/{P}
+   - expect: P's values are shown and can't be changed or saved (no 'Update Purchase')
+3. As EDITOR PUT /api/purchase/{P} with 5 bales and total 100
+   - expect: 403 'Operation not permitted.'
+4. As ADMIN GET P, inventory and the supplier ledger
+   - expect: Still APPROVED, revisionNo and lines as recorded, total 60; no PurchaseHistory revision; stock, balance and entry count unchanged
+
+- Open decision: whether staff are also view-only on a CANCEL purchase. Not asserted.
+
+#### 4.3. Another organization's purchases, companies and items can't be seen or touched
 
 **TestRail:** C58 · **Priority:** P1 · **Brief:** isolation 10
 **File:** `e2e/purchase/isolation-api.spec.ts`
@@ -298,10 +324,28 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
    - expect: Every row carries the demo org's organizationId
 2. Precondition: a second org with PENDING purchase Z, its company and item. As demo ADMIN: list, GET, PUT, approve and cancel Z
    - expect: Z not listed; 404 for each
-3. POST with the other org's companyId; POST with its item id; PUT a demo purchase adding its item
-   - expect: 404/4xx each; nothing saved or changed
+3. POST with the other org's companyId; POST with its item id
+   - expect: 404 each; nothing saved
 4. Check Z, its stock and ledger as the other org
    - expect: Unchanged
+
+- Injecting the other org's item through an edit is C59 (known bug D8b); fold it in here once fixed.
+
+#### 4.4. An edit can only attach this supplier's items of this bale type, never another organization's or a nonexistent one
+
+**TestRail:** C59 · **Priority:** P1 · **Type:** Security · **Brief:** integrity 8, isolation 10 · **Expected to fail (D8b)**
+**File:** `e2e/purchase/isolation-api.spec.ts`
+**Why it matters:** an edit that attaches a foreign item posts stock and cost against the wrong supplier. If the item belongs to another organization, approving the purchase writes a stock row keyed by that org's item into this one.
+
+**Steps:** setup one PENDING 'Ironwood Garments' BIG_BALES purchase P (via the API) and record it; a second org with an item W (as in C58). For each row, PUT P with the product list changed as shown, then GET P, the purchase count, and as the other org GET W's stock.
+
+| Row                                  | PUT purchasedProducts                                    | Expected                                 |
+| ------------------------------------ | -------------------------------------------------------- | ---------------------------------------- |
+| item doesn't exist                   | P's lines plus item id 999999                            | 404; P unchanged                         |
+| item of another company              | P's lines plus the other company's 'ladies cotton tops'  | 404; P unchanged                         |
+| item of the other bale type          | P's lines plus a SMALL_BALES item of 'Ironwood Garments' | 4xx; P unchanged                         |
+| item of the other bale type (create) | POST a BIG_BALES purchase with that SMALL_BALES item     | 4xx; count unchanged                     |
+| another organization's item          | P's lines plus W                                         | 404; P unchanged; W's org data untouched |
 
 ### 5. Edit and revise
 
@@ -323,8 +367,8 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
    - expect: Total 120
 5. Update Purchase
    - expect: Row shows the new invoice, Sur Charge 40, total 120, PENDING
-6. Reload; GET
-   - expect: PENDING, revisionNo 0, only A with 8 bales, 120
+6. Reload; GET; GET /api/purchase
+   - expect: PENDING, revisionNo 0, only A with 8 bales, 120; purchase count unchanged since step 1 and exactly one purchase carries the new invoice (regression for `bug/edit-purchase-duplicate`)
 7. GET inventory and ledger
    - expect: Unchanged
 
@@ -392,7 +436,7 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 #### 6.1. Running balances stay correct when a purchase is backdated or revised before later purchases and payments
 
-**TestRail:** C43 · **Priority:** P1 · **Criterion:** 8 · **Brief:** ledger reconciliation 6, downstream 5
+**TestRail:** C43 · **Priority:** P1 · **Criterion:** 8 · **Brief:** ledger reconciliation 6, downstream 5 · **Step 1 expected to fail (D10, ordering pending owner decision)**
 **File:** `e2e/purchase/ledger-reconcile.spec.ts`
 **Why it matters:** the supplier statement is read line by line; one wrong running balance makes every later line wrong.
 
@@ -408,6 +452,9 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
    - expect: P's entry +300; Q T_Q + 300; payment still 300 with T_pay + 300; no new entries; every running balance = previous ± amount
 5. Revise P to a total 400 lower than step 4; approve
    - expect: Q and payment running balances each drop by 400; final balance = previous final balance - 400
+
+- "Running balance" means the Balance column the supplier statement shows: each row's `partyBalance` from GET /api/ledger/{companyId}?type=company (the stored balance), not the recomputed `runningBalance` field.
+- Step 1 assumes the statement follows date order. Today rows are listed in entry order and a new backdated purchase doesn't shift later rows (D10). Keep step 1 in its own `test.step` so steps 2–5 still report. If the owner chooses entry order, rewrite step 1.
 
 #### 6.2. Revising an older purchase reconciles running balances of entries on the same date
 
@@ -450,24 +497,27 @@ Expected failures must not be weakened: mark the test `test.fixme()` with the re
 
 ## Retired cases
 
-Moved to the "Retired" section in TestRail on consolidation (2026-10-21). Merged cases' steps live on in the case named; nothing here is generated.
+Moved to the "Retired" section in TestRail on consolidation (2026-10-21). The case review the same day restored C20 and C59 as known-bug cases. Merged cases' steps live on in the case named; nothing here is generated.
 
-| Retired                          | Now covered by | Note                                                                    |
-| -------------------------------- | -------------- | ----------------------------------------------------------------------- |
-| C5                               | C4             | step 8                                                                  |
-| C6, C31, C32                     | C30            | rows of the pricing table                                               |
-| C10, C28                         | C9             | steps 4–5                                                               |
-| C56                              | C55            | step 3                                                                  |
-| C7, C49, C50, C51, C52, C53, C54 | C11            | rows of the validation table                                            |
-| C13, C14                         | C12            | steps 1, 3 and 6                                                        |
-| C61                              | C60            | steps 2–4                                                               |
-| C17, C18, C19, C20               | C16            | EDITOR journey                                                          |
-| C8, C59                          | C58            | steps 1 and 3                                                           |
-| C22                              | C21            | steps 2–4                                                               |
-| C24, C27                         | C23            | steps 3–5                                                               |
-| C26                              | C34            | duplicate                                                               |
-| C36, C37, C38, C39, C40          | C35            | rows of the revision table                                              |
-| C25, C42                         | C43            | steps 2–5                                                               |
-| C45, C47                         | C46            | steps 1 and 3                                                           |
-| C29                              | —              | dropped: empty search result protects nothing the owner would lose      |
-| C63                              | —              | dropped from E2E: edit racing approval moves to a Jest integration test |
+| Retired                 | Now covered by | Note                                                                                  |
+| ----------------------- | -------------- | ------------------------------------------------------------------------------------- |
+| C5                      | C4             | step 8                                                                                |
+| C6, C31, C32            | C30            | rows of the pricing table                                                             |
+| C10, C28                | C9             | steps 4–5                                                                             |
+| C56                     | C55            | step 3                                                                                |
+| C7                      | C11            | row: item of another company                                                          |
+| C49, C50, C51           | C48            | rows: edit without a required field, weight line without weight/rate, negative values |
+| C52                     | C11, C59       | nonexistent item: create row in C11, edit row in C59                                  |
+| C53, C54                | C59            | rows: other bale type, another company's item on edit                                 |
+| C13, C14                | C12            | steps 1, 3 and 6                                                                      |
+| C61                     | C60            | steps 2–4                                                                             |
+| C17, C18, C19           | C16            | EDITOR journey                                                                        |
+| C8                      | C58            | step 1                                                                                |
+| C22                     | C21            | steps 2–4                                                                             |
+| C24, C27                | C23            | steps 3–5                                                                             |
+| C26                     | C34            | duplicate                                                                             |
+| C36, C37, C38, C39, C40 | C35            | rows of the revision table                                                            |
+| C25, C42                | C43            | steps 2–5                                                                             |
+| C45, C47                | C46            | steps 1 and 3                                                                         |
+| C29                     | —              | dropped: empty search result protects nothing the owner would lose                    |
+| C63                     | —              | dropped from E2E: edit racing approval moves to a Jest integration test               |
