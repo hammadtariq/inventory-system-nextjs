@@ -1,0 +1,164 @@
+﻿key,testrail_id,section,title,priority,type,risks,why_it_matters,preconditions,steps,expected,data,notes,known_issue,source,file,suggestion,decision,review_notes
+PO-01,C4,Create and price a purchase,"Staff record a purchase in the form and it is saved as PENDING with the right total, without touching stock or ledger",P1,Functional,1;2,"A purchase is a draft until the owner approves it; if saving alone moved stock or the supplier balance, every unapproved draft would distort the books.",,"1. Setup: two SMALL_BALES items A and B for 'Ironwood Imports' via POST /api/items. Record their on-hand stock and the 'Ironwood Imports' ledger balance and entry count. Open /purchase/create as ADMIN.
+2. Select company 'Ironwood Imports' and List Type SMALL_BALES
+3. Keep only A and B; Edit All; A: 3 bales × Rs 10/bale, B: 2 bales × Rs 20/bale; type the rates over the defaults; Save All
+4. Enter a unique Invoice No and Sur Charge 50
+5. Click 'Create Purchase'
+6. Reload; GET /api/purchase/{id}
+7. GET /api/inventory and the company ledger
+8. Create a second purchase the same way with one line (A: 2 bales × Rs 10/bale), Invoice No empty and Sur Charge 0; reload; GET","1. Heading 'Create Purchase Order'; Total Amount and Total Bundle(s) show 0; 'Create Purchase' is disabled
+2. 'Rate Per Bale' column; only that company's SMALL_BALES items are listed, including A and B
+3. Total Bundle(s) = 5; Total Amount = 70
+4. Total Amount = 120
+5. Redirected to /purchase; new row shows Ironwood Imports, SMALL_BALES, the invoice, Sur Charge 50, total 120, PENDING
+6. totalAmount 120, surCharge 50, exactly the 2 lines with the typed bales and rates; status PENDING
+7. Stock, balance and entry count unchanged
+8. No error toast; PENDING; invoiceNumber null ('N/A' in the list); totalAmount 20",,,,"Criterion 1, posting boundary 2",e2e/purchase/create.spec.ts,Keep,,
+PO-02,C30,Create and price a purchase,"Every pricing method gives the same total on screen, in the saved purchase and in the supplier ledger",P1,Functional,1,The purchase total becomes what the business owes the supplier; a wrong multiplier means paying the wrong amount.,,"1. For each row, create the purchase in the UI, check the on-screen total, create, reload and GET, then approve via the API and GET the company ledger. Use multiple bales so a missing bale multiplier can't pass.","1. On-screen Total Amount, saved totalAmount and the single new ledger DEBIT all equal the expected total; balance rises by exactly that amount","Row | Company / type | Lines | Sur Charge | Expected total = saved total = ledger DEBIT
+kg | 'Ironwood Garments' BIG_BALES | 3 bales × 50 kg × Rs 100/kg | 0 | 15,000
+lb | 'Ironwood Garments' BIG_BALES | 2 bales × 100 lb × Rs 40/lb | 0 | 8,000
+per bale | 'Ironwood Imports' SMALL_BALES | 3 bales × Rs 10/bale, 2 bales × Rs 20/bale | 0 | 70
+mixed, decimals | 'Ironwood Garments' BIG_BALES | 4 bales × 12.5 kg × Rs 10.4/kg, 2 bales × 100 lb × Rs 40/lb | 75 | 8,595 (surcharge added once; decimals saved)","The kg, lb and mixed rows are expected to fail (weight-pricing bug). Keep them in a separate `test.fixme()` test from the per-bale row.","Kg, lb and mixed rows expected to fail (weight pricing)",Brief pricing 1,e2e/purchase/pricing.spec.ts,Keep,,
+PO-03,C33,Create and price a purchase,A direct request with an inconsistent total does not post an incorrect supplier liability,P1,Functional,1,"Anyone with an API session could understate a supplier liability; the books must follow the lines, not the client's arithmetic.",,"1. POST one line 3 × 50 kg × Rs 100 (15000) with totalAmount 1
+2. If saved: approve; GET ledger","1. Rejected (4xx, nothing saved) or saved with totalAmount 15000
+2. DEBIT 15000, never 1",,,May fail (client-supplied total),Brief pricing 1,e2e/purchase/pricing-api.spec.ts,Keep,,
+PO-04,C9,Input integrity,The create form only submits a complete purchase,P1,Functional,5,An incomplete purchase saved by mistake becomes a record someone may approve.,,"1. Open /purchase/create with nothing selected
+2. Select a company only
+3. Select BIG_BALES, select all rows, Remove Selected
+4. Select a new company created via the API with no items, and BIG_BALES
+5. Select 'Ironwood Garments' and BIG_BALES; fill nothing; Create Purchase
+6. GET /api/purchase","1. 'Create Purchase' disabled
+2. No items table; still disabled
+3. Empty table; disabled
+4. No rows; disabled
+5. Toast 'ValidationError: ""purchasedProducts[0].noOfBales"" is required'; URL unchanged
+6. Count unchanged from before step 1",,,,Criterion 2,e2e/purchase/validation.spec.ts,Keep,,
+PO-05,C55,Input integrity,Switching company or bale type while creating leaves only the new selection's items and recalculates totals,P2,Functional,2;1,A stale line from the first selection would put stock and cost against the wrong supplier.,,"1. Company A, SMALL_BALES, fill a row
+2. Switch to company B
+3. Fill a B row, then switch List Type to BIG_BALES
+4. Switch back to SMALL_BALES, fill a B row; create; reload; GET","1. Total reflects it
+2. Only B's items; totals reset
+3. Only B's BIG_BALES items; totals reset
+4. companyId B, baleType SMALL_BALES; only that B item saved; total matches the row",,,,Brief form 9,e2e/purchase/form.spec.ts,Keep,,
+PO-06,C11,Input integrity,"The API rejects an incomplete purchase or another supplier's item on create, and saves nothing",P1,Functional,2;5,The form isn't the only way in; a bad request must never create a purchase that later posts stock and money against the wrong supplier.,,"1. For each row, POST the request, then check the purchase count is unchanged. Rows that fail today live in C48 and C59 and fold in here once fixed.",1. Each row gives its expected result.,"Row | Request | Expected
+missing companyId / purchaseDate / baleType / purchasedProducts | one field omitted at a time | 400 naming the field
+item doesn't exist | item id 999999 | 404 'one or more purchased products were not found'
+item of another company | only the other company's 'ladies cotton tops' | 404, same message
+own item plus another company's item | one of each | 404, same message",,,"Criterion 1, 2; Brief integrity 8",e2e/purchase/validation-api.spec.ts,Keep,,
+PO-07,C48,Input integrity,The API rejects a malformed purchase on create and on edit,P1,Functional,1;2,"An approved purchase with no lines, negative quantities or an unpriced weight line posts a supplier liability that doesn't match the goods received.",,"1. Setup one PENDING 'Ironwood Garments' BIG_BALES purchase P. For each row, send the request on create (POST) and on edit (PUT P), then check the purchase count is unchanged and P is unchanged (GET).",1. Each row gives its expected result.,"Row | Request | Expected
+empty product list | purchasedProducts [] | 4xx
+negative values | noOfBales -1, baleWeightKgs -10, ratePerKgs -5, surCharge -50, one at a time | 400
+weight line without weight | rate set, no weight | 4xx
+weight line without rate | weight set, no rate | 4xx
+edit without a required field (PUT only) | companyId / purchaseDate / baleType / purchasedProducts omitted, one at a time | 400 naming the field
+edit without the optional fields (PUT only, control row) | invoiceNumber and surCharge omitted, everything else sent | 200; P saved as sent","Owner rule (2026-10-21): an edit may leave out only the optional fields (invoice number, surcharge).","Expected to fail (D2, D8)",Criterion 2,e2e/purchase/validation-api.spec.ts,Keep,,
+PO-08,C57,Input integrity,The API refuses an edit that changes a purchase's company or bale type,P1,Functional,1;5,Moving a purchase to another supplier silently rewrites whose balance it affects.,,"1. PUT with another company's id (and that company's items); PUT with baleType SMALL_BALES
+2. GET","1. 4xx each
+2. companyId and baleType unchanged",,,Expected to fail (D5),Brief form 9,e2e/purchase/form-api.spec.ts,Keep,,
+PO-09,C12,Approve and cancel,"Approving a purchase adds its bales to stock and posts one DEBIT, exactly once",P1,Regression,1;2,"Approval is the moment goods and money enter the books; replacing stock instead of adding, missing a new item, or posting twice all give wrong numbers.",,"1. Setup via API: a new item N (POST /api/items, no stock row yet). Record stock of 'handbags mixed', the 'Ironwood Garments' ledger balance B and entry count, and another supplier's balance. PENDING purchase P: 'handbags mixed' 5 × 20 kg × Rs 5 (500), N 7 × 10 kg × Rs 10 (700), total 1200. GET /api/inventory
+2. Approve P from the list (check icon, 'Yes')
+3. GET /api/inventory
+4. GET company ledger
+5. GET the other supplier's ledger
+6. Approve P again via the API","1. No row for N
+2. APPROVED; approve/cancel icons gone
+3. 'handbags mixed' + 5 (increased, not replaced); a row for N with on-hand 7
+4. One new DEBIT 1200 for P; balance B + 1200
+5. Unchanged
+6. HTTP 400 'Purchase order already approved'; stock, balance and entry count equal step 3 and 4 values",,,,"Criterion 3, 4; Brief posting boundary 2",e2e/purchase/approve.spec.ts,Keep,,
+PO-10,C15,Approve and cancel,Cancelling a never-approved PENDING purchase sets CANCEL without changing stock or ledger,P1,Functional,1;2,A cancelled order must leave no trace in stock or what is owed.,,"1. Setup: PENDING purchase 5 × 16 kg × Rs 10 (800); record stock, balance, entry count. Cancel from the list (cross icon, 'Yes')
+2. GET purchase
+3. GET inventory and ledger","1. CANCEL; icons gone
+2. Status CANCEL
+3. Unchanged",,,,Criterion 6,e2e/purchase/cancel.spec.ts,Keep,,
+PO-11,C60,Approve and cancel,"An approval posts exactly once, whether sent twice at the same time or retried after a lost response",P1,Functional,1;2,"The owner approves in batches, double-clicks and retries on slow connections; a second posting doubles the stock and the debt.",,"1. PENDING P1: 5 bales (500); record S, B. Approve from two ADMIN contexts in parallel (API)
+2. PENDING P2: 5 bales (500); record S, B. Approve from the list with a route that forwards the request (route.fetch) and then aborts the response
+3. Reload; approve P2 again
+4. GET inventory and ledger","1. One 200, one 'already approved'; stock S + 5; one entry; balance B + 500
+2. UI shows failure or no update
+3. Refused as already approved, or shows APPROVED
+4. S + 5; one entry for P2; B + 500",,,,Brief retry 11,e2e/purchase/concurrency.spec.ts,Keep,,
+PO-12,C62,Approve and cancel,Approving two purchases for the same supplier and item at the same time keeps both postings,P1,Functional,1;2,A lost update loses real stock and real debt without any error.,,"1. Two PENDING purchases of X: 5 bales (500), 3 bales (300); record S, B. Approve both in parallel",1. 200 each; X = S + 8; two entries; B + 800; every running balance = previous ± amount,,"The stored balances can overlap only when both approvals read the balance before either commits, so the test may pass on some runs. Run it with `--repeat-each` before trusting a pass.","Likely to fail (D11, race)",Brief concurrency 11,e2e/purchase/concurrency.spec.ts,Keep,,
+PO-13,C16,Permissions and isolation,"Staff (EDITOR) prepare and correct purchases, but only the owner can approve or cancel them",P1,Security,4,Staff prepare the work and the owner commits it; a button hidden in the UI is not a control if the API still accepts the request.,log in as EDITOR in the test's setup.,"1. As EDITOR create 'Ironwood Imports', SMALL_BALES, 3 bales × Rs 20/bale in the UI
+2. Open /purchase
+3. Edit it: Sur Charge 25, 4 bales; Update Purchase
+4. As EDITOR PUT approve, then cancel, on it","1. PENDING, total 60; stock and ledger unchanged
+2. The row shows only the pencil icon, no approve or cancel
+3. Sur Charge 25, total 105, still PENDING
+4. 403 'Operation not permitted.' each; as ADMIN: still PENDING, stock and ledger unchanged",,Staff on an APPROVED purchase is C20 (known bug D9); fold it in here once fixed.,,"Criterion 5, 7, 8",e2e/purchase/permissions.spec.ts,Keep,,
+PO-14,C20,Permissions and isolation,Staff can view an approved purchase but can't change it,P1,Security,4;5,"An approved purchase is the owner's commitment. If staff can edit it, they reopen it as PENDING and change what the business owes and holds without the owner approving anything.","setup via the API as ADMIN: an APPROVED 'Ironwood Imports' SMALL_BALES purchase P, 3 bales × Rs 20/bale (60). Record P (status, revisionNo, lines, total), X's stock, the supplier balance and entry count. Log in as EDITOR in the test's setup.","1. As EDITOR open /purchase
+2. As EDITOR open /purchase/{P}
+3. As EDITOR PUT /api/purchase/{P} with 5 bales and total 100
+4. As ADMIN GET P, inventory and the supplier ledger","1. P's row shows APPROVED with no edit, approve or cancel action; P can be opened to view it
+2. P's values are shown and can't be changed or saved (no 'Update Purchase')
+3. 403 'Operation not permitted.'
+4. Still APPROVED, revisionNo and lines as recorded, total 60; no PurchaseHistory revision; stock, balance and entry count unchanged",,Open decision: whether staff are also view-only on a CANCEL purchase. Not asserted.,Expected to fail (D9),"Criterion 5, 8",e2e/purchase/permissions.spec.ts,Keep,,
+PO-15,C58,Permissions and isolation,"Another organization's purchases, companies and items can't be seen or touched",P1,Security,3,One business seeing or changing another's purchases ends the product.,,"1. POST a purchase as the demo ADMIN; GET it and the list
+2. Precondition: a second org with PENDING purchase Z, its company and item. As demo ADMIN: list, GET, PUT, approve and cancel Z
+3. POST with the other org's companyId; POST with its item id
+4. Check Z, its stock and ledger as the other org","1. Every row carries the demo org's organizationId
+2. Z not listed; 404 for each
+3. 404 each; nothing saved
+4. Unchanged",,Injecting the other org's item through an edit is C59 (known bug D8b); fold it in here once fixed.,,Brief isolation 10,e2e/purchase/isolation-api.spec.ts,Keep,,
+PO-16,C59,Permissions and isolation,"An edit can only attach this supplier's items of this bale type, never another organization's or a nonexistent one",P1,Security,3;2,"An edit that attaches a foreign item posts stock and cost against the wrong supplier. If the item belongs to another organization, approving the purchase writes a stock row keyed by that org's item into this one.",,"1. Setup one PENDING 'Ironwood Garments' BIG_BALES purchase P (via the API) and record it; a second org with an item W (as in C58). For each row, PUT P with the product list changed as shown, then GET P, the purchase count, and as the other org GET W's stock.",1. Each row gives its expected result.,"Row | PUT purchasedProducts | Expected
+item doesn't exist | P's lines plus item id 999999 | 404; P unchanged
+item of another company | P's lines plus the other company's 'ladies cotton tops' | 404; P unchanged
+item of the other bale type | P's lines plus a SMALL_BALES item of 'Ironwood Garments' | 4xx; P unchanged
+item of the other bale type (create) | POST a BIG_BALES purchase with that SMALL_BALES item | 4xx; count unchanged
+another organization's item | P's lines plus W | 404; P unchanged; W's org data untouched",,Expected to fail (D8b),"Brief integrity 8, isolation 10",e2e/purchase/isolation-api.spec.ts,Keep,,
+PO-17,C21,Edit and revise,"Editing a PENDING purchase saves only the kept items and values, and still posts nothing",P1,Regression,5;2,Suppliers' final invoices differ from the order; corrections before approval must stick exactly as entered.,,"1. Setup: never-approved SMALL_BALES purchase with A 5 bales × Rs 10/bale and B 2 bales × Rs 20/bale (90). Open its edit page
+2. Remove B
+3. Restore B via 'Add Removed Items' + Apply
+4. Remove B again; A to 8 bales; Sur Charge 40; new invoice
+5. Update Purchase
+6. Reload; GET; GET /api/purchase
+7. GET inventory and ledger","1. 'Update Purchase Order'; prefilled (total 90, 7 bundles)
+2. Row gone; bundles 5; 'Add Removed Items' enabled
+3. Row back; bundles 7
+4. Total 120
+5. Row shows the new invoice, Sur Charge 40, total 120, PENDING
+6. PENDING, revisionNo 0, only A with 8 bales, 120; purchase count unchanged since step 1 and exactly one purchase carries the new invoice (regression for `bug/edit-purchase-duplicate`)
+7. Unchanged",,,,Criterion 7; Brief form 9,e2e/purchase/edit.spec.ts,Keep,,
+PO-18,C23,Edit and revise,Revising an approved purchase records the change and re-approval moves stock and ledger by the difference only,P1,Regression,1;2;5,"Corrections after approval are routine; re-posting the full purchase would double stock and debt, and the history is what the accountant checks.",,"1. Setup: new item X; record S_X, S_H and balance B0. P approved via the API: X 10 × 10 kg × Rs 5 (500), 'handbags mixed' 5 × 10 kg × Rs 10 (500), total 1000. Edit P in the UI: X 15, 'handbags mixed' 3; Update Purchase
+2. Reload; GET
+3. Approve from the list
+4. GET inventory and ledger
+5. Revise again via the API: X 12, 'handbags mixed' 3 (total 900); approve","1. PENDING; approve/cancel icons back
+2. revisionNo 1, total 1050; revisionDetails X +5, 'handbags mixed' -2, previous 10 and 5
+3. APPROVED, revisionNo 1
+4. X = S_X + 15; 'handbags mixed' = S_H + 3; entry count unchanged since the first approval; P's entry 1050; balance B0 + 1050
+5. revisionNo 2; X = S_X + 12; 'handbags mixed' still S_H + 3; still one entry for P, 900; balance B0 + 900",,"Does not assert stock/ledger while a revision is pending (open decision).
+The UI totals in step 1 are weight-priced; assert the saved values via GET, not the on-screen total, so the weight-pricing bug (C30) doesn't fail this case.",,Criterion 8; Brief revision cycle 3,e2e/purchase/edit-approved.spec.ts,Keep,,
+PO-19,C34,Edit and revise,"Editing a revised purchase again while pending keeps the latest values, and re-approval is relative to the last approved version",P1,Regression,5;1;2,An edit that reports success but saves nothing means the owner approves numbers nobody entered.,,"1. Record S, B. Approved X 10 × 10 kg × Rs 10 (1000). Revise to 15 (1500)
+2. Edit to 12 (1200) on the edit page; Update; reload; GET
+3. Approve; GET inventory and ledger
+4. Cycle: revise to 8 (800), edit to 9 (900), approve
+5. Revision history","1. PENDING, revisionNo 1
+2. 12 bales, 1200
+3. X = S + 12; one entry 1200; balance B + 1200
+4. X = S + 9; entry 900; balance B + 900
+5. Latest revision records -3 from the last approved version (12 → 9)",,,Expected to fail (D1),Criterion 7; Brief revision cycle 3,e2e/purchase/revision-cycle.spec.ts,Keep,,
+PO-20,C35,Edit and revise,Every kind of correction moves stock and ledger by exactly what changed,P1,Regression,1;2,"A price fix must not add stock, and a removed item must give its stock back; each mistake shows up as wrong stock or a wrong supplier balance.",,"1. For each row, set up via the API an approved purchase priced at 10 kg × Rs 10/kg per bale, record stock and balance B after that first approval, PUT the change, approve, then GET inventory and ledger. Match lines by item id.",1. No new ledger entry; the purchase's existing entry is adjusted,"Row | Before (total) | Change (total) | Expected stock | Expected ledger
+rate only | X 5 bales (500) | rate Rs 12/kg (600) | X unchanged | entry 600; B + 100
+surcharge only | X 5 bales, surcharge 0 (500) | surcharge 50 (550) | unchanged | entry 550; B + 50
+weight only | X 5 bales (500) | 12 kg per bale (600) | on-hand bales unchanged | entry 600; B + 100
+item added | X 5 (500) | add Y 4 bales (900) | X unchanged; Y + 4 | entry 900; B + 400
+item removed | X 5 + Y 4 (900) | remove Y (500) | Y - 4; X unchanged | entry 500; B - 400
+lines reordered | [X 5, Y 4] (900) | [Y 4, X 5] (900) | unchanged | entry 900; B",,,Brief revision matrix 4,e2e/purchase/revision-matrix.spec.ts,Keep,,
+PO-21,C43,Ledger reconciliation and downstream activity,Running balances stay correct when a purchase is backdated or revised before later purchases and payments,P1,Regression,1,The supplier statement is read line by line; one wrong running balance makes every later line wrong.,,"1. Company with entries dated today; record their running balances, B, and another supplier's balance. Approve a purchase P dated 5 days ago (500)
+2. Approve Q dated today (400); record T_Q and B
+3. Record a supplier payment of 300 dated today, after Q, via the ledger payment API (confirm the payload against the ledger API and its tests); record its running balance T_pay
+4. Revise P to a total 300 higher; approve
+5. Revise P to a total 400 lower than step 4; approve","1. DEBIT 500 ordered before the later entries; each later running balance + 500; balance B + 500; every running balance = previous ± amount; other supplier unchanged
+2. Q's running balance = previous + 400
+3. Payment row present; balance B - 300
+4. P's entry +300; Q T_Q + 300; payment still 300 with T_pay + 300; no new entries; every running balance = previous ± amount
+5. Q and payment running balances each drop by 400; final balance = previous final balance - 400",,"""Running balance"" means the Balance column the supplier statement shows: each row's `partyBalance` from GET /api/ledger/{companyId}?type=company (the stored balance), not the recomputed `runningBalance` field.
+Step 1 assumes the statement follows date order. Today rows are listed in entry order and a new backdated purchase doesn't shift later rows (D10). Keep step 1 in its own `test.step` so steps 2–5 still report. If the owner chooses entry order, rewrite step 1.","Step 1 expected to fail (D10, ordering pending owner decision)","Criterion 8; Brief ledger reconciliation 6, downstream 5",e2e/purchase/ledger-reconcile.spec.ts,Keep,,
+PO-22,C44,Ledger reconciliation and downstream activity,Revising an older purchase reconciles running balances of entries on the same date,P1,Functional,1,Month-end entries often share a date; skipping same-date entries leaves the statement inconsistent.,,"1. P and Q on the same date, P approved first then Q (1000 each); record B. Revise P to 12 bales (1200); approve",1. P 1200; Q running balance + 200; every running balance = previous ± amount; balance B + 200,,,May fail (same-date risk),Brief ledger reconciliation 6,e2e/purchase/ledger-reconcile.spec.ts,Keep,,
+PO-23,C41,Ledger reconciliation and downstream activity,Correcting a purchase after some bales were sold keeps the sale and applies only the correction,P1,Regression,2;1,Goods are often sold before the supplier's final invoice arrives; the correction must not undo or duplicate the sale.,,"1. Approved X 10 bales (1000); a sale of 2 bales of X created and approved via the sales API; record S (after the sale), the sale and the customer ledger. Revise the purchase to 7 bales (700); approve",1. X = S - 3; the sale and customer ledger unchanged; purchase entry 700; supplier balance - 300,,,,Brief downstream 5,e2e/purchase/downstream.spec.ts,Keep,,
+PO-24,C46,Latest cost,"New purchases default to the latest cost, a typed rate is kept, and older purchases keep their recorded rates",P1,Functional,5;1,"Costs change; a stale default leads to wrong orders, and rewriting old purchases would change what was already owed and paid.",,"1. Item X at Rs 10/kg. Purchase A at Rs 10/kg approved, then purchase B dated today at Rs 14/kg approved. Open /purchase/create and select X's company and type
+2. GET A, its view page and its ledger entry
+3. Create a purchase with X at a typed Rs 13/kg; reload; open its edit page; GET","1. X defaults to Rs 14/kg
+2. A still Rs 10/kg, original total and ledger amount
+3. Rs 13/kg saved and shown (assert the rate, not the weight-priced total)",,,Step 1 may fail (D7),Brief latest cost 7,e2e/purchase/latest-cost.spec.ts,Keep,,

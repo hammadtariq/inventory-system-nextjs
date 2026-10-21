@@ -46,6 +46,9 @@ jobs:
       - name: Lint test conventions
         run: node .qa/scripts/lint-specs.mjs
 
+      - name: Check test case files
+        run: for f in specs/cases/*.csv; do [ -e "$f" ] || continue; node .qa/scripts/cases.mjs check "$f" || exit 1; done
+
       - name: E2E tests changed in this PR
         id: changed
         continue-on-error: true
