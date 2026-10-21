@@ -24,10 +24,14 @@ jobs:
       issues: write
       id-token: write # Required for Claude's GitHub App authentication via OIDC.
     steps:
+      # The action reads the changed files from a local checkout.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 20
       - uses: anthropics/claude-code-action@beta
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          model: claude-sonnet-4-6-20251101
+          model: claude-sonnet-5-5
           direct_prompt: |
             You are reviewing a pull request for StockFlow — an inventory management SaaS (Next.js + PostgreSQL/Sequelize, Pages Router).
 
