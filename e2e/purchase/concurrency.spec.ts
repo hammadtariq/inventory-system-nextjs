@@ -7,7 +7,8 @@ test(
   "An approval posts exactly once, whether sent twice at the same time or retried after a lost response",
   { annotation: tr("C60"), tag: "@smoke" },
   async ({ page, request, playwright, baseURL }) => {
-    const garments = await po.companyId(request, "Ironwood Garments");
+    // An own supplier: parallel tests post to the seeded ones and would move its balance.
+    const garments = (await po.newSupplier(request, "c60-supplier")).id;
     const x = await po.createItem(request, garments, "BIG_BALES", { tag: "c60", ratePerKgs: 10 });
     const fiveBales = [po.line(x, 5, { kg: 10, perKg: 10 })]; // 500
     const secondAdmin = await playwright.request.newContext({ baseURL, storageState: ADMIN_STATE });
@@ -86,7 +87,8 @@ test(
   "Approving two purchases for the same supplier and item at the same time keeps both postings",
   { annotation: tr("C62"), tag: "@smoke" },
   async ({ request, playwright, baseURL }) => {
-    const garments = await po.companyId(request, "Ironwood Garments");
+    // An own supplier: parallel tests post to the seeded ones and would move its balance.
+    const garments = (await po.newSupplier(request, "c62-supplier")).id;
     const x = await po.createItem(request, garments, "BIG_BALES", { tag: "c62", ratePerKgs: 10 });
     // X is already in stock (the case records S): give it a stock row first. Two parallel approvals of an item
     // with no stock row yet is a different bug (#231), not this case's lost-update risk.

@@ -5,8 +5,6 @@ import { test, expect, tr } from "../fixtures";
 import { antSelect } from "../support/antd";
 import * as po from "../support/purchase-api";
 
-const SUPPLIER = "Ironwood Imports";
-const ITEM = "mixed winter jackets";
 const NOT_PERMITTED = "Operation not permitted.";
 
 // Both tests act as the EDITOR in the browser, so drop the default ADMIN storage state.
@@ -32,8 +30,10 @@ test.describe("Permissions and isolation", () => {
       const admin = await playwright.request.newContext({ storageState: "playwright/.auth/admin.json", baseURL });
       const ed = await po.loginAs(baseURL, po.editor.email, po.editor.password());
       try {
-        const companyId = await po.companyId(admin, SUPPLIER);
-        const item = await po.seededItem(admin, companyId, "SMALL_BALES", ITEM);
+        // An own supplier and item: parallel tests post to the seeded ones and would move the ledger.
+        const supplier = await po.newSupplier(admin, "c16-supplier");
+        const companyId = supplier.id;
+        const item = await po.createItem(admin, companyId, "SMALL_BALES", { tag: "c16" });
         const stockBefore = await po.stockOf(admin, item.id);
         const ledgerBefore = await po.ledger(admin, companyId);
         const invoice = po.uid("c16-inv");
@@ -42,14 +42,14 @@ test.describe("Permissions and isolation", () => {
         await loginAsEditorInBrowser(page);
         const row = page.getByRole("row").filter({ hasText: invoice });
 
-        // 1. As EDITOR create 'Ironwood Imports', SMALL_BALES, 3 bales × Rs 20/bale in the UI
+        // 1. As EDITOR create a purchase for the supplier, SMALL_BALES, 3 bales × Rs 20/bale in the UI
         await test.step("EDITOR creates a 3 x Rs 20 purchase in the UI: PENDING, total 60, stock and ledger unchanged", async () => {
           await page.goto("/purchase/create");
-          await antSelect(page, "Company", SUPPLIER);
+          await antSelect(page, "Company", supplier.name);
           await antSelect(page, "List Type", "SMALL_BALES");
           await page.getByLabel("Invoice No").fill(invoice);
           await page.getByRole("button", { name: "Edit All" }).click();
-          const itemRow = page.getByRole("row").filter({ hasText: ITEM });
+          const itemRow = page.getByRole("row").filter({ hasText: item.itemName });
           await itemRow.getByRole("spinbutton").first().fill("3");
           await itemRow.getByRole("spinbutton").last().fill("20");
           await page.getByRole("button", { name: "Save All" }).click();
@@ -81,7 +81,7 @@ test.describe("Permissions and isolation", () => {
           await row.getByRole("img", { name: "edit" }).click();
           await expect(page).toHaveURL(new RegExp(`/purchase/${purchaseId}$`));
           await page.getByRole("button", { name: "Edit All" }).click();
-          const itemRow = page.getByRole("row").filter({ hasText: ITEM });
+          const itemRow = page.getByRole("row").filter({ hasText: item.itemName });
           await itemRow.getByRole("spinbutton").first().fill("4");
           await page.getByRole("button", { name: "Save All" }).click();
           await page.getByLabel("Sur Charge (RS)").fill("25");
@@ -132,8 +132,9 @@ test.describe("Permissions and isolation", () => {
       const ed = await po.loginAs(baseURL, po.editor.email, po.editor.password());
       try {
         // Preconditions: an APPROVED 3 x Rs 20 purchase created and approved by ADMIN through the API.
-        const companyId = await po.companyId(admin, SUPPLIER);
-        const item = await po.seededItem(admin, companyId, "SMALL_BALES", ITEM);
+        // An own supplier and item: parallel tests post to the seeded ones and would move the ledger.
+        const companyId = (await po.newSupplier(admin, "c20-supplier")).id;
+        const item = await po.createItem(admin, companyId, "SMALL_BALES", { tag: "c20" });
         const lines = [po.line(item, 3, { perBale: 20 })];
         const created = await po.createPurchase(admin, {
           companyId,

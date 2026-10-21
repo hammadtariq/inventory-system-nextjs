@@ -9,7 +9,8 @@ test(
       !po.runKnownBugs,
       "Known bug #223 (D1): editing a revised PENDING purchase returns 200 but saves nothing."
     );
-    const garments = await po.companyId(request, "Ironwood Garments");
+    // An own supplier: parallel tests post to the seeded ones and would move its balance.
+    const garments = (await po.newSupplier(request, "c34-supplier")).id;
     const x = await po.createItem(request, garments, "BIG_BALES", { tag: "c34", ratePerKgs: 10 });
     const bales = (n: number) => [po.line(x, n, { kg: 10, perKg: 10 })]; // n × 100
     const stock0 = (await po.stockOf(request, x.id)) ?? 0;

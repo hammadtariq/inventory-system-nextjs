@@ -6,7 +6,8 @@ test(
   "Editing a PENDING purchase saves only the kept items and values, creates no duplicate, and still posts nothing",
   { annotation: tr("C21"), tag: "@smoke" },
   async ({ page, request }) => {
-    const imports = await po.companyId(request, "Ironwood Imports");
+    // An own supplier: parallel tests post to the seeded ones and would move its counts.
+    const imports = (await po.newSupplier(request, "c21-supplier")).id;
     const a = await po.createItem(request, imports, "SMALL_BALES", { tag: "c21-a" });
     const b = await po.createItem(request, imports, "SMALL_BALES", { tag: "c21-b" });
     const p = await po.createPurchase(request, {
@@ -14,7 +15,7 @@ test(
       baleType: "SMALL_BALES",
       lines: [po.line(a, 5, { perBale: 10 }), po.line(b, 2, { perBale: 20 })], // 50 + 40
     });
-    const count = await po.purchaseCount(request);
+    const count = await po.purchaseCount(request, imports);
     const stockA = await po.stockOf(request, a.id);
     const stockB = await po.stockOf(request, b.id);
     const before = await po.ledger(request, imports);
@@ -74,8 +75,8 @@ test(
       expect(saved.purchasedProducts.map((l) => [l.id, Number(l.noOfBales), Number(l.ratePerBale)])).toEqual([
         [a.id, 8, 10],
       ]);
-      expect(await po.purchaseCount(request)).toBe(count);
-      expect((await po.listPurchases(request)).rows.filter((r) => r.invoiceNumber === newInvoice)).toHaveLength(1);
+      expect(await po.purchaseCount(request, imports)).toBe(count);
+      expect(await po.withInvoice(request, newInvoice)).toHaveLength(1);
     });
 
     await test.step("Stock and the supplier ledger are unchanged", async () => {

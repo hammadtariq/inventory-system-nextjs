@@ -5,9 +5,10 @@ test(
   "Approving a purchase adds its bales to stock and posts one DEBIT, exactly once",
   { annotation: tr("C12"), tag: "@smoke" },
   async ({ page, request }) => {
-    const garments = await po.companyId(request, "Ironwood Garments");
-    const imports = await po.companyId(request, "Ironwood Imports");
-    const handbags = await po.seededItem(request, garments, "BIG_BALES", "handbags mixed");
+    // Own suppliers: parallel tests post to the seeded ones. "handbags" is already in stock, like the seeded item.
+    const garments = (await po.newSupplier(request, "c12-supplier")).id;
+    const imports = (await po.newSupplier(request, "c12-other")).id;
+    const handbags = await po.stockedItem(request, garments, "c12-handbags");
     const n = await po.createItem(request, garments, "BIG_BALES", { tag: "c12", ratePerKgs: 10 });
     const p = await po.createPurchase(request, {
       companyId: garments,
@@ -37,7 +38,7 @@ test(
       await expect(row.getByRole("img", { name: "close" })).toHaveCount(0);
     });
 
-    await test.step("Stock: 'handbags mixed' + 5 (added, not replaced); the new item has a row with 7", async () => {
+    await test.step("Stock: the stocked item + 5 (added, not replaced); the new item has a row with 7", async () => {
       expect(await po.stockOf(request, handbags.id)).toBe(stockHandbags + 5);
       expect(await po.stockOf(request, n.id)).toBe(7);
     });

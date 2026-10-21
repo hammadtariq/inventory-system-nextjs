@@ -124,6 +124,18 @@ export async function createCompany(api: APIRequestContext, tag: string): Promis
   return companyId(api, companyName);
 }
 
+/**
+ * A new supplier of this test's own. Tests run in parallel against one database, so a test that checks a
+ * supplier's ledger total, entry count or purchase count must use its own supplier: another worker's
+ * purchases for a shared (seeded) supplier would move those numbers.
+ */
+export async function newSupplier(api: APIRequestContext, tag: string): Promise<{ id: number; name: string }> {
+  const name = uid(tag);
+  const res = await api.post("/api/company", { data: { companyName: name } });
+  expect(res.status(), `create company: ${await res.text()}`).toBe(200);
+  return { id: await companyId(api, name), name };
+}
+
 export async function items(api: APIRequestContext, companyId: number, type: BaleType): Promise<Item[]> {
   const { rows } = await json<{ rows: Item[] }>(
     await api.get("/api/items", { params: { companyId, type, limit: 1000 } }),
@@ -185,12 +197,23 @@ const normalise = (p: any): Purchase => ({
   totalAmount: Number(p.totalAmount),
 });
 
-export async function listPurchases(api: APIRequestContext) {
-  const data = await json<{ count: number; rows: Purchase[] }>(await api.get("/api/purchase"), "list purchases");
+/** All purchases of the organization, or only those of `companyId` (the list's `search` filter). */
+export async function listPurchases(api: APIRequestContext, companyId?: number) {
+  const params = companyId === undefined ? undefined : { search: companyId };
+  const data = await json<{ count: number; rows: Purchase[] }>(
+    await api.get("/api/purchase", { params }),
+    "list purchases"
+  );
   return { count: data.count, rows: data.rows.map(normalise) };
 }
 
-export const purchaseCount = async (api: APIRequestContext) => (await listPurchases(api)).count;
+/** How many purchases `companyId` has. Scoped to one supplier so parallel tests don't change it. */
+export const purchaseCount = async (api: APIRequestContext, companyId: number) =>
+  (await listPurchases(api, companyId)).count;
+
+/** Purchases saved with `invoiceNumber`, for any supplier ("nothing saved" checks on refused requests). */
+export const withInvoice = async (api: APIRequestContext, invoiceNumber: string) =>
+  (await listPurchases(api)).rows.filter((r) => r.invoiceNumber === invoiceNumber);
 
 export async function getPurchase(api: APIRequestContext, id: number) {
   return normalise(await json<Purchase>(await api.get(`/api/purchase/${id}`), `get purchase ${id}`));
@@ -205,7 +228,7 @@ export async function createPurchase(api: APIRequestContext, p: NewPurchase): Pr
 }
 
 export async function findByInvoice(api: APIRequestContext, invoiceNumber: string): Promise<Purchase> {
-  const matches = (await listPurchases(api)).rows.filter((r) => r.invoiceNumber === invoiceNumber);
+  const matches = await withInvoice(api, invoiceNumber);
   expect(matches, `purchases with invoice ${invoiceNumber}`).toHaveLength(1);
   return matches[0];
 }
@@ -219,6 +242,18 @@ export const cancel = (api: APIRequestContext, id: number) => api.put(`/api/purc
 export async function approveOk(api: APIRequestContext, id: number) {
   const res = await approve(api, id);
   expect(res.status(), `approve purchase ${id}: ${await res.text()}`).toBe(200);
+}
+
+/** A new BIG_BALES item already in stock: an approved opening purchase of `bales` × 10 kg × Rs 10/kg. */
+export async function stockedItem(api: APIRequestContext, companyId: number, tag: string, bales = 4) {
+  const item = await createItem(api, companyId, "BIG_BALES", { tag, ratePerKgs: 10 });
+  const opening = await createPurchase(api, {
+    companyId,
+    baleType: "BIG_BALES",
+    lines: [line(item, bales, { kg: 10, perKg: 10 })],
+  });
+  await approveOk(api, opening.id);
+  return item;
 }
 
 /** Revise via the API: PUT the new lines (and total) on a purchase, keeping company and bale type. */

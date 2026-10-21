@@ -5,17 +5,18 @@ import { test, expect, tr } from "../fixtures";
 import { antSelect } from "../support/antd";
 import * as po from "../support/purchase-api";
 
-const SUPPLIER = "Ironwood Imports";
-
 test.describe("Create and price a purchase", () => {
   test(
     "Staff record a purchase in the form and it is saved as PENDING with the right total, without touching stock or ledger",
     { annotation: tr("C4"), tag: "@smoke" },
     async ({ page, request }) => {
-      // Setup: two SMALL_BALES items A and B for the supplier, created through the API.
-      const companyId = await po.companyId(request, SUPPLIER);
+      // Setup: a supplier of this test's own (parallel tests post to the seeded ones) with SMALL_BALES items
+      // A and B, and a third item C that is listed but left empty.
+      const supplier = await po.newSupplier(request, "c4-supplier");
+      const companyId = supplier.id;
       const itemA = await po.createItem(request, companyId, "SMALL_BALES", { tag: "c4-a" });
       const itemB = await po.createItem(request, companyId, "SMALL_BALES", { tag: "c4-b" });
+      const itemC = await po.createItem(request, companyId, "SMALL_BALES", { tag: "c4-c" });
       const stockABefore = await po.stockOf(request, itemA.id);
       const stockBBefore = await po.stockOf(request, itemB.id);
       const ledgerBefore = await po.ledger(request, companyId);
@@ -43,13 +44,14 @@ test.describe("Create and price a purchase", () => {
         await expect(createButton).toBeDisabled();
       });
 
-      // 2. Select company 'Ironwood Imports' and List Type SMALL_BALES
+      // 2. Select the supplier and List Type SMALL_BALES
       await test.step("The Rate Per Bale column shows and both new items are listed", async () => {
-        await antSelect(page, "Company", SUPPLIER);
+        await antSelect(page, "Company", supplier.name);
         await antSelect(page, "List Type", "SMALL_BALES");
         await expect(page.getByRole("columnheader", { name: "Rate Per Bale" })).toBeVisible();
         await expect(rowOf(itemA.itemName)).toBeVisible();
         await expect(rowOf(itemB.itemName)).toBeVisible();
+        await expect(rowOf(itemC.itemName)).toBeVisible();
       });
 
       // 3. Keep only A and B; Edit All; A: 3 bales x Rs 10/bale, B: 2 bales x Rs 20/bale; Save All
@@ -65,7 +67,7 @@ test.describe("Create and price a purchase", () => {
         await page.getByRole("button", { name: "Save All" }).click();
         await expect(rowOf(itemA.itemName)).toBeVisible();
         await expect(rowOf(itemB.itemName)).toBeVisible();
-        await expect(rowOf("mixed winter jackets")).toHaveCount(0);
+        await expect(rowOf(itemC.itemName)).toHaveCount(0);
         await expect(totalBundles).toHaveValue("5");
         await expect(totalAmount).toHaveValue("70");
       });
@@ -84,7 +86,7 @@ test.describe("Create and price a purchase", () => {
         await expect(page).toHaveURL(/\/purchase$/);
         const row = rowOf(invoice);
         await expect(row).toBeVisible();
-        await expect(row).toContainText(SUPPLIER);
+        await expect(row).toContainText(supplier.name);
         await expect(row).toContainText("SMALL_BALES");
         await expect(row).toContainText("50");
         await expect(row).toContainText("120");
@@ -118,11 +120,11 @@ test.describe("Create and price a purchase", () => {
 
       // 8. Create a second purchase with one line (A: 2 bales x Rs 10/bale), no invoice, Sur Charge 0
       await test.step("The second purchase saves without error as PENDING, with no invoice number and total 20", async () => {
-        const before = await po.listPurchases(request);
+        const before = await po.listPurchases(request, companyId);
         const idsBefore = new Set(before.rows.map((r) => r.id));
 
         await page.goto("/purchase/create");
-        await antSelect(page, "Company", SUPPLIER);
+        await antSelect(page, "Company", supplier.name);
         await antSelect(page, "List Type", "SMALL_BALES");
         await page.getByRole("button", { name: "Edit All" }).click();
         const rowA = rowOf(itemA.itemName);
@@ -133,7 +135,7 @@ test.describe("Create and price a purchase", () => {
         await createButton.click();
         await expect(page).toHaveURL(/\/purchase$/);
 
-        const after = await po.listPurchases(request);
+        const after = await po.listPurchases(request, companyId);
         expect(after.count).toBe(before.count + 1);
         const created = after.rows.filter((r) => !idsBefore.has(r.id));
         expect(created).toHaveLength(1);
