@@ -64,3 +64,22 @@ export async function antSelect(page: Page, label: string, option: string, { sea
     .click();
   await expect(antSelectedValue(page, label)).toHaveText(option);
 }
+
+/**
+ * Pick `option` in an antd Select that has no form label, found by its placeholder text (e.g. the
+ * "Add Removed Items" multi-select on the purchase form). Closes the dropdown afterwards.
+ */
+export async function antSelectByPlaceholder(page: Page, placeholder: string, option: string) {
+  const select = page.locator(".ant-select").filter({ hasText: exact(placeholder) });
+  const box = select.getByRole("combobox");
+  await box.click();
+  const id = await box.getAttribute("id");
+  if (!id) throw new Error(`antd select "${placeholder}" has no id to link its dropdown`);
+  const dropdown = page.locator(".ant-select-dropdown").filter({ has: page.locator(`[id="${id}_list"]`) });
+  await dropdown
+    .locator(".ant-select-item-option")
+    .filter({ hasText: exact(option) })
+    .first()
+    .click();
+  await page.keyboard.press("Escape");
+}
