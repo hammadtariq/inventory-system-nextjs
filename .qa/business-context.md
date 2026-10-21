@@ -32,7 +32,7 @@ Ranked; these drive P1 cases and "critical" bug severity.
 4. **Only the owner's role commits.** Approving or cancelling purchases and sales, sale returns and cheque
    status are ADMIN-only, as are deleting customers, companies or items and editing stock directly.
    Every one must be refused for staff at the API, not just hidden in the UI. Staff prepare work; the
-   owner commits it.
+   owner commits it. Staff can only view an APPROVED purchase, never change it (owner, 2026-10-21).
 5. **Final records stay trustworthy.** An approved purchase or sale changes only through a recorded
    revision; history explains every change; exports and reports agree with the screens, because the
    accountant and customers rely on them.
@@ -87,6 +87,14 @@ As implemented (verified in code, 2026-10-20). Where a rule looks wrong it is li
   - Editing a previously revised PENDING purchase returns success but saves nothing (likely bug, D1 in
     `specs/purchase-orders.md`).
   - Sale approval deducts weight without checking it stays ≥ 0 (only bales are checked).
+  - **Found in the purchase case review (2026-10-21), in `specs/purchase-orders.md` D8–D11:** the API accepts
+    negative values, unpriced weight lines and edits missing required fields (only invoice number and surcharge
+    may be left out); an edit never checks its items, so it can attach another supplier's or another
+    organization's item; an EDITOR can edit an APPROVED purchase, which reopens it; a backdated purchase
+    doesn't shift later rows' stored balances; concurrent approvals for one supplier can store overlapping
+    balances.
+  - Still to decide: should the supplier statement follow date order or entry order? Are staff also
+    view-only on a CANCEL purchase?
   - Cheque status accepts any text.
   - In production, row-level security is defence-in-depth only; the app's tenant hooks are the real
     boundary (see CLAUDE.md), so tenant cases must go through the API, not just the UI.
