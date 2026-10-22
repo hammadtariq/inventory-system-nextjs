@@ -122,7 +122,9 @@ How to write these tests:
    - expect: The purchase (total 500, APPROVED) lists the new name; I belongs to the new name; on-hand still 5
 4. Open the supplier ledger for S (GET /api/ledger/{S}?type=company and the ledger screen)
    - expect: Still 2 entries and balance 300, under the new name
-5. Type the new and the old name in the /purchase/create company picker
+5. Export the statement: on the ledger screen choose Export as CSV (GET /api/ledger/exportCustomer?id={S}&type=company&fileType=csv, current month)
+   - expect: The CSV names the new supplier name, lists both entries (500 purchase, 200 payment) and ends at balance 300
+6. Type the new and the old name in the /purchase/create company picker
    - expect: The new name is offered; the old name no longer is
 
 - EDITOR is used because staff maintain suppliers; ADMIN edit is covered by the same code path.
@@ -264,9 +266,9 @@ How to write these tests:
 
 #### 3.1. The owner can delete a supplier with no history; it disappears from the list and every picker, and its id then gives 404
 
-**TestRail:** — (not pushed yet) · **Key:** CO-08 · **Priority:** P1 · **Type:** Functional · **Risks:** 4 · **Source:** AC5
+**TestRail:** — (not pushed yet) · **Key:** CO-08 · **Priority:** P2 · **Type:** Functional · **Source:** AC5
 **File:** `e2e/company/delete.spec.ts`
-**Why it matters:** suppliers created by mistake must go away cleanly, without leaving a ghost in the pickers that staff could buy from.
+**Why it matters:** suppliers created by mistake must go away cleanly, without leaving a ghost in the pickers that staff could buy from; wrong but recoverable, so P2.
 
 **Preconditions:** Signed in as ADMIN (admin@trs.com), Drift Warehouse Demo org seeded. Via the API: supplier D 'QA Delete Me <uid>' with no items, purchases or payments.
 
@@ -285,7 +287,7 @@ How to write these tests:
 **File:** `e2e/company/delete.spec.ts`
 **Why it matters:** deleting a supplier that has items would orphan its stock and purchase history.
 
-**Preconditions:** Signed in as ADMIN (admin@trs.com), Drift Warehouse Demo org seeded. Via the API: supplier S 'QA Has Items <uid>' with 2 items and an APPROVED purchase of 3 bales (stockedItem). Record S's ledger balance and entry count.
+**Preconditions:** Signed in as ADMIN (admin@trs.com), Drift Warehouse Demo org seeded. Via the API: supplier S 'QA Has Items <uid>'; item 1 via stockedItem(api, S, tag, 3) (APPROVED purchase of 3 bales) and item 2 via createItem. Record S's ledger balance and entry count.
 
 **Steps:**
 
@@ -313,7 +315,7 @@ How to write these tests:
 2. DELETE /api/company/{id} (and, for the item row, first DELETE /api/items/{itemId})
    - expect: Company delete refused with a dependency message; item delete refused because the item is in a purchase (owner Q2)
 3. GET the supplier, its purchases (GET /api/purchase), purchase history and ledger (GET /api/ledger/{id}?type=company)
-   - expect: Supplier, purchases, history and ledger unchanged
+   - expect: Supplier, purchases, purchase history and ledger unchanged; in the items-deleted-first row the item still exists and its stock row (GET /api/inventory) keeps its on-hand
 
 | row                 | setup                                                                                                   |
 | ------------------- | ------------------------------------------------------------------------------------------------------- |
@@ -324,7 +326,7 @@ How to write these tests:
 
 ### 4. Permissions and isolation
 
-#### 4.1. Staff can't delete a supplier: the Delete button is disabled for EDITOR and creating, editing and listing still work
+#### 4.1. Staff can't delete a supplier from the screen: the Delete button is disabled for EDITOR
 
 **TestRail:** — (not pushed yet) · **Key:** CO-11 · **Priority:** P1 · **Type:** Security · **Risks:** 4 · **Source:** AC6
 **File:** `e2e/company/permissions.spec.ts`
@@ -335,11 +337,9 @@ How to write these tests:
 **Steps:**
 
 1. As EDITOR, open /company and find S
-   - expect: S's Delete button is disabled; Edit is enabled; the Create button is shown
-2. Click Edit on S
-   - expect: The edit form opens with an enabled Update button
+   - expect: S's Delete button is disabled; its Edit button is enabled
 
-- The API side of the rule is CO-12 (known bug), kept apart so this case stays green.
+- The API side of the rule is CO-12 (known bug), kept apart so this case stays green; fold into CO-12 once fixed. EDITOR editing is covered by CO-05.
 
 #### 4.2. The API refuses a staff (EDITOR) request to delete a supplier, and the supplier stays
 
