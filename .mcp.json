@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "playwright-test": {
-      "command": "npx",
-      "args": ["playwright", "run-test-mcp-server"]
+      "command": "node",
+      "args": [".qa/scripts/mcp-guard.mjs", "--", "npx", "playwright", "run-test-mcp-server"]
     }
   }
 }

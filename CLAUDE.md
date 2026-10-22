@@ -297,6 +297,10 @@ and validate with `node .qa/scripts/cases.mjs check <csv>`. The reviewer's `deci
   `option` ref from the snapshot. Click the field, type enough of the option's text to make it unique,
   then press Enter (or ArrowDown + Enter to move to the next option). Lists are virtual: only ~10 rows
   are rendered, so type to reach anything further down.
+- **Browser actions have time limits** (`.qa/scripts/mcp-guard.mjs` in front of the `playwright-test` MCP server,
+  limits in `.qa/config.json` `agents.toolTimeouts`). An error starting "QA Kit guard:" means the action would
+  never have finished: never retry the same ref. Two attempts per step, then record it under "Not explored"
+  and move on. `.qa-cache/mcp-guard.log` shows every browser call and how long it took.
 - Assert the business outcome (record created, totals and ledger balances correct, status changed),
   not only that a page loaded. Use `toMatchAriaSnapshot` for tables and forms whose structure matters.
 - No `waitForTimeout`, `page.pause()` or `test.only`. Create data through the API (`request` fixture,
