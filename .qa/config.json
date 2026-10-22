@@ -1,6 +1,6 @@
 {
   "name": "TSO Inventory (StockFlow)",
-  "kitVersion": "0.4.1",
+  "kitVersion": "0.5.0",
   "testDir": "e2e",
   "testrail": {
     "projectId": 1,
@@ -20,5 +20,14 @@
     "maxFailures": 15,
     "quarantineAfter": 3,
     "flakyWindowDays": 7
+  },
+  "agents": {
+    "toolTimeouts": {
+      "browser_*": 45000,
+      "browser_navigate*": 90000,
+      "browser_wait_for": 60000,
+      "*_setup_page": 300000,
+      "test_*": 0
+    }
   }
 }

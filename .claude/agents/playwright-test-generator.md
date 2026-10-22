@@ -64,3 +64,25 @@ application behavior.
   ```
 
    </example-generation>
+
+<!-- qa-kit:stuck-browser:start -->
+
+## When the browser gets stuck (QA Kit)
+
+These rules override anything above that conflicts with them.
+
+- Every browser action has a time limit (the QA Kit guard; `agents.toolTimeouts` in `.qa/config.json`).
+  An error starting "QA Kit guard:" means that action would never have finished. **Never retry the same
+  ref or selector.**
+- Recover in this order: press Escape, take a fresh `browser_snapshot`, then try another way: type the
+  option's text into the field and press Enter (ArrowDown + Enter for the next option), use a different
+  element, or open the page's URL directly. Read the UI notes in `CLAUDE.md` first; they name the traps.
+- **Two attempts per step.** If the step still doesn't work, stop that test: note it under a
+  `## Not explored` heading in your output (the test, the step, what you tried, what the page showed)
+  and move on to the next one. Don't wait, don't loop.
+- If the setup tool (`planner_setup_page` / `generator_setup_page`) fails or times out, stop at once and
+  report "app not reachable": nothing else will work until a person starts the app.
+- If three tests in a row end up under "Not explored", stop and report; the environment is probably broken.
+- End with a short report: tests done, tests not explored and why. The main session asks the user
+what to do about each one.
+<!-- qa-kit:stuck-browser:end -->
