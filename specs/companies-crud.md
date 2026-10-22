@@ -6,7 +6,7 @@ Regression coverage for supplier companies (brief: `specs/briefs/companies-crud.
 
 **The cases live in `specs/cases/companies-crud.csv`**, one row per case: review and edit them there, then run `node .qa/scripts/cases.mjs plan specs/cases/companies-crud.csv` to regenerate the Test Scenarios block below. Everything else in this file is written by hand.
 
-Owner decisions (brief, 2026-10-22): Q1 no delete while any purchase, stock row, ledger or payment entry references the supplier; Q2 item delete is ADMIN-only and refused while the item is in a purchase or has stock; Q3 names unique per organization regardless of case and surrounding spaces; Q4 staff can clear an optional field; Q5 names saved lowercase from the form is fine.
+Owner decisions (brief, 2026-10-22): Q1 no delete while any purchase, stock row, ledger or payment entry references the supplier; Q2 item delete is ADMIN-only and refused while the item is in a purchase or has stock; Q3 names unique per organization regardless of case and surrounding spaces; Q4 staff can clear an optional field; Q5/Q9 the form may save name and email lowercase, but the address keeps its case; Q6 name search ignores case; Q7 a delete refused for dependencies returns 409; Q8 forms disabled on a direct load are investigated in #244.
 
 Key facts verified against the code and a live run (2026-10-22):
 
@@ -21,7 +21,7 @@ Key facts verified against the code and a live run (2026-10-22):
 How to write these tests:
 
 - One test per case; journeys use one `test.step` per numbered step; data-table cases loop over rows with one `test.step` per row.
-- Known-bug cases (CO-04, CO-06, CO-07, CO-10, CO-12) start with `test.fixme(!runKnownBugs, "Known bug: ...")`. Never weaken their assertions.
+- Known-bug cases (CO-04, CO-06, CO-07, CO-10, CO-12, CO-14, CO-15) start with `test.fixme(!runKnownBugs, "Known bug: ...")`. Never weaken their assertions.
 - Reach the create and edit forms through the list's buttons (client navigation) everywhere except CO-07, which is the only case that loads them directly.
 
 ## Known risks and discrepancies
@@ -31,13 +31,14 @@ How to write these tests:
 - **Case-sensitive uniqueness (Q3):** the unique index and the 409 checks compare names exactly. The local DB already holds `qa-plan-alpha`, `qa-plan-Alpha` and `QA-PLAN-ALPHA`. CO-04 is expected to fail.
 - **Empty optional fields can't be saved (Q4):** the edit form sends `null`/`""` and Joi rejects both, so a supplier without a phone can't be edited from the UI at all. CO-06 is expected to fail.
 - **Create/Update disabled on a direct page load (new):** `canCreate`/`canEdit` in `components/addEditCompany.js` are computed at module load, before `_app.js` sets the permissions. CO-07 is expected to fail.
-- Delete-with-items is refused with HTTP 404 rather than 409 (CO-09 asserts the message only).
+- **Delete-with-items returns 404 (Q7: should be 409):** CO-09's status assertion is a known-bug step; the rest of the case runs.
+- **Case-sensitive search (Q6):** `pages/api/company/search.js` uses `LIKE`. CO-14 is expected to fail.
+- **Address lowercased (Q9):** `toLowerCaseObjVal` lowercases every form value. CO-15 is expected to fail; CO-01 and CO-05 compare the address case-insensitively so they stay green.
+- **Module-level permission checks (#244):** also in `addEditCustomer.js` and `pages/cheques/index.js`; out of this plan beyond CO-07.
 
 ## Left out of this plan
 
-- Search is case-sensitive (`LIKE`), so on the items list "coastal" won't find "Coastal Traders". Not in the brief: raised as an open question.
 - The search value isn't escaped (`%`, `_` act as wildcards), and a malformed `attributes` query gives a 500. No business impact found.
-- The lowercasing of email and address by the form (owner Q5 covers names; assumed fine for the rest).
 - Company reports, items CRUD, supplier ledger maths: out of scope per the brief.
 
 ## Test Scenarios
@@ -61,9 +62,9 @@ How to write these tests:
 1. As the role in the row, open /company and click Create (client navigation; see CO-07 for direct loads)
    - expect: Create form opens with an enabled Create button
 2. Fill Name, Email 'Zeta@Vendor.com', Phone '+92 300 1234567', Address 'Plot 12, Shershah Road, Karachi' and click Create
-   - expect: Redirected to /company; the new row is first, showing the name, email, address and phone (lowercased, owner Q5)
+   - expect: Redirected to /company; the new row is first, showing the name, email, address and phone
 3. GET /api/company/search?value=<lowercased name>
-   - expect: Exactly one company: companyName '<name lowercased>', email 'zeta@vendor.com', phone '+92 300 1234567', address 'plot 12, shershah road, karachi'
+   - expect: Exactly one company: companyName '<name lowercased>', email 'zeta@vendor.com', phone '+92 300 1234567', and the address (compare case-insensitively here; its case is CO-15)
 4. Open /purchase/create, /items/create and /ledger/create (Pay To: company) and type the name in each company picker
    - expect: The supplier is offered in all three pickers
 
@@ -73,7 +74,7 @@ How to write these tests:
 | EDITOR |
 
 - Use antSelect / antSelectByPlaceholder from e2e/support/antd.ts for the pickers.
-- The form lowercases every value before saving (owner Q5: acceptable), so assert lowercased values.
+- The form lowercases name and email before saving (owner Q5, Q9: acceptable). The address must keep its case, but that is checked only in CO-15 (known bug).
 
 #### 1.2. A supplier with a missing or short name, a malformed email, an over-long phone or a short address is refused in the form and at the API, and nothing is saved
 
@@ -116,7 +117,7 @@ How to write these tests:
 1. As EDITOR, open /company, click Edit on S, change Name to 'QA Rename New <uid>', Email to 'new@vendor.com' and Address to '45 Mill Road, Faisalabad', click Update
    - expect: Redirected to /company; the row shows the new name and details
 2. GET /api/company/{S}
-   - expect: Same id; new name (lowercased), email and address; phone unchanged
+   - expect: Same id; new name and email (lowercased), the new address (compared case-insensitively; its case is CO-15); phone unchanged
 3. Open /purchase and search the new name; open /items filtered by the new name; GET /api/inventory for I
    - expect: The purchase (total 500, APPROVED) lists the new name; I belongs to the new name; on-hand still 5
 4. Open the supplier ledger for S (GET /api/ledger/{S}?type=company and the ledger screen)
@@ -150,7 +151,7 @@ How to write these tests:
 
 #### 1.5. Opening the create or edit page directly (refresh, bookmark, new tab) gives ADMIN and EDITOR a working Create or Update button
 
-**TestRail:** — (not pushed yet) · **Key:** CO-07 · **Priority:** P2 · **Type:** Functional · **Source:** Found during exploration · **Expected to fail (new, 2026-10-22): canCreate/canEdit in components/addEditCompany.js are computed at module load, before \_app.js sets the user's permissions, so on a direct load the button is disabled for ADMIN. Reaching the page through the list's buttons works. Open question for the owner/dev: same pattern likely on other forms.**
+**TestRail:** — (not pushed yet) · **Key:** CO-07 · **Priority:** P2 · **Type:** Functional · **Source:** Found during exploration; #244 · **Expected to fail (new, 2026-10-22): canCreate/canEdit in components/addEditCompany.js are computed at module load, before \_app.js sets the user's permissions, so on a direct load the button is disabled for ADMIN. Reaching the page through the list's buttons works. Investigated separately in #244 (same pattern in addEditCustomer.js and pages/cheques/index.js).**
 **File:** `e2e/company/create.spec.ts`
 **Why it matters:** staff who refresh or open a supplier link in a new tab can't save, and either lose their typing or give up on the change.
 
@@ -169,6 +170,44 @@ How to write these tests:
 | ------ |
 | ADMIN  |
 | EDITOR |
+
+#### 1.6. Finding a supplier by name ignores letter case, wherever staff search for it
+
+**TestRail:** — (not pushed yet) · **Key:** CO-14 · **Priority:** P2 · **Type:** Functional · **Risks:** 1 · **Source:** Owner Q6 (2026-10-22) · **Expected to fail (Q6): pages/api/company/search.js uses a case-sensitive LIKE; confirmed 2026-10-22 ('qa probe' didn't find 'QA Probe Traders').**
+**File:** `e2e/company/search.spec.ts`
+**Why it matters:** staff who can't find 'Coastal Traders' by typing 'coastal' assume it's missing and create a duplicate supplier, splitting its ledger.
+
+**Preconditions:** Signed in as ADMIN (admin@trs.com), Drift Warehouse Demo org seeded. Via the API: supplier 'QA Coastal Search <uid>' (mixed case) with one item.
+
+**Steps:**
+
+1. GET /api/company/search with the row's value
+   - expect: The supplier is returned for every row
+2. On /items, search by company with 'qa coastal search'
+   - expect: The supplier's item is listed
+
+| value                   |
+| ----------------------- |
+| QA Coastal Search <uid> |
+| qa coastal search <uid> |
+| QA COASTAL SEARCH <uid> |
+
+- Also used by the purchase and sales reports' company search; one API check covers them.
+
+#### 1.7. The form keeps a supplier's address as typed; only the name and email are saved lowercase
+
+**TestRail:** — (not pushed yet) · **Key:** CO-15 · **Priority:** P3 · **Type:** Functional · **Source:** Owner Q5, Q9 (2026-10-22) · **Expected to fail (Q9): components/addEditCompany.js lowercases every value via toLowerCaseObjVal.**
+**File:** `e2e/company/create.spec.ts`
+**Why it matters:** the address is printed on documents for the supplier; 'plot 12, shershah road, karachi' looks careless next to what staff typed.
+
+**Preconditions:** Signed in as ADMIN (admin@trs.com), Drift Warehouse Demo org seeded. Unique name per run.
+
+**Steps:**
+
+1. Via the list's Create button, create a supplier with Address 'Plot 12, Shershah Road, Karachi'
+   - expect: Saved address is exactly 'Plot 12, Shershah Road, Karachi'; name and email lowercased
+2. Edit it via the list's Edit button, change the Address to 'Unit 4, Mill Road, Faisalabad' and click Update
+   - expect: Saved address is exactly 'Unit 4, Mill Road, Faisalabad'
 
 ### 2. Unique names
 
@@ -253,11 +292,11 @@ How to write these tests:
 1. On /company, click Delete on S and confirm
    - expect: Error toast '2 items exist against this company. Please remove dependencies first.'; S still listed
 2. DELETE /api/company/{S}
-   - expect: Refused with the same message
+   - expect: 409 with the same message
 3. GET /api/company/{S}, its items, stock and ledger
    - expect: S, both items, on-hand 3 and the ledger (balance and entry count) unchanged
 
-- Today the refusal is HTTP 404. Assert the message and that nothing changed; don't pin the status (a 409 would be more accurate, see open questions).
+- Owner Q7 (2026-10-22): the refusal is 409. Today it is HTTP 404, so the status assertion in step 2 is a known-bug step (knownBug(...)); the message and 'nothing changed' checks always run.
 
 #### 3.3. A supplier with purchases or payments can't be deleted even when it has no items, and its ledger and purchase history stay intact
 
@@ -349,4 +388,4 @@ How to write these tests:
 - Double-click Create merged into CO-03 (one company, not two) instead of its own case.
 - "Same name allowed in another org" merged into CO-03; list, search, GET, PUT, DELETE isolation into one case, CO-13.
 - EDITOR Delete split in two: the UI half (CO-11, expected green) and the API half (CO-12, known bug), so the bug doesn't hide the healthy check.
-- Dropped: list page loads, popconfirm rendering, 404 for a nonexistent id in this org (covered by CO-08 and CO-13), search case-sensitivity (open question, not a rule yet).
+- Dropped: list page loads, popconfirm rendering, 404 for a nonexistent id in this org (covered by CO-08 and CO-13). Search case-sensitivity, dropped in the first draft, is now CO-14 (owner Q6).

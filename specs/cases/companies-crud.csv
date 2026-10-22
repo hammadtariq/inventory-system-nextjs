@@ -3,12 +3,12 @@ CO-01,,Create and edit,"Staff add a supplier in the form and it is ready to buy 
 2. Fill Name, Email 'Zeta@Vendor.com', Phone '+92 300 1234567', Address 'Plot 12, Shershah Road, Karachi' and click Create
 3. GET /api/company/search?value=<lowercased name>
 4. Open /purchase/create, /items/create and /ledger/create (Pay To: company) and type the name in each company picker","1. Create form opens with an enabled Create button
-2. Redirected to /company; the new row is first, showing the name, email, address and phone (lowercased, owner Q5)
-3. Exactly one company: companyName '<name lowercased>', email 'zeta@vendor.com', phone '+92 300 1234567', address 'plot 12, shershah road, karachi'
+2. Redirected to /company; the new row is first, showing the name, email, address and phone
+3. Exactly one company: companyName '<name lowercased>', email 'zeta@vendor.com', phone '+92 300 1234567', and the address (compare case-insensitively here; its case is CO-15)
 4. The supplier is offered in all three pickers","role
 ADMIN
 EDITOR","Use antSelect / antSelectByPlaceholder from e2e/support/antd.ts for the pickers.
-The form lowercases every value before saving (owner Q5: acceptable), so assert lowercased values.",,AC1,e2e/company/create.spec.ts,Keep,,
+The form lowercases name and email before saving (owner Q5, Q9: acceptable). The address must keep its case, but that is checked only in CO-15 (known bug).",,AC1,e2e/company/create.spec.ts,Keep,,
 CO-02,,Create and edit,"A supplier with a missing or short name, a malformed email, an over-long phone or a short address is refused in the form and at the API, and nothing is saved",P2,Functional,,"an unidentifiable supplier record (no name, a bad contact) leads to purchases and payments booked against the wrong party.","Signed in as ADMIN (admin@trs.com), Drift Warehouse Demo org seeded. Record the company count (GET /api/company).","1. For each row: open the create form, enter the row's value with an otherwise valid company and leave the field
 2. For each row: POST /api/company with the same value
 3. GET /api/company","1. The field shows the row's form message and the Create button does not save
@@ -43,7 +43,7 @@ CO-05,,Create and edit,"Renaming a supplier and changing its contact details kee
 3. Open /purchase and search the new name; open /items filtered by the new name; GET /api/inventory for I
 4. Open the supplier ledger for S (GET /api/ledger/{S}?type=company and the ledger screen)
 5. Type the new and the old name in the /purchase/create company picker","1. Redirected to /company; the row shows the new name and details
-2. Same id; new name (lowercased), email and address; phone unchanged
+2. Same id; new name and email (lowercased), the new address (compared case-insensitively; its case is CO-15); phone unchanged
 3. The purchase (total 500, APPROVED) lists the new name; I belongs to the new name; on-hand still 5
 4. Still 2 entries and balance 300, under the new name
 5. The new name is offered; the old name no longer is",,"EDITOR is used because staff maintain suppliers; ADMIN edit is covered by the same code path.
@@ -61,7 +61,7 @@ CO-07,,Create and edit,"Opening the create or edit page directly (refresh, bookm
 2. Update is enabled; the phone is saved
 3. Update is still enabled","role
 ADMIN
-EDITOR",,"Expected to fail (new, 2026-10-22): canCreate/canEdit in components/addEditCompany.js are computed at module load, before _app.js sets the user's permissions, so on a direct load the button is disabled for ADMIN. Reaching the page through the list's buttons works. Open question for the owner/dev: same pattern likely on other forms.",Found during exploration,e2e/company/create.spec.ts,Keep,,
+EDITOR",,"Expected to fail (new, 2026-10-22): canCreate/canEdit in components/addEditCompany.js are computed at module load, before _app.js sets the user's permissions, so on a direct load the button is disabled for ADMIN. Reaching the page through the list's buttons works. Investigated separately in #244 (same pattern in addEditCustomer.js and pages/cheques/index.js).",Found during exploration; #244,e2e/company/create.spec.ts,Keep,,
 CO-08,,Delete,"The owner can delete a supplier with no history; it disappears from the list and every picker, and its id then gives 404",P1,Functional,4,"suppliers created by mistake must go away cleanly, without leaving a ghost in the pickers that staff could buy from.","Signed in as ADMIN (admin@trs.com), Drift Warehouse Demo org seeded. Via the API: supplier D 'QA Delete Me <uid>' with no items, purchases or payments.","1. On /company, click Delete on D, then 'No' in the confirmation
 2. Click Delete on D, then 'Yes'
 3. GET /api/company/{D}; type the name in the /purchase/create company picker","1. D is still listed
@@ -70,8 +70,8 @@ CO-08,,Delete,"The owner can delete a supplier with no history; it disappears fr
 CO-09,,Delete,"A supplier that still has items can't be deleted, and its items, stock and ledger stay intact",P1,Regression,1;2;5,deleting a supplier that has items would orphan its stock and purchase history.,"Signed in as ADMIN (admin@trs.com), Drift Warehouse Demo org seeded. Via the API: supplier S 'QA Has Items <uid>' with 2 items and an APPROVED purchase of 3 bales (stockedItem). Record S's ledger balance and entry count.","1. On /company, click Delete on S and confirm
 2. DELETE /api/company/{S}
 3. GET /api/company/{S}, its items, stock and ledger","1. Error toast '2 items exist against this company. Please remove dependencies first.'; S still listed
-2. Refused with the same message
-3. S, both items, on-hand 3 and the ledger (balance and entry count) unchanged",,"Today the refusal is HTTP 404. Assert the message and that nothing changed; don't pin the status (a 409 would be more accurate, see open questions).",,AC5,e2e/company/delete.spec.ts,Keep,,
+2. 409 with the same message
+3. S, both items, on-hand 3 and the ledger (balance and entry count) unchanged",,"Owner Q7 (2026-10-22): the refusal is 409. Today it is HTTP 404, so the status assertion in step 2 is a known-bug step (knownBug(...)); the message and 'nothing changed' checks always run.",,AC5,e2e/company/delete.spec.ts,Keep,,
 CO-10,,Delete,"A supplier with purchases or payments can't be deleted even when it has no items, and its ledger and purchase history stay intact",P1,Regression,1;5,deleting such a supplier silently removes what the business owes it: purchase revision history is cascade-deleted and purchases and ledger rows point at a company that no longer exists.,"Signed in as ADMIN (admin@trs.com), Drift Warehouse Demo org seeded. Via the API, per row: a new supplier set up as the row describes. Record its ledger entries, purchases and purchase history.","1. Set up the row's supplier
 2. DELETE /api/company/{id} (and, for the item row, first DELETE /api/items/{itemId})
 3. GET the supplier, its purchases (GET /api/purchase), purchase history and ledger (GET /api/ledger/{id}?type=company)","1. Setup succeeds
@@ -94,3 +94,12 @@ CO-13,,Permissions and isolation,"Another organization's supplier never shows up
 3. 404 for all three ('company not exist' / 'company not found' / 'company does not exist')
 4. 400 '""organizationId"" is not allowed'
 5. X unchanged (name, phone, still present)",,Goes through the API because in production RLS is defence-in-depth only; the app's tenant hooks are the real boundary (CLAUDE.md).,,AC7,e2e/company/isolation-api.spec.ts,Keep,,
+CO-14,,Create and edit,"Finding a supplier by name ignores letter case, wherever staff search for it",P2,Functional,1,"staff who can't find 'Coastal Traders' by typing 'coastal' assume it's missing and create a duplicate supplier, splitting its ledger.","Signed in as ADMIN (admin@trs.com), Drift Warehouse Demo org seeded. Via the API: supplier 'QA Coastal Search <uid>' (mixed case) with one item.","1. GET /api/company/search with the row's value
+2. On /items, search by company with 'qa coastal search'","1. The supplier is returned for every row
+2. The supplier's item is listed","value
+QA Coastal Search <uid>
+qa coastal search <uid>
+QA COASTAL SEARCH <uid>",Also used by the purchase and sales reports' company search; one API check covers them.,Expected to fail (Q6): pages/api/company/search.js uses a case-sensitive LIKE; confirmed 2026-10-22 ('qa probe' didn't find 'QA Probe Traders').,Owner Q6 (2026-10-22),e2e/company/search.spec.ts,Keep,,
+CO-15,,Create and edit,The form keeps a supplier's address as typed; only the name and email are saved lowercase,P3,Functional,,"the address is printed on documents for the supplier; 'plot 12, shershah road, karachi' looks careless next to what staff typed.","Signed in as ADMIN (admin@trs.com), Drift Warehouse Demo org seeded. Unique name per run.","1. Via the list's Create button, create a supplier with Address 'Plot 12, Shershah Road, Karachi'
+2. Edit it via the list's Edit button, change the Address to 'Unit 4, Mill Road, Faisalabad' and click Update","1. Saved address is exactly 'Plot 12, Shershah Road, Karachi'; name and email lowercased
+2. Saved address is exactly 'Unit 4, Mill Road, Faisalabad'",,,Expected to fail (Q9): components/addEditCompany.js lowercases every value via toLowerCaseObjVal.,"Owner Q5, Q9 (2026-10-22)",e2e/company/create.spec.ts,Keep,,

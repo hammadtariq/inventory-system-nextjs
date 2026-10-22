@@ -54,6 +54,11 @@ Decisions (owner, 2026-10-22):
 - Q3. Company names are unique within an organization regardless of case and surrounding spaces.
 - Q4. Staff can clear an optional field (email, phone, address) on edit.
 - Q5. Saving names lowercase from the form is acceptable; not a case.
+- Q6. Searching for a company by name ignores letter case.
+- Q7. Refusing to delete a company that has dependencies returns 409, not 404.
+- Q8. Permission checks that run before the user's role is loaded (forms disabled on a direct
+  page load) are investigated separately in #244.
+- Q9. The form may save name and email lowercase; the address keeps the case staff typed.
 
 Out of scope: items CRUD (beyond Q2), supplier ledger maths (covered by purchase cases), company
 reports.
