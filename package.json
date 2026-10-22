@@ -37,6 +37,7 @@
     "axios": "^0.24.0",
     "bcrypt": "^6.0.0",
     "cookie": "^0.4.1",
+    "dayjs": "^1.11.23",
     "dotenv": "^10.0.0",
     "file-saver": "^2.0.5",
     "framer-motion": "^12.38.0",
