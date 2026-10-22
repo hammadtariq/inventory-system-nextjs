@@ -1,0 +1,96 @@
+﻿key,testrail_id,section,title,priority,type,risks,why_it_matters,preconditions,steps,expected,data,notes,known_issue,source,file,suggestion,decision,review_notes
+CO-01,,Create and edit,"Staff add a supplier in the form and it is ready to buy from: listed, and offered in the purchase, item and payment company pickers",P1,Regression,1,"a supplier that is saved but missing from the purchase or payment pickers can't be bought from or paid, so the supplier ledger can't start.","Signed in as ADMIN (admin@trs.com), Drift Warehouse Demo org seeded. EDITOR session via loginAs(warehouse@trs.com, DEMO_EDITOR_* password). Unique name per run, e.g. 'QA Zeta Supplies <uid>'.","1. As the role in the row, open /company and click Create (client navigation; see CO-07 for direct loads)
+2. Fill Name, Email 'Zeta@Vendor.com', Phone '+92 300 1234567', Address 'Plot 12, Shershah Road, Karachi' and click Create
+3. GET /api/company/search?value=<lowercased name>
+4. Open /purchase/create, /items/create and /ledger/create (Pay To: company) and type the name in each company picker","1. Create form opens with an enabled Create button
+2. Redirected to /company; the new row is first, showing the name, email, address and phone (lowercased, owner Q5)
+3. Exactly one company: companyName '<name lowercased>', email 'zeta@vendor.com', phone '+92 300 1234567', address 'plot 12, shershah road, karachi'
+4. The supplier is offered in all three pickers","role
+ADMIN
+EDITOR","Use antSelect / antSelectByPlaceholder from e2e/support/antd.ts for the pickers.
+The form lowercases every value before saving (owner Q5: acceptable), so assert lowercased values.",,AC1,e2e/company/create.spec.ts,Keep,,
+CO-02,,Create and edit,"A supplier with a missing or short name, a malformed email, an over-long phone or a short address is refused in the form and at the API, and nothing is saved",P2,Functional,,"an unidentifiable supplier record (no name, a bad contact) leads to purchases and payments booked against the wrong party.","Signed in as ADMIN (admin@trs.com), Drift Warehouse Demo org seeded. Record the company count (GET /api/company).","1. For each row: open the create form, enter the row's value with an otherwise valid company and leave the field
+2. For each row: POST /api/company with the same value
+3. GET /api/company","1. The field shows the row's form message and the Create button does not save
+2. 400 with the row's API message
+3. Company count unchanged","field | value | form message | API message
+Name | (empty) | 'companyName' is required | ""companyName"" is required
+Name | ab | 'companyName' must be at least 3 characters | ""companyName"" length must be at least 3 characters long
+Email | not-an-email | Email is not a valid email! | ""email"" must be a valid email
+Phone | 25 digits | 'phone' cannot be longer than 24 characters | ""phone"" length must be less than or equal to 24 characters long
+Address | short | 'address' must be at least 10 characters | ""address"" length must be at least 10 characters long","Messages observed on 2026-10-22; the empty-name form message wasn't observed live, confirm it in the generated test.
+Boundaries that must pass: name of 3 characters, phone of 24, address of 10.",,AC2,e2e/company/validation.spec.ts,Keep,,
+CO-03,,Unique names,"A second supplier with the same name is refused on create and rename, even with surrounding spaces or a double-click; another organization may use the name",P1,Functional,1;3,"two suppliers with one name split purchases and payments across two ledgers, so the owner can't tell what they owe that supplier.","Signed in as ADMIN (admin@trs.com), Drift Warehouse Demo org seeded. Via the API: supplier A 'QA Coastal Traders <uid>' and supplier B 'QA Harbor Mills <uid>'. A second organization from createOtherOrg (e2e/support/second-org.ts).","1. POST /api/company with the row's name
+2. PUT /api/company/{B} with companyName = A's name
+3. Fire three POST /api/company 'QA Race Supplies <uid>' at once (and double-click Create in the form with another new name)
+4. Insert a company with A's exact name into the second organization
+5. GET /api/company/search?value=<A's name>","1. 409 'Company ""<A>"" already exists in this organization.'
+2. 409 with the same message; B keeps its name
+3. Exactly one 200, the others 409; one company with that name; the form double-click creates one company
+4. Insert succeeds
+5. This organization still has exactly one A","row | name sent
+exact | QA Coastal Traders <uid>
+surrounding spaces | '  QA Coastal Traders <uid>  '","Case differences are CO-04 (known bug), kept apart so this case stays green.",,"AC3, AC4; dirty paths: spacing, double-click Create",e2e/company/unique-names.spec.ts,Keep,,
+CO-04,,Unique names,"A supplier name that differs only in letter case from an existing one is refused, from the form and the API",P1,Functional,1,"the form saves names lowercase, so 'Coastal Traders' and 'coastal traders' become two suppliers with split ledgers; owner Q3 says names are unique regardless of case.","Signed in as ADMIN (admin@trs.com), Drift Warehouse Demo org seeded. Via the API: supplier 'QA Coastal Traders <uid>' (mixed case, as seeded and API-created suppliers are) and supplier B 'QA Harbor Mills <uid>'.","1. In the form (via the list's Create button), create 'QA Coastal Traders <uid>' (the form lowercases it)
+2. POST /api/company 'QA COASTAL TRADERS <uid>'
+3. PUT /api/company/{B} with companyName 'qa coastal traders <uid>'
+4. GET /api/company/search for the name in every case","1. Refused with 'Company ""…"" already exists in this organization.'; no new row
+2. 409, same message
+3. 409; B keeps its name
+4. Exactly one supplier with that name in any case",,"When fixed, existing case-duplicates in production data need a merge decision before a case-insensitive unique index can be added.","Expected to fail (Q3): the unique index (organizationId, companyName) and the 409 checks in pages/api/company/index.js and [id].js compare names exactly. Confirmed 2026-10-22: 'qa probe traders' was accepted next to 'QA Probe Traders'; the local DB already holds 'qa-plan-alpha', 'qa-plan-Alpha' and 'QA-PLAN-ALPHA' side by side.","AC3, owner Q3",e2e/company/unique-names.spec.ts,Keep,,
+CO-05,,Create and edit,"Renaming a supplier and changing its contact details keeps its purchases, items, stock and ledger attached, now under the new name",P1,Regression,1;2;5,"if a rename detached history, the supplier's balance and stock would vanish from the statement the owner pays from.","Signed in as ADMIN (admin@trs.com), Drift Warehouse Demo org seeded. EDITOR session via loginAs(warehouse@trs.com, DEMO_EDITOR_* password). Via the API (ADMIN): supplier S 'QA Rename Old <uid>' with phone and address, item I of S, an APPROVED purchase of 5 bales at Rs 100/bale (total 500) and a payment of Rs 200 to S (payCompany). Record S's ledger balance (300) and entry count (2), I's on-hand (5).","1. As EDITOR, open /company, click Edit on S, change Name to 'QA Rename New <uid>', Email to 'new@vendor.com' and Address to '45 Mill Road, Faisalabad', click Update
+2. GET /api/company/{S}
+3. Open /purchase and search the new name; open /items filtered by the new name; GET /api/inventory for I
+4. Open the supplier ledger for S (GET /api/ledger/{S}?type=company and the ledger screen)
+5. Type the new and the old name in the /purchase/create company picker","1. Redirected to /company; the row shows the new name and details
+2. Same id; new name (lowercased), email and address; phone unchanged
+3. The purchase (total 500, APPROVED) lists the new name; I belongs to the new name; on-hand still 5
+4. Still 2 entries and balance 300, under the new name
+5. The new name is offered; the old name no longer is",,"EDITOR is used because staff maintain suppliers; ADMIN edit is covered by the same code path.
+If CO-06 is still open, give S an email, phone and address so the form doesn't send null.",,AC4,e2e/company/edit.spec.ts,Keep,,
+CO-06,,Create and edit,"Staff can save a supplier whose email, phone or address is empty, and can clear one of those fields",P2,Functional,,"a supplier created without a phone can't be edited at all today, so staff can't correct its name or details and work around it with a duplicate supplier.","Signed in as ADMIN (admin@trs.com), Drift Warehouse Demo org seeded. Via the API: supplier E 'QA Empty Fields <uid>' with no email, phone or address, and supplier F 'QA Full Fields <uid>' with all three.","1. Open E via the list's Edit button, change only the Name to 'QA Empty Fields Renamed <uid>' and click Update
+2. Open F via the list's Edit button, clear Email, Phone and Address and click Update
+3. GET /api/company/{E} and /api/company/{F}
+4. PUT /api/company/{F} with { email: null } and with { phone: '' }","1. Saved; redirected to /company; no error toast
+2. Saved; F's row shows N/A for email, address and phone
+3. E has the new name; F's email, phone and address are empty
+4. 200 for both; the field stays empty",,Assert the refusal message isn't the raw Joi text once fixed; until then the toast is what users see.,"Expected to fail (Q4): the edit form sends null for empty fields and """" for cleared ones, and the PUT Joi schema rejects both. Confirmed 2026-10-22: Update on a company with empty fields shows the toast 'ValidationError: ""phone"" must be a string'; PUT { email: '' } returns 400 'not allowed to be empty'.","AC4, owner Q4; dirty path: empty optional fields",e2e/company/edit.spec.ts,Keep,,
+CO-07,,Create and edit,"Opening the create or edit page directly (refresh, bookmark, new tab) gives ADMIN and EDITOR a working Create or Update button",P2,Functional,,"staff who refresh or open a supplier link in a new tab can't save, and either lose their typing or give up on the change.","Signed in as ADMIN (admin@trs.com), Drift Warehouse Demo org seeded. EDITOR session via loginAs(warehouse@trs.com, DEMO_EDITOR_* password). Via the API: supplier S 'QA Direct Load <uid>' with all fields.","1. page.goto('/company/create'), fill a valid new supplier and click Create
+2. page.goto('/company/{S}'), change the Phone and click Update
+3. Reload /company/{S} and check the Update button","1. Create is enabled; the supplier is saved
+2. Update is enabled; the phone is saved
+3. Update is still enabled","role
+ADMIN
+EDITOR",,"Expected to fail (new, 2026-10-22): canCreate/canEdit in components/addEditCompany.js are computed at module load, before _app.js sets the user's permissions, so on a direct load the button is disabled for ADMIN. Reaching the page through the list's buttons works. Open question for the owner/dev: same pattern likely on other forms.",Found during exploration,e2e/company/create.spec.ts,Keep,,
+CO-08,,Delete,"The owner can delete a supplier with no history; it disappears from the list and every picker, and its id then gives 404",P1,Functional,4,"suppliers created by mistake must go away cleanly, without leaving a ghost in the pickers that staff could buy from.","Signed in as ADMIN (admin@trs.com), Drift Warehouse Demo org seeded. Via the API: supplier D 'QA Delete Me <uid>' with no items, purchases or payments.","1. On /company, click Delete on D, then 'No' in the confirmation
+2. Click Delete on D, then 'Yes'
+3. GET /api/company/{D}; type the name in the /purchase/create company picker","1. D is still listed
+2. D is no longer listed (after the list refresh)
+3. 404 'company not exist'; the picker doesn't offer D",,,,AC5,e2e/company/delete.spec.ts,Keep,,
+CO-09,,Delete,"A supplier that still has items can't be deleted, and its items, stock and ledger stay intact",P1,Regression,1;2;5,deleting a supplier that has items would orphan its stock and purchase history.,"Signed in as ADMIN (admin@trs.com), Drift Warehouse Demo org seeded. Via the API: supplier S 'QA Has Items <uid>' with 2 items and an APPROVED purchase of 3 bales (stockedItem). Record S's ledger balance and entry count.","1. On /company, click Delete on S and confirm
+2. DELETE /api/company/{S}
+3. GET /api/company/{S}, its items, stock and ledger","1. Error toast '2 items exist against this company. Please remove dependencies first.'; S still listed
+2. Refused with the same message
+3. S, both items, on-hand 3 and the ledger (balance and entry count) unchanged",,"Today the refusal is HTTP 404. Assert the message and that nothing changed; don't pin the status (a 409 would be more accurate, see open questions).",,AC5,e2e/company/delete.spec.ts,Keep,,
+CO-10,,Delete,"A supplier with purchases or payments can't be deleted even when it has no items, and its ledger and purchase history stay intact",P1,Regression,1;5,deleting such a supplier silently removes what the business owes it: purchase revision history is cascade-deleted and purchases and ledger rows point at a company that no longer exists.,"Signed in as ADMIN (admin@trs.com), Drift Warehouse Demo org seeded. Via the API, per row: a new supplier set up as the row describes. Record its ledger entries, purchases and purchase history.","1. Set up the row's supplier
+2. DELETE /api/company/{id} (and, for the item row, first DELETE /api/items/{itemId})
+3. GET the supplier, its purchases (GET /api/purchase), purchase history and ledger (GET /api/ledger/{id}?type=company)","1. Setup succeeds
+2. Company delete refused with a dependency message; item delete refused because the item is in a purchase (owner Q2)
+3. Supplier, purchases, history and ledger unchanged","row | setup
+payment only | supplier with one Rs 500 payment (payCompany), no items or purchases
+items deleted first | supplier with an item and an APPROVED, then revised purchase; ADMIN deletes the item, then the supplier",Each row needs its own supplier. Check the database for orphans in the item row (purchases.companyId and ledgers.companyId pointing at the deleted id).,"Expected to fail (Q1, Q2): deleteCompany only counts items; there's no FK from purchases, inventories or ledgers to companies, and purchase_histories cascade on company delete. Item delete has no dependency or role check.","Business rules; owner Q1, Q2; dirty paths: delete with history, delete items first",e2e/company/delete.spec.ts,Keep,,
+CO-11,,Permissions and isolation,"Staff can't delete a supplier: the Delete button is disabled for EDITOR and creating, editing and listing still work",P1,Security,4,"deleting suppliers is the owner's call; staff should prepare and maintain records, not remove them.","EDITOR session via loginAs(warehouse@trs.com, DEMO_EDITOR_* password). Via the API (ADMIN): supplier S 'QA Staff View <uid>'.","1. As EDITOR, open /company and find S
+2. Click Edit on S","1. S's Delete button is disabled; Edit is enabled; the Create button is shown
+2. The edit form opens with an enabled Update button",,"The API side of the rule is CO-12 (known bug), kept apart so this case stays green.",,AC6,e2e/company/permissions.spec.ts,Keep,,
+CO-12,,Permissions and isolation,"The API refuses a staff (EDITOR) request to delete a supplier, and the supplier stays",P1,Security,4,a hidden button is not a control: any staff member with the browser's network tab can delete a supplier the owner relies on.,"EDITOR session via loginAs(warehouse@trs.com, DEMO_EDITOR_* password). Via the API (ADMIN): supplier S 'QA Staff Delete <uid>' with no items (so only the role check can stop it).","1. As EDITOR, DELETE /api/company/{S}
+2. As ADMIN, GET /api/company/{S}","1. 403 'Operation not permitted.' (the wording the purchase approve/cancel APIs use)
+2. S still exists, unchanged",,,Expected to fail (AC6): pages/api/company/[id].js has no role check on DELETE; the button is only disabled in the UI.,AC6; dirty path: EDITOR calls DELETE directly,e2e/company/permissions.spec.ts,Keep,,
+CO-13,,Permissions and isolation,"Another organization's supplier never shows up in list, search or pickers, and can't be read, edited or deleted by id",P1,Security,3,a supplier list leaks who a business buys from; changing or deleting another tenant's supplier corrupts their ledger.,"Signed in as ADMIN (admin@trs.com), Drift Warehouse Demo org seeded. A second organization from createOtherOrg('<uid>') with its own company X 'QA Other Org Supplier <uid>'. Record X with otherOrgSnapshot.","1. GET /api/company?limit=1000 and GET /api/company/search?value=QA Other Org
+2. Type X's name in the /purchase/create company picker
+3. GET, PUT { phone: '0300 0000000' } and DELETE /api/company/{X}
+4. PUT one of this org's suppliers with { organizationId: <other org id> }
+5. Read X again with otherOrgSnapshot","1. X is in neither result
+2. X isn't offered
+3. 404 for all three ('company not exist' / 'company not found' / 'company does not exist')
+4. 400 '""organizationId"" is not allowed'
+5. X unchanged (name, phone, still present)",,Goes through the API because in production RLS is defence-in-depth only; the app's tenant hooks are the real boundary (CLAUDE.md).,,AC7,e2e/company/isolation-api.spec.ts,Keep,,
