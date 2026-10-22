@@ -45,7 +45,8 @@ jobs:
 
       - name: Run title
         id: title
-        run: echo "title=Nightly $(date -u +%Y-%m-%d) #${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "title=Nightly $(date -u +%Y-%m-%d) #${{ github.run_number }}" >> "$GITHUB_OUTPUT"
 
       - name: Restore flaky history
         uses: actions/cache/restore@v4

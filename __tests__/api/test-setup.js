@@ -5,7 +5,11 @@ const saleModel = require("@/models/sale"); // adjust path
 const customerModel = require("@/models/customer"); // adjust path
 const ledgerModel = require("@/models/ledger"); // adjust path
 
-const sequelize = new Sequelize("sqlite::memory:", { logging: false });
+const sequelize = new Sequelize({
+  dialect: "sqlite",
+  storage: ":memory:",
+  logging: false,
+});
 
 class Company extends Model {} // ✅ mock valid Sequelize model
 Company.init({}, { sequelize, modelName: "company" });
