@@ -65,6 +65,28 @@ export async function antSelect(page: Page, label: string, option: string, { sea
   await expect(antSelectedValue(page, label)).toHaveText(option);
 }
 
+/** The select input of an antd Select that has no form label, found by its placeholder text. */
+export function antComboboxByPlaceholder(page: Page, placeholder: string): Locator {
+  return page
+    .locator(".ant-select")
+    .filter({ hasText: exact(placeholder) })
+    .getByRole("combobox");
+}
+
+/**
+ * Type `text` into a searchable antd Select and return the rendered options whose text is exactly
+ * `option` (default: `text`). Use it to check whether a record is offered: `toHaveCount(1)` / `toHaveCount(0)`.
+ * Wait for the expected count; a count of 0 is only meaningful after the dropdown has loaded.
+ */
+export async function antOptionsMatching(page: Page, box: Locator, text: string, option = text): Promise<Locator> {
+  await box.click();
+  await box.pressSequentially(text.slice(0, 24));
+  const id = await box.getAttribute("id");
+  if (!id) throw new Error(`antd select for "${text}" has no id to link its dropdown`);
+  const dropdown = page.locator(".ant-select-dropdown").filter({ has: page.locator(`[id="${id}_list"]`) });
+  return dropdown.locator(".ant-select-item-option").filter({ hasText: exact(option) });
+}
+
 /**
  * Pick `option` in an antd Select that has no form label, found by its placeholder text (e.g. the
  * "Add Removed Items" multi-select on the purchase form). Closes the dropdown afterwards.

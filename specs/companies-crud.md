@@ -97,13 +97,13 @@ How to write these tests:
 
 | field   | value        | form message                                | API message                                                     |
 | ------- | ------------ | ------------------------------------------- | --------------------------------------------------------------- |
-| Name    | (empty)      | 'companyName' is required                   | "companyName" is required                                       |
+| Name    | (empty)      | Name is required!                           | "companyName" is required                                       |
 | Name    | ab           | 'companyName' must be at least 3 characters | "companyName" length must be at least 3 characters long         |
 | Email   | not-an-email | Email is not a valid email!                 | "email" must be a valid email                                   |
 | Phone   | 25 digits    | 'phone' cannot be longer than 24 characters | "phone" length must be less than or equal to 24 characters long |
 | Address | short        | 'address' must be at least 10 characters    | "address" length must be at least 10 characters long            |
 
-- Messages observed on 2026-10-22; the empty-name form message wasn't observed live, confirm it in the generated test.
+- Messages observed on 2026-10-22 (the empty-name form message confirmed by the generated test).
 - Boundaries that must pass: name of 3 characters, phone of 24, address of 10.
 
 #### 1.3. Renaming a supplier and changing its contact details keeps its purchases, items, stock and ledger attached, now under the new name
@@ -134,7 +134,7 @@ How to write these tests:
 
 #### 1.4. Staff can save a supplier whose email, phone or address is empty, and can clear one of those fields
 
-**TestRail:** C512 · **Key:** CO-06 · **Priority:** P2 · **Type:** Functional · **Source:** AC4, owner Q4; dirty path: empty optional fields · **Expected to fail (Q4): the edit form sends null for empty fields and "" for cleared ones, and the PUT Joi schema rejects both. Confirmed 2026-10-22: Update on a company with empty fields shows the toast 'ValidationError: "phone" must be a string'; PUT { email: '' } returns 400 'not allowed to be empty'.**
+**TestRail:** C512 · **Key:** CO-06 · **Priority:** P2 · **Type:** Functional · **Source:** AC4, owner Q4; dirty path: empty optional fields · **Expected to fail (#249, Q4): the edit form sends null for empty fields and "" for cleared ones, and the PUT Joi schema rejects both. Confirmed 2026-10-22: Update on a company with empty fields shows the toast 'ValidationError: "phone" must be a string'; PUT { email: '' } returns 400 'not allowed to be empty'.**
 **File:** `e2e/company/edit.spec.ts`
 **Why it matters:** a supplier created without a phone can't be edited at all today, so staff can't correct its name or details and work around it with a duplicate supplier.
 
@@ -177,7 +177,7 @@ How to write these tests:
 
 #### 1.6. Finding a supplier by name ignores letter case, wherever staff search for it
 
-**TestRail:** C520 · **Key:** CO-14 · **Priority:** P2 · **Type:** Functional · **Risks:** 1 · **Source:** Owner Q6 (2026-10-22) · **Expected to fail (Q6): pages/api/company/search.js uses a case-sensitive LIKE; confirmed 2026-10-22 ('qa probe' didn't find 'QA Probe Traders').**
+**TestRail:** C520 · **Key:** CO-14 · **Priority:** P2 · **Type:** Functional · **Risks:** 1 · **Source:** Owner Q6 (2026-10-22) · **Expected to fail (#250, Q6): pages/api/company/search.js uses a case-sensitive LIKE; confirmed 2026-10-22 ('qa probe' didn't find 'QA Probe Traders').**
 **File:** `e2e/company/search.spec.ts`
 **Why it matters:** staff who can't find 'Coastal Traders' by typing 'coastal' assume it's missing and create a duplicate supplier, splitting its ledger.
 
@@ -200,7 +200,7 @@ How to write these tests:
 
 #### 1.7. The form keeps a supplier's address as typed; only the name and email are saved lowercase
 
-**TestRail:** C521 · **Key:** CO-15 · **Priority:** P3 · **Type:** Functional · **Source:** Owner Q5, Q9 (2026-10-22) · **Expected to fail (Q9): components/addEditCompany.js lowercases every value via toLowerCaseObjVal.**
+**TestRail:** C521 · **Key:** CO-15 · **Priority:** P3 · **Type:** Functional · **Source:** Owner Q5, Q9 (2026-10-22) · **Expected to fail (#252, Q9): components/addEditCompany.js lowercases every value via toLowerCaseObjVal.**
 **File:** `e2e/company/create.spec.ts`
 **Why it matters:** the address is printed on documents for the supplier; 'plot 12, shershah road, karachi' looks careless next to what staff typed.
 
@@ -245,7 +245,7 @@ How to write these tests:
 
 #### 2.2. A supplier name that differs only in letter case from an existing one is refused, from the form and the API
 
-**TestRail:** C510 · **Key:** CO-04 · **Priority:** P1 · **Type:** Functional · **Risks:** 1 · **Source:** AC3, owner Q3 · **Expected to fail (Q3): the unique index (organizationId, companyName) and the 409 checks in pages/api/company/index.js and [id].js compare names exactly. Confirmed 2026-10-22: 'qa probe traders' was accepted next to 'QA Probe Traders'; the local DB already holds 'qa-plan-alpha', 'qa-plan-Alpha' and 'QA-PLAN-ALPHA' side by side.**
+**TestRail:** C510 · **Key:** CO-04 · **Priority:** P1 · **Type:** Functional · **Risks:** 1 · **Source:** AC3, owner Q3 · **Expected to fail (#248, Q3): the unique index (organizationId, companyName) and the 409 checks in pages/api/company/index.js and [id].js compare names exactly. Confirmed 2026-10-22: 'qa probe traders' was accepted next to 'QA Probe Traders'; the local DB already holds 'qa-plan-alpha', 'qa-plan-Alpha' and 'QA-PLAN-ALPHA' side by side.**
 **File:** `e2e/company/unique-names.spec.ts`
 **Why it matters:** the form saves names lowercase, so 'Coastal Traders' and 'coastal traders' become two suppliers with split ledgers; owner Q3 says names are unique regardless of case.
 
@@ -300,11 +300,11 @@ How to write these tests:
 3. GET /api/company/{S}, its items, stock and ledger
    - expect: S, both items, on-hand 3 and the ledger (balance and entry count) unchanged
 
-- Owner Q7 (2026-10-22): the refusal is 409. Today it is HTTP 404, so the status assertion in step 2 is a known-bug step (knownBug(...)); the message and 'nothing changed' checks always run.
+- Owner Q7 (2026-10-22): the refusal is 409. Today it is HTTP 404, so the status assertion in step 2 is a known-bug step (#251); the message and 'nothing changed' checks always run.
 
 #### 3.3. A supplier with purchases or payments can't be deleted even when it has no items, and its ledger and purchase history stay intact
 
-**TestRail:** C516 · **Key:** CO-10 · **Priority:** P1 · **Type:** Regression · **Risks:** 1, 5 · **Source:** Business rules; owner Q1, Q2; dirty paths: delete with history, delete items first · **Expected to fail (Q1, Q2): deleteCompany only counts items; there's no FK from purchases, inventories or ledgers to companies, and purchase_histories cascade on company delete. Item delete has no dependency or role check.**
+**TestRail:** C516 · **Key:** CO-10 · **Priority:** P1 · **Type:** Regression · **Risks:** 1, 5 · **Source:** Business rules; owner Q1, Q2; dirty paths: delete with history, delete items first · **Expected to fail (#247, Q1, Q2): deleteCompany only counts items; there's no FK from purchases, inventories or ledgers to companies, and purchase_histories cascade on company delete. Item delete has no dependency or role check.**
 **File:** `e2e/company/delete.spec.ts`
 **Why it matters:** deleting such a supplier silently removes what the business owes it: purchase revision history is cascade-deleted and purchases and ledger rows point at a company that no longer exists.
 
@@ -345,7 +345,7 @@ How to write these tests:
 
 #### 4.2. The API refuses a staff (EDITOR) request to delete a supplier, and the supplier stays
 
-**TestRail:** C518 · **Key:** CO-12 · **Priority:** P1 · **Type:** Security · **Risks:** 4 · **Source:** AC6; dirty path: EDITOR calls DELETE directly · **Expected to fail (AC6): pages/api/company/[id].js has no role check on DELETE; the button is only disabled in the UI.**
+**TestRail:** C518 · **Key:** CO-12 · **Priority:** P1 · **Type:** Security · **Risks:** 4 · **Source:** AC6; dirty path: EDITOR calls DELETE directly · **Expected to fail (#246, AC6): pages/api/company/[id].js has no role check on DELETE; the button is only disabled in the UI.**
 **File:** `e2e/company/permissions.spec.ts`
 **Why it matters:** a hidden button is not a control: any staff member with the browser's network tab can delete a supplier the owner relies on.
 
