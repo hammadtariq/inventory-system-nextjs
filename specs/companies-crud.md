@@ -6,6 +6,8 @@ Regression coverage for supplier companies (brief: `specs/briefs/companies-crud.
 
 **The cases live in `specs/cases/companies-crud.csv`**, one row per case: review and edit them there, then run `node .qa/scripts/cases.mjs plan specs/cases/companies-crud.csv` to regenerate the Test Scenarios block below. Everything else in this file is written by hand.
 
+TestRail section: "Companies" (id 54). 15 cases (C507–C521) pushed on 2026-10-22 as AI draft.
+
 Owner decisions (brief, 2026-10-22): Q1 no delete while any purchase, stock row, ledger or payment entry references the supplier; Q2 item delete is ADMIN-only and refused while the item is in a purchase or has stock; Q3 names unique per organization regardless of case and surrounding spaces; Q4 staff can clear an optional field; Q5/Q9 the form may save name and email lowercase, but the address keeps its case; Q6 name search ignores case; Q7 a delete refused for dependencies returns 409; Q8 forms disabled on a direct load are investigated in #244.
 
 Key facts verified against the code and a live run (2026-10-22):
@@ -51,7 +53,7 @@ How to write these tests:
 
 #### 1.1. Staff add a supplier in the form and it is ready to buy from: listed, and offered in the purchase, item and payment company pickers
 
-**TestRail:** — (not pushed yet) · **Key:** CO-01 · **Priority:** P1 · **Type:** Regression · **Risks:** 1 · **Source:** AC1
+**TestRail:** C507 · **Key:** CO-01 · **Priority:** P1 · **Type:** Regression · **Risks:** 1 · **Source:** AC1
 **File:** `e2e/company/create.spec.ts`
 **Why it matters:** a supplier that is saved but missing from the purchase or payment pickers can't be bought from or paid, so the supplier ledger can't start.
 
@@ -78,7 +80,7 @@ How to write these tests:
 
 #### 1.2. A supplier with a missing or short name, a malformed email, an over-long phone or a short address is refused in the form and at the API, and nothing is saved
 
-**TestRail:** — (not pushed yet) · **Key:** CO-02 · **Priority:** P2 · **Type:** Functional · **Source:** AC2
+**TestRail:** C508 · **Key:** CO-02 · **Priority:** P2 · **Type:** Functional · **Source:** AC2
 **File:** `e2e/company/validation.spec.ts`
 **Why it matters:** an unidentifiable supplier record (no name, a bad contact) leads to purchases and payments booked against the wrong party.
 
@@ -106,7 +108,7 @@ How to write these tests:
 
 #### 1.3. Renaming a supplier and changing its contact details keeps its purchases, items, stock and ledger attached, now under the new name
 
-**TestRail:** — (not pushed yet) · **Key:** CO-05 · **Priority:** P1 · **Type:** Regression · **Risks:** 1, 2, 5 · **Source:** AC4
+**TestRail:** C511 · **Key:** CO-05 · **Priority:** P1 · **Type:** Regression · **Risks:** 1, 2, 5 · **Source:** AC4
 **File:** `e2e/company/edit.spec.ts`
 **Why it matters:** if a rename detached history, the supplier's balance and stock would vanish from the statement the owner pays from.
 
@@ -132,7 +134,7 @@ How to write these tests:
 
 #### 1.4. Staff can save a supplier whose email, phone or address is empty, and can clear one of those fields
 
-**TestRail:** — (not pushed yet) · **Key:** CO-06 · **Priority:** P2 · **Type:** Functional · **Source:** AC4, owner Q4; dirty path: empty optional fields · **Expected to fail (Q4): the edit form sends null for empty fields and "" for cleared ones, and the PUT Joi schema rejects both. Confirmed 2026-10-22: Update on a company with empty fields shows the toast 'ValidationError: "phone" must be a string'; PUT { email: '' } returns 400 'not allowed to be empty'.**
+**TestRail:** C512 · **Key:** CO-06 · **Priority:** P2 · **Type:** Functional · **Source:** AC4, owner Q4; dirty path: empty optional fields · **Expected to fail (Q4): the edit form sends null for empty fields and "" for cleared ones, and the PUT Joi schema rejects both. Confirmed 2026-10-22: Update on a company with empty fields shows the toast 'ValidationError: "phone" must be a string'; PUT { email: '' } returns 400 'not allowed to be empty'.**
 **File:** `e2e/company/edit.spec.ts`
 **Why it matters:** a supplier created without a phone can't be edited at all today, so staff can't correct its name or details and work around it with a duplicate supplier.
 
@@ -153,7 +155,7 @@ How to write these tests:
 
 #### 1.5. Opening the create or edit page directly (refresh, bookmark, new tab) gives ADMIN and EDITOR a working Create or Update button
 
-**TestRail:** — (not pushed yet) · **Key:** CO-07 · **Priority:** P2 · **Type:** Functional · **Source:** Found during exploration; #244 · **Expected to fail (new, 2026-10-22): canCreate/canEdit in components/addEditCompany.js are computed at module load, before \_app.js sets the user's permissions, so on a direct load the button is disabled for ADMIN. Reaching the page through the list's buttons works. Investigated separately in #244 (same pattern in addEditCustomer.js and pages/cheques/index.js).**
+**TestRail:** C513 · **Key:** CO-07 · **Priority:** P2 · **Type:** Functional · **Source:** Found during exploration; #244 · **Expected to fail (new, 2026-10-22): canCreate/canEdit in components/addEditCompany.js are computed at module load, before \_app.js sets the user's permissions, so on a direct load the button is disabled for ADMIN. Reaching the page through the list's buttons works. Investigated separately in #244 (same pattern in addEditCustomer.js and pages/cheques/index.js).**
 **File:** `e2e/company/create.spec.ts`
 **Why it matters:** staff who refresh or open a supplier link in a new tab can't save, and either lose their typing or give up on the change.
 
@@ -175,7 +177,7 @@ How to write these tests:
 
 #### 1.6. Finding a supplier by name ignores letter case, wherever staff search for it
 
-**TestRail:** — (not pushed yet) · **Key:** CO-14 · **Priority:** P2 · **Type:** Functional · **Risks:** 1 · **Source:** Owner Q6 (2026-10-22) · **Expected to fail (Q6): pages/api/company/search.js uses a case-sensitive LIKE; confirmed 2026-10-22 ('qa probe' didn't find 'QA Probe Traders').**
+**TestRail:** C520 · **Key:** CO-14 · **Priority:** P2 · **Type:** Functional · **Risks:** 1 · **Source:** Owner Q6 (2026-10-22) · **Expected to fail (Q6): pages/api/company/search.js uses a case-sensitive LIKE; confirmed 2026-10-22 ('qa probe' didn't find 'QA Probe Traders').**
 **File:** `e2e/company/search.spec.ts`
 **Why it matters:** staff who can't find 'Coastal Traders' by typing 'coastal' assume it's missing and create a duplicate supplier, splitting its ledger.
 
@@ -198,7 +200,7 @@ How to write these tests:
 
 #### 1.7. The form keeps a supplier's address as typed; only the name and email are saved lowercase
 
-**TestRail:** — (not pushed yet) · **Key:** CO-15 · **Priority:** P3 · **Type:** Functional · **Source:** Owner Q5, Q9 (2026-10-22) · **Expected to fail (Q9): components/addEditCompany.js lowercases every value via toLowerCaseObjVal.**
+**TestRail:** C521 · **Key:** CO-15 · **Priority:** P3 · **Type:** Functional · **Source:** Owner Q5, Q9 (2026-10-22) · **Expected to fail (Q9): components/addEditCompany.js lowercases every value via toLowerCaseObjVal.**
 **File:** `e2e/company/create.spec.ts`
 **Why it matters:** the address is printed on documents for the supplier; 'plot 12, shershah road, karachi' looks careless next to what staff typed.
 
@@ -215,7 +217,7 @@ How to write these tests:
 
 #### 2.1. A second supplier with the same name is refused on create and rename, even with surrounding spaces or a double-click; another organization may use the name
 
-**TestRail:** — (not pushed yet) · **Key:** CO-03 · **Priority:** P1 · **Type:** Functional · **Risks:** 1, 3 · **Source:** AC3, AC4; dirty paths: spacing, double-click Create
+**TestRail:** C509 · **Key:** CO-03 · **Priority:** P1 · **Type:** Functional · **Risks:** 1, 3 · **Source:** AC3, AC4; dirty paths: spacing, double-click Create
 **File:** `e2e/company/unique-names.spec.ts`
 **Why it matters:** two suppliers with one name split purchases and payments across two ledgers, so the owner can't tell what they owe that supplier.
 
@@ -243,7 +245,7 @@ How to write these tests:
 
 #### 2.2. A supplier name that differs only in letter case from an existing one is refused, from the form and the API
 
-**TestRail:** — (not pushed yet) · **Key:** CO-04 · **Priority:** P1 · **Type:** Functional · **Risks:** 1 · **Source:** AC3, owner Q3 · **Expected to fail (Q3): the unique index (organizationId, companyName) and the 409 checks in pages/api/company/index.js and [id].js compare names exactly. Confirmed 2026-10-22: 'qa probe traders' was accepted next to 'QA Probe Traders'; the local DB already holds 'qa-plan-alpha', 'qa-plan-Alpha' and 'QA-PLAN-ALPHA' side by side.**
+**TestRail:** C510 · **Key:** CO-04 · **Priority:** P1 · **Type:** Functional · **Risks:** 1 · **Source:** AC3, owner Q3 · **Expected to fail (Q3): the unique index (organizationId, companyName) and the 409 checks in pages/api/company/index.js and [id].js compare names exactly. Confirmed 2026-10-22: 'qa probe traders' was accepted next to 'QA Probe Traders'; the local DB already holds 'qa-plan-alpha', 'qa-plan-Alpha' and 'QA-PLAN-ALPHA' side by side.**
 **File:** `e2e/company/unique-names.spec.ts`
 **Why it matters:** the form saves names lowercase, so 'Coastal Traders' and 'coastal traders' become two suppliers with split ledgers; owner Q3 says names are unique regardless of case.
 
@@ -266,7 +268,7 @@ How to write these tests:
 
 #### 3.1. The owner can delete a supplier with no history; it disappears from the list and every picker, and its id then gives 404
 
-**TestRail:** — (not pushed yet) · **Key:** CO-08 · **Priority:** P2 · **Type:** Functional · **Source:** AC5
+**TestRail:** C514 · **Key:** CO-08 · **Priority:** P2 · **Type:** Functional · **Source:** AC5
 **File:** `e2e/company/delete.spec.ts`
 **Why it matters:** suppliers created by mistake must go away cleanly, without leaving a ghost in the pickers that staff could buy from; wrong but recoverable, so P2.
 
@@ -283,7 +285,7 @@ How to write these tests:
 
 #### 3.2. A supplier that still has items can't be deleted, and its items, stock and ledger stay intact
 
-**TestRail:** — (not pushed yet) · **Key:** CO-09 · **Priority:** P1 · **Type:** Regression · **Risks:** 1, 2, 5 · **Source:** AC5
+**TestRail:** C515 · **Key:** CO-09 · **Priority:** P1 · **Type:** Regression · **Risks:** 1, 2, 5 · **Source:** AC5
 **File:** `e2e/company/delete.spec.ts`
 **Why it matters:** deleting a supplier that has items would orphan its stock and purchase history.
 
@@ -302,7 +304,7 @@ How to write these tests:
 
 #### 3.3. A supplier with purchases or payments can't be deleted even when it has no items, and its ledger and purchase history stay intact
 
-**TestRail:** — (not pushed yet) · **Key:** CO-10 · **Priority:** P1 · **Type:** Regression · **Risks:** 1, 5 · **Source:** Business rules; owner Q1, Q2; dirty paths: delete with history, delete items first · **Expected to fail (Q1, Q2): deleteCompany only counts items; there's no FK from purchases, inventories or ledgers to companies, and purchase_histories cascade on company delete. Item delete has no dependency or role check.**
+**TestRail:** C516 · **Key:** CO-10 · **Priority:** P1 · **Type:** Regression · **Risks:** 1, 5 · **Source:** Business rules; owner Q1, Q2; dirty paths: delete with history, delete items first · **Expected to fail (Q1, Q2): deleteCompany only counts items; there's no FK from purchases, inventories or ledgers to companies, and purchase_histories cascade on company delete. Item delete has no dependency or role check.**
 **File:** `e2e/company/delete.spec.ts`
 **Why it matters:** deleting such a supplier silently removes what the business owes it: purchase revision history is cascade-deleted and purchases and ledger rows point at a company that no longer exists.
 
@@ -328,7 +330,7 @@ How to write these tests:
 
 #### 4.1. Staff can't delete a supplier from the screen: the Delete button is disabled for EDITOR
 
-**TestRail:** — (not pushed yet) · **Key:** CO-11 · **Priority:** P1 · **Type:** Security · **Risks:** 4 · **Source:** AC6
+**TestRail:** C517 · **Key:** CO-11 · **Priority:** P1 · **Type:** Security · **Risks:** 4 · **Source:** AC6
 **File:** `e2e/company/permissions.spec.ts`
 **Why it matters:** deleting suppliers is the owner's call; staff should prepare and maintain records, not remove them.
 
@@ -343,7 +345,7 @@ How to write these tests:
 
 #### 4.2. The API refuses a staff (EDITOR) request to delete a supplier, and the supplier stays
 
-**TestRail:** — (not pushed yet) · **Key:** CO-12 · **Priority:** P1 · **Type:** Security · **Risks:** 4 · **Source:** AC6; dirty path: EDITOR calls DELETE directly · **Expected to fail (AC6): pages/api/company/[id].js has no role check on DELETE; the button is only disabled in the UI.**
+**TestRail:** C518 · **Key:** CO-12 · **Priority:** P1 · **Type:** Security · **Risks:** 4 · **Source:** AC6; dirty path: EDITOR calls DELETE directly · **Expected to fail (AC6): pages/api/company/[id].js has no role check on DELETE; the button is only disabled in the UI.**
 **File:** `e2e/company/permissions.spec.ts`
 **Why it matters:** a hidden button is not a control: any staff member with the browser's network tab can delete a supplier the owner relies on.
 
@@ -358,7 +360,7 @@ How to write these tests:
 
 #### 4.3. Another organization's supplier never shows up in list, search or pickers, and can't be read, edited or deleted by id
 
-**TestRail:** — (not pushed yet) · **Key:** CO-13 · **Priority:** P1 · **Type:** Security · **Risks:** 3 · **Source:** AC7
+**TestRail:** C519 · **Key:** CO-13 · **Priority:** P1 · **Type:** Security · **Risks:** 3 · **Source:** AC7
 **File:** `e2e/company/isolation-api.spec.ts`
 **Why it matters:** a supplier list leaks who a business buys from; changing or deleting another tenant's supplier corrupts their ledger.
 
