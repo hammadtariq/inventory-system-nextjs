@@ -82,6 +82,72 @@ describe("auth tenant bootstrap", () => {
     expect(next).toHaveBeenCalledTimes(1);
   });
 
+  describe("request transaction (#235)", () => {
+    // Ends the response the way Next's res.send does: headers, then res.end(body).
+    const answer = (res, status, body) => () => {
+      res.statusCode = status;
+      res.setHeader("Content-Type", "application/json");
+      res.setHeader("Content-Length", Buffer.byteLength(JSON.stringify(body)));
+      res.end(JSON.stringify(body));
+    };
+    const flush = () => new Promise((resolve) => setImmediate(resolve));
+
+    it("commits before the response is sent", async () => {
+      let commitDone;
+      db.sequelize.transactionObject.commit.mockReturnValue(new Promise((resolve) => (commitDone = resolve)));
+      const { req, res } = createMocks({ method: "POST" });
+
+      await auth(req, res, answer(res, 200, { ok: true }));
+      await flush();
+
+      expect(db.sequelize.transactionObject.commit).toHaveBeenCalledTimes(1);
+      expect(res._isEndCalled()).toBe(false);
+
+      commitDone();
+      await flush();
+
+      expect(res._isEndCalled()).toBe(true);
+      expect(res._getStatusCode()).toBe(200);
+      expect(JSON.parse(res._getData())).toEqual({ ok: true });
+    });
+
+    it("answers 500 instead of the handler's 200 when the commit fails", async () => {
+      db.sequelize.transactionObject.commit.mockRejectedValue(new Error("commit-time failure"));
+      const { req, res } = createMocks({ method: "POST" });
+
+      await auth(req, res, answer(res, 200, { ok: true }));
+      await flush();
+
+      expect(res._isEndCalled()).toBe(true);
+      expect(res._getStatusCode()).toBe(500);
+      expect(JSON.parse(res._getData())).toEqual({ message: "The change could not be saved. Please try again." });
+      expect(res.getHeader("Content-Length")).toBeUndefined();
+    });
+
+    it("rolls back instead of committing when the handler answers with an error", async () => {
+      const { req, res } = createMocks({ method: "POST" });
+
+      await auth(req, res, answer(res, 400, { message: "bad input" }));
+      await flush();
+
+      expect(db.sequelize.transactionObject.rollback).toHaveBeenCalledTimes(1);
+      expect(db.sequelize.transactionObject.commit).not.toHaveBeenCalled();
+      expect(res._getStatusCode()).toBe(400);
+      expect(JSON.parse(res._getData())).toEqual({ message: "bad input" });
+    });
+
+    it("keeps the handler's error response when the rollback fails", async () => {
+      db.sequelize.transactionObject.rollback.mockRejectedValue(new Error("connection lost"));
+      const { req, res } = createMocks({ method: "POST" });
+
+      await auth(req, res, answer(res, 400, { message: "bad input" }));
+      await flush();
+
+      expect(res._getStatusCode()).toBe(400);
+      expect(JSON.parse(res._getData())).toEqual({ message: "bad input" });
+    });
+  });
+
   it("rejects tokens without organizationId", async () => {
     Iron.unseal.mockResolvedValue({
       ...tokenPayload,

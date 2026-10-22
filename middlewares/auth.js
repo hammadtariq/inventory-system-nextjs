@@ -66,9 +66,29 @@ export const auth = async (req, res, next) => {
       }
     };
 
-    res.once("finish", () => {
-      void finalize(res.statusCode < 400);
-    });
+    // Commit (or roll back) before the response goes out, so a client never hears "saved" for a change that
+    // isn't committed yet, or that fails to commit. #235
+    const end = res.end;
+    res.end = function (...args) {
+      res.end = end;
+      const shouldCommit = res.statusCode < 400;
+      finalize(shouldCommit).then(
+        () => end.apply(res, args),
+        (error) => {
+          console.log(error);
+          // A failed rollback saved nothing either, so the handler's own error answer still holds.
+          if (!shouldCommit) return end.apply(res, args);
+          // A streamed response has already sent its status; all we can do is end it.
+          if (res.headersSent) return end.call(res);
+          res.statusCode = 500;
+          res.removeHeader("Content-Length");
+          res.removeHeader("ETag");
+          res.setHeader("Content-Type", "application/json; charset=utf-8");
+          end.call(res, JSON.stringify({ message: "The change could not be saved. Please try again." }));
+        }
+      );
+      return res;
+    };
 
     res.once("close", () => {
       void finalize(false);
