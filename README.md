@@ -109,6 +109,35 @@ You can start editing the page by modifying `pages/index.js`. The page auto-upda
 
 The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
 
+## QA workflow (QA Kit)
+
+E2E tests live in `e2e/` and are written with the QA Kit plugin for Claude Code. Cases are tracked in TestRail.
+
+Before you start: point `.env` at the local database (never Supabase), seed it with `pnpm db:seed-demo-org`,
+and run the app with `pnpm dev -p 3100`.
+
+For each feature, run these in Claude Code:
+
+1. `/qa-kit:plan-feature specs/briefs/<feature>.md` writes the test cases to `specs/cases/<feature>.csv`.
+2. `/qa-kit:review-cases specs/cases/<feature>.csv` (optional) suggests cases to merge or drop.
+3. Open the CSV, fill the `decision` column (`Keep`, `Drop`, ...) and export it back as CSV.
+4. `/qa-kit:push-cases specs/cases/<feature>.csv` sends the kept cases to TestRail.
+5. Approve the cases in TestRail.
+6. `/qa-kit:generate-tests specs/cases/<feature>.csv` writes the Playwright tests and opens a PR for review.
+
+Other commands:
+
+- `/qa-kit:triage` explains why tests failed.
+- `/qa-kit:digest` shows what is waiting for review.
+- `/qa-kit:upkeep` is a weekly check for coverage gaps and flaky tests.
+
+Run the tests:
+
+```bash
+npx playwright test
+npx playwright test --grep @smoke
+```
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
