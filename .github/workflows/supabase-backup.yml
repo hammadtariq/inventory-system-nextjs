@@ -1,0 +1,77 @@
+# Weekly Supabase backup at 02:00 Asia/Karachi on Sunday (21:00 UTC Saturday). Dumps the `public`
+# schema in custom format (restore with README "Restore Backup to Supabase") and uploads it to the
+# backups folder on Google Drive. This repo is public: the dump is never uploaded as a workflow
+# artifact or printed, and the Drive folder id lives in a secret.
+#
+# Secrets: SUPABASE_DB_URL (pooler URL incl. password), GDRIVE_TOKEN (`rclone authorize "drive"`
+# output), GDRIVE_FOLDER_ID. When the Supabase password changes, update SUPABASE_DB_URL too.
+name: Supabase weekly backup
+
+on:
+  schedule:
+    - cron: "0 21 * * 6"
+  workflow_dispatch:
+
+concurrency:
+  group: supabase-backup
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check secrets
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          GDRIVE_TOKEN: ${{ secrets.GDRIVE_TOKEN }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+        run: |
+          missing=0
+          for name in SUPABASE_DB_URL GDRIVE_TOKEN GDRIVE_FOLDER_ID; do
+            if [ -z "${!name}" ]; then echo "::error::Secret $name is not set"; missing=1; fi
+          done
+          exit $missing
+
+      - name: Dump Supabase
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          FILE="supabase_backup_$(TZ=Asia/Karachi date +%d_%m_%y).dump"
+          echo "FILE=$FILE" >> "$GITHUB_ENV"
+          mkdir -p backup
+          # pg_dump must be at least the server's major version; postgres:18 covers Supabase.
+          docker run --rm -e SUPABASE_DB_URL -e FILE -v "$PWD/backup:/backup" postgres:18 \
+            sh -c 'pg_dump "$SUPABASE_DB_URL" -Fc --schema=public -f "/backup/$FILE"'
+          ls -la backup
+
+      - name: Verify dump
+        run: |
+          tables=$(docker run --rm -v "$PWD/backup:/backup" postgres:18 \
+            pg_restore -l "/backup/$FILE" | grep -c "TABLE DATA" || true)
+          tables=${tables:-0}
+          echo "Tables with data: $tables"
+          if [ "$tables" -lt 15 ]; then
+            echo "::error::Expected at least 15 tables in the dump, found $tables"
+            exit 1
+          fi
+
+      - name: Upload to Google Drive
+        env:
+          RCLONE_CONFIG_GDRIVE_TYPE: drive
+          RCLONE_CONFIG_GDRIVE_SCOPE: drive
+          RCLONE_CONFIG_GDRIVE_TOKEN: ${{ secrets.GDRIVE_TOKEN }}
+          RCLONE_CONFIG_GDRIVE_ROOT_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+        run: |
+          rclone() {
+            docker run --rm -v "$PWD/backup:/backup" \
+              -e RCLONE_CONFIG_GDRIVE_TYPE -e RCLONE_CONFIG_GDRIVE_SCOPE \
+              -e RCLONE_CONFIG_GDRIVE_TOKEN -e RCLONE_CONFIG_GDRIVE_ROOT_FOLDER_ID \
+              rclone/rclone:1.68.2 "$@"
+          }
+          rclone copy "/backup/$FILE" gdrive: -v
+          # Fails the job if the file didn't land in the folder.
+          rclone lsl gdrive: --include "$FILE" | grep -F "$FILE"
