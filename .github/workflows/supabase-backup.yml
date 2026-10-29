@@ -40,7 +40,7 @@ jobs:
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
-          FILE="supabase_backup_$(TZ=Asia/Karachi date +%d_%m_%y).dump"
+          export FILE="supabase_backup_$(TZ=Asia/Karachi date +%d_%m_%y).dump"
           echo "FILE=$FILE" >> "$GITHUB_ENV"
           mkdir -p backup
           # pg_dump must be at least the server's major version; postgres:18 covers Supabase.
