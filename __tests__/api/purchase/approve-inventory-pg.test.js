@@ -37,7 +37,20 @@ const describeWithDb = harness.hasDatabase ? describe : describe.skip;
 
 describeWithDb("updateInventory on Postgres", () => {
   beforeAll(() => harness.resetSchema());
-  beforeEach(() => db.Inventory.destroy({ truncate: true, tenantBypass: true }));
+  beforeEach(async () => {
+    await db.Inventory.destroy({ truncate: true, tenantBypass: true });
+    await db.Items.destroy({ truncate: true, tenantBypass: true });
+    await db.Items.bulkCreate(
+      [2, 7, 100, 101, 102, 103, 104].map((id) => ({
+        id,
+        companyId: COMPANY,
+        organizationId: ORG,
+        itemName: `item ${id}`,
+        type: "BIG_BALES",
+      })),
+      { tenantBypass: true }
+    );
+  });
   afterAll(() => harness.close());
 
   it("adds purchased bales to an item already in stock", async () => {

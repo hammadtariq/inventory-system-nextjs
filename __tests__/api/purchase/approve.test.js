@@ -15,6 +15,7 @@ jest.mock("@/lib/postgres", () => ({
   },
   Purchase: { findOne: jest.fn(), update: jest.fn() },
   Inventory: { findAll: jest.fn(), bulkCreate: jest.fn() },
+  Items: { findAll: jest.fn().mockResolvedValue([{ id: 524 }]) },
   Ledger: { findOne: jest.fn(), create: jest.fn(), update: jest.fn() },
   Company: {},
   Sequelize: {
@@ -39,6 +40,49 @@ const mockStockRow = (values) => ({
 describe("approvePurchaseOrder", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    db.Items.findAll.mockResolvedValue([{ id: 524 }]);
+  });
+
+  it.each([
+    ["missing", null],
+    ["foreign organization", { id: 999999, organizationId: 99, companyId: 36 }],
+    ["wrong company", { id: 999999, organizationId: 23, companyId: 37 }],
+  ])("rejects %s new stock before changing existing stock, purchase or ledger", async (_, item) => {
+    const transaction = { commit: jest.fn(), rollback: jest.fn() };
+    db.sequelize.transaction.mockResolvedValue(transaction);
+    const stock = mockStockRow({ id: 10, onHand: 3, noOfBales: 3 });
+    const purchase = {
+      id: 1,
+      status: "PENDING",
+      revisionNo: 0,
+      companyId: 36,
+      purchasedProducts: [
+        { id: 10, noOfBales: 2 },
+        { id: 999999, itemName: "invalid item", noOfBales: 1 },
+      ],
+      update: jest.fn(),
+    };
+    db.Purchase.findOne.mockResolvedValue(purchase);
+    db.Inventory.findAll.mockResolvedValue([stock]);
+    db.Inventory.bulkCreate.mockResolvedValue([{ id: 999999 }]);
+    db.Items.findAll.mockImplementation(async ({ where, transaction: itemTransaction }) => {
+      if (itemTransaction !== transaction) throw new Error("Item lookup must share the approval transaction");
+      return item &&
+        where.id.includes(item.id) &&
+        where.companyId === item.companyId &&
+        where.organizationId === item.organizationId
+        ? [item]
+        : [];
+    });
+    balanceQuery.mockResolvedValue([]);
+    const result = await TenantContext.run(23, () => approvePurchaseOrder(1, { role: "ADMIN" }));
+    expect(result.status).toBe(404);
+    expect(stock.save).not.toHaveBeenCalled();
+    expect(db.Inventory.bulkCreate).not.toHaveBeenCalled();
+    expect(purchase.update).not.toHaveBeenCalled();
+    expect(db.Ledger.create).not.toHaveBeenCalled();
+    expect(transaction.rollback).toHaveBeenCalled();
+    expect(transaction.commit).not.toHaveBeenCalled();
   });
 
   it("should return 403 if user is not ADMIN", async () => {
@@ -194,6 +238,8 @@ describe("approvePurchaseOrder", () => {
     expect(db.Inventory.bulkCreate).not.toHaveBeenCalled();
     expect(db.Ledger.create).toHaveBeenCalled();
     expect(mockTransaction.commit).toHaveBeenCalled();
+
+    expect(db.Items.findAll).not.toHaveBeenCalled();
 
     expect(res.status).toBe(200);
     expect(res.body.inventory).toBeDefined();
@@ -429,6 +475,7 @@ describe("approvePurchaseOrder", () => {
     // Org 99's stock row for item 777 is not visible to org 23.
     db.Inventory.findAll.mockResolvedValue([]);
     db.Inventory.bulkCreate.mockResolvedValue([{ id: 777 }]);
+    db.Items.findAll.mockResolvedValue([{ id: 777 }]);
     db.Ledger.create.mockResolvedValue({ id: 1 });
     balanceQuery.mockResolvedValue([{ amount: 0 }]);
 

@@ -3,6 +3,7 @@
 // Tests using it skip when the variable is unset (CI has no database for Jest).
 const { Sequelize, DataTypes } = require("sequelize");
 const inventoryModel = require("@/models/inventory");
+const itemsModel = require("@/models/items");
 const { applyTenantWriteHooks } = require("@/lib/tenant-write-hooks");
 
 const url = process.env.TEST_POSTGRES_URL;
@@ -22,14 +23,19 @@ sequelize.addHook("beforeQuery", async () => {
 
 const Inventory = inventoryModel(sequelize, DataTypes);
 applyTenantWriteHooks(Inventory);
+const Items = itemsModel(sequelize, DataTypes);
+applyTenantWriteHooks(Items);
 
 module.exports = {
   hasDatabase: Boolean(url),
-  db: { sequelize, Sequelize, Inventory },
+  db: { sequelize, Sequelize, Inventory, Items },
   queries,
   setLatency: (ms) => {
     latencyMs = ms;
   },
-  resetSchema: () => Inventory.sync({ force: true }),
+  resetSchema: async () => {
+    await Items.sync({ force: true });
+    await Inventory.sync({ force: true });
+  },
   close: () => sequelize.close(),
 };

@@ -57,6 +57,16 @@ describeWithDb("updateInventory benchmark", () => {
 
   it(`approves ${IN_STOCK} in-stock + ${NEW_ITEMS} new items`, async () => {
     const rows = [];
+    await db.Items.bulkCreate(
+      products.map((product) => ({
+        id: product.id,
+        companyId: COMPANY,
+        organizationId: ORG,
+        itemName: `item ${product.id}`,
+        type: "BIG_BALES",
+      })),
+      { tenantBypass: true }
+    );
 
     for (const latency of LATENCIES_MS) {
       harness.setLatency(0);

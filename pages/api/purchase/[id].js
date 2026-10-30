@@ -97,6 +97,16 @@ const updatePurchaseOrder = async (req, res) => {
       if (!company) return res.status(404).send({ message: "company not found" });
     }
 
+    if (value.purchasedProducts) {
+      const productIds = [...new Set(value.purchasedProducts.map((product) => product.id))];
+      const items = await db.Items.findAll({
+        where: { id: productIds, companyId: value.companyId ?? purchaseObj.companyId, organizationId },
+      });
+      if (items.length !== productIds.length) {
+        return res.status(404).send({ message: "one or more purchased products were not found" });
+      }
+    }
+
     // Check status for editing
     if (!EDITABLE_STATUS.includes(purchaseObj.status)) {
       console.warn(`Purchase order is: ${purchaseObj.status}`);
