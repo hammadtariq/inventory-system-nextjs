@@ -21,7 +21,8 @@
       "value": true
     },
     "sections": {
-      "companies-crud": 54
+      "companies-crud": 54,
+      "purchase-approval-batch": 112
     },
     "priorities": {
       "P1": 4,

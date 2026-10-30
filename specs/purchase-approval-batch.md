@@ -63,7 +63,7 @@ weights, mixed stocked/new, other organization's stock, query count per product.
 
 #### 1.1. Approving a 50-line purchase adds every line's bales and charges once
 
-**TestRail:** — (not pushed yet) · **Key:** PAB-01 · **Priority:** P1 · **Type:** Regression · **Risks:** 2, 1 · **Source:** #257 Done when; business context rule 'Approving a purchase'
+**TestRail:** C1592 · **Key:** PAB-01 · **Priority:** P1 · **Type:** Regression · **Risks:** 2, 1 · **Source:** #257 Done when; business context rule 'Approving a purchase'
 **File:** `e2e/purchase/approval-batch.spec.ts`
 **Why it matters:** Large supplier invoices are where approvals timed out in production (purchases 1207-1209); a half-applied or missing line leaves stock and the supplier balance wrong.
 
@@ -80,11 +80,11 @@ Then the purchase shows APPROVED
 - Data: 50 BIG_BALES items; items 00-24 stocked first by an approved purchase of 5 bales x 20 kg x Rs 10/kg (Rs 25,000). Line i: bales = (i mod 7) + 2; even i weight-priced (15 + i mod 5 kg, Rs 12/kg), odd i bale-priced (Rs 100 + i per bale). Compute expected values with lineTotal/purchaseTotal in e2e/support/purchase-api.ts.
 - Assert all 50 stock rows (GET /api/inventory), not only the samples; check the Inventory screen for item 01 (On Hand 8) and the Ledger screen balance 65,698.00.
 - Weight checks are left out on purpose: stored kg is summed per approval (20 + 15 = 35), see open question Q2.
-- A local database answers in ~1 ms, so this case can't show the production slowdown; the query-count test in **tests**/api/purchase/approve-inventory-pg.test.js guards that. Keep a loose ceiling (approve answers within 10 s) as a smoke signal only.
+- A local database answers in ~1 ms, so this case can't show the production slowdown; the query-count test in __tests__/api/purchase/approve-inventory-pg.test.js guards that. Keep a loose ceiling (approve answers within 10 s) as a smoke signal only.
 
 #### 1.2. Re-approving a revised large purchase applies only the differences
 
-**TestRail:** — (not pushed yet) · **Key:** PAB-02 · **Priority:** P1 · **Type:** Regression · **Risks:** 2, 1, 5 · **Source:** #257 Done when (revision path); business context rule 'Revising an approved purchase'
+**TestRail:** C1593 · **Key:** PAB-02 · **Priority:** P1 · **Type:** Regression · **Risks:** 2, 1, 5 · **Source:** #257 Done when (revision path); business context rule 'Revising an approved purchase'
 **File:** `e2e/purchase/approval-batch.spec.ts`
 **Why it matters:** Supplier invoices for big loads are corrected after approval; counting the whole purchase again, or keeping removed bales, inflates stock and the amount owed.
 
@@ -106,7 +106,7 @@ Then items 00-02 rise by 3 (item 00: 7 to 10), items 03-04 fall by 1 (item 03: 1
 
 #### 2.1. Two purchases sharing items, approved at the same moment, both reach stock
 
-**TestRail:** — (not pushed yet) · **Key:** PAB-03 · **Priority:** P2 · **Type:** Regression · **Level:** api · **Risks:** 2 · **Source:** Lock-ordering change in #257 (commit 555fed9)
+**TestRail:** C1594 · **Key:** PAB-03 · **Priority:** P2 · **Type:** Regression · **Level:** api · **Risks:** 2 · **Source:** Lock-ordering change in #257 (commit 555fed9)
 **File:** `e2e/purchase/concurrency.spec.ts`
 **Why it matters:** The owner approves staff's purchases in batches and two admins can approve at once; if one approval fails or overwrites the other, bales go missing from stock.
 
@@ -141,7 +141,7 @@ When the owner approves it again
 Then each stocked item shows its previous bales plus its line's bales, once (5 + 2 = 7 for item 00)
 ```
 
-- Real Postgres via **tests**/api/purchase/pg-harness.js: make updateLedger (or the bulkCreate) throw after the saves and check the rollback. The mocked "should handle DB error and rollback" test in approve.test.js only checks that rollback() was called.
+- Real Postgres via __tests__/api/purchase/pg-harness.js: make updateLedger (or the bulkCreate) throw after the saves and check the rollback. The mocked "should handle DB error and rollback" test in approve.test.js only checks that rollback() was called.
 
 <!-- cases:end -->
 
