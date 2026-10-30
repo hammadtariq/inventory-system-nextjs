@@ -24,7 +24,7 @@ When the owner approves P1 and P2 at the same moment
 Then both purchases show APPROVED
 And A shows 18 bales and B shows 16 bales",,,,,"Send both PUT /api/purchase/approve/{id} in parallel (Promise.all) and run with --repeat-each=5. The opposite line order is the point: approval locks stock rows in id order so overlapping approvals can't deadlock; a deadlock shows up as one 500.
 Don't assert the ledger balance here: two approvals for one supplier race on the balance (D11, #220, PO-12). Assert only that each purchase has one DEBIT for its own total.
-Not explored in the browser.",,Lock-ordering change in #257 (commit 555fed9),e2e/purchase/concurrency.spec.ts,"Keep: opposite line order is the new deadlock risk from id-ordered locking; PO-12 uses one item, so it can't catch it",Keep,
+Not explored in the browser.",,Lock-ordering change in #257 (commit 555fed9),e2e/purchase/approval-batch.spec.ts,"Keep: opposite line order is the new deadlock risk from id-ordered locking; PO-12 uses one item, so it can't catch it",Keep,
 PAB-04,,For developers,"A failed approval leaves stock, ledger and status as they were",P1,Regression,unit,2;1,,"The production timeouts cut approvals off mid-way; if part of a batch had been written, retrying would count those bales twice.",,"Given a pending 50-line purchase where 25 items are already stocked
 When its approval fails after the stock rows are written but before it finishes
 Then every stock row has its previous bales and no new stock row exists

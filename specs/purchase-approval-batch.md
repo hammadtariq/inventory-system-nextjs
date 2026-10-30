@@ -27,12 +27,10 @@ supplier company 117, purchases 1527-1531.
 
 ## Open questions
 
-- **Q1 (unconfirmed defect):** while revising the 50-line purchase, the planner removed item 49 (2 bales).
-  After re-approval it read item 49 as still 2 on hand. That contradicts PO-20's "item removed" row, which
-  passed on this branch on 2026-10-30. It also contradicts a simulation of `calculateDifferences` +
-  `buildRevisionInventoryAdjustments`, which yields −2 for the removed line. PAB-02 asserts the business
-  rule (back to 0) as a normal step, not a known bug (review, 2026-10-30). If that step fails, draft a
-  `qa:gate-4` issue for a QA engineer to reproduce.
+- **Q1 (closed, not reproduced):** while revising the 50-line purchase, the planner removed item 49 (2 bales)
+  and read it as still 2 on hand after re-approval. C1593's check for item 49 going back to 0 passed in every
+  run on #259's branch (2026-10-30, `--repeat-each=3`), as does PO-20's removed-line row. No issue raised.
+
 - **Q2 (owner):** stock stores `baleWeightKgs` as a running sum of each approval's per-bale weight, not a
   per-bale weight or a total weight (5 bales × 20 kg then 2 bales × 15 kg gives 35). What should the stock
   weight mean? Weight assertions are left out of PAB-01/02 until this is answered.
@@ -107,7 +105,7 @@ Then items 00-02 rise by 3 (item 00: 7 to 10), items 03-04 fall by 1 (item 03: 1
 #### 2.1. Two purchases sharing items, approved at the same moment, both reach stock
 
 **TestRail:** C1594 · **Key:** PAB-03 · **Priority:** P2 · **Type:** Regression · **Level:** api · **Risks:** 2 · **Source:** Lock-ordering change in #257 (commit 555fed9)
-**File:** `e2e/purchase/concurrency.spec.ts`
+**File:** `e2e/purchase/approval-batch.spec.ts`
 **Why it matters:** The owner approves staff's purchases in batches and two admins can approve at once; if one approval fails or overwrites the other, bales go missing from stock.
 
 ```gherkin
