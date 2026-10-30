@@ -1,4 +1,4 @@
-import { approvePurchaseOrder, updateInventory, updateLedger } from "@/pages/api/purchase/approve/[id]";
+import { approvePurchaseOrder, updateLedger } from "@/pages/api/purchase/approve/[id]";
 import db from "@/lib/postgres";
 import { balanceQuery } from "@/utils/query.utils";
 import TenantContext from "@/lib/tenant-context";
@@ -14,7 +14,7 @@ jest.mock("@/lib/postgres", () => ({
     literal: jest.fn((value) => value),
   },
   Purchase: { findOne: jest.fn(), update: jest.fn() },
-  Inventory: { findOne: jest.fn(), create: jest.fn(), update: jest.fn(), increment: jest.fn() },
+  Inventory: { findAll: jest.fn(), bulkCreate: jest.fn() },
   Ledger: { findOne: jest.fn(), create: jest.fn(), update: jest.fn() },
   Company: {},
   Sequelize: {
@@ -27,6 +27,14 @@ jest.mock("@/lib/postgres", () => ({
 jest.mock("@/utils/query.utils", () => ({
   balanceQuery: jest.fn(),
 }));
+
+// A locked stock row as findAll returns it: the handler reads it with get(), changes it with set(), writes with save().
+const mockStockRow = (values) => ({
+  ...values,
+  get: jest.fn(() => values),
+  set: jest.fn(),
+  save: jest.fn(),
+});
 
 describe("approvePurchaseOrder", () => {
   beforeEach(() => {
@@ -126,12 +134,8 @@ describe("approvePurchaseOrder", () => {
 
     mockPurchase.update = jest.fn().mockResolvedValue(updatedMockPurchase);
 
-    const mockInventory = {
-      increment: jest.fn(),
-      update: jest.fn(),
-      baleWeightKgs: 0,
-      baleWeightLbs: 0,
-    };
+    const stockValues = { onHand: 5, noOfBales: 5, baleWeightKgs: 0, baleWeightLbs: 0 };
+    const inventories = [mockStockRow({ id: 524, ...stockValues }), mockStockRow({ id: 500, ...stockValues })];
 
     const mockLedger = {
       id: 10942,
@@ -143,7 +147,7 @@ describe("approvePurchaseOrder", () => {
     };
 
     db.Purchase.findOne.mockResolvedValue(mockPurchase);
-    db.Inventory.findOne.mockResolvedValue(mockInventory);
+    db.Inventory.findAll.mockResolvedValue(inventories);
     db.Ledger.findOne.mockResolvedValue(null);
     db.Ledger.create.mockResolvedValue(mockLedger);
     balanceQuery.mockResolvedValue([{ amount: 0 }]);
@@ -156,15 +160,17 @@ describe("approvePurchaseOrder", () => {
       },
       { transaction: mockTransaction }
     );
-    expect(db.Inventory.findOne).toHaveBeenCalled();
+    expect(inventories[0].set).toHaveBeenCalledWith(expect.objectContaining({ onHand: 15, noOfBales: 15 }));
+    expect(inventories[1].set).toHaveBeenCalledWith(expect.objectContaining({ onHand: 15, noOfBales: 15 }));
+    expect(inventories[0].save).toHaveBeenCalledWith({ transaction: mockTransaction });
+    expect(db.Inventory.bulkCreate).not.toHaveBeenCalled();
     expect(db.Ledger.create).toHaveBeenCalled();
     expect(mockTransaction.commit).toHaveBeenCalled();
 
     expect(res.status).toBe(200);
     expect(res.body.inventory).toBeDefined();
     expect(res.body.ledger).toEqual(mockLedger);
-    expect(res.body.inventory[0]).toMatchObject(mockInventory);
-    expect(res.body.inventory[1]).toMatchObject(mockInventory);
+    expect(res.body.inventory).toEqual(inventories);
 
     expect(res.body.purchaseOrder).toEqual(updatedMockPurchase);
   });
@@ -212,8 +218,8 @@ describe("approvePurchaseOrder", () => {
     };
 
     db.Purchase.findOne.mockResolvedValue(mockPurchase);
-    db.Inventory.findOne.mockResolvedValue(null);
-    db.Inventory.create.mockResolvedValue({ id: 1 });
+    db.Inventory.findAll.mockResolvedValue([]);
+    db.Inventory.bulkCreate.mockResolvedValue([{ id: 524 }]);
     db.Ledger.findOne.mockResolvedValue({
       amount: 10,
       totalBalance: 10,
@@ -224,13 +230,15 @@ describe("approvePurchaseOrder", () => {
 
     const res = await TenantContext.run(23, async () => approvePurchaseOrder(900, { role: "ADMIN" }));
 
-    expect(db.Inventory.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        itemName: "men tropical pant xl",
-        companyId: 36,
-        onHand: 15,
-      }),
-      { transaction: mockTransaction }
+    expect(db.Inventory.bulkCreate).toHaveBeenCalledWith(
+      [
+        expect.objectContaining({
+          itemName: "men tropical pant xl",
+          companyId: 36,
+          onHand: 15,
+        }),
+      ],
+      { transaction: mockTransaction, validate: true }
     );
     expect(res.status).toBe(200);
     expect(mockTransaction.commit).toHaveBeenCalled();
@@ -279,8 +287,8 @@ describe("approvePurchaseOrder", () => {
     };
 
     db.Purchase.findOne.mockResolvedValue(mockPurchase);
-    db.Inventory.findOne.mockResolvedValue(null);
-    db.Inventory.create.mockResolvedValue({ id: 1 });
+    db.Inventory.findAll.mockResolvedValue([]);
+    db.Inventory.bulkCreate.mockResolvedValue([{ id: 524 }]);
     db.Ledger.findOne.mockResolvedValue({
       amount: 10,
       totalBalance: 10,
@@ -291,13 +299,15 @@ describe("approvePurchaseOrder", () => {
 
     const res = await TenantContext.run(23, async () => approvePurchaseOrder(901, { role: "ADMIN" }));
 
-    expect(db.Inventory.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        itemName: "men tropical pant xl",
-        companyId: 36,
-        onHand: 15,
-      }),
-      { transaction: mockTransaction }
+    expect(db.Inventory.bulkCreate).toHaveBeenCalledWith(
+      [
+        expect.objectContaining({
+          itemName: "men tropical pant xl",
+          companyId: 36,
+          onHand: 15,
+        }),
+      ],
+      { transaction: mockTransaction, validate: true }
     );
     expect(res.status).toBe(200);
   });
@@ -347,16 +357,17 @@ describe("approvePurchaseOrder", () => {
       update: jest.fn().mockResolvedValue({ status: "APPROVED" }),
     };
 
-    const mockInventory = {
-      increment: jest.fn(),
-      update: jest.fn(),
+    const mockInventory = mockStockRow({
+      id: 524,
+      onHand: 3,
+      noOfBales: 3,
       baleWeightKgs: 0,
       baleWeightLbs: 0,
       ratePerBale: 10,
-    };
+    });
 
     db.Purchase.findOne.mockResolvedValue(mockPurchase);
-    db.Inventory.findOne.mockResolvedValue(mockInventory);
+    db.Inventory.findAll.mockResolvedValue([mockInventory]);
     db.Ledger.findOne.mockResolvedValue({
       amount: 20,
       totalBalance: 20,
@@ -365,110 +376,12 @@ describe("approvePurchaseOrder", () => {
 
     const res = await TenantContext.run(23, async () => approvePurchaseOrder(902, { role: "ADMIN" }));
 
-    expect(mockInventory.increment).toHaveBeenCalledWith({ onHand: 0, noOfBales: 0 }, { transaction: mockTransaction });
-    expect(mockInventory.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        ratePerBale: 20,
-      }),
-      { transaction: mockTransaction }
+    expect(mockInventory.set).toHaveBeenCalledWith(
+      expect.objectContaining({ onHand: 3, noOfBales: 3, ratePerBale: 20 })
     );
+    expect(mockInventory.save).toHaveBeenCalledWith({ transaction: mockTransaction });
     expect(res.status).toBe(200);
     expect(mockTransaction.commit).toHaveBeenCalled();
-  });
-});
-
-describe("updateInventory", () => {
-  const transaction = {};
-  const product = {
-    id: 1,
-    noOfBales: "5",
-    baleWeightKgs: 100,
-    baleWeightLbs: 200,
-    ratePerBale: 50,
-  };
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it("should create inventory if not found", async () => {
-    db.Inventory.findOne.mockResolvedValue(null);
-    db.Inventory.create.mockResolvedValue({ id: 123 });
-
-    const res = await TenantContext.run(23, async () => updateInventory([product], 1, transaction));
-    expect(res).toHaveLength(1);
-    expect(db.Inventory.create).toHaveBeenCalled();
-  });
-
-  it("should update inventory with null weights", async () => {
-    const mockInv = {
-      increment: jest.fn(),
-      update: jest.fn(),
-      baleWeightKgs: null,
-      baleWeightLbs: null,
-    };
-    db.Inventory.findOne.mockResolvedValue(mockInv);
-
-    await TenantContext.run(23, async () => updateInventory([product], 1, transaction));
-    expect(mockInv.increment).toHaveBeenCalled();
-    expect(mockInv.update).toHaveBeenCalled();
-  });
-
-  it("should update inventory with existing weights", async () => {
-    const mockInv = {
-      increment: jest.fn(),
-      update: jest.fn(),
-      baleWeightKgs: 100,
-      baleWeightLbs: 200,
-    };
-    db.Inventory.findOne.mockResolvedValue(mockInv);
-
-    await TenantContext.run(23, async () => updateInventory([product], 1, transaction));
-    expect(mockInv.increment).toHaveBeenCalledWith(expect.any(Object), { transaction });
-    expect(mockInv.update).toHaveBeenCalled();
-  });
-
-  it("should update existing inventory record", async () => {
-    const mockInventory = {
-      increment: jest.fn(),
-      update: jest.fn(),
-      baleWeightKgs: 20,
-      baleWeightLbs: 30,
-    };
-    db.Inventory.findOne.mockResolvedValue(mockInventory);
-
-    await TenantContext.run(23, async () =>
-      updateInventory(
-        [
-          {
-            id: 849,
-            noOfBales: 10,
-            ratePerKgs: 1,
-            ratePerLbs: 1,
-            ratePerBale: 1,
-            baleWeightKgs: 0,
-            baleWeightLbs: 0,
-          },
-        ],
-        36,
-        {}
-      )
-    );
-
-    expect(mockInventory.increment).toHaveBeenCalledWith(
-      expect.objectContaining({
-        noOfBales: 10,
-      }),
-      { transaction: {} }
-    );
-    expect(mockInventory.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        ratePerBale: 1,
-        ratePerLbs: 1,
-        ratePerKgs: 1,
-      }),
-      { transaction: expect.any(Object) }
-    );
   });
 });
 

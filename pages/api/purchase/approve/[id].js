@@ -102,54 +102,79 @@ const approvePurchaseOrder = async (id, user) => {
 };
 
 // Consolidated Inventory Update
+// Each query is a round trip to the database, so lock every affected row in one read, apply the purchase lines
+// in memory, then write each row once: one UPDATE per changed row and one INSERT for all new items. #257
 const updateInventory = async (products, companyId, transaction) => {
-  const results = [];
   const organizationId = TenantContext.assertGet();
+  const ids = [...new Set(products.map((product) => Number(product.id)))];
+
+  const inStock = await db.Inventory.findAll({
+    where: { id: ids, companyId, organizationId },
+    transaction,
+    ...getLockOption(transaction),
+  });
+  const existing = new Map(inStock.map((inventory) => [inventory.id, inventory]));
+  const pending = new Map();
 
   for (const product of products) {
-    const { id, noOfBales, baleWeightKgs, baleWeightLbs, ratePerLbs, ratePerKgs, ratePerBale } = product;
+    const id = Number(product.id);
+    const inventory = existing.get(id);
 
-    let inventory = await db.Inventory.findOne({
-      where: { id, companyId, organizationId },
-      transaction,
-      ...getLockOption(transaction),
-    });
     if (inventory) {
-      await inventory.increment({ onHand: noOfBales || 0, noOfBales: noOfBales || 0 }, { transaction });
-
-      if (baleWeightKgs !== undefined) {
-        if (inventory.baleWeightKgs === null) {
-          await inventory.update({ baleWeightKgs: baleWeightKgs >= 0 ? baleWeightKgs : 0 }, { transaction });
-        } else {
-          await inventory.increment({ baleWeightKgs }, { transaction });
-        }
-      }
-
-      if (baleWeightLbs !== undefined) {
-        if (inventory.baleWeightLbs === null) {
-          await inventory.update({ baleWeightLbs: baleWeightLbs >= 0 ? baleWeightLbs : 0 }, { transaction });
-        } else {
-          await inventory.increment({ baleWeightLbs }, { transaction });
-        }
-      }
-
-      await inventory.update(
-        {
-          ratePerLbs: ratePerLbs || inventory.ratePerLbs,
-          ratePerKgs: ratePerKgs || inventory.ratePerKgs,
-          ratePerBale: ratePerBale || inventory.ratePerBale,
-        },
-        { transaction }
-      );
+      inventory.set(addPurchaseLine(inventory.get({ plain: true }), product));
+    } else if (pending.has(id)) {
+      pending.set(id, addPurchaseLine(pending.get(id), product));
     } else {
-      inventory = await db.Inventory.create(
-        { ...product, companyId, onHand: noOfBales || 0, baleWeightKgs, baleWeightLbs, organizationId },
-        { transaction }
-      );
+      pending.set(id, newStockRow(product, companyId, organizationId));
     }
-    results.push(inventory);
   }
-  return results;
+
+  for (const inventory of existing.values()) {
+    await inventory.save({ transaction });
+  }
+
+  const created = pending.size
+    ? await db.Inventory.bulkCreate([...pending.values()], { transaction, validate: true })
+    : [];
+  const rows = new Map([...existing, ...created.map((inventory) => [inventory.id, inventory])]);
+
+  return products.map((product) => rows.get(Number(product.id)));
+};
+
+const WEIGHT_FIELDS = ["baleWeightKgs", "baleWeightLbs"];
+
+// A missing or null weight leaves the stored weight as it is. An empty stored weight takes the purchased weight,
+// never below zero.
+const addPurchaseLine = (stock, product) => {
+  const bales = Number(product.noOfBales) || 0;
+  const next = {
+    ...stock,
+    onHand: stock.onHand + bales,
+    noOfBales: stock.noOfBales + bales,
+    ratePerLbs: product.ratePerLbs || stock.ratePerLbs,
+    ratePerKgs: product.ratePerKgs || stock.ratePerKgs,
+    ratePerBale: product.ratePerBale || stock.ratePerBale,
+  };
+
+  for (const field of WEIGHT_FIELDS) {
+    if (product[field] === undefined || product[field] === null) continue;
+
+    const weight = Number(product[field]);
+    next[field] = stock[field] === null ? Math.max(weight, 0) : stock[field] + weight;
+  }
+
+  return next;
+};
+
+const newStockRow = (product, companyId, organizationId) => {
+  const bales = Number(product.noOfBales) || 0;
+  const row = { ...product, id: Number(product.id), companyId, organizationId, onHand: bales, noOfBales: bales };
+
+  for (const field of WEIGHT_FIELDS) {
+    row[field] = product[field] === undefined || product[field] === null ? null : Number(product[field]);
+  }
+
+  return row;
 };
 
 // Ledger Update Logic
