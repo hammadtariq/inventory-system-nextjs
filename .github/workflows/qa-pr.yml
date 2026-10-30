@@ -54,14 +54,16 @@ jobs:
         continue-on-error: true
         env:
           QA_REPORT_DIR: reports/changed
-        run: pnpm exec playwright test --only-changed=origin/${{ github.base_ref }} --grep-invert @quarantine --pass-with-no-tests
+        run: $QA_TEST --only-changed=origin/${{ github.base_ref }} --grep-invert @quarantine --pass-with-no-tests
 
-      - name: Smoke tests
+      - name: Smoke tests and the areas this PR touches
         id: smoke
         continue-on-error: true
         env:
           QA_REPORT_DIR: reports/smoke
-        run: pnpm exec playwright test --grep @smoke --grep-invert @quarantine --pass-with-no-tests
+        run: |
+          grep=$(node .qa/scripts/areas.mjs --base origin/${{ github.base_ref }})
+          $QA_TEST --grep "$grep" --grep-invert @quarantine --pass-with-no-tests
 
       - name: Upload results to TestRail
         if: always() && env.TESTRAIL_URL != '' && vars.TESTRAIL_PROJECT_NAME != ''
@@ -72,6 +74,7 @@ jobs:
           PR_SHA: ${{ github.event.pull_request.head.sha }}
           TESTRAIL_PROJECT_NAME: ${{ vars.TESTRAIL_PROJECT_NAME }}
         run: |
+          [ "$(node .qa/scripts/cases.mjs tracker)" = testrail ] || { echo "The tracker is not TestRail (.qa/config.json); skipping upload."; exit 0; }
           ls reports/*/junit.xml >/dev/null 2>&1 || { echo "No JUnit reports"; exit 0; }
           grep -qs 'name="test_id"' reports/*/junit.xml || { echo "No tests are linked to TestRail cases yet (tr('C123')); skipping upload."; exit 0; }
           pip install --quiet trcli

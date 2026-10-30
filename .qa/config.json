@@ -1,7 +1,12 @@
 {
   "name": "TSO Inventory (StockFlow)",
-  "kitVersion": "0.5.0",
+  "kitVersion": "0.9.0",
   "testDir": "e2e",
+  "roles": {
+    "admin": {
+      "env": "QA_USER"
+    }
+  },
   "testrail": {
     "projectId": 1,
     "suiteId": 1,

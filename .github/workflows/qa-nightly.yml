@@ -58,7 +58,7 @@ jobs:
       - name: Full E2E regression
         id: run
         continue-on-error: true
-        run: pnpm exec playwright test --grep-invert @quarantine
+        run: $QA_TEST --grep-invert @quarantine
 
       - name: Update flaky history
         id: flaky
@@ -79,6 +79,7 @@ jobs:
           RUN_TITLE: ${{ steps.title.outputs.title }}
           TESTRAIL_PROJECT_NAME: ${{ vars.TESTRAIL_PROJECT_NAME }}
         run: |
+          [ "$(node .qa/scripts/cases.mjs tracker)" = testrail ] || { echo "The tracker is not TestRail (.qa/config.json); skipping upload."; exit 0; }
           [ -f reports/junit.xml ] || { echo "No JUnit report"; exit 0; }
           grep -qs 'name="test_id"' reports/junit.xml || { echo "No tests are linked to TestRail cases yet (tr('C123')); skipping upload."; exit 0; }
           pip install --quiet trcli

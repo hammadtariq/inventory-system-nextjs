@@ -46,7 +46,7 @@
       "Bash(node .qa/scripts/:*)",
       "mcp__playwright-test"
     ],
-    "deny": ["Read(./.env)", "Read(./playwright/.auth/**)"]
+    "deny": ["Read(./.env)", "Read(./playwright/.auth/**)", "Read(./.env.local)"]
   },
   "enabledMcpjsonServers": ["playwright-test"],
   "hooks": {

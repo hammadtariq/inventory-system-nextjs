@@ -1,69 +1,82 @@
 name: QA app setup
 description: >
-  Install dependencies, migrate and seed a throwaway Postgres (job service container) with the demo
-  organization, build the app and install Playwright's browser. Exports QA_USER_EMAIL/QA_USER_PASSWORD
-  and the EDITOR passwords for the tests. The job must define a `postgres` service on port 5432 (user/password postgres).
+  QA Kit: install dependencies with the repo's package manager (npm, pnpm or Yarn, from the lockfile)
+  and Node version (.nvmrc, else package.json engines, else 22), export the test login, run the repo's
+  .qa/app-setup.sh (database, seed, build in local-app mode) and install Playwright's browsers. In standalone
+  mode (`playwrightDir` in .qa/config.json, for repos without Node) the Node side lives in that folder.
+  Exports QA_TEST, the command that runs the tests from the repo root.
 
 inputs:
-  build:
-    description: Build the Next.js app (needed whenever tests run)
-    default: "true"
+  qa-user-email:
+    description: Test account email (secret). .qa/app-setup.sh may override it, e.g. with a per-run account.
+    default: ""
+  qa-user-password:
+    description: Test account password (secret)
+    default: ""
+  browsers:
+    description: Playwright browsers to install; "auto" reads the extra devices in .qa/config.json `browsers`
+    default: auto
 
 runs:
   using: composite
   steps:
-    - uses: pnpm/action-setup@v4
-      with:
-        version: 10
+    - name: Detect package manager and Node version
+      id: detect
+      shell: bash
+      run: |
+        # The runner's own Node reads the config (setup-node runs later, once the version is known); no config means ".".
+        dir=$(node -p "require('./.qa/config.json').playwrightDir || '.'" 2>/dev/null || echo .)
+        if [ -f "$dir/pnpm-lock.yaml" ]; then pm=pnpm; lock=pnpm-lock.yaml
+        elif [ -f "$dir/yarn.lock" ]; then pm=yarn; lock=yarn.lock
+        else pm=npm; lock=package-lock.json; fi
+        if [ -f "$dir/.nvmrc" ]; then node=$(tr -d 'v \n' < "$dir/.nvmrc")
+        elif [ -f .nvmrc ]; then node=$(tr -d 'v \n' < .nvmrc)
+        else node=$(node -p "((require('./$dir/package.json').engines||{}).node||'22').replace(/[^0-9.x]/g,'').split('.')[0] || '22'" 2>/dev/null || echo 22); fi
+        if [ "$dir" = "." ]; then qa_test="npx playwright test"; pw="npx playwright"
+        else qa_test="$dir/node_modules/.bin/playwright test -c $dir"; pw="$dir/node_modules/.bin/playwright"; fi
+        echo "dir=$dir" >> "$GITHUB_OUTPUT"
+        echo "pm=$pm" >> "$GITHUB_OUTPUT"
+        echo "lock=$dir/$lock" >> "$GITHUB_OUTPUT"
+        echo "node=${node:-22}" >> "$GITHUB_OUTPUT"
+        echo "pw=$pw" >> "$GITHUB_OUTPUT"
+        echo "QA_TEST=$qa_test" >> "$GITHUB_ENV"
+        echo "Playwright in: $dir, package manager: $pm, Node: ${node:-22}, tests: $qa_test"
+
+    - name: Install pnpm
+      if: steps.detect.outputs.pm == 'pnpm'
+      shell: bash
+      working-directory: ${{ steps.detect.outputs.dir }}
+      run: |
+        if node -e "process.exit(require('./package.json').packageManager ? 0 : 1)"; then corepack enable
+        else npm install -g pnpm@10 --silent; fi
 
     - uses: actions/setup-node@v4
       with:
-        node-version: 24
-        cache: pnpm
+        node-version: ${{ steps.detect.outputs.node }}
+        cache: ${{ steps.detect.outputs.pm }}
+        cache-dependency-path: ${{ steps.detect.outputs.lock }}
 
     - name: Install dependencies
       shell: bash
-      run: pnpm install --frozen-lockfile
+      working-directory: ${{ steps.detect.outputs.dir }}
+      run: |
+        case "${{ steps.detect.outputs.pm }}" in
+          pnpm) pnpm install --frozen-lockfile ;;
+          yarn) if [ -f .yarnrc.yml ]; then corepack enable && yarn install --immutable; else yarn install --frozen-lockfile; fi ;;
+          *) npm ci ;;
+        esac
 
-    - name: Prepare database and test credentials
+    - name: Test login
       shell: bash
       env:
-        PGPASSWORD: postgres
+        EMAIL: ${{ inputs.qa-user-email }}
+        PASSWORD: ${{ inputs.qa-user-password }}
       run: |
-        # The app role must not be the bootstrap superuser: the RLS migration demotes the role it runs as.
-        psql -h localhost -U postgres -c "CREATE ROLE qa_app LOGIN SUPERUSER PASSWORD 'qa_app';"
-        psql -h localhost -U postgres -c "CREATE DATABASE inventory_qa OWNER qa_app;"
-        # Throwaway passwords for the seeded logins (no repository secrets needed: the database is discarded).
-        PASS="Qa-$(openssl rand -hex 12)"
-        WAREHOUSE_PASS="Qa-$(openssl rand -hex 12)"
-        SALES_PASS="Qa-$(openssl rand -hex 12)"
-        echo "::add-mask::$PASS"
-        echo "::add-mask::$WAREHOUSE_PASS"
-        echo "::add-mask::$SALES_PASS"
-        {
-          echo "POSTGRES_HOST=localhost"
-          echo "POSTGRES_PORT=5432"
-          echo "POSTGRES_USER=qa_app"
-          echo "POSTGRES_PASSWORD=qa_app"
-          echo "POSTGRES_DB=inventory_qa"
-          echo "TOKEN_SECRET=$(openssl rand -hex 32)"
-          echo "NEXT_TELEMETRY_DISABLED=1"
-          echo "QA_USER_EMAIL=admin@trs.com"
-          echo "QA_USER_PASSWORD=$PASS"
-          echo "DEMO_ADMIN_PASSWORD=$PASS"
-          echo "DEMO_EDITOR_WAREHOUSE_PASSWORD=$WAREHOUSE_PASS"
-          echo "DEMO_EDITOR_SALES_PASSWORD=$SALES_PASS"
-        } >> "$GITHUB_ENV"
+        if [ -n "$EMAIL" ]; then echo "QA_USER_EMAIL=$EMAIL" >> "$GITHUB_ENV"; fi
+        if [ -n "$PASSWORD" ]; then echo "::add-mask::$PASSWORD"; echo "QA_USER_PASSWORD=$PASSWORD" >> "$GITHUB_ENV"; fi
 
-    - name: Migrate and seed the demo organization
-      shell: bash
-      run: |
-        pnpm db:migrate > /tmp/migrate.log 2>&1 || { tail -50 /tmp/migrate.log; exit 1; }
-        pnpm db:seed-demo-org > /tmp/seed.log 2>&1 || { tail -50 /tmp/seed.log; exit 1; }
-        grep -q "seeded successfully" /tmp/seed.log && echo "Demo organization seeded."
-
+    # Inventory-specific: .qa/app-setup.sh runs `pnpm build`; keep its cache between runs.
     - name: Cache Next.js build cache
-      if: inputs.build == 'true'
       uses: actions/cache@v4
       with:
         path: .next/cache
@@ -71,11 +84,24 @@ runs:
         restore-keys: |
           next-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
 
-    - name: Build the app
-      if: inputs.build == 'true'
+    - name: Prepare the app (.qa/app-setup.sh)
       shell: bash
-      run: pnpm build
+      run: |
+        if [ -f .qa/app-setup.sh ]; then bash .qa/app-setup.sh; else echo "No .qa/app-setup.sh"; fi
 
-    - name: Install Playwright browser
+    - name: Install Playwright browsers
       shell: bash
-      run: pnpm exec playwright install --with-deps chromium
+      env:
+        BROWSERS: ${{ inputs.browsers }}
+        PW_DIR: ${{ steps.detect.outputs.dir }}
+      run: |
+        if [ "$BROWSERS" = "auto" ]; then
+          # chromium, plus the engines of the devices in .qa/config.json browsers.devices (e.g. webkit for "iPhone 13").
+          BROWSERS=$(node -e "
+            const { devices } = require(require.resolve('@playwright/test', { paths: [require('path').resolve(process.env.PW_DIR)] }));
+            const names = (require('./.qa/config.json').browsers || {}).devices || [];
+            console.log([...new Set(['chromium', ...names.map((n) => devices[n] && devices[n].defaultBrowserType).filter(Boolean)])].join(' '));
+          ")
+        fi
+        echo "Installing: $BROWSERS"
+        ${{ steps.detect.outputs.pw }} install --with-deps $BROWSERS

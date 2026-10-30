@@ -1,5 +1,5 @@
 // Static parser for Playwright spec files: finds test declarations, their case ids
-// (tr('C123') annotations), tags and modifiers without running Playwright.
+// (tr('C123') annotations, or tr('PO-07') CSV keys without a tracker), tags and modifiers without running Playwright.
 
 import { readdirSync, readFileSync, statSync, existsSync } from "node:fs";
 import { join } from "node:path";
@@ -24,16 +24,21 @@ const DECL = /\btest(?:\.(only|skip|fixme|fail|slow))?\s*\(\s*(['"`])((?:\\.|(?!
 
 const lineOf = (text, idx) => text.slice(0, idx).split("\n").length;
 
+// A TestRail id (C123, or 123) or a cases-CSV key (PO-07), the same way tr() in fixtures.ts writes them.
+const ID = /^(?:C?\d+|[A-Z][\w]*-\d+)$/i;
+// Keep in step with tr() in the kit's e2e/fixtures.ts, which writes these ids.
+export const normalizeId = (id) => (/^C?\d+$/i.test(id) ? "C" + id.replace(/^C/i, "") : id.toUpperCase());
+export const isTestRailId = (id) => /^C\d+$/.test(id);
+
 function idsFrom(options) {
   const ids = new Set();
+  const add = (list) => {
+    for (const raw of list.split(",")) if (ID.test(raw.trim())) ids.add(normalizeId(raw.trim()));
+  };
   for (const m of options.matchAll(/\btr\(\s*([^)]*)\)/g)) {
-    for (const q of m[1].matchAll(/['"`]\s*(C?\d+(?:\s*,\s*C?\d+)*)\s*['"`]/gi)) {
-      for (const id of q[1].split(",")) ids.add("C" + id.trim().replace(/^C/i, ""));
-    }
+    for (const q of m[1].matchAll(/['"`]([^'"`]+)['"`]|\b(\d+)\b/g)) add(q[1] ?? q[2]);
   }
-  for (const m of options.matchAll(/type:\s*['"]test_id['"]\s*,\s*description:\s*['"]([^'"]+)['"]/g)) {
-    for (const id of m[1].split(",")) ids.add("C" + id.trim().replace(/^C/i, ""));
-  }
+  for (const m of options.matchAll(/type:\s*['"]test_id['"]\s*,\s*description:\s*['"]([^'"]+)['"]/g)) add(m[1]);
   return [...ids];
 }
 
@@ -78,4 +83,11 @@ export function loadQaConfig() {
   } catch {
     return {};
   }
+}
+
+// Where cases live: "testrail" (cases pushed to TestRail, tests carry tr('C123')) or "none" (the cases CSV is the
+// only record, tests carry the row's key). `tracker` in .qa/config.json, else TestRail when a project id is set.
+export function trackerOf(cfg = loadQaConfig()) {
+  if (cfg.tracker === "testrail" || cfg.tracker === "none") return cfg.tracker;
+  return cfg.testrail?.projectId ? "testrail" : "none";
 }
