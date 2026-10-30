@@ -273,5 +273,8 @@ const hydrateRevisedProducts = (revisionProducts, originalProducts, usesDeltaVal
   });
 };
 
+// Approval runs several sequential queries per product, which outgrows Vercel's 10s default on large purchases.
+export const config = { maxDuration: 60 };
+
 export { handler, approvePurchaseOrder, updateInventory, updateLedger };
 export default nextConnect({ onError }).use(auth).put(handler);
