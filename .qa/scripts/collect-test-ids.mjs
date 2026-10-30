@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// List every test with its TestRail case ids, tags and state, for the weekly upkeep.
+// List every test with its case ids (TestRail ids, or CSV keys without a tracker), tags and state, for the weekly upkeep.
 //   node .qa/scripts/collect-test-ids.mjs [dirs...] > reports/test-ids.json
 
-import { findSpecFiles, parseSpec, loadQaConfig } from "./lib/specs.mjs";
+import { findSpecFiles, parseSpec, loadQaConfig, trackerOf } from "./lib/specs.mjs";
 
 const cfg = loadQaConfig();
 const targets = process.argv.slice(2);
@@ -32,13 +32,14 @@ console.log(
   JSON.stringify(
     {
       generatedAt: new Date().toISOString(),
+      tracker: trackerOf(cfg),
       totals: {
         tests: tests.length,
         withIds: tests.filter((t) => t.caseIds.length).length,
         quarantined: tests.filter((t) => t.quarantined).length,
         fixme: tests.filter((t) => t.fixme).length,
       },
-      caseIds: Object.keys(byId).sort((a, b) => Number(a.slice(1)) - Number(b.slice(1))),
+      caseIds: Object.keys(byId).sort((a, b) => a.localeCompare(b, "en", { numeric: true })),
       duplicates: Object.fromEntries(Object.entries(byId).filter(([, l]) => l.length > 1)),
       missingIds: tests.filter((t) => !t.caseIds.length).map((t) => `${t.file}:${t.line} ${t.title}`),
       quarantined: tests
