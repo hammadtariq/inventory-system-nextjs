@@ -383,6 +383,38 @@ describe("approvePurchaseOrder", () => {
     expect(res.status).toBe(200);
     expect(mockTransaction.commit).toHaveBeenCalled();
   });
+
+  it("only reads and writes stock for the current organization, whatever the purchase line claims", async () => {
+    const mockTransaction = { commit: jest.fn(), rollback: jest.fn() };
+    db.sequelize.transaction.mockResolvedValue(mockTransaction);
+
+    db.Purchase.findOne.mockResolvedValue({
+      id: 903,
+      status: "PENDING",
+      totalAmount: 10,
+      revisionNo: 0,
+      purchaseDate: "2025-04-22T12:37:45.496Z",
+      companyId: 36,
+      purchasedProducts: [{ id: 777, organizationId: 99, itemName: "white bed cover", noOfBales: 4 }],
+      update: jest.fn().mockResolvedValue({ status: "APPROVED" }),
+    });
+    // Org 99's stock row for item 777 is not visible to org 23.
+    db.Inventory.findAll.mockResolvedValue([]);
+    db.Inventory.bulkCreate.mockResolvedValue([{ id: 777 }]);
+    db.Ledger.create.mockResolvedValue({ id: 1 });
+    balanceQuery.mockResolvedValue([{ amount: 0 }]);
+
+    const res = await TenantContext.run(23, async () => approvePurchaseOrder(903, { role: "ADMIN" }));
+
+    expect(db.Inventory.findAll).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: [777], companyId: 36, organizationId: 23 } })
+    );
+    expect(db.Inventory.bulkCreate).toHaveBeenCalledWith(
+      [expect.objectContaining({ id: 777, organizationId: 23, companyId: 36 })],
+      expect.any(Object)
+    );
+    expect(res.status).toBe(200);
+  });
 });
 
 describe("updateLedger", () => {

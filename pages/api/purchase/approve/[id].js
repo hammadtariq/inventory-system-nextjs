@@ -108,8 +108,10 @@ const updateInventory = async (products, companyId, transaction) => {
   const organizationId = TenantContext.assertGet();
   const ids = [...new Set(products.map((product) => Number(product.id)))];
 
+  // Lock in id order so two approvals sharing items always lock them in the same order and can't deadlock.
   const inStock = await db.Inventory.findAll({
     where: { id: ids, companyId, organizationId },
+    order: [["id", "ASC"]],
     transaction,
     ...getLockOption(transaction),
   });
