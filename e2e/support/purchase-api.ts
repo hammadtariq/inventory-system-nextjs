@@ -1,4 +1,11 @@
-import { expect, test, request as playwrightRequest, type APIRequestContext, type APIResponse } from "@playwright/test";
+import {
+  expect,
+  test,
+  request as playwrightRequest,
+  type APIRequestContext,
+  type APIResponse,
+  type Page,
+} from "@playwright/test";
 
 /**
  * API helpers for purchase-order tests (specs/purchase-orders.md). Tests create their own data
@@ -238,6 +245,15 @@ export const editPurchase = (api: APIRequestContext, id: number, body: Record<st
 
 export const approve = (api: APIRequestContext, id: number) => api.put(`/api/purchase/approve/${id}`);
 export const cancel = (api: APIRequestContext, id: number) => api.put(`/api/purchase/cancel/${id}`);
+
+/** Approve from the purchase list (check icon, then Yes) and wait for the row to show APPROVED. */
+export async function approveFromList(page: Page, invoiceNumber: string) {
+  const row = page.getByRole("row").filter({ hasText: invoiceNumber });
+  await page.goto("/purchase");
+  await row.getByRole("img", { name: "check" }).click();
+  await page.getByRole("button", { name: "Yes" }).click();
+  await expect(row).toContainText("APPROVED");
+}
 
 export async function approveOk(api: APIRequestContext, id: number) {
   const res = await approve(api, id);
