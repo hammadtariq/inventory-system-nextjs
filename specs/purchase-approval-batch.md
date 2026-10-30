@@ -31,8 +31,8 @@ supplier company 117, purchases 1527-1531.
   After re-approval it read item 49 as still 2 on hand. That contradicts PO-20's "item removed" row, which
   passed on this branch on 2026-10-30. It also contradicts a simulation of `calculateDifferences` +
   `buildRevisionInventoryAdjustments`, which yields −2 for the removed line. PAB-02 asserts the business
-  rule (back to 0) and is marked "May fail" until a QA engineer reproduces it. If it reproduces, raise a
-  `qa:gate-4` issue.
+  rule (back to 0) as a normal step, not a known bug (review, 2026-10-30). If that step fails, draft a
+  `qa:gate-4` issue for a QA engineer to reproduce.
 - **Q2 (owner):** stock stores `baleWeightKgs` as a running sum of each approval's per-bale weight, not a
   per-bale weight or a total weight (5 bales × 20 kg then 2 bales × 15 kg gives 35). What should the stock
   weight mean? Weight assertions are left out of PAB-01/02 until this is answered.
@@ -80,16 +80,16 @@ Then the purchase shows APPROVED
 - Data: 50 BIG_BALES items; items 00-24 stocked first by an approved purchase of 5 bales x 20 kg x Rs 10/kg (Rs 25,000). Line i: bales = (i mod 7) + 2; even i weight-priced (15 + i mod 5 kg, Rs 12/kg), odd i bale-priced (Rs 100 + i per bale). Compute expected values with lineTotal/purchaseTotal in e2e/support/purchase-api.ts.
 - Assert all 50 stock rows (GET /api/inventory), not only the samples; check the Inventory screen for item 01 (On Hand 8) and the Ledger screen balance 65,698.00.
 - Weight checks are left out on purpose: stored kg is summed per approval (20 + 15 = 35), see open question Q2.
-- A local database answers in ~1 ms, so this case can't show the production slowdown; the query-count test in __tests__/api/purchase/approve-inventory-pg.test.js guards that. Keep a loose ceiling (approve answers within 10 s) as a smoke signal only.
+- A local database answers in ~1 ms, so this case can't show the production slowdown; the query-count test in **tests**/api/purchase/approve-inventory-pg.test.js guards that. Keep a loose ceiling (approve answers within 10 s) as a smoke signal only.
 
 #### 1.2. Re-approving a revised large purchase applies only the differences
 
-**TestRail:** — (not pushed yet) · **Key:** PAB-02 · **Priority:** P1 · **Type:** Regression · **Risks:** 2, 1, 5 · **Source:** #257 Done when (revision path); business context rule 'Revising an approved purchase' · **May fail (Q1): the planner saw item 49 stay at 2 bales after re-approval; PO-20's removed-line row passes and the diff code subtracts removed lines, so this is unconfirmed**
+**TestRail:** — (not pushed yet) · **Key:** PAB-02 · **Priority:** P1 · **Type:** Regression · **Risks:** 2, 1, 5 · **Source:** #257 Done when (revision path); business context rule 'Revising an approved purchase'
 **File:** `e2e/purchase/approval-batch.spec.ts`
 **Why it matters:** Supplier invoices for big loads are corrected after approval; counting the whole purchase again, or keeping removed bales, inflates stock and the amount owed.
 
 ```gherkin
-Given the 50-line purchase from PAB-01 is approved and the supplier balance is Rs 65,698
+Given an approved 50-line purchase of Rs 40,698 for supplier "Ridgeway Textiles", whose balance is Rs 65,698
 When the owner revises it: 3 more bales on items 00-02, 1 fewer on items 03-04, item 49 removed, new item 50 with 4 bales
 Then the purchase is PENDING at revision 1 and stock and the balance are unchanged
 When the owner approves it again from the purchase list
@@ -98,7 +98,8 @@ Then items 00-02 rise by 3 (item 00: 7 to 10), items 03-04 fall by 1 (item 03: 1
 ```
 
 - Explored 2026-10-30 (purchase 1528): revise via PUT /api/purchase/{id}, re-approve 200 in 117 ms; values above are from the run.
-- Assert item 49 in its own test.step after the other checks so a failure there doesn't hide them.
+- Set up the approved 50-line purchase in this test (same data as PAB-01), never reuse PAB-01's records.
+- Assert item 49 in its own test.step after the other checks so a failure there doesn't hide them. The planner once saw item 49 stay at 2 bales (Q1, unconfirmed: PO-20 passes and the code subtracts removed lines); if this step fails, draft a qa:gate-4 issue.
 - Existing PO-18/PO-20 cover each kind of correction on 1-2 lines; this case adds the batch path with a mix of increases, decreases, a removal and a never-stocked item in one approval.
 
 ### 2. Approving together
@@ -140,7 +141,7 @@ When the owner approves it again
 Then each stocked item shows its previous bales plus its line's bales, once (5 + 2 = 7 for item 00)
 ```
 
-- Real Postgres via __tests__/api/purchase/pg-harness.js: make updateLedger (or the bulkCreate) throw after the saves and check the rollback. The mocked "should handle DB error and rollback" test in approve.test.js only checks that rollback() was called.
+- Real Postgres via **tests**/api/purchase/pg-harness.js: make updateLedger (or the bulkCreate) throw after the saves and check the rollback. The mocked "should handle DB error and rollback" test in approve.test.js only checks that rollback() was called.
 
 <!-- cases:end -->
 
