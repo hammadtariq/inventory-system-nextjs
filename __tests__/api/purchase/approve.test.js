@@ -58,6 +58,34 @@ describe("approvePurchaseOrder", () => {
     expect(res.body.message).toMatch(/does not exist/);
   });
 
+  it("returns 404 and changes nothing when approving another organization's purchase", async () => {
+    const mockTransaction = { commit: jest.fn(), rollback: jest.fn() };
+    db.sequelize.transaction.mockResolvedValue(mockTransaction);
+    const otherOrgPurchase = {
+      id: 950,
+      organizationId: 99,
+      status: "PENDING",
+      revisionNo: 0,
+      companyId: 36,
+      purchasedProducts: [{ id: 524, noOfBales: 10 }],
+      update: jest.fn(),
+    };
+    // Behaves like the database: matches on every column the query filters by, and only those.
+    db.Purchase.findOne.mockImplementation(async ({ where }) =>
+      Object.entries(where).every(([column, value]) => otherOrgPurchase[column] === value) ? otherOrgPurchase : null
+    );
+
+    const res = await TenantContext.run(23, async () => approvePurchaseOrder(950, { role: "ADMIN" }));
+
+    expect(res.status).toBe(404);
+    expect(otherOrgPurchase.update).not.toHaveBeenCalled();
+    expect(db.Inventory.findAll).not.toHaveBeenCalled();
+    expect(db.Inventory.bulkCreate).not.toHaveBeenCalled();
+    expect(db.Ledger.create).not.toHaveBeenCalled();
+    expect(mockTransaction.rollback).toHaveBeenCalled();
+    expect(mockTransaction.commit).not.toHaveBeenCalled();
+  });
+
   it("should return 400 if purchase is already approved", async () => {
     db.Purchase.findOne.mockResolvedValue({ status: "APPROVED" });
     const res = await TenantContext.run(23, async () => approvePurchaseOrder(1, { role: "ADMIN" }));
