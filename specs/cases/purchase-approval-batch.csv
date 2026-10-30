@@ -1,0 +1,32 @@
+﻿key,testrail_id,section,title,priority,type,level,risks,score,why_it_matters,background,scenario,preconditions,steps,expected,data,notes,known_issue,source,file,suggestion,decision,review_notes
+PAB-01,,Large purchases,Approving a 50-line purchase adds every line's bales and charges once,P1,Regression,ui,2;1,,Large supplier invoices are where approvals timed out in production (purchases 1207-1209); a half-applied or missing line leaves stock and the supplier balance wrong.,,"Given supplier ""Ridgeway Textiles"" has 25 items in stock at 5 bales each and a balance of Rs 25,000
+And a pending purchase of 50 lines totalling Rs 40,698: those 25 items plus 25 items never stocked
+When the owner approves the purchase from the purchase list
+Then the purchase shows APPROVED
+And each stocked item rises by its bales (item 00: 5 to 7, item 01: 5 to 8) and each new item shows exactly its bales (item 25: 6)
+And the supplier statement has one new DEBIT of Rs 40,698 and a balance of Rs 65,698",,,,,"Explored 2026-10-30 on the local demo org (company 117, purchase 1528): approve PUT /api/purchase/approve/{id} returned 200 in 258 ms.
+Data: 50 BIG_BALES items; items 00-24 stocked first by an approved purchase of 5 bales x 20 kg x Rs 10/kg (Rs 25,000). Line i: bales = (i mod 7) + 2; even i weight-priced (15 + i mod 5 kg, Rs 12/kg), odd i bale-priced (Rs 100 + i per bale). Compute expected values with lineTotal/purchaseTotal in e2e/support/purchase-api.ts.
+Assert all 50 stock rows (GET /api/inventory), not only the samples; check the Inventory screen for item 01 (On Hand 8) and the Ledger screen balance 65,698.00.
+Weight checks are left out on purpose: stored kg is summed per approval (20 + 15 = 35), see open question Q2.
+A local database answers in ~1 ms, so this case can't show the production slowdown; the query-count test in __tests__/api/purchase/approve-inventory-pg.test.js guards that. Keep a loose ceiling (approve answers within 10 s) as a smoke signal only.",,#257 Done when; business context rule 'Approving a purchase',e2e/purchase/approval-batch.spec.ts,Keep,,
+PAB-02,,Large purchases,Re-approving a revised large purchase applies only the differences,P1,Regression,ui,2;1;5,,"Supplier invoices for big loads are corrected after approval; counting the whole purchase again, or keeping removed bales, inflates stock and the amount owed.",,"Given the 50-line purchase from PAB-01 is approved and the supplier balance is Rs 65,698
+When the owner revises it: 3 more bales on items 00-02, 1 fewer on items 03-04, item 49 removed, new item 50 with 4 bales
+Then the purchase is PENDING at revision 1 and stock and the balance are unchanged
+When the owner approves it again from the purchase list
+Then items 00-02 rise by 3 (item 00: 7 to 10), items 03-04 fall by 1 (item 03: 10 to 9), item 50 shows 4 and every other item is unchanged
+And item 49 goes back to 0 and the purchase still has one supplier entry, now Rs 42,316, with a balance of Rs 67,316",,,,,"Explored 2026-10-30 (purchase 1528): revise via PUT /api/purchase/{id}, re-approve 200 in 117 ms; values above are from the run.
+Assert item 49 in its own test.step after the other checks so a failure there doesn't hide them.
+Existing PO-18/PO-20 cover each kind of correction on 1-2 lines; this case adds the batch path with a mix of increases, decreases, a removal and a never-stocked item in one approval.","May fail (Q1): the planner saw item 49 stay at 2 bales after re-approval; PO-20's removed-line row passes and the diff code subtracts removed lines, so this is unconfirmed",#257 Done when (revision path); business context rule 'Revising an approved purchase',e2e/purchase/approval-batch.spec.ts,Keep,,
+PAB-03,,Approving together,"Two purchases sharing items, approved at the same moment, both reach stock",P2,Regression,api,2,,"The owner approves staff's purchases in batches and two admins can approve at once; if one approval fails or overwrites the other, bales go missing from stock.",,"Given items A and B of supplier ""Ridgeway Textiles"" each have 10 bales in stock
+And pending purchase P1 lists A 3 bales then B 2 bales, and pending purchase P2 lists B 4 bales then A 5 bales
+When the owner approves P1 and P2 at the same moment
+Then both purchases show APPROVED
+And A shows 18 bales and B shows 16 bales",,,,,"Send both PUT /api/purchase/approve/{id} in parallel (Promise.all) and run with --repeat-each=5. The opposite line order is the point: approval locks stock rows in id order so overlapping approvals can't deadlock; a deadlock shows up as one 500.
+Don't assert the ledger balance here: two approvals for one supplier race on the balance (D11, #220, PO-12). Assert only that each purchase has one DEBIT for its own total.
+Not explored in the browser.",,Lock-ordering change in #257 (commit 555fed9),e2e/purchase/concurrency.spec.ts,Keep,,
+PAB-04,,For developers,"A failed approval leaves stock, ledger and status as they were",P1,Regression,unit,2;1,,"The production timeouts cut approvals off mid-way; if part of a batch had been written, retrying would count those bales twice.",,"Given a pending 50-line purchase where 25 items are already stocked
+When its approval fails after the stock rows are written but before it finishes
+Then every stock row has its previous bales and no new stock row exists
+And the purchase is still PENDING with no supplier entry
+When the owner approves it again
+Then each stocked item shows its previous bales plus its line's bales, once (5 + 2 = 7 for item 00)",,,,,"Real Postgres via __tests__/api/purchase/pg-harness.js: make updateLedger (or the bulkCreate) throw after the saves and check the rollback. The mocked ""should handle DB error and rollback"" test in approve.test.js only checks that rollback() was called.",,#256/#257 production incident,__tests__/api/purchase/approve-inventory-pg.test.js,Keep,,
