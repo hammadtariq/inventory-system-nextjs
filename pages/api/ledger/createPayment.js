@@ -4,6 +4,7 @@ import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { createLedgerPayment } from "@/lib/ledger";
 import TenantContext from "@/lib/tenant-context";
+import { PAYMENT_TYPE } from "@/utils/api.util";
 
 const ROLE_TYPES = ["company", "customer"];
 const OTHER_SENTINEL = -1;
@@ -21,7 +22,12 @@ const apiSchema = Joi.object({
   payById: Joi.number().integer().positive().allow(OTHER_SENTINEL),
   totalAmount: Joi.number().greater(0).required(),
   spendType: Joi.string().trim().required(),
-  paymentType: Joi.string().trim().required(),
+  // Restricted so every stored paymentType is one the balance rule (utils/ledger-balance.util.js)
+  // and customerSumQuery know how to sign.
+  paymentType: Joi.string()
+    .trim()
+    .valid(...Object.values(PAYMENT_TYPE))
+    .required(),
   paymentDate: Joi.string().trim().required(),
   otherName: Joi.string().trim().optional().allow(""),
   chequeId: Joi.string().trim().when("paymentType", { is: "CHEQUE", then: Joi.required(), otherwise: Joi.optional() }),

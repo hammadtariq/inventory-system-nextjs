@@ -3,12 +3,13 @@
 // -9,11,566.43, while the page's Total Balance (customerSumQuery) showed -12,71,566.43.
 //
 // The live total treats REFUND as -amount and INVENTORY_RETURN / cash as +amount
-// (query/index.js customerSumQuery, pages/api/ledger/[id].js computeEntryDelta). The stored
+// (query/index.js customerSumQuery, utils/ledger-balance.util.js computeEntryDelta). The stored
 // per-row customerTotal written by createLedgerPayment must follow the same direction.
 import { createLedgerPayment } from "@/lib/ledger";
 import db from "@/lib/postgres";
 import TenantContext from "@/lib/tenant-context";
 import { balanceQuery } from "@/utils/query.utils";
+import { computeEntryDelta } from "@/utils/ledger-balance.util";
 
 jest.mock("@/lib/postgres", () => ({
   __esModule: true,
@@ -69,23 +70,20 @@ describe("createLedgerPayment: direction of customer refunds and returns", () =>
   });
 
   it("the stored row balance equals what the live total becomes after the entry", async () => {
-    // Same rule as customerSumQuery / computeEntryDelta for a customerId-only row.
-    const liveDelta = (paymentType, amount) => (paymentType === "REFUND" ? -amount : amount);
+    // computeEntryDelta is what the page's running balance uses; its parity with
+    // customerSumQuery is checked in __tests__/utils/ledger-balance.util.test.js.
     const prior = -1091566.43;
 
-    for (const paymentType of ["REFUND", "INVENTORY_RETURN"]) {
+    for (const paymentType of ["REFUND", "INVENTORY_RETURN", "CASH", "ONLINE", "CHEQUE"]) {
       jest.clearAllMocks();
       balanceQuery.mockResolvedValue([{ amount: prior }]);
+      const spendType = paymentType === "REFUND" ? "CREDIT" : "DEBIT";
 
-      await createCustomerOnlyEntry({
-        totalAmount: 180000,
-        spendType: paymentType === "REFUND" ? "CREDIT" : "DEBIT",
-        paymentType,
-      });
+      await createCustomerOnlyEntry({ totalAmount: 180000, spendType, paymentType });
 
       expect({ paymentType, customerTotal: savedRow().customerTotal }).toEqual({
         paymentType,
-        customerTotal: expect.closeTo(prior + liveDelta(paymentType, 180000), 2),
+        customerTotal: expect.closeTo(prior + computeEntryDelta("customer", paymentType, spendType, 180000), 2),
       });
     }
   });

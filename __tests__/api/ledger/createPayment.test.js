@@ -142,6 +142,19 @@ describe("createPayment API", () => {
     );
   });
 
+  it("rejects a paymentType the ledger balance rule doesn't know", async () => {
+    await run({
+      customerId: 5,
+      totalAmount: 1000,
+      spendType: "DEBIT",
+      paymentType: "INVENTORY REFUND",
+      paymentDate: PAYMENT_DATE,
+    });
+
+    expect(res.statusCode).toBe(400);
+    expect(createLedgerPayment).not.toHaveBeenCalled();
+  });
+
   it("rejects the same company on both sides", async () => {
     await run({
       payToType: "company",
