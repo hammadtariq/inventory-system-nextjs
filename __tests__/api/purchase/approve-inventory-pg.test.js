@@ -9,6 +9,7 @@ const { db } = harness;
 const ORG = 23;
 const OTHER_ORG = 99;
 const COMPANY = 36;
+const OTHER_COMPANY = 37;
 
 const stockRow = (overrides = {}) => ({
   companyId: COMPANY,
@@ -37,7 +38,20 @@ const describeWithDb = harness.hasDatabase ? describe : describe.skip;
 
 describeWithDb("updateInventory on Postgres", () => {
   beforeAll(() => harness.resetSchema());
-  beforeEach(() => db.Inventory.destroy({ truncate: true, tenantBypass: true }));
+  beforeEach(async () => {
+    await db.Inventory.destroy({ truncate: true, tenantBypass: true });
+    await db.Items.destroy({ truncate: true, tenantBypass: true });
+    await db.Items.bulkCreate(
+      [2, 7, 100, 101, 102, 103, 104].map((id) => ({
+        id,
+        companyId: COMPANY,
+        organizationId: ORG,
+        itemName: `item ${id}`,
+        type: "BIG_BALES",
+      })),
+      { tenantBypass: true }
+    );
+  });
   afterAll(() => harness.close());
 
   it("adds purchased bales to an item already in stock", async () => {
@@ -176,5 +190,24 @@ describeWithDb("updateInventory on Postgres", () => {
     await expect(approve([{ id: 1, itemName: "white bed cover", noOfBales: 10 }])).rejects.toThrow();
 
     expect(await row(1)).toMatchObject({ organizationId: OTHER_ORG, noOfBales: 4, onHand: 4 });
+  });
+
+  it.each([
+    ["another organization", { companyId: COMPANY, organizationId: OTHER_ORG }],
+    ["another supplier", { companyId: OTHER_COMPANY, organizationId: ORG }],
+  ])("refuses a purchase with an item of %s and writes no stock", async (_, owner) => {
+    await db.Items.create({ id: 200, itemName: "foreign item", type: "BIG_BALES", ...owner }, { tenantBypass: true });
+    await seed([{ id: 2, noOfBales: 4, onHand: 4 }]);
+
+    await expect(
+      approve([
+        { id: 2, noOfBales: 1 },
+        { id: 7, itemName: "item 7", noOfBales: 3 },
+        { id: 200, itemName: "foreign item", noOfBales: 5 },
+      ])
+    ).rejects.toThrow("one or more purchased products were not found");
+
+    expect(await row(2)).toMatchObject({ noOfBales: 4, onHand: 4 });
+    expect(await db.Inventory.count({ where: { id: [7, 200] }, tenantBypass: true })).toBe(0);
   });
 });

@@ -36,6 +36,12 @@ const handler = async (req, res) => {
   }
 };
 
+class PurchaseProductNotFoundError extends Error {
+  constructor() {
+    super("one or more purchased products were not found");
+  }
+}
+
 const approvePurchaseOrder = async (id, user) => {
   try {
     requireRole("ADMIN", "SUPER_ADMIN")(user);
@@ -97,6 +103,9 @@ const approvePurchaseOrder = async (id, user) => {
     };
   } catch (error) {
     if (t) await t.rollback();
+    if (error instanceof PurchaseProductNotFoundError) {
+      return { status: 404, body: { message: error.message } };
+    }
     return { status: 500, body: { message: error.message } };
   }
 };
@@ -116,6 +125,14 @@ const updateInventory = async (products, companyId, transaction) => {
     ...getLockOption(transaction),
   });
   const existing = new Map(inStock.map((inventory) => [inventory.id, inventory]));
+  const newIds = ids.filter((id) => !existing.has(id));
+  if (newIds.length) {
+    const items = await db.Items.findAll({
+      where: { id: newIds, companyId, organizationId },
+      transaction,
+    });
+    if (items.length !== newIds.length) throw new PurchaseProductNotFoundError();
+  }
   const pending = new Map();
 
   for (const product of products) {

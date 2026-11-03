@@ -12,6 +12,7 @@ jest.mock("@/lib/postgres", () => ({
   Company: {
     findOne: jest.fn(),
   },
+  Items: { findAll: jest.fn() },
   PurchaseHistory: {
     create: jest.fn().mockResolvedValue({}), // mock it so it doesn't throw
   },
@@ -20,6 +21,77 @@ jest.mock("@/lib/postgres", () => ({
 describe("updatePurchaseOrder", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it("rejects an unowned product without changing a pending purchase", async () => {
+    const original = { id: 1, companyId: 6, status: "PENDING", revisionNo: 0 };
+    const purchase = { ...original, toJSON: () => original, update: jest.fn() };
+    db.Purchase.findOne.mockResolvedValue(purchase);
+    db.Items.findAll.mockResolvedValue([]);
+    const { req, res } = createMocks({
+      method: "PUT",
+      query: { id: 1 },
+      body: { purchasedProducts: [{ id: 999999 }] },
+    });
+    await TenantContext.run(23, () => updatePurchaseOrder(req, res));
+    expect(res._getStatusCode()).toBe(404);
+    expect(purchase.update).not.toHaveBeenCalled();
+    expect(db.PurchaseHistory.create).not.toHaveBeenCalled();
+  });
+
+  describe.each(["PENDING", "APPROVED"])("%s product ownership", (status) => {
+    it.each([
+      ["another organization", { id: 20, organizationId: 99, companyId: 6 }],
+      ["another company", { id: 20, organizationId: 23, companyId: 7 }],
+      ["missing item", null],
+    ])("rejects mixed valid and %s products without any writes", async (_, invalidItem) => {
+      const original = { id: 1, companyId: 6, status, revisionNo: 0, purchasedProducts: [{ id: 10 }] };
+      const purchase = { ...original, toJSON: () => original, update: jest.fn() };
+      db.Purchase.findOne.mockResolvedValue(purchase);
+      const items = [{ id: 10, organizationId: 23, companyId: 6 }, invalidItem].filter(Boolean);
+      db.Items.findAll.mockImplementation(async ({ where }) =>
+        items.filter(
+          (item) =>
+            where.id.includes(item.id) &&
+            item.companyId === where.companyId &&
+            item.organizationId === where.organizationId
+        )
+      );
+      const { req, res } = createMocks({
+        method: "PUT",
+        query: { id: 1 },
+        body: { purchasedProducts: [{ id: 10 }, { id: 20 }] },
+      });
+      await TenantContext.run(23, () => updatePurchaseOrder(req, res));
+      expect(res._getStatusCode()).toBe(404);
+      expect(purchase.update).not.toHaveBeenCalled();
+      expect(db.PurchaseHistory.create).not.toHaveBeenCalled();
+    });
+
+    it.each([undefined, 7])("accepts duplicate owned products for effective company %s", async (companyId) => {
+      const original = { id: 1, companyId: 6, status, revisionNo: 0, purchasedProducts: [] };
+      const purchase = { ...original, toJSON: () => original, update: jest.fn().mockResolvedValue({}) };
+      db.Purchase.findOne.mockResolvedValue(purchase);
+      db.Company.findOne.mockResolvedValue({ id: 7 });
+      const item = { id: 10, organizationId: 23, companyId: companyId ?? 6 };
+      db.Items.findAll.mockImplementation(async ({ where }) =>
+        where.id.includes(item.id) && where.companyId === item.companyId && where.organizationId === item.organizationId
+          ? [item]
+          : []
+      );
+      const products = [
+        { id: 10, noOfBales: 2 },
+        { id: 10, noOfBales: 3 },
+      ];
+      const { req, res } = createMocks({
+        method: "PUT",
+        query: { id: 1 },
+        body: { purchasedProducts: products, ...(companyId ? { companyId } : {}) },
+      });
+      await TenantContext.run(23, () => updatePurchaseOrder(req, res));
+      expect(res._getStatusCode()).toBe(200);
+      expect(purchase.update).toHaveBeenCalledWith(expect.objectContaining({ purchasedProducts: products }));
+    });
   });
 
   it("should return 400 if Joi validation fails", async () => {
