@@ -36,6 +36,12 @@ const handler = async (req, res) => {
   }
 };
 
+class PurchaseProductNotFoundError extends Error {
+  constructor() {
+    super("one or more purchased products were not found");
+  }
+}
+
 const approvePurchaseOrder = async (id, user) => {
   try {
     requireRole("ADMIN", "SUPER_ADMIN")(user);
@@ -103,12 +109,6 @@ const approvePurchaseOrder = async (id, user) => {
     return { status: 500, body: { message: error.message } };
   }
 };
-
-class PurchaseProductNotFoundError extends Error {
-  constructor() {
-    super("one or more purchased products were not found");
-  }
-}
 
 // Consolidated Inventory Update
 // Each query is a round trip to the database, so lock every affected row in one read, apply the purchase lines
