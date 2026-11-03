@@ -61,3 +61,6 @@ playwright-report/
 playwright/.auth/
 .qa-cache/
 .mcp.json.qa-backup
+
+# Output of scripts/repair-customer-ledger-balances.js (contains ledger data)
+ledger-balance-repair-*.csv

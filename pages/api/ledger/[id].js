@@ -4,22 +4,9 @@ import { Op } from "sequelize";
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
 import { companySumQuery, customerSumQuery } from "@/query/index";
-import { resolveLedgerPartyFields, CASH_LIKE_PAYMENT_TYPES } from "@/utils/query.utils";
+import { resolveLedgerPartyFields } from "@/utils/query.utils";
+import { computeEntryDelta } from "@/utils/ledger-balance.util";
 import TenantContext from "@/lib/tenant-context";
-
-const computeEntryDelta = (type, paymentType, spendType, amount) => {
-  if (type === "company") {
-    if (CASH_LIKE_PAYMENT_TYPES.has(paymentType) || spendType === "CREDIT") return -amount;
-    if (spendType === "DEBIT") return amount;
-    return 0;
-  }
-  // customer
-  if (paymentType === "REFUND") return -amount;
-  if (CASH_LIKE_PAYMENT_TYPES.has(paymentType) || paymentType === "INVENTORY_RETURN") return amount;
-  if (spendType === "DEBIT") return amount;
-  if (spendType === "CREDIT") return -amount;
-  return 0;
-};
 
 export const getTransactions = async (req, res) => {
   console.log("get transaction Request Start");

@@ -39,7 +39,7 @@ describe("createLedgerPayment", () => {
       expect.objectContaining({
         customerId: 5,
         amount: 25,
-        customerTotal: 125,
+        customerTotal: 75, // refund reduces the balance: 100 - 25
         organizationId: 77,
       }),
       undefined
@@ -80,7 +80,7 @@ describe("createLedgerPayment", () => {
         companyId: 1,
         customerId: 5,
         companyTotal: 475,
-        customerTotal: 175,
+        customerTotal: 225, // cash paid by the customer raises their balance, same as payByTotal
         totalBalance: 475,
         payToCompanyId: 1,
         payToCustomerId: null,
