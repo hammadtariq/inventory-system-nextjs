@@ -88,3 +88,36 @@ describe("createLedgerPayment: direction of customer refunds and returns", () =>
     }
   });
 });
+
+describe("createLedgerPayment: direction of company-only entries", () => {
+  const createCompanyOnlyEntry = (fields) =>
+    TenantContext.run(77, () =>
+      createLedgerPayment({ companyId: 3, paymentDate: "2026-11-02", reference: "", ...fields })
+    );
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    db.Ledger.create.mockResolvedValue({ id: 1 });
+  });
+
+  it("the stored row balance equals what the live total becomes after the entry", async () => {
+    // Same rule as the company running balance and companySumQuery: cash-like or CREDIT
+    // reduces the balance, any other DEBIT increases it.
+    const prior = 500;
+
+    for (const paymentType of ["REFUND", "INVENTORY_RETURN", "CASH", "ONLINE", "CHEQUE"]) {
+      for (const spendType of ["DEBIT", "CREDIT"]) {
+        jest.clearAllMocks();
+        balanceQuery.mockResolvedValue([{ amount: prior }]);
+
+        await createCompanyOnlyEntry({ totalAmount: 25, spendType, paymentType });
+
+        expect({ paymentType, spendType, companyTotal: savedRow().companyTotal }).toEqual({
+          paymentType,
+          spendType,
+          companyTotal: prior + computeEntryDelta("company", paymentType, spendType, 25),
+        });
+      }
+    }
+  });
+});
