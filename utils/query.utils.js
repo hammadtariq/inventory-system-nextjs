@@ -7,8 +7,8 @@ import { CASH_LIKE_PAYMENT_TYPES } from "@/utils/ledger-balance.util";
 // always persist spendType: DEBIT via pages/ledger/create.js, regardless of actual direction —
 // see resolveLedgerPartyFields below for why. A cash-like paymentType is what distinguishes a
 // manual payment row from a real purchase-created row (paymentType blank, spendType already
-// correct — purchase/approve.js sets it directly, not through this form).
-export { CASH_LIKE_PAYMENT_TYPES } from "@/utils/ledger-balance.util";
+// correct — purchase/approve.js sets it directly, not through this form). CASH_LIKE_PAYMENT_TYPES
+// lives in utils/ledger-balance.util.js; import it from there.
 
 // Resolves the pay-to/pay-by display name, the selected party's running balance, and the
 // Debit/Credit display direction for one ledger row. Legacy rows (no role columns set) keep

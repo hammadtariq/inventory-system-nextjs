@@ -165,13 +165,14 @@ async function run(argv = process.argv.slice(2)) {
     );
 
     // In apply mode, each org's rows are written here before they are updated, so the file is a
-    // complete record of old values even if a later org fails.
+    // complete record of old values even if a later org fails. It holds ledger data: owner-only
+    // permissions, gitignored (ledger-balance-repair-*.csv), and the run ends with a reminder.
     const csvPath = path.resolve(
       `ledger-balance-repair-${args.apply ? "applied" : "dry-run"}-${new Date()
         .toISOString()
         .replace(/[:.]/g, "-")}.csv`
     );
-    fs.writeFileSync(csvPath, CSV_COLUMNS.join(",") + "\n");
+    fs.writeFileSync(csvPath, CSV_COLUMNS.join(",") + "\n", { mode: 0o600 });
 
     const allFindings = [];
     const applied = [];
@@ -268,6 +269,9 @@ async function run(argv = process.argv.slice(2)) {
     console.log(`Sign-bug rows: ${signBug.length}. Other drift (not changed, review by hand): ${otherDrift.length}.`);
 
     console.log(`${args.apply ? `Updated ${applied.length} rows. Old and new values` : "Report"} saved to ${csvPath}`);
+    console.log(
+      "This file contains customer ledger data. Keep it off shared hosts and delete it once it's no longer needed."
+    );
 
     return { findings: allFindings, applied };
   } finally {
