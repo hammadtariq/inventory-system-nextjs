@@ -5,11 +5,14 @@ import useSWR from "swr";
 import { get, post, put, remove } from "@/lib/http-client";
 import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 
-export const useItems = (companyId) => {
+export const useItems = (companyId, { field = "", value = "" } = {}) => {
   const [pagination, setPagination] = useState({ limit: DEFAULT_PAGE_LIMIT, offset: 0, pageNumber: 1 });
   const { data, error, mutate } = useSWR(
-    `/api/items?limit=${pagination.limit}&offset=${pagination.offset}&companyId=${companyId}`,
-    get
+    `/api/items?limit=${pagination.limit}&offset=${pagination.offset}&companyId=${companyId}` +
+      `&search=${encodeURIComponent(value)}&searchField=${encodeURIComponent(field)}`,
+    get,
+    // Keep the table mounted while a search loads, so the column filter keeps its state.
+    { keepPreviousData: true }
   );
 
   const paginationHandler = (limit, offset, pageNumber) => {

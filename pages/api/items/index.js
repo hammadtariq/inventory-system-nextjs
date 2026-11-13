@@ -1,5 +1,6 @@
 import Joi from "joi";
 import nextConnect from "next-connect";
+import { Op } from "sequelize";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
@@ -56,10 +57,10 @@ const createItem = async (req, res) => {
   }
 };
 
-const getAllItems = async (req, res) => {
+export const getAllItems = async (req, res) => {
   console.log("get all items Request Start");
 
-  const { limit, offset, companyId, type, orderBy, sortOrder } = req.query;
+  const { limit, offset, companyId, type, orderBy, sortOrder, search, searchField } = req.query;
   const options = {};
   options.limit = limit ? limit : DEFAULT_ROWS_LIMIT;
   options.offset = offset ? offset : 0;
@@ -76,6 +77,10 @@ const getAllItems = async (req, res) => {
     options.where = {
       type,
     };
+  }
+  // Search on the server so a match on a later page is still found, not only rows already loaded.
+  if (search?.trim() && searchField === "itemName") {
+    options.where = { ...options.where, itemName: { [Op.iLike]: `%${search.trim()}%` } };
   }
   const order = orderBy && sortOrder ? [orderBy, sortOrder] : ["updatedAt", "DESC"];
   try {
