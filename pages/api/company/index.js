@@ -1,6 +1,6 @@
 import Joi from "joi";
 import nextConnect from "next-connect";
-import { UniqueConstraintError } from "sequelize";
+import { Op, UniqueConstraintError } from "sequelize";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
@@ -50,8 +50,12 @@ export const createCompany = async (req, res) => {
 export const getAllCompanies = async (req, res) => {
   console.log("Get All Company Request Start");
 
-  const { limit, offset, attributes = [] } = req.query;
+  const { limit, offset, attributes = [], search } = req.query;
   const options = {};
+  // Search on the server so a match on a later page is still found, not only rows already loaded.
+  if (search?.trim()) {
+    options.where = { companyName: { [Op.iLike]: `%${search.trim()}%` } };
+  }
   options.limit = limit ? limit : DEFAULT_ROWS_LIMIT;
   options.offset = offset ? offset : 0;
   if (attributes.length) {

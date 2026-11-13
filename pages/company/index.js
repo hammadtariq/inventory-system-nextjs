@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Alert, Button, Popconfirm } from "antd";
 import dayjs from "dayjs";
@@ -16,11 +16,17 @@ import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import Spinner from "@/components/spinner";
 
 const Company = () => {
-  const { companies, error, isLoading, paginationHandler, mutate } = useCompanies();
   const router = useRouter();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+  const { companies, error, isLoading, pagination, paginationHandler, mutate } = useCompanies(searchText);
+
+  // A new search starts from the first page of its results.
+  useEffect(() => {
+    paginationHandler(pagination.limit, 0, 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchText]);
 
   const canDelete = permissionsUtil.checkAuth({
     category: "company",
@@ -114,6 +120,7 @@ const Company = () => {
         dataSource={companies ? companies.rows : []}
         totalCount={companies ? companies.count : 0}
         paginationHandler={paginationHandler}
+        pagination={pagination}
       />
     </>
   );
