@@ -3,13 +3,19 @@ import useSWR from "swr";
 import { get, post, put } from "@/lib/http-client";
 import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 
-export const useSales = () => {
-  const [pagination, setPagination] = useState({ limit: DEFAULT_PAGE_LIMIT, offset: 0 });
-  const { data, error, mutate } = useSWR(`/api/sales?limit=${pagination.limit}&offset=${pagination.offset}`, get);
+export const useSales = ({ field = "", value = "" } = {}) => {
+  const [pagination, setPagination] = useState({ limit: DEFAULT_PAGE_LIMIT, offset: 0, pageNumber: 1 });
+  const { data, error, mutate } = useSWR(
+    `/api/sales?limit=${pagination.limit}&offset=${pagination.offset}` +
+      `&search=${encodeURIComponent(value)}&searchField=${encodeURIComponent(field)}`,
+    get,
+    // Keep the table mounted while a search loads, so the column filter keeps its state.
+    { keepPreviousData: true }
+  );
 
   const paginationHandler = useCallback(
-    (limit, offset) => {
-      setPagination({ limit, offset });
+    (limit, offset, pageNumber) => {
+      setPagination({ limit, offset, pageNumber });
     },
     [setPagination]
   );
@@ -18,6 +24,7 @@ export const useSales = () => {
     sales: data,
     isLoading: !error && !data,
     error,
+    pagination,
     paginationHandler,
     mutate,
   };

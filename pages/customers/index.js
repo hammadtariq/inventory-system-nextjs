@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Alert, Button, Popconfirm } from "antd";
 import dayjs from "dayjs";
@@ -15,11 +15,20 @@ import { DATE_TIME_FORMAT } from "@/utils/ui.util";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 
 export default function Customers() {
-  const { customers, error, isLoading, paginationHandler, mutate } = useCustomers();
   const router = useRouter();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+  const { customers, error, isLoading, pagination, paginationHandler, mutate } = useCustomers({
+    field: searchedColumn,
+    value: searchText,
+  });
+
+  // A new search starts from the first page of its results.
+  useEffect(() => {
+    paginationHandler(pagination.limit, 0, 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchText, searchedColumn]);
 
   const canDelete = permissionsUtil.checkAuth({
     category: "customer",
@@ -133,6 +142,7 @@ export default function Customers() {
         dataSource={customers ? customers.rows : []}
         totalCount={customers ? customers.count : 0}
         paginationHandler={paginationHandler}
+        pagination={pagination}
       />
     </>
   );

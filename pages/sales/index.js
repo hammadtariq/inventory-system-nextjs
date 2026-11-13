@@ -17,9 +17,12 @@ import { comaSeparatedValues } from "@/utils/comaSeparatedValues";
 import SendInvoiceWhatsApp from "@/components/sendInvoiceWhatsApp";
 
 const Sales = () => {
-  const { sales, error, isLoading, paginationHandler, mutate } = useSales();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
+  const { sales, error, isLoading, pagination, paginationHandler, mutate } = useSales({
+    field: searchedColumn,
+    value: searchText,
+  });
   const [updatedSales, setUpdatedSales] = useState("");
   const searchInput = useRef(null);
   const router = useRouter();
@@ -31,6 +34,12 @@ const Sales = () => {
   useEffect(() => {
     setUpdatedSales(sales);
   }, [sales]);
+
+  // A new search starts from the first page of its results.
+  useEffect(() => {
+    paginationHandler(pagination.limit, 0, 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchText, searchedColumn]);
 
   // const expandedRowRender = (record) => {
   //   const columns = [
@@ -236,6 +245,7 @@ const Sales = () => {
         dataSource={updatedSales ? updatedSales.rows : []}
         totalCount={updatedSales ? updatedSales.count : 0}
         paginationHandler={paginationHandler}
+        pagination={pagination}
       />
     </>
   );

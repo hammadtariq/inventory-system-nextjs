@@ -20,10 +20,13 @@ import { searchCompany } from "@/hooks/company";
 const Items = () => {
   const router = useRouter();
   const [search, setSearch] = useState("");
-  const { items, error, isLoading, pagination, paginationHandler, mutate } = useItems(search);
   const [searchText, setSearchText] = useState("");
-  const [updatedItemList, setUpdatedItemList] = useState();
   const [searchedColumn, setSearchedColumn] = useState("");
+  const { items, error, isLoading, pagination, paginationHandler, mutate } = useItems(search, {
+    field: searchedColumn,
+    value: searchText,
+  });
+  const [updatedItemList, setUpdatedItemList] = useState();
   const searchInput = useRef(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -36,6 +39,12 @@ const Items = () => {
   useEffect(() => {
     setUpdatedItemList(items);
   }, [items]);
+
+  // A new search starts from the first page of its results.
+  useEffect(() => {
+    paginationHandler(pagination.limit, 0, 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchText, searchedColumn]);
 
   const canDelete = permissionsUtil.checkAuth({
     category: "item",
