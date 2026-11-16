@@ -22,10 +22,7 @@ const Items = () => {
   const [search, setSearch] = useState("");
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
-  const { items, error, isLoading, pagination, paginationHandler, mutate } = useItems(search, {
-    field: searchedColumn,
-    value: searchText,
-  });
+  const { items, error, isLoading, pagination, paginationHandler, mutate } = useItems(search, searchText);
   const [updatedItemList, setUpdatedItemList] = useState();
   const searchInput = useRef(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -39,12 +36,6 @@ const Items = () => {
   useEffect(() => {
     setUpdatedItemList(items);
   }, [items]);
-
-  // A new search starts from the first page of its results.
-  useEffect(() => {
-    paginationHandler(pagination.limit, 0, 1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchText, searchedColumn]);
 
   const canDelete = permissionsUtil.checkAuth({
     category: "item",
@@ -102,6 +93,7 @@ const Items = () => {
         setSearchedColumn,
         dataIndexName: "item name",
       }),
+      onFilter: undefined, // searched on the server; re-filtering its rows here hides valid matches
     },
     {
       title: "Company Name",

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import { Alert, Button, Popconfirm } from "antd";
 import dayjs from "dayjs";
@@ -19,16 +19,10 @@ export default function Customers() {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
-  const { customers, error, isLoading, pagination, paginationHandler, mutate } = useCustomers({
+  const { customers, error, isLoading, paginationHandler, mutate } = useCustomers({
     field: searchedColumn,
     value: searchText,
   });
-
-  // A new search starts from the first page of its results.
-  useEffect(() => {
-    paginationHandler(pagination.limit, 0, 1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchText, searchedColumn]);
 
   const canDelete = permissionsUtil.checkAuth({
     category: "customer",
@@ -81,6 +75,7 @@ export default function Customers() {
         setSearchedColumn,
         dataIndexName: "first name",
       }),
+      onFilter: undefined, // searched on the server; re-filtering its rows here hides valid matches
     },
     {
       title: "Last Name",
@@ -99,6 +94,7 @@ export default function Customers() {
         setSearchText,
         setSearchedColumn,
       }),
+      onFilter: undefined, // searched on the server; re-filtering its rows here hides valid matches
     },
     {
       title: "Phone",
@@ -112,6 +108,7 @@ export default function Customers() {
         setSearchText,
         setSearchedColumn,
       }),
+      onFilter: undefined, // searched on the server; re-filtering its rows here hides valid matches
     },
     {
       title: "Address",
@@ -142,7 +139,6 @@ export default function Customers() {
         dataSource={customers ? customers.rows : []}
         totalCount={customers ? customers.count : 0}
         paginationHandler={paginationHandler}
-        pagination={pagination}
       />
     </>
   );

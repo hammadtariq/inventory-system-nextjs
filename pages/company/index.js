@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import { Alert, Button, Popconfirm } from "antd";
 import dayjs from "dayjs";
@@ -20,13 +20,7 @@ const Company = () => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
-  const { companies, error, isLoading, pagination, paginationHandler, mutate } = useCompanies(searchText);
-
-  // A new search starts from the first page of its results.
-  useEffect(() => {
-    paginationHandler(pagination.limit, 0, 1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchText]);
+  const { companies, error, isLoading, paginationHandler, mutate } = useCompanies(searchText);
 
   const canDelete = permissionsUtil.checkAuth({
     category: "company",
@@ -78,6 +72,7 @@ const Company = () => {
         setSearchedColumn,
         dataIndexName: "company name",
       }),
+      onFilter: undefined, // searched on the server; re-filtering its rows here hides valid matches
     },
     {
       title: "Email",
@@ -120,7 +115,6 @@ const Company = () => {
         dataSource={companies ? companies.rows : []}
         totalCount={companies ? companies.count : 0}
         paginationHandler={paginationHandler}
-        pagination={pagination}
       />
     </>
   );

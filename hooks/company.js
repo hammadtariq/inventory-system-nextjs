@@ -4,7 +4,7 @@ import { get, post, put, remove } from "@/lib/http-client";
 import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 
 export const useCompanies = (search = "") => {
-  const [pagination, setPagination] = useState({ limit: DEFAULT_PAGE_LIMIT, offset: 0, pageNumber: 1 });
+  const [pagination, setPagination] = useState({ limit: DEFAULT_PAGE_LIMIT, offset: 0 });
   const { data, error, mutate } = useSWR(
     `/api/company?limit=${pagination.limit}&offset=${pagination.offset}&search=${encodeURIComponent(search)}`,
     get,
@@ -13,8 +13,8 @@ export const useCompanies = (search = "") => {
   );
 
   const paginationHandler = useCallback(
-    (limit, offset, pageNumber) => {
-      setPagination({ limit, offset, pageNumber });
+    (limit, offset) => {
+      setPagination({ limit, offset });
     },
     [setPagination]
   );
@@ -23,7 +23,6 @@ export const useCompanies = (search = "") => {
     companies: data,
     isLoading: !error && !data,
     error,
-    pagination,
     paginationHandler,
     mutate,
   };

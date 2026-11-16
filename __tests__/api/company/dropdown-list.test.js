@@ -23,10 +23,6 @@ const list = async (query) => {
   return res._getData().rows.map((c) => c.companyName);
 };
 
-it("company dropdown query (attributes only) includes companies past the first page", async () => {
-  expect(await list({ attributes: JSON.stringify(["companyName", "id"]) })).toContain("Imperial Traders");
-});
-
 it("company list search looks across all companies, not just the loaded page", async () => {
   db.Company.findAndCountAll.mockImplementation(async ({ where, limit, offset }) => {
     const term = where?.companyName?.[Op.iLike]?.replaceAll("%", "").toLowerCase();

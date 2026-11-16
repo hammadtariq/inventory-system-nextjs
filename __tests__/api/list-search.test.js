@@ -55,7 +55,6 @@ describe("items list search", () => {
   it("searches item names across all items, keeping the company filter", async () => {
     const where = await queryWhere(getAllItems, db.Items, {
       search: "cotton",
-      searchField: "itemName",
       companyId: "4",
     });
     expect(where).toEqual({ companyId: "4", itemName: { [Op.iLike]: "%cotton%" } });

@@ -19,7 +19,7 @@ import SendInvoiceWhatsApp from "@/components/sendInvoiceWhatsApp";
 const Sales = () => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
-  const { sales, error, isLoading, pagination, paginationHandler, mutate } = useSales({
+  const { sales, error, isLoading, paginationHandler, mutate } = useSales({
     field: searchedColumn,
     value: searchText,
   });
@@ -34,12 +34,6 @@ const Sales = () => {
   useEffect(() => {
     setUpdatedSales(sales);
   }, [sales]);
-
-  // A new search starts from the first page of its results.
-  useEffect(() => {
-    paginationHandler(pagination.limit, 0, 1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchText, searchedColumn]);
 
   // const expandedRowRender = (record) => {
   //   const columns = [
@@ -149,6 +143,7 @@ const Sales = () => {
         setSearchText,
         setSearchedColumn,
       }),
+      onFilter: undefined, // searched on the server; re-filtering its rows here hides valid matches
     },
     {
       title: "Last Name",
@@ -186,6 +181,7 @@ const Sales = () => {
         setSearchText,
         setSearchedColumn,
       }),
+      onFilter: undefined, // searched on the server; re-filtering its rows here hides valid matches
       render(text) {
         return {
           props: {
@@ -245,7 +241,6 @@ const Sales = () => {
         dataSource={updatedSales ? updatedSales.rows : []}
         totalCount={updatedSales ? updatedSales.count : 0}
         paginationHandler={paginationHandler}
-        pagination={pagination}
       />
     </>
   );
