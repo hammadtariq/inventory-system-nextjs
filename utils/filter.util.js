@@ -65,7 +65,7 @@ export const getColumnSearchProps = ({
           </Button>
           <Button
             onClick={() => {
-              clearFilters();
+              clearFilters({ confirm: true });
               setSearchText(selectOptions.length > 0 ? [] : "");
             }}
             size="small"

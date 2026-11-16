@@ -20,10 +20,10 @@ import { searchCompany } from "@/hooks/company";
 const Items = () => {
   const router = useRouter();
   const [search, setSearch] = useState("");
-  const { items, error, isLoading, pagination, paginationHandler, mutate } = useItems(search);
   const [searchText, setSearchText] = useState("");
-  const [updatedItemList, setUpdatedItemList] = useState();
   const [searchedColumn, setSearchedColumn] = useState("");
+  const { items, error, isLoading, pagination, paginationHandler, mutate } = useItems(search, searchText);
+  const [updatedItemList, setUpdatedItemList] = useState();
   const searchInput = useRef(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -93,6 +93,7 @@ const Items = () => {
         setSearchedColumn,
         dataIndexName: "item name",
       }),
+      onFilter: undefined, // searched on the server; re-filtering its rows here hides valid matches
     },
     {
       title: "Company Name",

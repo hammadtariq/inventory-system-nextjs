@@ -17,9 +17,12 @@ import { comaSeparatedValues } from "@/utils/comaSeparatedValues";
 import SendInvoiceWhatsApp from "@/components/sendInvoiceWhatsApp";
 
 const Sales = () => {
-  const { sales, error, isLoading, paginationHandler, mutate } = useSales();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
+  const { sales, error, isLoading, paginationHandler, mutate } = useSales({
+    field: searchedColumn,
+    value: searchText,
+  });
   const [updatedSales, setUpdatedSales] = useState("");
   const searchInput = useRef(null);
   const router = useRouter();
@@ -140,6 +143,7 @@ const Sales = () => {
         setSearchText,
         setSearchedColumn,
       }),
+      onFilter: undefined, // searched on the server; re-filtering its rows here hides valid matches
     },
     {
       title: "Last Name",
@@ -177,6 +181,7 @@ const Sales = () => {
         setSearchText,
         setSearchedColumn,
       }),
+      onFilter: undefined, // searched on the server; re-filtering its rows here hides valid matches
       render(text) {
         return {
           props: {

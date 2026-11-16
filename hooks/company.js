@@ -3,9 +3,14 @@ import useSWR from "swr";
 import { get, post, put, remove } from "@/lib/http-client";
 import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 
-export const useCompanies = () => {
+export const useCompanies = (search = "") => {
   const [pagination, setPagination] = useState({ limit: DEFAULT_PAGE_LIMIT, offset: 0 });
-  const { data, error, mutate } = useSWR(`/api/company?limit=${pagination.limit}&offset=${pagination.offset}`, get);
+  const { data, error, mutate } = useSWR(
+    `/api/company?limit=${pagination.limit}&offset=${pagination.offset}&search=${encodeURIComponent(search)}`,
+    get,
+    // Keep the table mounted while a search loads, so the column filter keeps its state.
+    { keepPreviousData: true }
+  );
 
   const paginationHandler = useCallback(
     (limit, offset) => {

@@ -10,13 +10,14 @@ import AppTitle from "@/components/title";
 import { getInventory, searchInventory, updateInventory, useInventory } from "@/hooks/inventory";
 import styles from "@/styles/EditableCell.module.css";
 import permissionsUtil from "@/utils/permission.util";
-import { useCompanies } from "@/hooks/company";
+import { useCompanyAttributes } from "@/hooks/company";
 import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 
 const Inventory = () => {
   const [filters, setFilters] = useState({ itemId: null, companyIds: [] });
   const { inventory, error, isLoading, mutate, pagination, paginationHandler } = useInventory(filters);
-  const { companies, error: companyError } = useCompanies();
+  // Full name list (not the paginated 50-row table query) so every company is selectable.
+  const { company: companies, error: companyError } = useCompanyAttributes(["companyName", "id"]);
   const [updatedInventory, setUpdatedInventory] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -33,11 +34,11 @@ const Inventory = () => {
 
   const companyOptions = useMemo(
     () =>
-      companies?.rows?.map((company) => ({
+      companies?.map((company) => ({
         label: company.companyName,
         value: company.id,
       })) || [],
-    [companies?.rows]
+    [companies]
   );
 
   const buildColumns = (defaultColumns) =>

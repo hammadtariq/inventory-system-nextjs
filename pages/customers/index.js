@@ -15,11 +15,14 @@ import { DATE_TIME_FORMAT } from "@/utils/ui.util";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 
 export default function Customers() {
-  const { customers, error, isLoading, paginationHandler, mutate } = useCustomers();
   const router = useRouter();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+  const { customers, error, isLoading, paginationHandler, mutate } = useCustomers({
+    field: searchedColumn,
+    value: searchText,
+  });
 
   const canDelete = permissionsUtil.checkAuth({
     category: "customer",
@@ -72,6 +75,7 @@ export default function Customers() {
         setSearchedColumn,
         dataIndexName: "first name",
       }),
+      onFilter: undefined, // searched on the server; re-filtering its rows here hides valid matches
     },
     {
       title: "Last Name",
@@ -90,6 +94,7 @@ export default function Customers() {
         setSearchText,
         setSearchedColumn,
       }),
+      onFilter: undefined, // searched on the server; re-filtering its rows here hides valid matches
     },
     {
       title: "Phone",
@@ -103,6 +108,7 @@ export default function Customers() {
         setSearchText,
         setSearchedColumn,
       }),
+      onFilter: undefined, // searched on the server; re-filtering its rows here hides valid matches
     },
     {
       title: "Address",

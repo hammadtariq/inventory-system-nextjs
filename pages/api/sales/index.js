@@ -1,5 +1,6 @@
 import Joi from "joi";
 import nextConnect from "next-connect";
+import { Op } from "sequelize";
 
 import db from "@/lib/postgres";
 import { auth } from "@/middlewares/auth";
@@ -63,17 +64,30 @@ export const createSale = async (req, res) => {
   }
 };
 
-const getAllSales = async (req, res) => {
+// Search on the server so a match on a later page is still found, not only rows already loaded.
+const searchWhere = (search, searchField) => {
+  const term = search?.trim();
+  if (!term) return undefined;
+  if (searchField === "firstName") return { "$customer.firstName$": { [Op.iLike]: `%${term}%` } };
+  if (searchField === "status") {
+    return { status: { [Op.in]: Object.values(STATUS).filter((s) => s.includes(term.toUpperCase())) } };
+  }
+  return undefined;
+};
+
+export const getAllSales = async (req, res) => {
   console.log("Get all sale order Request Start");
 
-  const { limit, offset } = req.query;
+  const { limit, offset, search, searchField } = req.query;
   const pagination = {};
   pagination.limit = limit ? limit : DEFAULT_ROWS_LIMIT;
   pagination.offset = offset ? offset : 0;
+  const where = searchWhere(search, searchField);
   try {
     await db.dbConnect();
     const sales = await db.Sale.findAndCountAll({
       ...pagination,
+      ...(where ? { where } : {}),
       include: [db.Customer],
       order: [["updatedAt", "DESC"]],
     });

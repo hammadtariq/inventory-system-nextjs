@@ -16,11 +16,11 @@ import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import Spinner from "@/components/spinner";
 
 const Company = () => {
-  const { companies, error, isLoading, paginationHandler, mutate } = useCompanies();
   const router = useRouter();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+  const { companies, error, isLoading, paginationHandler, mutate } = useCompanies(searchText);
 
   const canDelete = permissionsUtil.checkAuth({
     category: "company",
@@ -72,6 +72,7 @@ const Company = () => {
         setSearchedColumn,
         dataIndexName: "company name",
       }),
+      onFilter: undefined, // searched on the server; re-filtering its rows here hides valid matches
     },
     {
       title: "Email",

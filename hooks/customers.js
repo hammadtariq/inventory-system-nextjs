@@ -6,9 +6,15 @@ import { DEFAULT_PAGE_LIMIT } from "@/utils/ui.util";
 
 import { get, post, put, remove } from "../lib/http-client";
 
-export const useCustomers = () => {
+export const useCustomers = ({ field = "", value = "" } = {}) => {
   const [pagination, setPagination] = useState({ limit: DEFAULT_PAGE_LIMIT, offset: 0 });
-  const { data, error, mutate } = useSWR(`/api/customer?limit=${pagination.limit}&offset=${pagination.offset}`, get);
+  const { data, error, mutate } = useSWR(
+    `/api/customer?limit=${pagination.limit}&offset=${pagination.offset}` +
+      `&search=${encodeURIComponent(value)}&searchField=${encodeURIComponent(field)}`,
+    get,
+    // Keep the table mounted while a search loads, so the column filter keeps its state.
+    { keepPreviousData: true }
+  );
 
   const paginationHandler = useCallback(
     (limit, offset) => {

@@ -1,0 +1,56 @@
+﻿key,testrail_id,section,title,priority,type,level,risks,score,why_it_matters,background,scenario,data,notes,known_issue,source,file,suggestion,decision,review_notes
+LS-01,,Search across pages,A supplier on a later page is found by name,P2,Regression,ui,1,,"Staff who can't find a supplier that exists create it again, and its purchases and payments split across two ledgers.",,"Given the organization has 55 suppliers, shown 50 to a page
+And a supplier that only appears on the second page
+When staff on the first page search the supplier list for part of that name, in lower case with spaces around it
+Then that supplier is listed and the list shows page 1
+When staff go to the second page and search for a supplier that sits on the first page
+Then that supplier is listed on page 1, not an empty page 2",,"Pick the names at run time: GET /api/company?limit=50&offset=50 (first row) and offset=0 (any row).
+Column search = the magnifier in the Company Name header; check both Enter and the Search control.
+Assert one list request per search (no request with the old offset).
+Explored 2026-11-13 (demo org): ""  coastal impor  "" from page 1 lists ""Coastal Imports"" (a page-2 supplier), 1 row, page 1; from page 2, ""ironwood bale house"" lists 1 row on page 1; one list request per search.
+Regression guard: before the fix on 2026-11-13 a search with spaces around it (or ""%"") showed an empty list, because the browser re-filtered the server's rows with the untrimmed text.",,Brief AC 1-3,e2e/lists/search.spec.ts,Keep: the bug this branch fixes; guards the page-1 reset that now relies on the table itself,,
+LS-02,,Search across pages,Every searchable list finds matches beyond the first 50 records,P2,Regression,api,1;5,,"A customer, item or pending sale that search can't find is treated as missing: duplicates get created and pending sales go unapproved.",,"Given a <list> with more than 50 records and one that sits beyond the first 50
+When staff search the <list> by <column> for <text>
+Then the result has that record, every result matches <text>, and the total equals the number of matches","list | column | text
+customers | first name | part of the name, different letter case
+customers | email | the full email in upper case
+customers | phone | the last 6 digits
+sales | customer first name | part of the name, lower case
+sales | status | pend
+items | item name | part of the name, lower case","GET /api/customer, /api/sales, /api/items with limit=50&offset=0&search=&searchField= (firstName, email, phone, status); items takes search only.
+Runs against real Postgres, which the unit tests (mocked) can't: sales joins the customer for the first-name search.
+status ""pend"" must return only PENDING rows; count = number of PENDING sales from an unfiltered read.
+Last name is not searchable on purpose (owner Q2).
+Explored 2026-11-13 through the lists: email ""MARY.BROWN@BUYER.COM"" 1 customer; phone ""4-7695"" 1 customer; sales first name ""robert"" 4 pages, all Robert; item ""cotton rags industrial"" 3 items.",,Brief AC 1-2,e2e/lists/search.spec.ts,Keep: one data table instead of six cases; cheapest level that exercises the real queries,,
+LS-03,,Reset and recovery,Reset brings back the full sales list from the first page,P2,Regression,ui,5,,"If Reset leaves the list half-filtered, the owner sees a fraction of the sales and believes records were lost or already handled.",,"Given the organization has 320 sales, shown 50 to a page
+When staff search the sales list by status for ""pend""
+Then every sale shown is PENDING and the total is the number of pending sales
+When staff go to the second page of the results and then reset the search
+Then the list shows page 1 of all 320 sales with 50 rows, in more than one status",,"Reset is in utils/filter.util.js (clearFilters({ confirm: true })), shared by every searchable table.
+If fewer than 51 sales are PENDING, reset from page 1 and say so in the test.
+Total = the pager's last page x 50 bound; read the exact count from GET /api/sales.
+Explored 2026-11-13: ""pend"" gives 53 PENDING sales (50 + 3 on page 2); Reset from page 2 shows page 1 of 7 with 50 rows in APPROVED, PENDING and CANCEL.",,Brief AC 3-4,e2e/lists/search.spec.ts,Keep: Reset left the old filter applied before this change; only case paging inside results,,
+LS-04,,Reset and recovery,"A search with no match shows an empty list, then recovers",P3,Functional,ui,5,,Old rows left on screen after a failed search make staff act on the wrong supplier.,,"Given the organization has 55 suppliers
+When staff search the supplier list for ""zzzz-no-such-supplier""
+Then the list is empty and shows ""No data""
+When staff reset the search
+Then the list shows 50 suppliers on page 1 of 2",,"Rows from the previous page must not stay visible while the search loads (the hooks keep previous data during loading).
+Explored 2026-11-13: ""zzzz"" shows no rows and no pager; Reset shows 50 rows, page 1 of 2.",,Brief AC 4-5,e2e/lists/search.spec.ts,Keep: cheap recovery check; merge into LS-01 if the budget is tight,,
+LS-05,,Search across pages,A search on another column replaces the previous search,P3,Functional,ui,5,,"Two searches silently stacked show fewer customers than the total says, so staff trust a list that is hiding records.",,"Given the organization has 55 customers
+And staff have searched the customer list by first name for ""a""
+When staff search by email for one customer's full email, without resetting
+Then exactly 1 customer is listed, the total is 1, and the first name search no longer applies",,"Owner decision Q1 (2026-11-13): searches don't combine.
+Pick an email whose first name has no ""a"" so a stacked first-name filter would hide it.
+Explored 2026-11-13: first name ""mary"" (25 customers), then email ""robert.martinez@buyer.com"" without Reset: 1 row, Robert. The first column keeps its highlighted search icon (cosmetic).",,Owner Q1 (2026-11-13),e2e/lists/search.spec.ts,Keep: owner decision Q1; passes since the lists stopped re-filtering server results in the browser,,
+LS-06,,Stock list,The stock list's supplier filter offers every supplier,P2,Regression,ui,2,,"If a supplier is missing from the filter, the owner can't check that supplier's stock on hand and assumes there is none.",,"Given the organization has 55 suppliers
+And a supplier that only appears on the second page of the supplier list
+When staff type part of that supplier's name in the stock list's supplier filter
+Then that supplier is offered and can be chosen
+And the stock list shows only that supplier's items",,"pages/inventory now reads the full name list (up to 1,000, accepted by the owner, Q4) instead of the 50-row table query.
+Use antSelect helpers; the option list is virtual, so type to reach it.
+Explored 2026-11-13: typing ""coasta"" offers the 5 Coastal suppliers, all of which sit on page 2 of the supplier list. Choosing one and the filtered stock rows were not explored.",,Brief AC 6,e2e/lists/search.spec.ts,Keep: second half of the fix; no other case covers the stock filter,,
+LS-07,,Isolation,Search never returns another organization's records,P1,Security,api,3,,"A search that leaks another business's suppliers, customers or sales exposes who they trade with and for how much.",,"Given a second organization with a supplier, a customer, an item and a sale all named ""QA Leak Probe""
+When staff of the demo organization search each list for ""leak probe""
+Then suppliers, customers, items and sales each return 0 results with a total of 0",,"Second org via e2e/support/second-org.ts; GET each list with search (and searchField) as the demo ADMIN.
+The company and sales handlers rely on the tenant hooks only (no explicit organizationId in the query).
+CO-13 covers the supplier list and lookup without the new search parameter.",,Brief AC 7,e2e/lists/search.spec.ts,Keep: new query parameter on four lists; app hooks are the real tenant boundary in production,,
